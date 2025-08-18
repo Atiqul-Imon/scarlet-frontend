@@ -21,8 +21,7 @@ export default function TopBar() {
           {/* Logo */}
           <Link href="/" className="block w-[280px] select-none">
             <div className="flex items-center">
-              <span className="text-3xl font-bold text-pink-600 tracking-tight leading-none">Beauty</span>
-              <span className="text-3xl font-bold text-gray-800 tracking-tight leading-none ml-1">Booth</span>
+              <span className="text-3xl font-bold text-pink-600 tracking-tight leading-none">Scarlet</span>
             </div>
           </Link>
 

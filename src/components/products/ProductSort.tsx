@@ -1,0 +1,128 @@
+"use client";
+import * as React from 'react';
+
+interface SortOption {
+  value: string;
+  label: string;
+}
+
+interface ProductSortProps {
+  sortOptions: SortOption[];
+  currentSort: string;
+  onSortChange: (sortValue: string) => void;
+  totalResults?: number;
+}
+
+const defaultSortOptions: SortOption[] = [
+  { value: 'featured', label: 'Featured' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'price-low', label: 'Price: Low to High' },
+  { value: 'price-high', label: 'Price: High to Low' },
+  { value: 'name-asc', label: 'Name: A to Z' },
+  { value: 'name-desc', label: 'Name: Z to A' },
+];
+
+export default function ProductSort({
+  sortOptions = defaultSortOptions,
+  currentSort,
+  onSortChange,
+  totalResults
+}: ProductSortProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  
+  const currentSortLabel = sortOptions.find(option => option.value === currentSort)?.label || 'Featured';
+
+  return (
+    <div className="flex items-center justify-between mb-6">
+      {/* Results Count */}
+      <div className="text-sm text-gray-600">
+        {totalResults !== undefined && (
+          <span>
+            {totalResults === 1 
+              ? '1 product' 
+              : `${totalResults.toLocaleString()} products`
+            }
+          </span>
+        )}
+      </div>
+
+      {/* Sort Dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors bg-white"
+        >
+          <span className="text-sm font-medium">Sort by: {currentSortLabel}</span>
+          <ChevronIcon expanded={isOpen} />
+        </button>
+
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 z-10" 
+              onClick={() => setIsOpen(false)}
+            />
+            
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+              <div className="py-2">
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      onSortChange(option.value);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                      currentSort === option.value 
+                        ? 'text-pink-600 bg-pink-50 font-medium' 
+                        : 'text-gray-700'
+                    }`}
+                  >
+                    {option.label}
+                    {currentSort === option.value && (
+                      <CheckIcon />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ChevronIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <svg 
+      width="16" 
+      height="16" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2"
+      className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+    >
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg 
+      width="16" 
+      height="16" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2"
+      className="inline ml-2 text-pink-600"
+    >
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  );
+}
