@@ -223,7 +223,7 @@ export interface ReviewFormData {
 
 // Authentication Types
 export interface LoginFormData {
-  email: string;
+  identifier: string;
   password: string;
   rememberMe?: boolean;
 }
