@@ -97,6 +97,7 @@ export default function LoginPage() {
                 onChange={handleChange}
                 error={errors.identifier}
                 placeholder="Enter your email or phone number"
+                autoComplete="username"
                 required
               />
             </div>
@@ -110,6 +111,7 @@ export default function LoginPage() {
                 onChange={handleChange}
                 error={errors.password}
                 placeholder="Enter your password"
+                autoComplete="current-password"
                 required
               />
             </div>

@@ -229,7 +229,8 @@ export interface LoginFormData {
 }
 
 export interface RegisterFormData {
-  email: string;
+  email?: string;
+  phone?: string;
   password: string;
   confirmPassword: string;
   firstName: string;

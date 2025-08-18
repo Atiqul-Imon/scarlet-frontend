@@ -85,6 +85,7 @@ export default function RegisterPage() {
           email: values.email || undefined,
           phone: values.phone || undefined,
           password: values.password,
+          acceptTerms: values.acceptTerms,
         });
         
         await login(response.user, response.tokens);
@@ -133,6 +134,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   error={errors.firstName}
                   placeholder="First name"
+                  autoComplete="given-name"
                   required
                 />
               </div>
@@ -146,6 +148,7 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   error={errors.lastName}
                   placeholder="Last name"
+                  autoComplete="family-name"
                   required
                 />
               </div>
@@ -160,6 +163,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 error={errors.email}
                 placeholder="Enter your email address"
+                autoComplete="email"
               />
             </div>
 
@@ -172,6 +176,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 error={errors.phone}
                 placeholder="01XXXXXXXXX"
+                autoComplete="tel"
               />
               <p className="mt-1 text-sm text-gray-500">
                 Provide either email or phone number (or both)
@@ -187,6 +192,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 error={errors.password}
                 placeholder="Create a strong password"
+                autoComplete="new-password"
                 required
               />
             </div>
@@ -200,6 +206,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 error={errors.confirmPassword}
                 placeholder="Confirm your password"
+                autoComplete="new-password"
                 required
               />
             </div>

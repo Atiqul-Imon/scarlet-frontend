@@ -10,6 +10,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   error?: string;
   helperText?: string;
   fullWidth?: boolean;
+  label?: string;
+  autoComplete?: string;
 }
 
 const inputSizes = {
@@ -36,6 +38,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     helperText,
     fullWidth = false,
     disabled,
+    label,
     ...props 
   }, ref) => {
     const hasError = Boolean(error);
@@ -79,24 +82,33 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       />
     );
 
+    const wrapperClasses = fullWidth ? 'w-full' : '';
+    
     if (leftIcon || rightIcon) {
       return (
-        <div className={`relative ${fullWidth ? 'w-full' : ''}`}>
-          {leftIcon && (
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <span className="text-gray-400">
-                {leftIcon}
-              </span>
-            </div>
+        <div className={wrapperClasses}>
+          {label && (
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {label}
+            </label>
           )}
-          {inputElement}
-          {rightIcon && (
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <span className="text-gray-400">
-                {rightIcon}
-              </span>
-            </div>
-          )}
+          <div className="relative">
+            {leftIcon && (
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <span className="text-gray-400">
+                  {leftIcon}
+                </span>
+              </div>
+            )}
+            {inputElement}
+            {rightIcon && (
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-400">
+                  {rightIcon}
+                </span>
+              </div>
+            )}
+          </div>
           {error && (
             <p id={`${props.id}-error`} className="mt-1 text-sm text-red-600">
               {error}
@@ -112,7 +124,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }
 
     return (
-      <div className={fullWidth ? 'w-full' : ''}>
+      <div className={wrapperClasses}>
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+        )}
         {inputElement}
         {error && (
           <p id={`${props.id}-error`} className="mt-1 text-sm text-red-600">

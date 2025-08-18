@@ -26,7 +26,7 @@ export interface UseFormReturn<T> {
   touched: Partial<Record<keyof T, boolean>>;
   isSubmitting: boolean;
   isValid: boolean;
-  handleChange: (field: keyof T, value: any) => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   handleBlur: (field: keyof T) => void;
   handleSubmit: (e?: React.FormEvent) => Promise<void>;
   setFieldValue: (field: keyof T, value: any) => void;
@@ -63,11 +63,14 @@ export function useForm<T extends Record<string, any>>(
     }));
   }, [values, options.validate]);
 
-  const handleChange = React.useCallback((field: keyof T, value: any): void => {
-    setValues(prev => ({ ...prev, [field]: value }));
+  const handleChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
+    const { name, value, type, checked } = e.target;
+    const fieldValue = type === 'checkbox' ? checked : value;
+    
+    setValues(prev => ({ ...prev, [name]: fieldValue }));
     
     if (options.validateOnChange) {
-      validateField(field);
+      validateField(name as keyof T);
     }
   }, [validateField, options.validateOnChange]);
 
