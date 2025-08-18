@@ -2,11 +2,31 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
+import { useAuth, useCart } from '@/lib/context';
 
 export default function TopBar() {
   const router = useRouter();
+  const { user, logout } = useAuth();
+  const { cart } = useCart();
   const [q, setQ] = React.useState("");
-  const [cartCount, setCartCount] = React.useState(0);
+  const [showUserMenu, setShowUserMenu] = React.useState(false);
+  
+  const cartCount = cart?.items?.length || 0;
+  const userMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Close user menu when clicking outside
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showUserMenu]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,9 +70,78 @@ export default function TopBar() {
               </div>
             </Link>
             
-            <Link href="/account" className="hover:text-pink-600 inline-flex items-center transition-colors" aria-label="Account">
-              <UserIcon />
-            </Link>
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="hover:text-pink-600 inline-flex items-center transition-colors"
+                  aria-label="Account menu"
+                >
+                  <UserIcon />
+                </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                    <div className="px-4 py-2 border-b">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user.firstName} {user.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500">{user.email || user.phone}</p>
+                    </div>
+                    
+                    <Link
+                      href="/account"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      My Account
+                    </Link>
+                    
+                    <Link
+                      href="/account/orders"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Orders
+                    </Link>
+                    
+                    <Link
+                      href="/account/wishlist"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Wishlist
+                    </Link>
+                    
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowUserMenu(false);
+                        router.push('/');
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/login"
+                  className="text-sm text-gray-700 hover:text-pink-600 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-sm bg-pink-600 text-white px-3 py-1 rounded-md hover:bg-pink-700 transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
             
             <Link href="/cart" className="hover:text-pink-600 inline-flex items-center relative transition-colors group" aria-label="Cart">
               <div className="relative">

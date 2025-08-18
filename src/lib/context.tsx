@@ -283,7 +283,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 0) || 0;
   }, [cart]);
 
-  const executeCartOperation = React.useCallback(async <T>(
+  const executeCartOperation = React.useCallback(async <T,>(
     operation: () => Promise<T>,
     successMessage?: string
   ): Promise<T | undefined> => {
