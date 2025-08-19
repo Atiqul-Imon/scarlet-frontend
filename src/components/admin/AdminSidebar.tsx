@@ -60,6 +60,20 @@ const navigationItems: AdminNavItem[] = [
     label: 'Beauty Analytics',
     href: '/admin/analytics',
     icon: ChartBarIcon,
+    children: [
+      {
+        id: 'analytics-overview',
+        label: 'Overview',
+        href: '/admin/analytics',
+        icon: ChartBarIcon,
+      },
+      {
+        id: 'analytics-realtime',
+        label: 'Real-Time',
+        href: '/admin/analytics/realtime',
+        icon: ChartBarIcon,
+      },
+    ],
   },
   {
     id: 'inventory',
