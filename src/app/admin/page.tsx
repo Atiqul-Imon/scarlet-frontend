@@ -6,8 +6,8 @@ import {
   ShoppingCartIcon,
   BanknotesIcon,
   CubeIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   ExclamationTriangleIcon,
   SparklesIcon,
   HeartIcon,
@@ -80,9 +80,9 @@ function StatCard({ title, value, change, changeType, icon: Icon, color, subtitl
           {change && (
             <div className="flex items-center mt-2">
               {changeType === 'increase' ? (
-                <TrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
+                <ArrowTrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
               ) : (
-                <TrendingDownIcon className="w-4 h-4 text-red-500 mr-1" />
+                <ArrowTrendingDownIcon className="w-4 h-4 text-red-500 mr-1" />
               )}
               <span className={`text-sm font-medium ${changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
                 {change}

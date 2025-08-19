@@ -1,4 +1,4 @@
-import { fetchJsonAuth } from './api.js';
+import { fetchJsonAuth } from './api';
 import type {
   AdminStats,
   AdminUser,
@@ -12,7 +12,7 @@ import type {
   UserAnalytics,
   SystemSettings,
   AdminActivityLog
-} from './admin-types.js';
+} from './admin-types';
 
 const ADMIN_BASE = '/admin';
 
