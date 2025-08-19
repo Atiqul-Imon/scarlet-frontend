@@ -49,28 +49,56 @@ export interface AdminProduct {
   updatedAt?: string;
 }
 
+export interface AdminOrderItem {
+  _id: string;
+  productId: string;
+  productName: string;
+  productImage: string;
+  sku: string;
+  variant: string | null;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+export interface AdminOrderCustomer {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface AdminOrderAddress {
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
 export interface AdminOrder {
   _id: string;
-  userId: string;
-  customer?: {
-    name: string;
-    email?: string;
-    phone?: string;
-  };
-  items: Array<{
-    productId: string;
-    title: string;
-    price: number;
-    quantity: number;
-  }>;
+  orderNumber: string;
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  paymentStatus: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod';
+  customer: AdminOrderCustomer;
+  items: AdminOrderItem[];
   subtotal: number;
+  shippingCost: number;
+  tax: number;
   discount: number;
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
-  orderNumber?: string;
-  trackingNumber?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  currency: string;
+  shippingAddress: AdminOrderAddress;
+  billingAddress: AdminOrderAddress;
+  notes?: string;
+  trackingNumber?: string | null;
+  estimatedDelivery?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AdminFilters {
@@ -209,4 +237,67 @@ export interface AdminNavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: number;
   children?: AdminNavItem[];
+}
+
+// Enhanced Product interface for inventory management
+export interface ExtendedAdminProduct extends AdminProduct {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  shortDescription: string;
+  comparePrice?: number;
+  cost: number;
+  sku: string;
+  barcode?: string;
+  category: string;
+  subcategory?: string;
+  tags: string[];
+  variants: Array<{
+    id?: string;
+    name: string;
+    sku: string;
+    stock: number;
+    price: number;
+  }>;
+  lowStockThreshold: number;
+  trackInventory: boolean;
+  status: 'active' | 'draft' | 'archived';
+  stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock' | 'pre_order';
+  weight?: number;
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  salesCount: number;
+  viewCount: number;
+  rating: number;
+  reviewCount: number;
+}
+
+export interface InventoryItem extends ExtendedAdminProduct {
+  reorderPoint: number;
+  maxStock: number;
+  reservedStock: number;
+  availableStock: number;
+  lastRestockDate: string;
+  supplier: string;
+  location: string;
+  turnoverRate: number;
+}
+
+export interface StockMovement {
+  id: string;
+  productId: string;
+  productName: string;
+  type: 'in' | 'out' | 'adjustment';
+  quantity: number;
+  reason: string;
+  date: string;
+  user: string;
+  reference?: string;
 }

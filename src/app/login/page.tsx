@@ -51,8 +51,7 @@ export default function LoginPage() {
       setError('');
       
       try {
-        const response = await authApi.login(values);
-        await login(response.user, response.tokens);
+        await login(values);
         router.push('/account');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Login failed');
