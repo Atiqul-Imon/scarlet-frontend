@@ -122,7 +122,7 @@ export const productApi = {
 
   // Get single product by slug
   getProductBySlug: (slug: string): Promise<Product> => {
-    return fetchJson<Product>(`/catalog/products/slug/${slug}`);
+    return fetchJson<Product>(`/catalog/products/${slug}`);
   },
 
   // Get product by ID

@@ -10,6 +10,54 @@ interface ProductGalleryProps {
 export default function ProductGallery({ images, productTitle }: ProductGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [isZoomed, setIsZoomed] = React.useState(false);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const imageRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current || !isZoomed) return;
+    
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setMousePosition({ x, y });
+  };
+
+  const handleImageClick = () => {
+    if (isZoomed) {
+      setIsZoomed(false);
+    } else {
+      setIsZoomed(true);
+    }
+  };
+
+  const handleFullscreenToggle = () => {
+    setIsFullscreen(!isFullscreen);
+    setIsZoomed(false);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setIsFullscreen(false);
+      setIsZoomed(false);
+    } else if (e.key === 'ArrowLeft' && images.length > 1) {
+      setSelectedImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1);
+    } else if (e.key === 'ArrowRight' && images.length > 1) {
+      setSelectedImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1);
+    }
+  };
+
+  React.useEffect(() => {
+    if (isFullscreen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [isFullscreen, images.length]);
 
   if (images.length === 0) {
     return (
@@ -20,102 +68,231 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   }
 
   return (
-    <div className="space-y-4">
-      {/* Main Image */}
-      <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group">
-        <Image
-          src={images[selectedImageIndex]}
-          alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
-          fill
-          className={`object-cover transition-transform duration-300 ${
-            isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
-          }`}
-          onClick={() => setIsZoomed(!isZoomed)}
-          sizes="(max-width: 768px) 100vw, 50vw"
-          priority
-        />
-        
-        {/* Navigation Arrows */}
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedImageIndex(prev => 
-                  prev === 0 ? images.length - 1 : prev - 1
-                );
-              }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label="Previous image"
-            >
-              <ChevronLeftIcon />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedImageIndex(prev => 
-                  prev === images.length - 1 ? 0 : prev + 1
-                );
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label="Next image"
-            >
-              <ChevronRightIcon />
-            </button>
-          </>
-        )}
+    <>
+      <div className="space-y-4">
+        {/* Main Image */}
+        <div 
+          ref={imageRef}
+          className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-zoom-in"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setIsZoomed(false)}
+        >
+          <Image
+            src={images[selectedImageIndex]}
+            alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
+            fill
+            className={`object-cover transition-all duration-500 ${
+              isZoomed 
+                ? 'scale-200 cursor-zoom-out' 
+                : 'cursor-zoom-in hover:scale-105'
+            }`}
+            style={isZoomed ? {
+              transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
+            } : undefined}
+            onClick={handleImageClick}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+          />
+          
+          {/* Zoom Indicator */}
+          {!isZoomed && (
+            <div className="absolute top-4 right-4 bg-black/60 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+              <ZoomIcon />
+            </div>
+          )}
 
-        {/* Image Counter */}
+          {/* Fullscreen Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFullscreenToggle();
+            }}
+            className="absolute top-4 left-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="View fullscreen"
+          >
+            <ExpandIcon />
+          </button>
+          
+          {/* Navigation Arrows */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex(prev => 
+                    prev === 0 ? images.length - 1 : prev - 1
+                  );
+                }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                aria-label="Previous image"
+              >
+                <ChevronLeftIcon />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex(prev => 
+                    prev === images.length - 1 ? 0 : prev + 1
+                  );
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                aria-label="Next image"
+              >
+                <ChevronRightIcon />
+              </button>
+            </>
+          )}
+
+          {/* Image Counter */}
+          {images.length > 1 && (
+            <div className="absolute bottom-3 right-3 bg-black/70 text-white text-sm px-3 py-1 rounded-full">
+              {selectedImageIndex + 1} / {images.length}
+            </div>
+          )}
+
+          {/* Zoom Instruction */}
+          {isZoomed && (
+            <div className="absolute bottom-3 left-3 bg-black/70 text-white text-sm px-3 py-1 rounded-full">
+              Move mouse to zoom • Click to exit
+            </div>
+          )}
+        </div>
+
+        {/* Thumbnail Images */}
         {images.length > 1 && (
-          <div className="absolute bottom-3 right-3 bg-black/60 text-white text-sm px-2 py-1 rounded">
-            {selectedImageIndex + 1} / {images.length}
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {images.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedImageIndex(index)}
+                className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
+                  index === selectedImageIndex 
+                    ? 'border-pink-500 shadow-md' 
+                    : 'border-gray-200 hover:border-pink-300'
+                }`}
+              >
+                <Image
+                  src={image}
+                  alt={`${productTitle} - Thumbnail ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                />
+                {index === selectedImageIndex && (
+                  <div className="absolute inset-0 bg-pink-500/20" />
+                )}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Thumbnail Images */}
-      {images.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {images.map((image, index) => (
-            <button
-              key={index}
-              onClick={() => setSelectedImageIndex(index)}
-              className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${
-                index === selectedImageIndex 
-                  ? 'border-pink-500' 
-                  : 'border-gray-200 hover:border-pink-300'
-              }`}
-            >
-              <Image
-                src={image}
-                alt={`${productTitle} - Thumbnail ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="80px"
-              />
-            </button>
-          ))}
+      {/* Fullscreen Modal */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
+          {/* Close Button */}
+          <button
+            onClick={handleFullscreenToggle}
+            className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors"
+            aria-label="Close fullscreen"
+          >
+            <CloseIcon />
+          </button>
+
+          {/* Image Counter */}
+          {images.length > 1 && (
+            <div className="absolute top-4 left-4 z-10 bg-white/20 text-white px-4 py-2 rounded-full">
+              {selectedImageIndex + 1} / {images.length}
+            </div>
+          )}
+
+          {/* Main Fullscreen Image */}
+          <div className="relative w-full h-full flex items-center justify-center p-8">
+            <Image
+              src={images[selectedImageIndex]}
+              alt={`${productTitle} - Fullscreen ${selectedImageIndex + 1}`}
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
+          </div>
+
+          {/* Navigation in Fullscreen */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={() => setSelectedImageIndex(prev => 
+                  prev === 0 ? images.length - 1 : prev - 1
+                )}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-all hover:scale-110"
+                aria-label="Previous image"
+              >
+                <ChevronLeftIcon />
+              </button>
+              <button
+                onClick={() => setSelectedImageIndex(prev => 
+                  prev === images.length - 1 ? 0 : prev + 1
+                )}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-all hover:scale-110"
+                aria-label="Next image"
+              >
+                <ChevronRightIcon />
+              </button>
+            </>
+          )}
+
+          {/* Thumbnail Navigation in Fullscreen */}
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 max-w-full overflow-x-auto px-4">
+              {images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                    index === selectedImageIndex 
+                      ? 'border-white shadow-lg' 
+                      : 'border-white/50 hover:border-white/80'
+                  }`}
+                >
+                  <Image
+                    src={image}
+                    alt={`${productTitle} - Thumbnail ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Instructions */}
+          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 text-white/80 text-sm text-center">
+            Use arrow keys or click arrows to navigate • Press ESC to close
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
 function ImagePlaceholder() {
   return (
-    <svg 
-      width="64" 
-      height="64" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="1.5"
-      className="text-gray-400"
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-      <circle cx="9" cy="9" r="2"/>
-      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-    </svg>
+    <div className="flex flex-col items-center justify-center text-gray-400 space-y-2">
+      <svg 
+        width="64" 
+        height="64" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="1.5"
+      >
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="9" cy="9" r="2"/>
+        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+      </svg>
+      <span className="text-sm">No image available</span>
+    </div>
   );
 }
 
@@ -131,6 +308,34 @@ function ChevronRightIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  );
+}
+
+function ZoomIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="8"/>
+      <path d="m21 21-4.35-4.35"/>
+      <line x1="11" y1="8" x2="11" y2="14"/>
+      <line x1="8" y1="11" x2="14" y2="11"/>
+    </svg>
+  );
+}
+
+function ExpandIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   );
 }
