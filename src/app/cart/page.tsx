@@ -5,7 +5,8 @@ import Link from 'next/link';
 import CartItem from '../../components/cart/CartItem';
 import CartSummary from '../../components/cart/CartSummary';
 import { Button } from '../../components/ui/button';
-import { fetchJson } from '../../lib/api';
+import { useCart, useToast, useAuth } from '../../lib/context';
+import { productApi } from '../../lib/api';
 
 interface CartItemData {
   productId: string;
@@ -33,115 +34,170 @@ interface Cart {
 
 export default function CartPage() {
   const router = useRouter();
+  const { cart, updateItem, removeItem, clearCart } = useCart();
+  const { user } = useAuth();
+  const { addToast } = useToast();
   const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const lastCartItemsCountRef = React.useRef<number>(0);
 
-  // Fetch cart data
+  // Fetch cart data and enrich with product details - only when items are added/removed, not quantity changes
   React.useEffect(() => {
-    const fetchCart = async () => {
+    const currentItemsCount = cart?.items?.length || 0;
+    
+    // Only refetch if the number of items changed or it's the first load
+    if (currentItemsCount === lastCartItemsCountRef.current && cartItems.length > 0) {
+      return;
+    }
+    
+    lastCartItemsCountRef.current = currentItemsCount;
+    
+    const fetchCartData = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // TODO: Replace with actual authenticated cart endpoint
-        // For now, we'll simulate cart data
-        const mockCartItems: CartItemData[] = [
-          {
-            productId: '1',
-            title: 'Vitamin C Brightening Serum',
-            slug: 'vitamin-c-brightening-serum',
-            image: '/products/serum-1.jpg',
-            price: { currency: 'USD', amount: 29.99 },
-            quantity: 2,
-            brand: 'Scarlet Beauty',
-            stock: 15
-          },
-          {
-            productId: '2',
-            title: 'Hydrating Night Cream',
-            slug: 'hydrating-night-cream',
-            image: '/products/cream-1.jpg',
-            price: { currency: 'USD', amount: 45.00 },
-            quantity: 1,
-            brand: 'Glow Labs',
-            stock: 8
-          }
-        ];
+        if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
+          setCartItems([]);
+          setLoading(false);
+          return;
+        }
 
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setCartItems(mockCartItems);
+        // Fetch all products to enrich cart items
+        const allProducts = await productApi.getProducts();
+        
+        // Ensure we have the products data - handle different response structures
+        let products: Product[] = [];
+        if (allProducts?.data && Array.isArray(allProducts.data)) {
+          products = allProducts.data;
+        } else if (Array.isArray(allProducts)) {
+          // Fallback if API returns array directly
+          products = allProducts;
+        } else {
+          console.warn('Unexpected API response structure:', allProducts);
+        }
+        
+        // Enrich cart items with product details
+        const enrichedItems: CartItemData[] = cart.items.map(item => {
+          const product = products.find(p => p._id === item.productId);
+          return {
+            productId: item.productId,
+            title: product?.title || 'Product not found',
+            slug: product?.slug || '',
+            image: product?.images?.[0] || '/placeholder-product.jpg',
+            price: product?.price || { currency: 'BDT', amount: 0 },
+            quantity: item.quantity,
+            brand: product?.brand,
+            stock: product?.stock
+          };
+        }).filter(item => item.title !== 'Product not found'); // Remove invalid items
 
-        // Actual implementation would be:
-        // const cart = await fetchJson<Cart>('/cart');
-        // const products = await fetchJson<Product[]>('/catalog/products');
-        // const enrichedItems = cart.items.map(item => {
-        //   const product = products.find(p => p._id === item.productId);
-        //   return {
-        //     productId: item.productId,
-        //     title: product?.title || '',
-        //     slug: product?.slug || '',
-        //     image: product?.images[0] || '',
-        //     price: product?.price || { currency: 'USD', amount: 0 },
-        //     quantity: item.quantity,
-        //     brand: product?.brand,
-        //     stock: product?.stock
-        //   };
-        // });
-        // setCartItems(enrichedItems);
+        setCartItems(enrichedItems);
 
       } catch (err) {
         setError('Failed to load cart. Please try again.');
-        console.error('Error fetching cart:', err);
+        console.error('Error fetching cart data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCart();
-  }, []);
+    fetchCartData();
+  }, [cart, cartItems.length]);
 
   const handleUpdateQuantity = async (productId: string, quantity: number) => {
+    if (quantity < 1) return;
+    
+    // Optimistically update the local state first for instant UI feedback
+    setCartItems(prevItems => 
+      prevItems.map(item => 
+        item.productId === productId 
+          ? { ...item, quantity }
+          : item
+      )
+    );
+    
     setIsUpdating(true);
     try {
-      // TODO: Implement actual API call
-      console.log('Updating quantity:', { productId, quantity });
-      
-      // await fetchJson('/cart/items', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ productId, quantity })
-      // });
-
-      // Update local state
-      setCartItems(prev => 
-        prev.map(item => 
+      await updateItem(productId, quantity);
+      addToast({
+        type: 'success',
+        title: 'Cart Updated',
+        message: 'Cart updated successfully!'
+      });
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      // Revert the optimistic update on error
+      setCartItems(prevItems => 
+        prevItems.map(item => 
           item.productId === productId 
-            ? { ...item, quantity }
+            ? { ...item, quantity: cart?.items.find(cartItem => cartItem.productId === productId)?.quantity || item.quantity }
             : item
         )
       );
-    } catch (error) {
-      console.error('Error updating quantity:', error);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to update cart'
+      });
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleRemoveItem = async (productId: string) => {
+    // Store the item for potential rollback
+    const itemToRemove = cartItems.find(item => item.productId === productId);
+    
+    // Optimistically remove the item from local state first for instant UI feedback
+    setCartItems(prevItems => prevItems.filter(item => item.productId !== productId));
+    
     try {
-      // TODO: Implement actual API call
-      console.log('Removing item:', productId);
-      
-      // await fetchJson(`/cart/items/${productId}`, {
-      //   method: 'DELETE'
-      // });
-
-      // Update local state
-      setCartItems(prev => prev.filter(item => item.productId !== productId));
+      await removeItem(productId);
+      addToast({
+        type: 'success',
+        title: 'Item Removed',
+        message: 'Item removed from cart'
+      });
     } catch (error) {
       console.error('Error removing item:', error);
+      // Revert the optimistic update on error
+      if (itemToRemove) {
+        setCartItems(prevItems => [...prevItems, itemToRemove]);
+      }
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to remove item'
+      });
+    }
+  };
+
+  const handleClearCart = async () => {
+    // Store current items for potential rollback
+    const currentItems = [...cartItems];
+    
+    // Optimistically clear the cart from local state first for instant UI feedback
+    setCartItems([]);
+    
+    try {
+      await clearCart();
+      addToast({
+        type: 'success',
+        title: 'Cart Cleared',
+        message: 'Cart cleared successfully'
+      });
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      // Revert the optimistic update on error
+      setCartItems(currentItems);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to clear cart'
+      });
     }
   };
 
@@ -149,12 +205,20 @@ export default function CartPage() {
     router.push('/checkout');
   };
 
-  // Calculate totals
+  // Calculate totals for Bangladesh market
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
-  const shipping = subtotal >= 50 ? 0 : 9.99;
-  const tax = subtotal * 0.08; // 8% tax
+  const freeShippingThreshold = 2000; // ৳2000 for free shipping
+  const shippingCost = 100; // ৳100 standard shipping
+  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
+  const tax = 0; // No VAT on cosmetics in Bangladesh for small amounts
   const total = subtotal + shipping + tax;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  
+  // Format currency for Bangladesh
+  const formatPrice = (amount: number) => `৳${amount.toLocaleString('en-US')}`;
+  
+  // Check if user needs to login for checkout
+  const needsAuth = !user;
 
   if (loading) {
     return <CartPageSkeleton />;
@@ -180,7 +244,7 @@ export default function CartPage() {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="container-herlan py-16">
           <div className="text-center">
             <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
               <EmptyCartIcon />
@@ -202,13 +266,24 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-herlan py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
-          <p className="text-gray-600">
-            {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
+            <p className="text-gray-600">
+              {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
+            </p>
+          </div>
+          {cartItems.length > 0 && (
+            <Button 
+              variant="ghost" 
+              onClick={handleClearCart}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              Clear Cart
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -242,10 +317,13 @@ export default function CartPage() {
               shipping={shipping}
               tax={tax}
               total={total}
-              currency="USD"
+              currency="BDT"
               itemCount={itemCount}
               onCheckout={handleCheckout}
-              isLoading={false}
+              isLoading={isUpdating}
+              freeShippingThreshold={freeShippingThreshold}
+              needsAuth={needsAuth}
+              formatPrice={formatPrice}
             />
           </div>
         </div>
@@ -257,21 +335,21 @@ export default function CartPage() {
               <ShippingIcon />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Free Shipping</h3>
-            <p className="text-sm text-gray-600">Free shipping on orders over $50</p>
+            <p className="text-sm text-gray-600">Free shipping on orders over {formatPrice(freeShippingThreshold)}</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
               <ReturnIcon />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Easy Returns</h3>
-            <p className="text-sm text-gray-600">30-day hassle-free returns</p>
+            <p className="text-sm text-gray-600">7-day hassle-free returns</p>
           </div>
           <div className="text-center">
             <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
               <SecurityIcon />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Secure Payment</h3>
-            <p className="text-sm text-gray-600">Your payment information is safe</p>
+            <p className="text-sm text-gray-600">bKash, Nagad & Card accepted</p>
           </div>
         </div>
       </div>
@@ -282,7 +360,7 @@ export default function CartPage() {
 function CartPageSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-herlan py-8">
         <div className="animate-pulse">
           {/* Header skeleton */}
           <div className="mb-8">

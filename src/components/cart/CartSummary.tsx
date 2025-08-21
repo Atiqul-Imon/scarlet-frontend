@@ -12,6 +12,9 @@ interface CartSummaryProps {
   itemCount: number;
   onCheckout: () => void;
   isLoading?: boolean;
+  freeShippingThreshold?: number;
+  needsAuth?: boolean;
+  formatPrice?: (amount: number) => string;
 }
 
 export default function CartSummary({
@@ -22,16 +25,21 @@ export default function CartSummary({
   currency,
   itemCount,
   onCheckout,
-  isLoading = false
+  isLoading = false,
+  freeShippingThreshold = 2000,
+  needsAuth = false,
+  formatPrice: customFormatPrice
 }: CartSummaryProps) {
-  const formatPrice = (amount: number) => {
+  const formatPrice = customFormatPrice || ((amount: number) => {
+    if (currency === 'BDT') {
+      return `৳${amount.toLocaleString('en-US')}`;
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
     }).format(amount);
-  };
+  });
 
-  const freeShippingThreshold = 50;
   const isEligibleForFreeShipping = subtotal >= freeShippingThreshold;
   const amountForFreeShipping = freeShippingThreshold - subtotal;
 
@@ -98,21 +106,37 @@ export default function CartSummary({
       )}
 
       {/* Checkout Button */}
-      <Button
-        onClick={onCheckout}
-        disabled={isLoading || itemCount === 0}
-        className="w-full mb-4"
-        size="lg"
-      >
-        {isLoading ? (
-          <div className="flex items-center gap-2">
-            <LoadingSpinner />
-            Processing...
-          </div>
-        ) : (
-          'Proceed to Checkout'
-        )}
-      </Button>
+      {needsAuth ? (
+        <div className="space-y-3 mb-4">
+          <Link href="/login">
+            <Button className="w-full" size="lg">
+              Sign In to Checkout
+            </Button>
+          </Link>
+          <p className="text-center text-sm text-gray-600">
+            Or{' '}
+            <Link href="/register" className="text-pink-600 hover:text-pink-700 font-medium">
+              create an account
+            </Link>
+          </p>
+        </div>
+      ) : (
+        <Button
+          onClick={onCheckout}
+          disabled={isLoading || itemCount === 0}
+          className="w-full mb-4"
+          size="lg"
+        >
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <LoadingSpinner />
+              Processing...
+            </div>
+          ) : (
+            'Proceed to Checkout'
+          )}
+        </Button>
+      )}
 
       {/* Continue Shopping */}
       <Link 
@@ -131,11 +155,11 @@ export default function CartSummary({
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <ReturnIcon />
-            <span>30-day return policy</span>
+            <span>7-day return policy</span>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <SupportIcon />
-            <span>24/7 customer support</span>
+            <span>Customer support available</span>
           </div>
         </div>
       </div>
@@ -143,18 +167,21 @@ export default function CartSummary({
       {/* Payment Methods */}
       <div className="mt-6 pt-6 border-t border-gray-200">
         <p className="text-sm text-gray-600 mb-3">We accept</p>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-6 bg-gray-100 rounded flex items-center justify-center text-xs font-bold">
-            VISA
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-xs font-bold">
+            bKash
           </div>
-          <div className="w-8 h-6 bg-gray-100 rounded flex items-center justify-center text-xs font-bold">
-            MC
+          <div className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold">
+            Nagad
           </div>
-          <div className="w-8 h-6 bg-gray-100 rounded flex items-center justify-center text-xs font-bold">
-            AMEX
+          <div className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">
+            Rocket
           </div>
-          <div className="w-8 h-6 bg-gray-100 rounded flex items-center justify-center text-xs font-bold">
-            PP
+          <div className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
+            Card
+          </div>
+          <div className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
+            COD
           </div>
         </div>
       </div>

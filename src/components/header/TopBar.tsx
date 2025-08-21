@@ -11,7 +11,7 @@ export default function TopBar() {
   const [q, setQ] = React.useState("");
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   
-  const cartCount = cart?.items?.length || 0;
+  const cartCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
   const userMenuRef = React.useRef<HTMLDivElement>(null);
 
   // Close user menu when clicking outside
@@ -147,11 +147,49 @@ export default function TopBar() {
               <div className="relative">
                 <CartIcon />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                    {cartCount}
+                  <span className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium animate-pulse">
+                    {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </div>
+              
+              {/* Mini Cart Preview on Hover */}
+              {cartCount > 0 && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-900">Cart ({cartCount} items)</h3>
+                      <span className="text-sm text-pink-600 font-medium">View All</span>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {cart?.items?.slice(0, 3).map((item, index) => (
+                        <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                          <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              Item #{index + 1}
+                            </p>
+                            <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {cart?.items && cart.items.length > 3 && (
+                        <div className="text-center py-2">
+                          <span className="text-sm text-gray-500">
+                            +{cart.items.length - 3} more items
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 pt-3 border-t">
+                      <div className="flex justify-between text-sm font-medium">
+                        <span>Total Items:</span>
+                        <span>{cartCount}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Link>
           </div>
         </div>

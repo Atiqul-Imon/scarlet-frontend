@@ -17,7 +17,7 @@ interface FilterState {
 export default function ProductsPage() {
   const searchParams = useSearchParams();
   const { addItem } = useCart();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -167,21 +167,40 @@ export default function ProductsPage() {
       if (!product) return;
       
       await addItem(productId, 1);
-      showToast('Product added to cart!', 'success');
+      addToast({
+        type: 'success',
+        title: 'Added to Cart',
+        message: `${product.title} added to cart successfully!`
+      });
     } catch (error) {
       console.error('Error adding to cart:', error);
-      showToast('Failed to add product to cart', 'error');
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to add product to cart'
+      });
     }
   };
 
   const handleAddToWishlist = async (productId: string) => {
     try {
+      const product = products.find(p => p._id === productId);
+      if (!product) return;
+      
       // TODO: Implement wishlist API call
       console.log('Adding to wishlist:', productId);
-      showToast('Product added to wishlist!', 'success');
+      addToast({
+        type: 'success',
+        title: 'Added to Wishlist',
+        message: `${product.title} added to wishlist!`
+      });
     } catch (error) {
       console.error('Error adding to wishlist:', error);
-      showToast('Failed to add product to wishlist', 'error');
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to add product to wishlist'
+      });
     }
   };
 

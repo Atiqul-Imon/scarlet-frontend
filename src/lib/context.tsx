@@ -239,6 +239,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Guest cart helper functions
+const GUEST_CART_KEY = 'scarlet_guest_cart';
+
+const getGuestCart = (): Cart => {
+  if (typeof window === 'undefined') {
+    return { id: 'guest', userId: 'guest', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  }
+  
+  const stored = localStorage.getItem(GUEST_CART_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (error) {
+      console.error('Failed to parse guest cart:', error);
+    }
+  }
+  
+  return {
+    id: 'guest',
+    userId: 'guest',
+    items: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+};
+
+const saveGuestCart = (cart: Cart): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+  }
+};
+
+const clearGuestCart = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(GUEST_CART_KEY);
+  }
+};
+
 // Cart Context
 interface CartContextValue {
   cart: Cart | null;
@@ -316,11 +354,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addItem = React.useCallback(async (productId: string, quantity: number = 1): Promise<void> => {
     if (!isAuthenticated) {
-      addToast({
-        type: 'warning',
-        title: 'Login required',
-        message: 'Please log in to add items to your cart.',
-      });
+      // Handle guest cart with localStorage
+      try {
+        const guestCart = getGuestCart();
+        const existingItemIndex = guestCart.items.findIndex(item => item.productId === productId);
+        
+        if (existingItemIndex >= 0) {
+          // Update existing item
+          guestCart.items[existingItemIndex].quantity += quantity;
+        } else {
+          // Add new item
+          guestCart.items.push({ productId, quantity });
+        }
+        
+        guestCart.updatedAt = new Date().toISOString();
+        saveGuestCart(guestCart);
+        setCart(guestCart);
+        
+        addToast({
+          type: 'success',
+          title: 'Added to Cart',
+          message: 'Item added to cart successfully!'
+        });
+      } catch (error) {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to add item to cart'
+        });
+      }
       return;
     }
 
@@ -332,32 +394,119 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isAuthenticated, executeCartOperation, addToast]);
 
   const updateItem = React.useCallback(async (productId: string, quantity: number): Promise<void> => {
+    if (!isAuthenticated) {
+      // Handle guest cart with localStorage
+      try {
+        const guestCart = getGuestCart();
+        const existingItemIndex = guestCart.items.findIndex(item => item.productId === productId);
+        
+        if (existingItemIndex >= 0) {
+          if (quantity <= 0) {
+            // Remove item if quantity is 0 or less
+            guestCart.items.splice(existingItemIndex, 1);
+          } else {
+            // Update existing item
+            guestCart.items[existingItemIndex].quantity = quantity;
+          }
+          
+          guestCart.updatedAt = new Date().toISOString();
+          saveGuestCart(guestCart);
+          setCart(guestCart);
+          
+          addToast({
+            type: 'success',
+            title: 'Cart Updated',
+            message: 'Item quantity updated successfully!'
+          });
+        }
+      } catch (error) {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to update cart item'
+        });
+      }
+      return;
+    }
+
     const updatedCart = await executeCartOperation(
       () => cartApi.updateItem(productId, quantity),
       'Cart updated'
     );
     if (updatedCart) setCart(updatedCart);
-  }, [executeCartOperation]);
+  }, [isAuthenticated, executeCartOperation, addToast]);
 
   const removeItem = React.useCallback(async (productId: string): Promise<void> => {
+    if (!isAuthenticated) {
+      // Handle guest cart with localStorage
+      try {
+        const guestCart = getGuestCart();
+        const existingItemIndex = guestCart.items.findIndex(item => item.productId === productId);
+        
+        if (existingItemIndex >= 0) {
+          guestCart.items.splice(existingItemIndex, 1);
+          guestCart.updatedAt = new Date().toISOString();
+          saveGuestCart(guestCart);
+          setCart(guestCart);
+          
+          addToast({
+            type: 'success',
+            title: 'Item Removed',
+            message: 'Item removed from cart successfully!'
+          });
+        }
+      } catch (error) {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to remove item from cart'
+        });
+      }
+      return;
+    }
+
     const updatedCart = await executeCartOperation(
       () => cartApi.removeItem(productId),
       'Item removed from cart'
     );
     if (updatedCart) setCart(updatedCart);
-  }, [executeCartOperation]);
+  }, [isAuthenticated, executeCartOperation, addToast]);
 
   const clearCart = React.useCallback(async (): Promise<void> => {
+    if (!isAuthenticated) {
+      // Handle guest cart with localStorage
+      try {
+        clearGuestCart();
+        const emptyCart = getGuestCart(); // This will create a new empty cart
+        setCart(emptyCart);
+        
+        addToast({
+          type: 'success',
+          title: 'Cart Cleared',
+          message: 'All items removed from cart!'
+        });
+      } catch (error) {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to clear cart'
+        });
+      }
+      return;
+    }
+
     await executeCartOperation(
       () => cartApi.clearCart(),
       'Cart cleared'
     );
     setCart(null);
-  }, [executeCartOperation]);
+  }, [isAuthenticated, executeCartOperation, addToast]);
 
   const refreshCart = React.useCallback(async (): Promise<void> => {
     if (!isAuthenticated) {
-      setCart(null);
+      // Load guest cart from localStorage
+      const guestCart = getGuestCart();
+      setCart(guestCart);
       return;
     }
 

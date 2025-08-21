@@ -3,6 +3,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '../ui/button';
+import { useCart, useToast } from '../../lib/context';
 
 interface ProductCardProps {
   product: {
@@ -37,17 +38,36 @@ export default function ProductCard({
   onQuickView,
   className = "" 
 }: ProductCardProps) {
+  const { addItem } = useCart();
+  const { addToast } = useToast();
   const [isWishlisted, setIsWishlisted] = React.useState(false);
   const [isAddingToCart, setIsAddingToCart] = React.useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!onAddToCart || isAddingToCart) return;
+    if (isAddingToCart) return;
     
     setIsAddingToCart(true);
     try {
-      await onAddToCart(product._id);
+      // Use custom handler if provided, otherwise use built-in cart functionality
+      if (onAddToCart) {
+        await onAddToCart(product._id);
+      } else {
+        await addItem(product._id, 1);
+        addToast({
+          type: 'success',
+          title: 'Added to Cart',
+          message: `${product.title} added to cart successfully!`
+        });
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to add product to cart'
+      });
     } finally {
       setIsAddingToCart(false);
     }
@@ -56,8 +76,19 @@ export default function ProductCard({
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-    onAddToWishlist?.(product._id);
+    const newWishlistState = !isWishlisted;
+    setIsWishlisted(newWishlistState);
+    
+    if (onAddToWishlist) {
+      onAddToWishlist(product._id);
+    } else {
+      // TODO: Implement built-in wishlist functionality
+      addToast({
+        type: 'success',
+        title: newWishlistState ? 'Added to Wishlist' : 'Removed from Wishlist',
+        message: `${product.title} ${newWishlistState ? 'added to' : 'removed from'} wishlist!`
+      });
+    }
   };
 
   const handleQuickView = (e: React.MouseEvent) => {
