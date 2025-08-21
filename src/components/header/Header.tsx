@@ -229,7 +229,7 @@ export default function Header() {
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <TopBar />
       <div className="bg-white border-t border-gray-100">
-        <div className="mx-auto max-w-[1280px] px-4">
+        <div className="container-herlan">
           <MegaMenu items={categoryItems} />
         </div>
       </div>

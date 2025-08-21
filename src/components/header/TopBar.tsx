@@ -36,34 +36,34 @@ export default function TopBar() {
 
   return (
     <div className="w-full bg-white">
-      <div className="mx-auto max-w-[1280px] px-4">
-        <div className="h-[80px] grid grid-cols-[280px_1fr_300px] items-center gap-6">
+      <div className="container-herlan">
+        <div className="h-[80px] grid grid-cols-[1fr_2fr_1fr] md:grid-cols-[200px_1fr_200px] lg:grid-cols-[250px_1fr_250px] items-center gap-2 md:gap-4 lg:gap-6">
           {/* Logo */}
-          <Link href="/" className="block w-[280px] select-none">
+          <Link href="/" className="block select-none">
             <div className="flex items-center">
-              <span className="text-3xl font-bold text-pink-600 tracking-tight leading-none">Scarlet</span>
+              <span className="text-2xl md:text-3xl font-bold text-pink-600 tracking-tight leading-none">Scarlet</span>
             </div>
           </Link>
 
           {/* Search */}
-          <form onSubmit={onSubmit} className="relative flex justify-self-center max-w-[600px] w-full">
+          <form onSubmit={onSubmit} className="relative flex justify-self-center w-full">
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search for products, brands, and more"
-              className="h-10 w-full border-2 border-pink-500 bg-white px-4 pr-14 text-[14px] outline-none focus:border-pink-600 focus:ring-0 rounded-l-full"
+              placeholder="Search products..."
+              className="h-8 md:h-10 w-full border-2 border-pink-500 bg-white px-2 md:px-4 pr-10 md:pr-14 text-[12px] md:text-[14px] outline-none focus:border-pink-600 focus:ring-0 rounded-l-full"
             />
             <button 
               type="submit" 
               aria-label="Search" 
-              className="h-10 px-5 bg-pink-600 text-white text-sm font-medium hover:bg-pink-700 transition-colors rounded-r-full border-2 border-pink-600 hover:border-pink-700 flex items-center"
+              className="h-8 md:h-10 px-3 md:px-5 bg-pink-600 text-white text-xs md:text-sm font-medium hover:bg-pink-700 transition-colors rounded-r-full border-2 border-pink-600 hover:border-pink-700 flex items-center"
             >
               <SearchIcon />
             </button>
           </form>
 
           {/* Actions */}
-          <div className="flex items-center gap-6 text-sm min-w-[300px] justify-end">
+          <div className="flex items-center gap-1 md:gap-3 lg:gap-6 text-sm justify-end">
             <Link href="/wishlist" className="hover:text-pink-600 inline-flex items-center transition-colors group" aria-label="Wishlist">
               <div className="relative">
                 <HeartIcon />

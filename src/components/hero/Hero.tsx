@@ -74,7 +74,7 @@ export default function Hero() {
   return (
     <section className="w-full">
       {/* Main Banner Carousel */}
-      <div className="relative h-[400px] md:h-[500px] overflow-hidden">
+      <div className="relative h-[30vh] md:h-[35vh] overflow-hidden">
         {bannerSlides.map((slide, index) => (
           <div
             key={slide.id}
@@ -87,22 +87,22 @@ export default function Hero() {
               <div className="absolute inset-0 bg-black/20"></div>
               
               <div className="relative z-10 h-full flex items-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                  <div className="max-w-2xl">
+                <div className="container-herlan w-full">
+                  <div className="max-w-xl">
                     {slide.subtitle && (
-                      <p className="text-white/90 text-lg md:text-xl font-medium mb-2">
+                      <p className="text-white/90 text-base md:text-lg lg:text-xl font-medium mb-2">
                         {slide.subtitle}
                       </p>
                     )}
-                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 leading-tight">
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
                       {slide.title}
                     </h1>
-                    <p className="text-white/90 text-lg md:text-xl mb-8 leading-relaxed">
+                    <p className="text-white/90 text-sm md:text-base lg:text-lg mb-6 leading-relaxed">
                       {slide.description}
                     </p>
                     <Link
                       href={slide.buttonLink}
-                      className="inline-block bg-white text-gray-900 px-8 py-3 rounded-full font-semibold text-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg"
+                      className="inline-block bg-white text-gray-900 px-4 md:px-6 lg:px-8 py-2 md:py-3 rounded-full font-semibold text-sm md:text-base lg:text-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg"
                     >
                       {slide.buttonText}
                     </Link>
@@ -146,18 +146,18 @@ export default function Hero() {
 
       {/* Category Highlights */}
       <div className="bg-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
+        <div className="container-herlan">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-4">
             {categoryHighlights.map((category) => (
               <Link
                 key={category.name}
                 href={category.link}
-                className="flex flex-col items-center p-4 rounded-lg hover:bg-pink-50 transition-colors duration-300 group"
+                className="flex flex-col items-center p-2 md:p-4 rounded-lg hover:bg-pink-50 transition-colors duration-300 group"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center text-lg md:text-2xl mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300">
                   {category.icon}
                 </div>
-                <span className="text-sm font-medium text-gray-700 text-center group-hover:text-pink-600 transition-colors duration-300">
+                <span className="text-xs md:text-sm font-medium text-gray-700 text-center group-hover:text-pink-600 transition-colors duration-300">
                   {category.name}
                 </span>
               </Link>
