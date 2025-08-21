@@ -6,6 +6,7 @@ import ProductFilters from '../../components/products/ProductFilters';
 import ProductSort from '../../components/products/ProductSort';
 import { fetchJson } from '../../lib/api';
 import { Product, Category } from '../../lib/types';
+import { useCart, useToast } from '../../lib/context';
 
 interface FilterState {
   category?: string;
@@ -15,6 +16,8 @@ interface FilterState {
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
+  const { addItem } = useCart();
+  const { showToast } = useToast();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -138,13 +141,13 @@ export default function ProductsPage() {
     }));
   }, [categories, products]);
 
-  // Price ranges
+  // Price ranges for BDT currency
   const priceRanges = [
-    { value: '0-25', label: 'Under $25' },
-    { value: '25-50', label: '$25 - $50' },
-    { value: '50-100', label: '$50 - $100' },
-    { value: '100-200', label: '$100 - $200' },
-    { value: '200', label: 'Over $200' },
+    { value: '0-1000', label: 'Under ৳1,000' },
+    { value: '1000-2000', label: '৳1,000 - ৳2,000' },
+    { value: '2000-3000', label: '৳2,000 - ৳3,000' },
+    { value: '3000-5000', label: '৳3,000 - ৳5,000' },
+    { value: '5000', label: 'Over ৳5,000' },
   ];
 
   const handleFilterChange = (filterType: string, value: string | null) => {
@@ -160,14 +163,14 @@ export default function ProductsPage() {
 
   const handleAddToCart = async (productId: string) => {
     try {
-      // TODO: Implement add to cart API call
-      console.log('Adding to cart:', productId);
-      // await fetchJson('/cart/items', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ productId, quantity: 1 })
-      // });
+      const product = products.find(p => p._id === productId);
+      if (!product) return;
+      
+      await addItem(productId, 1);
+      showToast('Product added to cart!', 'success');
     } catch (error) {
       console.error('Error adding to cart:', error);
+      showToast('Failed to add product to cart', 'error');
     }
   };
 
@@ -175,8 +178,10 @@ export default function ProductsPage() {
     try {
       // TODO: Implement wishlist API call
       console.log('Adding to wishlist:', productId);
+      showToast('Product added to wishlist!', 'success');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
+      showToast('Failed to add product to wishlist', 'error');
     }
   };
 
@@ -202,7 +207,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-herlan py-8">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
