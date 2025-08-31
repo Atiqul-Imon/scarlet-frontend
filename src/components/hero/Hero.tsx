@@ -46,16 +46,7 @@ const bannerSlides: BannerSlide[] = [
   }
 ];
 
-const categoryHighlights = [
-  { name: "Hair Care", icon: "💇‍♀️", link: "/bath-body/hair-care" },
-  { name: "Serum", icon: "✨", link: "/skincare/serum" },
-  { name: "Essences", icon: "💧", link: "/skincare/essences" },
-  { name: "Cleansers", icon: "🧼", link: "/skincare/cleansers" },
-  { name: "Toner", icon: "🌸", link: "/skincare/toners" },
-  { name: "Moisturizers", icon: "🌿", link: "/skincare/moisturizers" },
-  { name: "Exfoliators", icon: "✨", link: "/skincare/exfoliators" },
-  { name: "Sun Protection", icon: "☀️", link: "/skincare/sun-protection" }
-];
+
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = React.useState(0);
@@ -144,27 +135,7 @@ export default function Hero() {
         </button>
       </div>
 
-      {/* Category Highlights */}
-      <div className="bg-white py-8">
-        <div className="container-herlan">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-4">
-            {categoryHighlights.map((category) => (
-              <Link
-                key={category.name}
-                href={category.link}
-                className="flex flex-col items-center p-2 md:p-4 rounded-lg hover:bg-pink-50 transition-colors duration-300 group"
-              >
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center text-lg md:text-2xl mb-2 md:mb-3 group-hover:scale-110 transition-transform duration-300">
-                  {category.icon}
-                </div>
-                <span className="text-xs md:text-sm font-medium text-gray-700 text-center group-hover:text-pink-600 transition-colors duration-300">
-                  {category.name}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
+
     </section>
   );
 }

@@ -49,6 +49,12 @@ const navigationItems: AdminNavItem[] = [
     badge: 3, // Low stock items
   },
   {
+    id: 'categories',
+    label: 'Homepage Categories',
+    href: '/admin/categories',
+    icon: DocumentTextIcon,
+  },
+  {
     id: 'orders',
     label: 'Order Management',
     href: '/admin/orders',

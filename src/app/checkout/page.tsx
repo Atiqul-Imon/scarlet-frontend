@@ -148,31 +148,61 @@ export default function CheckoutPage() {
   const handlePlaceOrder = handleSubmit(async (formData) => {
     setSubmitting(true);
     try {
-      // TODO: Implement actual order creation API
-      console.log('Placing order:', {
-        items: cartItems,
-        shipping: formData,
-        totals: { subtotal, shipping, total }
-      });
+      // Import the order API
+      const { orderApi } = await import('../../lib/api');
+      
+      // Create order data matching backend interface
+      const orderData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        area: formData.area,
+        postalCode: formData.postalCode,
+        paymentMethod: formData.paymentMethod,
+        notes: formData.notes,
+      };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Clear cart and redirect to success
-      await clearCart();
+      // Create the order
+      const order = await orderApi.createOrder(orderData);
+      
       addToast({
         type: 'success',
-        title: 'Order Placed',
-        message: 'Order placed successfully!'
+        title: 'Order Placed Successfully!',
+        message: `Order #${order.orderNumber} has been placed. You will receive a confirmation email shortly.`
       });
-      router.push('/order-success');
+      
+      // Redirect to order confirmation page with order ID
+      router.push(`/order-success?orderNumber=${order.orderNumber}`);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error placing order:', error);
+      
+      // Handle specific error types
+      let errorMessage = 'Failed to place order. Please try again.';
+      
+      if (error.status === 400) {
+        if (error.code === 'EMPTY_CART') {
+          errorMessage = 'Your cart is empty. Please add items before placing an order.';
+        } else if (error.code === 'PRODUCTS_UNAVAILABLE') {
+          errorMessage = 'Some products in your cart are no longer available. Please review your cart.';
+        } else if (error.code === 'INSUFFICIENT_STOCK') {
+          errorMessage = error.message || 'Some items are out of stock.';
+        } else if (error.code === 'VALIDATION_ERROR') {
+          errorMessage = 'Please check your order details and try again.';
+        }
+      } else if (error.status === 401) {
+        errorMessage = 'Please log in to continue with your order.';
+        router.push('/login?redirect=/checkout');
+        return;
+      }
+      
       addToast({
         type: 'error',
-        title: 'Error',
-        message: 'Failed to place order. Please try again.'
+        title: 'Order Failed',
+        message: errorMessage
       });
     } finally {
       setSubmitting(false);
