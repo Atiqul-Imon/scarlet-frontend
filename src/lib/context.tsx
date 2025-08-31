@@ -253,6 +253,8 @@ const getGuestCart = (): Cart => {
       return JSON.parse(stored);
     } catch (error) {
       console.error('Failed to parse guest cart:', error);
+      // Clear corrupted cart data
+      localStorage.removeItem(GUEST_CART_KEY);
     }
   }
   
@@ -289,6 +291,7 @@ interface CartContextValue {
   removeItem: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
+  resetCart: () => void; // For debugging and cleanup
 }
 
 const CartContext = React.createContext<CartContextValue | undefined>(undefined);
@@ -506,6 +509,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isAuthenticated) {
       // Load guest cart from localStorage
       const guestCart = getGuestCart();
+      console.log('Loading guest cart:', guestCart);
       setCart(guestCart);
       return;
     }
@@ -525,6 +529,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [isAuthenticated]);
 
+  const resetCart = React.useCallback(() => {
+    clearGuestCart();
+    setCart(getGuestCart());
+    setError(null);
+  }, []);
+
   // Refresh cart when authentication status changes
   React.useEffect(() => {
     refreshCart();
@@ -541,7 +551,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     removeItem,
     clearCart,
     refreshCart,
-  }), [cart, loading, error, itemCount, totalPrice, addItem, updateItem, removeItem, clearCart, refreshCart]);
+    resetCart,
+  }), [cart, loading, error, itemCount, totalPrice, addItem, updateItem, removeItem, clearCart, refreshCart, resetCart]);
 
   return (
     <CartContext.Provider value={value}>

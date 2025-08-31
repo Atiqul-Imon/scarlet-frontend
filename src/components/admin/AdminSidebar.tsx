@@ -55,6 +55,12 @@ const navigationItems: AdminNavItem[] = [
     icon: DocumentTextIcon,
   },
   {
+    id: 'debug-cart',
+    label: 'Debug Cart',
+    href: '/admin/debug-cart',
+    icon: ExclamationTriangleIcon,
+  },
+  {
     id: 'orders',
     label: 'Order Management',
     href: '/admin/orders',

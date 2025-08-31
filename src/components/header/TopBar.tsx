@@ -7,11 +7,11 @@ import { useAuth, useCart } from '@/lib/context';
 export default function TopBar() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { cart } = useCart();
+  const { cart, itemCount } = useCart();
   const [q, setQ] = React.useState("");
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   
-  const cartCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+
   const userMenuRef = React.useRef<HTMLDivElement>(null);
 
   // Close user menu when clicking outside
@@ -35,7 +35,7 @@ export default function TopBar() {
   }
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white relative">
       <div className="container-herlan">
         <div className="h-[80px] grid grid-cols-[1fr_2fr_1fr] md:grid-cols-[200px_1fr_200px] lg:grid-cols-[250px_1fr_250px] items-center gap-2 md:gap-4 lg:gap-6">
           {/* Logo */}
@@ -146,30 +146,45 @@ export default function TopBar() {
             <Link href="/cart" className="hover:text-pink-600 inline-flex items-center relative transition-colors group" aria-label="Cart">
               <div className="relative">
                 <CartIcon />
-                {cartCount > 0 && (
+                {itemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium animate-pulse">
-                    {cartCount > 99 ? '99+' : cartCount}
+                    {itemCount > 99 ? '99+' : itemCount}
                   </span>
                 )}
               </div>
               
               {/* Mini Cart Preview on Hover */}
-              {cartCount > 0 && (
+              {itemCount > 0 && (
                 <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-gray-900">Cart ({cartCount} items)</h3>
+                      <h3 className="font-medium text-gray-900">Cart ({itemCount} items)</h3>
                       <span className="text-sm text-pink-600 font-medium">View All</span>
                     </div>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {cart?.items?.slice(0, 3).map((item, index) => (
-                        <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
-                          <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                        <div key={item.productId || index} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                          <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                            {item.product?.images?.[0] ? (
+                              <img 
+                                src={item.product.images[0]} 
+                                alt={item.product.title}
+                                className="w-full h-full object-cover rounded"
+                              />
+                            ) : (
+                              <span className="text-xs text-gray-500">📦</span>
+                            )}
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              Item #{index + 1}
+                              {item.product?.title || `Product ${item.productId}`}
                             </p>
                             <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                            {item.product?.price && (
+                              <p className="text-xs text-pink-600 font-medium">
+                                ৳{item.product.price.amount}
+                              </p>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -184,7 +199,7 @@ export default function TopBar() {
                     <div className="mt-3 pt-3 border-t">
                       <div className="flex justify-between text-sm font-medium">
                         <span>Total Items:</span>
-                        <span>{cartCount}</span>
+                        <span>{itemCount}</span>
                       </div>
                     </div>
                   </div>
