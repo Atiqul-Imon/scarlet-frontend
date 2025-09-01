@@ -14,7 +14,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
-import { adminUserApi } from '@/lib/admin-api';
+import { adminApi } from '@/lib/api';
 import type { AdminUser, AdminUserFilters, AdminPaginatedResponse } from '@/lib/admin-types';
 import { useToast } from '@/lib/context';
 
@@ -33,7 +33,7 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await adminUserApi.getUsers({
+      const response = await adminApi.users.getUsers({
         ...filters,
         page: currentPage,
         limit: itemsPerPage
@@ -65,7 +65,7 @@ export default function AdminUsersPage() {
 
   const handleRoleUpdate = async (userId: string, newRole: 'admin' | 'staff' | 'customer') => {
     try {
-      await adminUserApi.updateUserRole(userId, newRole);
+      await adminApi.users.updateUserRole(userId, newRole);
       addToast({
         type: 'success',
         title: 'Success',
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
     }
 
     try {
-      await adminUserApi.deleteUser(userId);
+      await adminApi.users.deleteUser(userId);
       addToast({
         type: 'success',
         title: 'Success',

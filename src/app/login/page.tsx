@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useForm } from '@/lib/hooks';
-import { authApi } from '@/lib/api';
+import { authApi, apiUtils } from '@/lib/api';
 import { useAuth } from '@/lib/context';
 import type { LoginFormData } from '@/lib/types';
 
@@ -52,7 +52,13 @@ export default function LoginPage() {
       
       try {
         await login(values);
-        router.push('/account');
+        // Check if user is admin/staff and redirect accordingly
+        const userFromToken = apiUtils.getUserFromToken();
+        if (userFromToken?.role === 'admin' || userFromToken?.role === 'staff') {
+          router.push('/admin');
+        } else {
+          router.push('/account');
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Login failed');
       } finally {

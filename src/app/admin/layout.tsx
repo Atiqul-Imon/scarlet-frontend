@@ -62,7 +62,7 @@ export default function AdminLayout({
 
         {/* Page content */}
         <main className="py-8">
-          <div className="container-herlan">
+          <div className="w-full">
             {children}
           </div>
         </main>

@@ -13,7 +13,7 @@ import {
   HeartIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
-import { adminDashboardApi } from '@/lib/admin-api';
+import { adminApi } from '@/lib/api';
 import type { AdminStats } from '@/lib/admin-types';
 
 interface StatCardProps {
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const data = await adminDashboardApi.getStats();
+        const data = await adminApi.dashboard.getStats();
         setStats(data);
       } catch (err) {
         setError('Failed to load dashboard statistics');

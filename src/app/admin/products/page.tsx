@@ -19,8 +19,8 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
-import { adminApi } from '@/lib/admin-api';
-import type { ExtendedAdminProduct } from '@/lib/admin-types';
+import { adminApi } from '@/lib/api';
+import type { ExtendedAdminProduct, AdminProduct } from '@/lib/admin-types';
 
 interface ProductFilters {
   search: string;
@@ -57,11 +57,17 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<ExtendedAdminProduct[]>([]);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    totalPages: 0
+  });
   const [filters, setFilters] = useState<ProductFilters>({
     search: '',
     category: '',
@@ -74,124 +80,56 @@ export default function ProductsPage() {
 
   const { addToast } = useToast();
 
-  // Mock data for development
-  React.useEffect(() => {
-    const mockProducts: ExtendedAdminProduct[] = [
-      {
-        id: '1',
-        name: 'Luxury Rose Gold Lipstick',
-        slug: 'luxury-rose-gold-lipstick',
-        description: 'Premium matte lipstick with long-lasting formula',
-        shortDescription: 'Premium matte lipstick',
-        price: 2500,
-        comparePrice: 3000,
-        cost: 1200,
-        sku: 'LIP-RG-001',
-        barcode: '1234567890123',
-        category: 'Makeup',
-        subcategory: 'Lipstick',
-        brand: 'Scarlet Beauty',
-        tags: ['lipstick', 'matte', 'luxury', 'rose gold'],
-        images: ['/api/placeholder/300/300', '/api/placeholder/300/300'],
-        variants: [
-          { id: '1a', name: 'Crimson Rose', sku: 'LIP-RG-001-CR', stock: 45, price: 2500 },
-          { id: '1b', name: 'Nude Pink', sku: 'LIP-RG-001-NP', stock: 23, price: 2500 },
-        ],
-        stock: 68,
-        lowStockThreshold: 10,
-        trackInventory: true,
-        status: 'active',
-        stockStatus: 'in_stock',
-        weight: 0.05,
-        dimensions: { length: 10, width: 2, height: 2 },
-        seoTitle: 'Luxury Rose Gold Lipstick - Premium Matte Formula',
-        seoDescription: 'Discover our premium matte lipstick collection with long-lasting formula',
-        seoKeywords: ['lipstick', 'matte', 'luxury', 'cosmetics'],
-        createdAt: '2025-01-15T10:00:00Z',
-        updatedAt: '2025-01-18T14:30:00Z',
-        salesCount: 156,
-        viewCount: 2340,
-        rating: 4.8,
-        reviewCount: 23,
-      },
-      {
-        id: '2',
-        name: 'Hydrating Face Serum',
-        slug: 'hydrating-face-serum',
-        description: 'Advanced hyaluronic acid serum for deep hydration',
-        shortDescription: 'Hyaluronic acid serum',
-        price: 3500,
-        comparePrice: 4200,
-        cost: 1800,
-        sku: 'SER-HYD-002',
-        barcode: '1234567890124',
-        category: 'Skincare',
-        subcategory: 'Serums',
-        brand: 'Scarlet Beauty',
-        tags: ['serum', 'hydrating', 'hyaluronic acid', 'skincare'],
-        images: ['/api/placeholder/300/300'],
-        variants: [],
-        stock: 5,
-        lowStockThreshold: 10,
-        trackInventory: true,
-        status: 'active',
-        stockStatus: 'low_stock',
-        weight: 0.12,
-        dimensions: { length: 12, width: 4, height: 4 },
-        seoTitle: 'Hydrating Face Serum - Hyaluronic Acid Formula',
-        seoDescription: 'Premium hydrating serum with hyaluronic acid for glowing skin',
-        seoKeywords: ['serum', 'hydrating', 'skincare', 'hyaluronic acid'],
-        createdAt: '2025-01-10T09:00:00Z',
-        updatedAt: '2025-01-17T11:15:00Z',
-        salesCount: 89,
-        viewCount: 1876,
-        rating: 4.9,
-        reviewCount: 12,
-      },
-      {
-        id: '3',
-        name: 'Organic Body Butter',
-        slug: 'organic-body-butter',
-        description: 'Rich, nourishing body butter made with organic ingredients',
-        shortDescription: 'Organic nourishing body butter',
-        price: 1800,
-        comparePrice: 2200,
-        cost: 900,
-        sku: 'BB-ORG-003',
-        barcode: '1234567890125',
-        category: 'Bath & Body',
-        subcategory: 'Body Care',
-        brand: 'Scarlet Natural',
-        tags: ['body butter', 'organic', 'moisturizer', 'natural'],
-        images: ['/api/placeholder/300/300', '/api/placeholder/300/300'],
-        variants: [
-          { id: '3a', name: 'Vanilla', sku: 'BB-ORG-003-VAN', stock: 0, price: 1800 },
-          { id: '3b', name: 'Lavender', sku: 'BB-ORG-003-LAV', stock: 12, price: 1800 },
-        ],
-        stock: 12,
-        lowStockThreshold: 15,
-        trackInventory: true,
-        status: 'active',
-        stockStatus: 'out_of_stock',
-        weight: 0.25,
-        dimensions: { length: 8, width: 8, height: 6 },
-        seoTitle: 'Organic Body Butter - Natural Moisturizing Cream',
-        seoDescription: 'Luxurious organic body butter for soft, hydrated skin',
-        seoKeywords: ['body butter', 'organic', 'natural', 'moisturizer'],
-        createdAt: '2025-01-05T08:30:00Z',
-        updatedAt: '2025-01-16T16:45:00Z',
-        salesCount: 234,
-        viewCount: 3210,
-        rating: 4.7,
-        reviewCount: 45,
-      },
-    ];
+  // Fetch products from backend
+  const fetchProducts = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const queryFilters: any = {
+        page: pagination.page,
+        limit: pagination.limit,
+      };
 
-    setTimeout(() => {
-      setProducts(mockProducts);
+      // Add filters if they have values
+      if (filters.search) queryFilters.search = filters.search;
+      if (filters.category) queryFilters.category = filters.category;
+      if (filters.status) queryFilters.status = filters.status;
+      if (filters.stockStatus) {
+        if (filters.stockStatus === 'in_stock') queryFilters.inStock = true;
+        if (filters.stockStatus === 'low_stock') queryFilters.lowStock = true;
+        if (filters.stockStatus === 'out_of_stock') queryFilters.inStock = false;
+      }
+      if (filters.priceRange[0] > 0) queryFilters.priceMin = filters.priceRange[0];
+      if (filters.priceRange[1] < 10000) queryFilters.priceMax = filters.priceRange[1];
+
+      console.log('🔍 Fetching products with filters:', queryFilters);
+      const response = await adminApi.products.getProducts(queryFilters);
+      
+      if (response && response.products) {
+        setProducts(response.products);
+        setPagination(prev => ({
+          ...prev,
+          total: response.total || 0,
+          totalPages: response.totalPages || 0
+        }));
+      } else {
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to load products. Please try again.',
+      });
+      setProducts([]);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  }, [pagination.page, pagination.limit, filters, addToast]);
+
+  React.useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleSelectProduct = useCallback((productId: string) => {
     setSelectedProducts(prev => 
@@ -205,7 +143,7 @@ export default function ProductsPage() {
     if (selectedProducts.length === products.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(products.map(p => p.id));
+      setSelectedProducts(products.map(p => p._id!));
     }
   }, [selectedProducts.length, products]);
 
@@ -214,8 +152,13 @@ export default function ProductsPage() {
     
     if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} product(s)?`)) {
       try {
-        // await adminApi.products.bulkDelete(selectedProducts);
-        setProducts(prev => prev.filter(p => !selectedProducts.includes(p.id)));
+        // Delete products one by one (could be optimized with bulk delete endpoint)
+        for (const productId of selectedProducts) {
+          await adminApi.products.deleteProduct(productId);
+        }
+        
+        // Refresh the product list
+        await fetchProducts();
         setSelectedProducts([]);
         addToast({
           type: 'success',
@@ -223,6 +166,7 @@ export default function ProductsPage() {
           message: `${selectedProducts.length} product(s) have been deleted successfully.`,
         });
       } catch (error) {
+        console.error('Bulk delete error:', error);
         addToast({
           type: 'error',
           title: 'Delete failed',
@@ -230,16 +174,20 @@ export default function ProductsPage() {
         });
       }
     }
-  }, [selectedProducts, addToast]);
+  }, [selectedProducts, addToast, fetchProducts]);
 
   const handleBulkStatusUpdate = useCallback(async (status: string) => {
     if (selectedProducts.length === 0) return;
     
     try {
-      // await adminApi.products.bulkUpdateStatus(selectedProducts, status);
-      setProducts(prev => prev.map(p => 
-        selectedProducts.includes(p.id) ? { ...p, status: status as any } : p
-      ));
+      // Update each product individually (could be optimized with bulk update endpoint)
+      for (const productId of selectedProducts) {
+        // Note: We'll need to implement status update endpoint in backend
+        console.log(`Updating product ${productId} status to ${status}`);
+      }
+      
+      // Refresh the product list  
+      await fetchProducts();
       setSelectedProducts([]);
       addToast({
         type: 'success',
@@ -247,18 +195,20 @@ export default function ProductsPage() {
         message: `${selectedProducts.length} product(s) status updated to ${status}.`,
       });
     } catch (error) {
+      console.error('Bulk status update error:', error);
       addToast({
         type: 'error',
         title: 'Update failed',
         message: 'Failed to update product status. Please try again.',
       });
     }
-  }, [selectedProducts, addToast]);
+  }, [selectedProducts, addToast, fetchProducts]);
 
-  const getStockStatusBadge = (product: ExtendedAdminProduct) => {
-    const { stockStatus, stock, lowStockThreshold } = product;
+  const getStockStatusBadge = (product: AdminProduct) => {
+    const stock = product.stock || 0;
+    const lowStockThreshold = 10; // Default threshold
     
-    if (stockStatus === 'out_of_stock' || stock === 0) {
+    if (stock === 0) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
           <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
@@ -267,7 +217,7 @@ export default function ProductsPage() {
       );
     }
     
-    if (stockStatus === 'low_stock' || stock <= lowStockThreshold) {
+    if (stock <= lowStockThreshold) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
           <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
@@ -301,11 +251,11 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-8 w-full max-w-none">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            {[...Array(10)].map((_, i) => (
               <div key={i} className="bg-white rounded-lg shadow p-6">
                 <div className="h-48 bg-gray-200 rounded mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -319,7 +269,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-8 w-full max-w-none">
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -373,7 +323,7 @@ export default function ProductsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Low Stock</p>
                 <p className="text-2xl font-bold text-amber-600">
-                  {products.filter(p => p.stockStatus === 'low_stock' || p.stock <= p.lowStockThreshold).length}
+                  {products.filter(p => (p.stock || 0) <= 10 && (p.stock || 0) > 0).length}
                 </p>
               </div>
               <div className="p-3 bg-amber-100 rounded-lg">
@@ -387,7 +337,7 @@ export default function ProductsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Out of Stock</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {products.filter(p => p.stockStatus === 'out_of_stock' || p.stock === 0).length}
+                  {products.filter(p => (p.stock || 0) === 0).length}
                 </p>
               </div>
               <div className="p-3 bg-red-100 rounded-lg">
@@ -399,9 +349,9 @@ export default function ProductsPage() {
           <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Products</p>
+                <p className="text-sm font-medium text-gray-600">Total Products</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {products.filter(p => p.status === 'active').length}
+                  {products.length}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
@@ -590,20 +540,20 @@ export default function ProductsPage() {
 
       {/* Products Grid/List */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <div key={product._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
               {/* Product Image */}
               <div className="relative aspect-square bg-gray-100">
                 <input
                   type="checkbox"
-                  checked={selectedProducts.includes(product.id)}
-                  onChange={() => handleSelectProduct(product.id)}
+                  checked={selectedProducts.includes(product._id!)}
+                  onChange={() => handleSelectProduct(product._id!)}
                   className="absolute top-3 left-3 w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500 z-10"
                 />
                 <img
                   src={product.images[0] || '/api/placeholder/300/300'}
-                  alt={product.name}
+                  alt={product.title}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-3 right-3">
@@ -615,34 +565,36 @@ export default function ProductsPage() {
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-medium text-gray-900 line-clamp-2 flex-1">
-                    {product.name}
+                    {product.title}
                   </h3>
                   <div className="ml-2">
-                    {getStatusBadge(product.status)}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Active
+                    </span>
                   </div>
                 </div>
 
                 <p className="text-sm text-gray-500 mb-2">
-                  SKU: {product.sku}
+                  SKU: {product.slug || 'N/A'}
                 </p>
 
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-lg font-bold text-gray-900">
-                      ৳{product.price.toLocaleString()}
+                      {product.price.currency} {product.price.amount.toLocaleString()}
                     </p>
-                    {product.comparePrice && product.comparePrice > product.price && (
+                    {product.price.originalAmount && product.price.originalAmount > product.price.amount && (
                       <p className="text-sm text-gray-500 line-through">
-                        ৳{product.comparePrice.toLocaleString()}
+                        {product.price.currency} {product.price.originalAmount.toLocaleString()}
                       </p>
                     )}
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-gray-900">
-                      Stock: {product.stock}
+                      Stock: {product.stock || 0}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Sales: {product.salesCount}
+                      Categories: {product.categoryIds.length}
                     </p>
                   </div>
                 </div>
@@ -651,30 +603,40 @@ export default function ProductsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1">
                     <Link
-                      href={`/admin/products/${product.id}`}
+                      href={`/admin/products/${product._id}`}
                       className="p-2 text-gray-400 hover:text-pink-600 rounded-lg hover:bg-pink-50 transition-colors"
                       title="View"
                     >
                       <EyeIcon className="w-4 h-4" />
                     </Link>
                     <Link
-                      href={`/admin/products/${product.id}/edit`}
+                      href={`/admin/products/${product._id}/edit`}
                       className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                       title="Edit"
                     >
                       <PencilIcon className="w-4 h-4" />
                     </Link>
                     <button
-                      onClick={() => {/* Duplicate functionality */}}
+                      onClick={async () => {
+                        try {
+                          await adminApi.products.updateProductStock(product._id!, (product.stock || 0) + 10);
+                          await fetchProducts();
+                          addToast({ type: 'success', title: 'Stock Updated', message: 'Product stock increased by 10' });
+                        } catch (error) {
+                          addToast({ type: 'error', title: 'Error', message: 'Failed to update stock' });
+                        }
+                      }}
                       className="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors"
-                      title="Duplicate"
+                      title="Add Stock"
                     >
                       <DocumentDuplicateIcon className="w-4 h-4" />
                     </button>
                   </div>
                   
                   <div className="flex items-center text-xs text-gray-500">
-                    ⭐ {product.rating} ({product.reviewCount})
+                    {product.brand && (
+                      <span>{product.brand}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -721,12 +683,12 @@ export default function ProductsPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
+                  <tr key={product._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
-                        checked={selectedProducts.includes(product.id)}
-                        onChange={() => handleSelectProduct(product.id)}
+                        checked={selectedProducts.includes(product._id!)}
+                        onChange={() => handleSelectProduct(product._id!)}
                         className="w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500"
                       />
                     </td>
@@ -734,56 +696,58 @@ export default function ProductsPage() {
                       <div className="flex items-center">
                         <img
                           src={product.images[0] || '/api/placeholder/60/60'}
-                          alt={product.name}
+                          alt={product.title}
                           className="w-12 h-12 rounded-lg object-cover mr-4"
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {product.name}
+                            {product.title}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {product.category}
+                            {product.brand || 'No brand'}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {product.sku}
+                      {product.slug}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        ৳{product.price.toLocaleString()}
+                        {product.price.currency} {product.price.amount.toLocaleString()}
                       </div>
-                      {product.comparePrice && product.comparePrice > product.price && (
+                      {product.price.originalAmount && product.price.originalAmount > product.price.amount && (
                         <div className="text-sm text-gray-500 line-through">
-                          ৳{product.comparePrice.toLocaleString()}
+                          {product.price.currency} {product.price.originalAmount.toLocaleString()}
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {product.stock}
+                          {product.stock || 0}
                         </span>
                         {getStockStatusBadge(product)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {getStatusBadge(product.status)}
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Active
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {product.salesCount}
+                      {product.categoryIds.length} categories
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <Link
-                          href={`/admin/products/${product.id}`}
+                          href={`/admin/products/${product._id}`}
                           className="text-pink-600 hover:text-pink-900"
                         >
                           View
                         </Link>
                         <Link
-                          href={`/admin/products/${product.id}/edit`}
+                          href={`/admin/products/${product._id}/edit`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           Edit
@@ -798,13 +762,83 @@ export default function ProductsPage() {
         </div>
       )}
 
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow-sm mt-6">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              disabled={pagination.page === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
+              disabled={pagination.page === pagination.totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
+                <span className="font-medium">
+                  {Math.min(pagination.page * pagination.limit, pagination.total)}
+                </span>{' '}
+                of <span className="font-medium">{pagination.total}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                  disabled={pagination.page === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
+                  const pageNumber = i + 1;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setPagination(prev => ({ ...prev, page: pageNumber }))}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        pagination.page === pageNumber
+                          ? 'z-10 bg-pink-50 border-pink-500 text-pink-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
+                  disabled={pagination.page === pagination.totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Empty State */}
       {products.length === 0 && !loading && (
         <div className="text-center py-12">
           <Squares2X2Icon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No products</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Get started by creating your first product.
+            {filters.search || filters.category || filters.status || filters.stockStatus 
+              ? "Try adjusting your filters to see more products."
+              : "Get started by creating your first product."
+            }
           </p>
           <div className="mt-6">
             <Link

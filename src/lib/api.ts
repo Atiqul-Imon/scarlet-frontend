@@ -29,7 +29,7 @@ export class ApiError extends Error {
   }
 }
 
-// Generic fetch function with type safety
+// Generic fetch function with type safety and enhanced error handling
 export async function fetchJson<T = any>(
   path: string, 
   init?: RequestInit
@@ -45,10 +45,13 @@ export async function fetchJson<T = any>(
   };
 
   try {
+    console.log(`🌐 API Call: ${config.method || 'GET'} ${url}`);
+    
     const response = await fetch(url, config);
     const body: ApiResponse<T> = await response.json();
 
     if (!response.ok) {
+      console.error(`❌ API Error: ${response.status} ${response.statusText}`, body.error);
       throw new ApiError(
         body.error?.message || `Request failed with status ${response.status}`,
         response.status,
@@ -58,6 +61,7 @@ export async function fetchJson<T = any>(
     }
 
     if (!body.success) {
+      console.error(`❌ API Error: Request failed`, body.error);
       throw new ApiError(
         body.error?.message || 'Request failed',
         response.status,
@@ -66,12 +70,14 @@ export async function fetchJson<T = any>(
       );
     }
 
+    console.log(`✅ API Success: ${config.method || 'GET'} ${url}`);
     return body.data as T;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
     }
     
+    console.error(`🔥 Network Error:`, error);
     // Network or parsing error
     throw new ApiError(
       error instanceof Error ? error.message : 'Network error',
@@ -385,6 +391,141 @@ export const apiUtils = {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
   },
+};
+
+// Admin API functions
+export const adminApi = {
+  // Dashboard
+  dashboard: {
+    getStats: (): Promise<any> => {
+      return fetchJsonAuth('/admin/dashboard/stats');
+    }
+  },
+
+  // User Management
+  users: {
+    getUsers: (filters: any = {}): Promise<any> => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+      
+      const queryString = params.toString();
+      const url = `/admin/users${queryString ? `?${queryString}` : ''}`;
+      
+      return fetchJsonAuth(url);
+    },
+
+    updateUserRole: (userId: string, role: 'admin' | 'staff' | 'customer'): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/users/${userId}/role`, {
+        method: 'PATCH',
+        body: JSON.stringify({ role })
+      });
+    },
+
+    deleteUser: (userId: string): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/users/${userId}`, {
+        method: 'DELETE'
+      });
+    }
+  },
+
+  // Product Management
+  products: {
+    getProducts: (filters: any = {}): Promise<any> => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+      
+      const queryString = params.toString();
+      const url = `/admin/products${queryString ? `?${queryString}` : ''}`;
+      
+      return fetchJsonAuth(url);
+    },
+
+    updateProductStock: (productId: string, stock: number): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/products/${productId}/stock`, {
+        method: 'PATCH',
+        body: JSON.stringify({ stock })
+      });
+    },
+
+    deleteProduct: (productId: string): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/products/${productId}`, {
+        method: 'DELETE'
+      });
+    }
+  },
+
+  // Order Management
+  orders: {
+    getOrders: (filters: any = {}): Promise<any> => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+      
+      const queryString = params.toString();
+      const url = `/admin/orders${queryString ? `?${queryString}` : ''}`;
+      
+      return fetchJsonAuth(url);
+    },
+
+    updateOrderStatus: (
+      orderId: string, 
+      status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded',
+      trackingNumber?: string
+    ): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, trackingNumber })
+      });
+    }
+  },
+
+  // Analytics
+  analytics: {
+    getSalesAnalytics: (dateFrom: string, dateTo: string): Promise<any> => {
+      const params = new URLSearchParams({ dateFrom, dateTo });
+      return fetchJsonAuth(`/admin/analytics/sales?${params.toString()}`);
+    },
+
+    getUserAnalytics: (): Promise<any> => {
+      return fetchJsonAuth('/admin/analytics/users');
+    }
+  },
+
+  // System Settings
+  settings: {
+    getSettings: (): Promise<any> => {
+      return fetchJsonAuth('/admin/settings');
+    },
+
+    updateSettings: (settings: any): Promise<{ message: string }> => {
+      return fetchJsonAuth('/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify(settings)
+      });
+    }
+  },
+
+  // Activity Logs
+  logs: {
+    getActivityLogs: (page: number = 1, limit: number = 50): Promise<any> => {
+      const params = new URLSearchParams({ 
+        page: page.toString(), 
+        limit: limit.toString() 
+      });
+      return fetchJsonAuth(`/admin/logs/activity?${params.toString()}`);
+    }
+  }
 };
 
 
