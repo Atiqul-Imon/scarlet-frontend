@@ -33,24 +33,28 @@ export default function RegisterPage() {
         errors.firstName = 'First name is required';
       }
       
-      if (!values.lastName) {
-        errors.lastName = 'Last name is required';
-      }
+      // Last name is optional - no validation needed
       
-      if (!values.email && !values.phone) {
+      // Check if both email and phone are empty (including empty strings)
+      const hasEmail = values.email && values.email.trim().length > 0;
+      const hasPhone = values.phone && values.phone.trim().length > 0;
+      
+      if (!hasEmail && !hasPhone) {
         errors.email = 'Email or phone number is required';
         errors.phone = 'Email or phone number is required';
       } else {
-        if (values.email) {
+        // Validate email if provided
+        if (hasEmail) {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(values.email)) {
+          if (!emailRegex.test(values.email.trim())) {
             errors.email = 'Please enter a valid email address';
           }
         }
         
-        if (values.phone) {
+        // Validate phone if provided
+        if (hasPhone) {
           const phoneRegex = /^(\+88)?01[3-9]\d{8}$/;
-          if (!phoneRegex.test(values.phone)) {
+          if (!phoneRegex.test(values.phone.trim())) {
             errors.phone = 'Please enter a valid phone number (01XXXXXXXXX)';
           }
         }
@@ -58,10 +62,8 @@ export default function RegisterPage() {
       
       if (!values.password) {
         errors.password = 'Password is required';
-      } else if (values.password.length < 8) {
-        errors.password = 'Password must be at least 8 characters long';
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(values.password)) {
-        errors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+      } else if (values.password.length < 4) {
+        errors.password = 'Password must be at least 4 characters long';
       }
       
       if (values.password !== values.confirmPassword) {
@@ -80,10 +82,10 @@ export default function RegisterPage() {
       
       try {
         const response = await authApi.register({
-          firstName: values.firstName,
-          lastName: values.lastName,
-          email: values.email || undefined,
-          phone: values.phone || undefined,
+          firstName: values.firstName.trim(),
+          lastName: values.lastName?.trim() || undefined,
+          email: values.email?.trim() || undefined,
+          phone: values.phone?.trim() || undefined,
           password: values.password,
           acceptTerms: values.acceptTerms,
         });
@@ -104,12 +106,12 @@ export default function RegisterPage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-pink-600">Scarlet</h1>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Create your account
+            Join Scarlet Beauty 💄
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
+            Start shopping in under 30 seconds! Already have an account?{' '}
             <Link href="/login" className="font-medium text-pink-600 hover:text-pink-500">
-              sign in to your existing account
+              Sign in here
             </Link>
           </p>
         </div>
@@ -141,15 +143,14 @@ export default function RegisterPage() {
               
               <div>
                 <Input
-                  label="Last Name"
+                  label="Last Name (Optional)"
                   name="lastName"
                   type="text"
                   value={values.lastName}
                   onChange={handleChange}
                   error={errors.lastName}
-                  placeholder="Last name"
+                  placeholder="Last name (optional)"
                   autoComplete="family-name"
-                  required
                 />
               </div>
             </div>
@@ -178,8 +179,8 @@ export default function RegisterPage() {
                 placeholder="01XXXXXXXXX"
                 autoComplete="tel"
               />
-              <p className="mt-1 text-sm text-gray-500">
-                Provide either email or phone number (or both)
+              <p className="mt-1 text-sm text-green-600">
+                💡 Just provide email OR phone number - whatever's easier for you!
               </p>
             </div>
 
@@ -191,7 +192,7 @@ export default function RegisterPage() {
                 value={values.password}
                 onChange={handleChange}
                 error={errors.password}
-                placeholder="Create a strong password"
+                                  placeholder="Create a password (min 4 characters)"
                 autoComplete="new-password"
                 required
               />
@@ -247,7 +248,7 @@ export default function RegisterPage() {
                 loading={isLoading}
                 disabled={!isValid}
               >
-                Create Account
+                {isLoading ? 'Creating Account...' : 'Start Shopping Now! 🛍️'}
               </Button>
             </div>
           </form>
