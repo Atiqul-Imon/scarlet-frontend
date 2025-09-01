@@ -183,7 +183,7 @@ export default function EditProductPage() {
               <input
                 type="text"
                 defaultValue={product.name}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
 
@@ -194,7 +194,7 @@ export default function EditProductPage() {
               <input
                 type="number"
                 defaultValue={product.price}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
 
@@ -205,7 +205,7 @@ export default function EditProductPage() {
               <input
                 type="number"
                 defaultValue={product.stock}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
 
@@ -216,7 +216,7 @@ export default function EditProductPage() {
               <input
                 type="text"
                 defaultValue={product.sku}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
 
@@ -226,7 +226,7 @@ export default function EditProductPage() {
               </label>
               <select
                 defaultValue={product.status}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="active">Active</option>
                 <option value="draft">Draft</option>
@@ -240,7 +240,7 @@ export default function EditProductPage() {
               </label>
               <select
                 defaultValue={product.category}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="Makeup">Makeup</option>
                 <option value="Skincare">Skincare</option>
@@ -257,7 +257,7 @@ export default function EditProductPage() {
             <textarea
               rows={2}
               defaultValue={product.shortDescription}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
             />
           </div>
 
@@ -268,7 +268,7 @@ export default function EditProductPage() {
             <textarea
               rows={6}
               defaultValue={product.description}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
             />
           </div>
 

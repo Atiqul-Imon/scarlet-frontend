@@ -443,7 +443,7 @@ export default function EditOrderPage() {
                         ...prev,
                         shippingAddress: { ...prev.shippingAddress, address: e.target.value }
                       } : null)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                     />
                   </div>
                   <Input
@@ -501,7 +501,7 @@ export default function EditOrderPage() {
                       ...prev,
                       status: e.target.value as any
                     } : null)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
@@ -523,7 +523,7 @@ export default function EditOrderPage() {
                       ...prev,
                       paymentStatus: e.target.value as any
                     } : null)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     <option value="pending">Pending</option>
                     <option value="processing">Processing</option>
@@ -543,7 +543,7 @@ export default function EditOrderPage() {
                       ...prev,
                       paymentMethod: e.target.value as any
                     } : null)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     <option value="bkash">bKash</option>
                     <option value="nagad">Nagad</option>
@@ -582,7 +582,7 @@ export default function EditOrderPage() {
                       ...prev,
                       estimatedDelivery: e.target.value ? `${e.target.value}T00:00:00Z` : undefined
                     } : null)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                   />
                 </div>
               </div>
@@ -601,7 +601,7 @@ export default function EditOrderPage() {
                     ...prev,
                     notes: e.target.value
                   } : null)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder:text-gray-400"
                   placeholder="Add notes about this order..."
                 />
               </div>

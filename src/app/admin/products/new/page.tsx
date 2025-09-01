@@ -348,7 +348,7 @@ export default function NewProductPage() {
                           name="status"
                           value={values.status}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                         >
                           <option value="draft">Draft</option>
                           <option value="active">Active</option>
@@ -364,7 +364,7 @@ export default function NewProductPage() {
                           name="category"
                           value={values.category}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                           required
                         >
                           <option value="">Select Category</option>
@@ -387,7 +387,7 @@ export default function NewProductPage() {
                           name="subcategory"
                           value={values.subcategory}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                           disabled={!selectedCategory}
                         >
                           <option value="">Select Subcategory</option>
@@ -405,7 +405,7 @@ export default function NewProductPage() {
                           name="brand"
                           value={values.brand}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                           required
                         >
                           <option value="">Select Brand</option>
@@ -427,7 +427,7 @@ export default function NewProductPage() {
                           value={values.shortDescription}
                           onChange={handleChange}
                           rows={2}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                           placeholder="Brief product description for listings"
                         />
                       </div>
@@ -441,7 +441,7 @@ export default function NewProductPage() {
                           value={values.description}
                           onChange={handleChange}
                           rows={6}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                           placeholder="Detailed product description with features and benefits"
                         />
                       </div>
@@ -474,7 +474,7 @@ export default function NewProductPage() {
                             value={tagInput}
                             onChange={(e) => setTagInput(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                             placeholder="Add a tag"
                           />
                           <button
@@ -788,7 +788,7 @@ export default function NewProductPage() {
                                 placeholder="Variant name (e.g., Red, Large)"
                                 value={variant.name}
                                 onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                               />
                               
                               <input
@@ -796,7 +796,7 @@ export default function NewProductPage() {
                                 placeholder="SKU"
                                 value={variant.sku}
                                 onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                               />
                               
                               <input
@@ -804,7 +804,7 @@ export default function NewProductPage() {
                                 placeholder="Stock"
                                 value={variant.stock}
                                 onChange={(e) => updateVariant(index, 'stock', parseInt(e.target.value) || 0)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                               />
                               
                               <input
@@ -812,7 +812,7 @@ export default function NewProductPage() {
                                 placeholder="Price"
                                 value={variant.price}
                                 onChange={(e) => updateVariant(index, 'price', parseFloat(e.target.value) || 0)}
-                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                               />
                             </div>
                           </div>
@@ -853,7 +853,7 @@ export default function NewProductPage() {
                           value={values.seoDescription}
                           onChange={handleChange}
                           rows={3}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                           placeholder="Brief description for search results"
                         />
                         <p className="text-xs text-gray-500 mt-1">
@@ -889,7 +889,7 @@ export default function NewProductPage() {
                             value={keywordInput}
                             onChange={(e) => setKeywordInput(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                             placeholder="Add SEO keyword"
                           />
                           <button

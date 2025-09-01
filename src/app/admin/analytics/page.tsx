@@ -315,7 +315,7 @@ export default function AnalyticsPage() {
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value as DateRange)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="7d">Last 7 days</option>
                 <option value="30d">Last 30 days</option>
@@ -479,7 +479,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-medium text-gray-900">Top Products</h3>
-            <select className="border border-gray-300 rounded px-3 py-1 text-sm">
+            <select className="border border-gray-300 rounded px-3 py-1 text-sm text-gray-900 bg-white">
               <option>By Revenue</option>
               <option>By Sales</option>
               <option>By Views</option>

@@ -323,7 +323,7 @@ export default function AdminUsersPage() {
               <select
                 value={filters.role || ''}
                 onChange={(e) => setFilters({ ...filters, role: e.target.value as any })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="">All Roles</option>
                 <option value="customer">Customer</option>
@@ -340,7 +340,7 @@ export default function AdminUsersPage() {
                   ...filters, 
                   isEmailVerified: e.target.value === '' ? undefined : e.target.value === 'true' 
                 })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="">All</option>
                 <option value="true">Verified</option>
@@ -354,7 +354,7 @@ export default function AdminUsersPage() {
                 type="date"
                 value={filters.dateFrom || ''}
                 onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
             
@@ -364,7 +364,7 @@ export default function AdminUsersPage() {
                 type="date"
                 value={filters.dateTo || ''}
                 onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
           </div>

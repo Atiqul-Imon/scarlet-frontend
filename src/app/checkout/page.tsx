@@ -355,7 +355,7 @@ export default function CheckoutPage() {
                         name="city"
                         value={values.city}
                         onChange={(e) => handleChange({ target: { name: 'city', value: e.target.value } } as any)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                         required
                       >
                         <option value="Dhaka">Dhaka</option>
@@ -501,7 +501,7 @@ export default function CheckoutPage() {
                       value={values.notes || ''}
                       onChange={(e) => handleChange({ target: { name: 'notes', value: e.target.value } } as any)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                       placeholder="Any special delivery instructions..."
                     />
                   </div>

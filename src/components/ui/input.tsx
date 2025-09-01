@@ -50,6 +50,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       'border',
       'transition-colors',
       'duration-200',
+      'text-gray-900',
+      'bg-white',
       'placeholder:text-gray-400',
       'focus:outline-none',
       'focus:ring-2',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChevronUpIcon,
   ChevronDownIcon,
@@ -34,7 +34,7 @@ export interface AdminDataTableProps<T> {
     itemsPerPage: number;
     onPageChange: (page: number) => void;
   };
-  onSort?: (key: string, direction: 'asc' | 'desc') => void;
+  onSort?: (key: string, direction: 'asc' | 'desc') => void; 
   onSearch?: (query: string) => void;
   onRefresh?: () => void;
   emptyMessage?: string;
@@ -107,7 +107,7 @@ export function AdminDataTable<T extends Record<string, any>>({
                 </div>
                 <input
                   type="text"
-                  className="block w-80 pl-10 pr-3 py-2 border border-pink-200 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
+                  className="block w-80 pl-10 pr-3 py-2 border border-pink-200 rounded-lg leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-sm"
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}

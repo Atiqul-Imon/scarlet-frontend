@@ -625,7 +625,7 @@ export default function OrderDetailPage() {
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder:text-gray-400"
                     placeholder="Add a note about this order..."
                   />
                   <div className="flex items-center justify-between mt-2">

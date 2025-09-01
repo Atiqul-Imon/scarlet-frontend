@@ -375,7 +375,7 @@ export default function ProductsPage() {
                   placeholder="Search products..."
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -423,7 +423,7 @@ export default function ProductsPage() {
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   <option value="">All Categories</option>
                   <option value="Makeup">Makeup</option>
@@ -440,7 +440,7 @@ export default function ProductsPage() {
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {STATUS_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
@@ -457,7 +457,7 @@ export default function ProductsPage() {
                 <select
                   value={filters.stockStatus}
                   onChange={(e) => setFilters(prev => ({ ...prev, stockStatus: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {STOCK_STATUS_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
@@ -475,7 +475,7 @@ export default function ProductsPage() {
                   <select
                     value={filters.sortBy}
                     onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     {SORT_OPTIONS.map(option => (
                       <option key={option.value} value={option.value}>

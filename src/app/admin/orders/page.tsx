@@ -549,7 +549,7 @@ export default function OrdersPage() {
                   placeholder="Search orders, customers..."
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -597,7 +597,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {ORDER_STATUSES.map(status => (
                     <option key={status.value} value={status.value}>
@@ -614,7 +614,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.paymentStatus}
                   onChange={(e) => setFilters(prev => ({ ...prev, paymentStatus: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {PAYMENT_STATUSES.map(status => (
                     <option key={status.value} value={status.value}>
@@ -631,7 +631,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.paymentMethod}
                   onChange={(e) => setFilters(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {PAYMENT_METHODS.map(method => (
                     <option key={method.value} value={method.value}>
@@ -648,7 +648,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.sortBy}
                   onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {SORT_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
