@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "../components/header/Header";
 import { AppProvider } from "../lib/context";
+import ChatManager from "../components/chat/ChatManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,8 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
             </main>
+            {/* Chat System */}
+            <ChatManager />
           </div>
         </AppProvider>
       </body>
