@@ -560,9 +560,20 @@ export const adminApi = {
       return fetchJsonAuth(url);
     },
 
+    getProduct: (productId: string): Promise<any> => {
+      return fetchJsonAuth(`/admin/products/${productId}`);
+    },
+
     createProduct: (productData: any): Promise<any> => {
       return fetchJsonAuth('/admin/products', {
         method: 'POST',
+        body: JSON.stringify(productData)
+      });
+    },
+
+    updateProduct: (productId: string, productData: any): Promise<any> => {
+      return fetchJsonAuth(`/admin/products/${productId}`, {
+        method: 'PUT',
         body: JSON.stringify(productData)
       });
     },
