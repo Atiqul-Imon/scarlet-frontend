@@ -194,13 +194,13 @@ export default function TopBar() {
                 <div className="flex items-center gap-1 md:gap-3">
                   <Link
                     href="/login"
-                    className="text-xs md:text-sm text-gray-700 hover:text-pink-600 transition-colors px-2 py-1"
+                    className="text-sm text-gray-700 hover:text-pink-600 transition-colors px-3 py-1.5 whitespace-nowrap"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/register"
-                    className="text-xs md:text-sm bg-pink-600 text-white px-2 py-1 md:px-3 rounded-md hover:bg-pink-700 transition-colors"
+                    className="text-sm bg-pink-600 text-white px-3 py-1.5 rounded-md hover:bg-pink-700 transition-colors whitespace-nowrap"
                   >
                     Sign Up
                   </Link>

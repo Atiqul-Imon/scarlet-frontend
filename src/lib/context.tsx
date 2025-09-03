@@ -175,6 +175,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [addToast]);
 
+  // Handle token refresh failure by logging out
+  const handleTokenRefreshFailure = React.useCallback(() => {
+    console.log('🔄 Token refresh failed, logging out user');
+    setUser(null);
+    apiUtils.clearTokens();
+    addToast({
+      type: 'error',
+      title: 'Session expired',
+      message: 'Your session has expired. Please log in again.',
+    });
+  }, [addToast]);
+
   const updateProfile = React.useCallback(async (updates: Partial<User>): Promise<void> => {
     if (!user) return;
     
@@ -220,6 +232,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   React.useEffect(() => {
     refreshUser();
   }, [refreshUser]);
+
+  // Listen for token refresh failures
+  React.useEffect(() => {
+    const handleTokenRefreshFailureEvent = () => {
+      handleTokenRefreshFailure();
+    };
+
+    window.addEventListener('tokenRefreshFailed', handleTokenRefreshFailureEvent);
+    return () => {
+      window.removeEventListener('tokenRefreshFailed', handleTokenRefreshFailureEvent);
+    };
+  }, [handleTokenRefreshFailure]);
 
   const value = React.useMemo(() => ({
     user,

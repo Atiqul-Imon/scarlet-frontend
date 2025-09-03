@@ -20,7 +20,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/lib/context';
 import { useForm } from '@/lib/hooks';
-import type { AdminProduct } from '@/lib/admin-types';
+import { adminApi } from '@/lib/api';
+import { uploadImage, validateImageFile } from '@/lib/image-upload';
+import { getImageKitStatus } from '@/lib/imagekit-test';
+// import type { AdminProduct } from '@/lib/admin-types';
 
 interface ProductFormData {
   name: string;
@@ -77,6 +80,8 @@ export default function NewProductPage() {
   const router = useRouter();
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const [tagInput, setTagInput] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
@@ -127,8 +132,8 @@ export default function NewProductPage() {
     onSubmit: async (values) => {
       setIsSubmitting(true);
       try {
-        // await adminApi.products.create(values);
         console.log('Creating product:', values);
+        await adminApi.products.createProduct(values);
         
         addToast({
           type: 'success',
@@ -137,11 +142,13 @@ export default function NewProductPage() {
         });
         
         router.push('/admin/products');
-      } catch (error) {
+      } catch (error: unknown) {
+        console.error('Product creation error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to create product. Please try again.';
         addToast({
           type: 'error',
           title: 'Creation failed',
-          message: 'Failed to create product. Please try again.',
+          message: errorMessage,
         });
       } finally {
         setIsSubmitting(false);
@@ -167,16 +174,93 @@ export default function NewProductPage() {
     }
   }, [values.name, values.seoTitle, setFieldValue]);
 
-  const handleImageUpload = useCallback((files: FileList | null) => {
+  const handleImageUpload = useCallback(async (files: FileList | null) => {
     if (!files) return;
     
-    // In a real app, you would upload to your image service
-    const newImages = Array.from(files).map((file, index) => 
-      `/api/placeholder/400/400?${Date.now()}-${index}`
-    );
+    // Check if ImageKit is configured
+    const status = getImageKitStatus();
+    if (!status.configured) {
+      addToast({
+        type: 'error',
+        title: 'Configuration Error',
+        message: `ImageKit is not configured. Missing: ${status.missingVars.join(', ')}`,
+      });
+      return;
+    }
     
-    setFieldValue('images', [...values.images, ...newImages]);
-  }, [values.images, setFieldValue]);
+    setIsUploading(true);
+    
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+      // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        addToast({
+          type: 'error',
+          title: 'Invalid file',
+          message: validation.error || 'Please select a valid image file',
+        });
+        return null;
+      }
+
+      try {
+        const result = await uploadImage(file, values.slug || 'temp');
+        if (result.success && result.data) {
+          return result.data.url;
+        } else {
+          addToast({
+            type: 'error',
+            title: 'Upload failed',
+            message: result.error || 'Failed to upload image',
+          });
+          return null;
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        addToast({
+          type: 'error',
+          title: 'Upload failed',
+          message: 'Failed to upload image',
+        });
+        return null;
+      }
+    });
+
+    const uploadedImages = await Promise.all(uploadPromises);
+    const validImages = uploadedImages.filter((url): url is string => url !== null);
+    
+      if (validImages.length > 0) {
+        setFieldValue('images', [...values.images, ...validImages]);
+        addToast({
+          type: 'success',
+          title: 'Images uploaded',
+          message: `${validImages.length} image(s) uploaded successfully`,
+        });
+      }
+    } finally {
+      setIsUploading(false);
+    }
+  }, [values.images, setFieldValue, addToast]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleImageUpload(files);
+    }
+  }, [handleImageUpload]);
 
   const removeImage = useCallback((index: number) => {
     const newImages = values.images.filter((_, i) => i !== index);
@@ -222,7 +306,7 @@ export default function NewProductPage() {
     setFieldValue('variants', newVariants);
   }, [values.variants, setFieldValue]);
 
-  const updateVariant = useCallback((index: number, field: string, value: any) => {
+  const updateVariant = useCallback((index: number, field: string, value: unknown) => {
     const newVariants = [...values.variants];
     newVariants[index] = { ...newVariants[index], [field]: value };
     setFieldValue('variants', newVariants);
@@ -498,20 +582,74 @@ export default function NewProductPage() {
                       <p className="text-gray-600 text-sm">
                         Upload high-quality images of your product. The first image will be used as the main product image.
                       </p>
+                      
+                      {/* ImageKit Configuration Status */}
+                      {(() => {
+                        const status = getImageKitStatus();
+                        return (
+                          <div className={`mt-3 p-3 rounded-lg text-sm ${
+                            status.configured 
+                              ? 'bg-green-50 border border-green-200 text-green-800' 
+                              : 'bg-red-50 border border-red-200 text-red-800'
+                          }`}>
+                            <div className="flex items-center">
+                              <div className={`w-2 h-2 rounded-full mr-2 ${
+                                status.configured ? 'bg-green-500' : 'bg-red-500'
+                              }`}></div>
+                              <span className="font-medium">
+                                {status.configured ? 'ImageKit Ready' : 'ImageKit Not Configured'}
+                              </span>
+                            </div>
+                            {!status.configured && (
+                              <p className="mt-1 text-xs">
+                                Missing: {status.missingVars.join(', ')}. Check IMAGEKIT_SETUP.md for setup instructions.
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Image Upload Area */}
                     <div className="mb-6">
                       <label className="block">
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-pink-400 transition-colors cursor-pointer">
-                          <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <div 
+                          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+                            isUploading 
+                              ? 'border-blue-400 bg-blue-50' 
+                              : isDragOver
+                                ? 'border-pink-500 bg-pink-50'
+                                : 'border-gray-300 hover:border-pink-400'
+                          }`}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                        >
+                          <PhotoIcon className={`mx-auto h-12 w-12 ${
+                            isUploading ? 'text-blue-400' : 'text-gray-400'
+                          }`} />
                           <div className="mt-4">
-                            <p className="text-lg font-medium text-gray-900">
-                              Drop images here or click to upload
+                            <p className={`text-lg font-medium ${
+                              isUploading ? 'text-blue-900' : isDragOver ? 'text-pink-900' : 'text-gray-900'
+                            }`}>
+                              {isUploading 
+                                ? 'Uploading images...' 
+                                : isDragOver 
+                                  ? 'Drop images here!' 
+                                  : 'Drop images here or click to upload'
+                              }
                             </p>
                             <p className="text-sm text-gray-500 mt-1">
-                              PNG, JPG, GIF up to 10MB each
+                              PNG, JPG, GIF, WebP up to 5MB each
                             </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Images will be stored in ImageKit cloud storage
+                            </p>
+                            {isUploading && (
+                              <div className="mt-2">
+                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <input
@@ -519,6 +657,7 @@ export default function NewProductPage() {
                           multiple
                           accept="image/*"
                           onChange={(e) => handleImageUpload(e.target.files)}
+                          disabled={isUploading}
                           className="hidden"
                         />
                       </label>
@@ -762,7 +901,7 @@ export default function NewProductPage() {
                       <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                         <TagIcon className="mx-auto h-8 w-8 text-gray-400" />
                         <p className="mt-2 text-sm text-gray-500">
-                          No variants added yet. Click "Add Variant" to get started.
+                          No variants added yet. Click &quot;Add Variant&quot; to get started.
                         </p>
                       </div>
                     ) : (

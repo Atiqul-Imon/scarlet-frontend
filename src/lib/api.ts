@@ -88,20 +88,130 @@ export async function fetchJson<T = any>(
   }
 }
 
-// Authenticated fetch function
+// Check if token is expired
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const now = Math.floor(Date.now() / 1000);
+    return payload.exp < now;
+  } catch {
+    return true; // If we can't parse the token, consider it expired
+  }
+}
+
+// Token refresh function
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) {
+    console.log('❌ No refresh token available');
+    return null;
+  }
+
+  try {
+    console.log('🔄 Attempting to refresh access token...');
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) {
+      console.log('❌ Token refresh failed:', response.status);
+      // Clear invalid tokens
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      
+      // Dispatch a custom event to notify the auth context
+      window.dispatchEvent(new CustomEvent('tokenRefreshFailed'));
+      return null;
+    }
+
+    const data = await response.json();
+    if (data.success && data.data.tokens) {
+      const { accessToken, refreshToken: newRefreshToken } = data.data.tokens;
+      
+      // Store new tokens
+      localStorage.setItem('accessToken', accessToken);
+      if (newRefreshToken) {
+        localStorage.setItem('refreshToken', newRefreshToken);
+      }
+      
+      console.log('✅ Access token refreshed successfully');
+      return accessToken;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('❌ Token refresh error:', error);
+    // Clear invalid tokens
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    return null;
+  }
+}
+
+// Authenticated fetch function with automatic token refresh
 export async function fetchJsonAuth<T = any>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  const token = localStorage.getItem('accessToken');
+  let token = localStorage.getItem('accessToken');
   
-  return fetchJson<T>(path, {
-    ...init,
-    headers: {
-      ...init?.headers,
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
+  console.log('🔐 Auth Debug:', {
+    hasToken: !!token,
+    tokenLength: token?.length,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token',
+    path,
+    method: init?.method || 'GET'
   });
+  
+  // Check if token is expired and refresh proactively
+  if (token && isTokenExpired(token)) {
+    console.log('⏰ Token is expired, refreshing proactively...');
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      token = newToken;
+    } else {
+      // If refresh failed, clear tokens and let the request fail
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      token = null;
+    }
+  }
+  
+  // First attempt with current token
+  try {
+    return await fetchJson<T>(path, {
+      ...init,
+      headers: {
+        ...init?.headers,
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+  } catch (error: any) {
+    // If we get a 401 and have a refresh token, try to refresh
+    if (error.status === 401 && localStorage.getItem('refreshToken')) {
+      console.log('🔄 Got 401, attempting token refresh...');
+      
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        console.log('🔄 Retrying request with new token...');
+        // Retry the original request with the new token
+        return await fetchJson<T>(path, {
+          ...init,
+          headers: {
+            ...init?.headers,
+            Authorization: `Bearer ${newToken}`,
+          },
+        });
+      }
+    }
+    
+    // If refresh failed or no refresh token, throw the original error
+    throw error;
+  }
 }
 
 // Product API functions
@@ -448,6 +558,13 @@ export const adminApi = {
       const url = `/admin/products${queryString ? `?${queryString}` : ''}`;
       
       return fetchJsonAuth(url);
+    },
+
+    createProduct: (productData: any): Promise<any> => {
+      return fetchJsonAuth('/admin/products', {
+        method: 'POST',
+        body: JSON.stringify(productData)
+      });
     },
 
     updateProductStock: (productId: string, stock: number): Promise<{ message: string }> => {
