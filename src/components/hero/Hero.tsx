@@ -50,35 +50,126 @@ const bannerSlides: BannerSlide[] = [
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStart, setDragStart] = React.useState(0);
+  const [dragEnd, setDragEnd] = React.useState(0);
+  const [autoPlay, setAutoPlay] = React.useState(true);
 
   React.useEffect(() => {
+    if (!autoPlay) return;
+    
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [autoPlay]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
 
+  const goToNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+  };
+
+  const goToPrevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? bannerSlides.length - 1 : prev - 1));
+  };
+
+  // Mouse events
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart(e.clientX);
+    setAutoPlay(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setDragEnd(e.clientX);
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    
+    const dragDistance = dragStart - dragEnd;
+    const threshold = 50; // Minimum drag distance to trigger slide change
+    
+    if (Math.abs(dragDistance) > threshold) {
+      if (dragDistance > 0) {
+        goToNextSlide(); // Dragged left, go to next slide
+      } else {
+        goToPrevSlide(); // Dragged right, go to previous slide
+      }
+    }
+    
+    setIsDragging(false);
+    setDragStart(0);
+    setDragEnd(0);
+    
+    // Resume autoplay after a delay
+    setTimeout(() => setAutoPlay(true), 2000);
+  };
+
+  // Touch events
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setDragStart(e.touches[0]?.clientX || 0);
+    setAutoPlay(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    setDragEnd(e.touches[0]?.clientX || 0);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    
+    const dragDistance = dragStart - dragEnd;
+    const threshold = 50; // Minimum drag distance to trigger slide change
+    
+    if (Math.abs(dragDistance) > threshold) {
+      if (dragDistance > 0) {
+        goToNextSlide(); // Swiped left, go to next slide
+      } else {
+        goToPrevSlide(); // Swiped right, go to previous slide
+      }
+    }
+    
+    setIsDragging(false);
+    setDragStart(0);
+    setDragEnd(0);
+    
+    // Resume autoplay after a delay
+    setTimeout(() => setAutoPlay(true), 2000);
+  };
+
   return (
-    <section className="w-full">
-      {/* Main Banner Carousel */}
-      <div className="relative h-[30vh] md:h-[35vh] overflow-hidden">
-        {bannerSlides.map((slide, index) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
-              index === currentSlide ? 'translate-x-0' : index < currentSlide ? '-translate-x-full' : 'translate-x-full'
-            }`}
-          >
-            <div className={`w-full h-full ${slide.backgroundColor} relative`}>
-              {/* Background overlay for better text readability */}
-              <div className="absolute inset-0 bg-black/20"></div>
-              
-              <div className="relative z-10 h-full flex items-center">
-                <div className="container-herlan w-full">
+    <section className="bg-gray-50 py-0 md:py-8">
+      <div className="hero-container">
+        {/* Main Banner Carousel */}
+        <div 
+          className="relative h-[30vh] md:h-[35vh] overflow-hidden md:rounded-xl cursor-grab active:cursor-grabbing select-none"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {bannerSlides.map((slide, index) => (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
+                index === currentSlide ? 'translate-x-0' : index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+              }`}
+            >
+              <div className={`w-full h-full ${slide.backgroundColor} relative md:rounded-xl`}>
+                {/* Background overlay for better text readability */}
+                <div className="absolute inset-0 bg-black/20 md:rounded-xl"></div>
+                
+                <div className="relative z-10 h-full flex items-center px-4 sm:px-6 md:px-12">
                   <div className="max-w-xl">
                     {slide.subtitle && (
                       <p className="text-white/90 text-base md:text-lg lg:text-xl font-medium mb-2">
@@ -101,38 +192,24 @@ export default function Hero() {
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-
-        {/* Navigation Dots */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
-          {bannerSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors duration-300 ${
-                index === currentSlide ? 'bg-white' : 'bg-white/50'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
           ))}
-        </div>
 
-        {/* Navigation Arrows */}
-        <button
-          onClick={() => goToSlide(currentSlide === 0 ? bannerSlides.length - 1 : currentSlide - 1)}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors duration-300"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft />
-        </button>
-        <button
-          onClick={() => goToSlide((currentSlide + 1) % bannerSlides.length)}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors duration-300"
-          aria-label="Next slide"
-        >
-          <ChevronRight />
-        </button>
+          {/* Navigation Dots */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
+            {bannerSlides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-3 h-3 rounded-full transition-colors duration-300 ${
+                  index === currentSlide ? 'bg-white' : 'bg-white/50'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+
+
+        </div>
       </div>
 
 
@@ -140,18 +217,4 @@ export default function Hero() {
   );
 }
 
-function ChevronLeft() {
-  return (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-    </svg>
-  );
-}
 
-function ChevronRight() {
-  return (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}

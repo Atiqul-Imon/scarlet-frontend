@@ -61,6 +61,16 @@ export interface ChatConfig {
   messenger: {
     pageId: string;
     appId: string;
+    pageName: string;
+    themeColor: string;
+    loggedInGreeting: {
+      en: string;
+      bn: string;
+    };
+    loggedOutGreeting: {
+      en: string;
+      bn: string;
+    };
     welcomeMessage: {
       en: string;
       bn: string;

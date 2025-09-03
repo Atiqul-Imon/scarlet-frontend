@@ -11,6 +11,7 @@ interface ChatWidgetProps {
   onClose: () => void;
   onChannelChange: (channel: ChatChannel) => void;
   onLanguageChange: (language: ChatLanguage) => void;
+  onSendMessage: (message: string) => void;
   currentChannel: ChatChannel;
   currentLanguage: ChatLanguage;
   session?: ChatSession;
@@ -22,6 +23,7 @@ export default function ChatWidget({
   onClose,
   onChannelChange,
   onLanguageChange,
+  onSendMessage,
   currentChannel,
   currentLanguage,
   session,
@@ -86,8 +88,8 @@ export default function ChatWidget({
   };
 
   const handleQuickAction = (action: QuickAction) => {
-    // This will be implemented when we add the chat input functionality
-    console.log('Quick action selected:', action);
+    const message = action.message[currentLanguage];
+    onSendMessage(message);
   };
 
   if (!isOpen) return null;
@@ -131,9 +133,7 @@ export default function ChatWidget({
             <ChatInput
               channel={currentChannel}
               language={currentLanguage}
-              onSendMessage={(message) => {
-                console.log('Send message:', message);
-              }}
+              onSendMessage={onSendMessage}
               disabled={isConnecting}
             />
           </>

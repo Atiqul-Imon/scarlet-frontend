@@ -19,6 +19,7 @@ export default function FloatingChatButton({
 }: FloatingChatButtonProps) {
   const [isHovered, setIsHovered] = React.useState(false);
   const [showTooltip, setShowTooltip] = React.useState(false);
+  const [showChannelOptions, setShowChannelOptions] = React.useState(false);
 
   // Show tooltip after 3 seconds for first-time users
   React.useEffect(() => {

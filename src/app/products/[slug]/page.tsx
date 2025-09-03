@@ -348,23 +348,23 @@ export default function ProductDetailPage() {
             {/* Variants */}
             {Object.entries(mockVariants).map(([variantType, variants]) => (
               <div key={variantType} className="space-y-3">
-                <label className="block text-sm font-medium text-gray-900 capitalize">
+                <label className="block text-base font-semibold text-gray-900 capitalize">
                   {variantType}:
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {variants.map((variant) => (
                     <button
                       key={variant.id}
                       onClick={() => setSelectedVariants(prev => ({ ...prev, [variantType]: variant.value }))}
-                      className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
+                      className={`px-4 py-3 border-2 rounded-lg text-sm font-semibold transition-all duration-200 min-w-[80px] ${
                         selectedVariants[variantType] === variant.value
-                          ? 'border-pink-500 bg-pink-50 text-pink-700'
-                          : 'border-gray-300 hover:border-pink-300 hover:bg-pink-50'
-                      } ${variant.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          ? 'border-pink-500 bg-pink-500 text-white shadow-md'
+                          : 'border-gray-300 bg-white text-gray-800 hover:border-pink-400 hover:bg-pink-50 hover:text-pink-700'
+                      } ${variant.stock === 0 ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : ''}`}
                       disabled={variant.stock === 0}
                     >
-                      {variant.value}
-                      {variant.stock === 0 && ' (Out of Stock)'}
+                      <span className="block">{variant.value}</span>
+                      {variant.stock === 0 && <span className="text-xs">(Out of Stock)</span>}
                     </button>
                   ))}
                 </div>
@@ -374,14 +374,15 @@ export default function ProductDetailPage() {
             {/* Quantity Selector */}
             {stockStatus && (
               <div className="flex items-center gap-4">
-                <label htmlFor="quantity" className="text-sm font-medium text-gray-700">
+                <label htmlFor="quantity" className="text-base font-semibold text-gray-900">
                   Quantity:
                 </label>
-                <div className="flex items-center border border-gray-300 rounded-lg">
+                <div className="flex items-center border-2 border-gray-300 rounded-lg bg-white">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-medium"
                     disabled={quantity <= 1}
+                    aria-label="Decrease quantity"
                   >
                     <MinusIcon />
                   </button>
@@ -392,18 +393,19 @@ export default function ProductDetailPage() {
                     max={product.stock || 999}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 text-center border-0 focus:ring-0 py-2"
+                    className="w-20 text-center border-0 focus:ring-0 py-3 text-base font-semibold text-gray-900 bg-white"
                   />
                   <button
                     onClick={() => setQuantity(Math.min(product.stock || 999, quantity + 1))}
-                    className="px-3 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-medium"
                     disabled={quantity >= (product.stock || 999)}
+                    aria-label="Increase quantity"
                   >
                     <PlusIcon />
                   </button>
                 </div>
                 {product.stock && product.stock <= 10 && (
-                  <span className="text-sm text-orange-600 font-medium">
+                  <span className="text-sm text-orange-700 font-semibold bg-orange-100 px-3 py-1 rounded-full">
                     Only {product.stock} left!
                   </span>
                 )}
@@ -445,20 +447,20 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Wishlist & Share */}
-            <div className="flex items-center gap-4 pt-4 border-t">
+            <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
               <button
                 onClick={handleWishlistToggle}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-pink-300 hover:bg-pink-50 transition-colors"
+                className="flex items-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg hover:border-pink-400 hover:bg-pink-50 transition-all duration-200 bg-white shadow-sm hover:shadow-md"
               >
                 <HeartIcon filled={isWishlisted} />
-                <span className="text-sm font-medium">
+                <span className="text-sm font-semibold text-gray-800 hover:text-pink-700">
                   {isWishlisted ? 'Saved' : 'Save for Later'}
                 </span>
               </button>
               
-              <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+              <button className="flex items-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 bg-white shadow-sm hover:shadow-md">
                 <ShareIcon />
-                <span className="text-sm font-medium">Share</span>
+                <span className="text-sm font-semibold text-gray-800 hover:text-gray-700">Share</span>
               </button>
             </div>
 
@@ -710,13 +712,13 @@ function CartIcon() {
 function HeartIcon({ filled = false }: { filled?: boolean }) {
   return (
     <svg 
-      width="18" 
-      height="18" 
+      width="20" 
+      height="20" 
       viewBox="0 0 24 24" 
       fill={filled ? "currentColor" : "none"} 
       stroke="currentColor" 
       strokeWidth="2"
-      className={filled ? "text-pink-500" : "text-gray-600"}
+      className={filled ? "text-pink-600" : "text-gray-700"}
     >
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 22l7.8-8.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
     </svg>
@@ -725,7 +727,7 @@ function HeartIcon({ filled = false }: { filled?: boolean }) {
 
 function ShareIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700">
       <circle cx="18" cy="5" r="3"/>
       <circle cx="6" cy="12" r="3"/>
       <circle cx="18" cy="19" r="3"/>
