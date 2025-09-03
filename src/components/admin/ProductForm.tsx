@@ -167,6 +167,72 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     }
   };
 
+  // Utility function to generate slug from title
+  const generateSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  };
+
+  // Utility function to generate SKU from title and brand
+  const generateSKU = (title: string, brand: string = ''): string => {
+    const titleWords = title
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '') // Remove special characters
+      .split(' ')
+      .filter(word => word.length > 0)
+      .slice(0, 3); // Take first 3 words
+    
+    const brandPrefix = brand
+      .toLowerCase()
+      .replace(/[^\w]/g, '') // Remove special characters
+      .slice(0, 3); // Take first 3 characters
+    
+    const titlePrefix = titleWords
+      .map(word => word.slice(0, 2)) // Take first 2 characters of each word
+      .join('')
+      .toUpperCase();
+    
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    
+    if (brandPrefix) {
+      return `${brandPrefix.toUpperCase()}-${titlePrefix}-${randomSuffix}`;
+    }
+    
+    return `${titlePrefix}-${randomSuffix}`;
+  };
+
+  // Handle title change and auto-generate slug
+  const handleTitleChange = (value: string) => {
+    setFormData(prev => {
+      const newSlug = generateSlug(value);
+      return {
+        ...prev,
+        name: value,
+        // Auto-generate slug if it's empty or if the current slug was auto-generated from the previous title
+        slug: prev.slug === '' || prev.slug === generateSlug(prev.name) ? newSlug : prev.slug,
+        // Also auto-generate SKU if it's empty or was auto-generated
+        sku: prev.sku === '' || prev.sku === generateSKU(prev.name, prev.brand) ? generateSKU(value, prev.brand) : prev.sku
+      };
+    });
+  };
+
+  // Handle brand change and auto-generate SKU
+  const handleBrandChange = (value: string) => {
+    setFormData(prev => {
+      const newSKU = generateSKU(prev.name, value);
+      return {
+        ...prev,
+        brand: value,
+        // Auto-generate SKU if it's empty or if the current SKU was auto-generated from the previous brand
+        sku: prev.sku === '' || prev.sku === generateSKU(prev.name, prev.brand) ? newSKU : prev.sku
+      };
+    });
+  };
+
   const handleImageUpload = useCallback(async (file: File) => {
     if (!validateImageFile(file)) {
       addToast({
@@ -347,8 +413,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               type="text"
               required
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              onChange={(e) => handleTitleChange(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             />
           </div>
 
@@ -356,13 +422,29 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Slug *
             </label>
-            <input
-              type="text"
-              required
-              value={formData.slug}
-              onChange={(e) => handleInputChange('slug', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                required
+                value={formData.slug}
+                onChange={(e) => handleInputChange('slug', e.target.value)}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="product-slug"
+              />
+              <button
+                type="button"
+                onClick={() => handleInputChange('slug', generateSlug(formData.name))}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+                title="Generate slug from title"
+              >
+                Generate
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Auto-generated from title. You can customize it.
+              <br />
+              <span className="text-gray-400">Pattern: lowercase, hyphens for spaces, no special characters</span>
+            </p>
           </div>
 
           <div>
@@ -376,7 +458,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               step="0.01"
               value={formData.price}
               onChange={(e) => handleInputChange('price', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             />
           </div>
 
@@ -390,7 +472,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               step="0.01"
               value={formData.comparePrice}
               onChange={(e) => handleInputChange('comparePrice', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             />
           </div>
 
@@ -398,13 +480,29 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <label className="block text-sm font-medium text-gray-700 mb-2">
               SKU *
             </label>
-            <input
-              type="text"
-              required
-              value={formData.sku}
-              onChange={(e) => handleInputChange('sku', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                required
+                value={formData.sku}
+                onChange={(e) => handleInputChange('sku', e.target.value)}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="BRAND-TITLE-XXXX"
+              />
+              <button
+                type="button"
+                onClick={() => handleInputChange('sku', generateSKU(formData.name, formData.brand))}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+                title="Generate SKU from title and brand"
+              >
+                Generate
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Auto-generated from title and brand. You can customize it.
+              <br />
+              <span className="text-gray-400">Pattern: BRAND-TITLE-XXXX (e.g., CER-SERUM-A1B2)</span>
+            </p>
           </div>
 
           <div>
@@ -414,7 +512,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <select
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             >
               <option value="">Select Category</option>
               <option value="Makeup">Makeup</option>
@@ -431,8 +529,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <input
               type="text"
               value={formData.brand}
-              onChange={(e) => handleInputChange('brand', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              onChange={(e) => handleBrandChange(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             />
           </div>
 
@@ -443,7 +541,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <select
               value={formData.status}
               onChange={(e) => handleInputChange('status', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             >
               <option value="draft">Draft</option>
               <option value="active">Active</option>
@@ -460,7 +558,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             rows={2}
             value={formData.shortDescription}
             onChange={(e) => handleInputChange('shortDescription', e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
           />
         </div>
 
@@ -472,7 +570,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             rows={6}
             value={formData.description}
             onChange={(e) => handleInputChange('description', e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -546,7 +644,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               min="0"
               value={formData.stock}
               onChange={(e) => handleInputChange('stock', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             />
           </div>
 
@@ -559,7 +657,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               min="0"
               value={formData.lowStockThreshold}
               onChange={(e) => handleInputChange('lowStockThreshold', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             />
           </div>
 
@@ -569,7 +667,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               id="trackInventory"
               checked={formData.trackInventory}
               onChange={(e) => handleInputChange('trackInventory', e.target.checked)}
-              className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+              className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded bg-white"
             />
             <label htmlFor="trackInventory" className="ml-2 block text-sm text-gray-900">
               Track Inventory
@@ -613,7 +711,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   type="text"
                   value={variant.name}
                   onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
               
@@ -625,7 +723,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   type="text"
                   value={variant.sku}
                   onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
               
@@ -638,7 +736,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   min="0"
                   value={variant.stock}
                   onChange={(e) => updateVariant(index, 'stock', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
               
@@ -652,7 +750,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   step="0.01"
                   value={variant.price}
                   onChange={(e) => updateVariant(index, 'price', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
               </div>
             </div>
