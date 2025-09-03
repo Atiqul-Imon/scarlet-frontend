@@ -70,60 +70,93 @@ body {
   overflow-x: hidden;
 }
 
-/* Container utility class for 50% screen width with responsive design */
+/* Container utility class with responsive design that adapts to screen size */
 .container-herlan {
-  width: 50%;
-  max-width: 50vw;
+  width: 95%;
+  max-width: 95vw;
   margin: 0 auto;
   padding-left: var(--container-padding);
   padding-right: var(--container-padding);
 }
 
-/* Mobile devices (up to 768px) */
-@media (max-width: 767px) {
+/* Mobile devices (up to 640px) */
+@media (max-width: 639px) {
   .container-herlan {
     width: 95%;
     max-width: 95vw;
-  }
-  :root {
-    --container-padding: 0.75rem;
-  }
-}
-
-/* Tablets (768px to 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .container-herlan {
-    width: 70%;
-    max-width: 70vw;
   }
   :root {
     --container-padding: 1rem;
   }
 }
 
-/* Desktop (1024px and up) */
-@media (min-width: 1024px) {
+/* Small tablets (640px to 767px) */
+@media (min-width: 640px) and (max-width: 767px) {
   .container-herlan {
-    width: 50%;
-    max-width: 50vw;
+    width: 90%;
+    max-width: 90vw;
+  }
+  :root {
+    --container-padding: 1.25rem;
+  }
+}
+
+/* Tablets (768px to 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container-herlan {
+    width: 85%;
+    max-width: 85vw;
   }
   :root {
     --container-padding: 1.5rem;
   }
 }
 
-/* Large screens (1440px and up) */
-@media (min-width: 1440px) {
+/* Small desktop (1024px to 1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
   .container-herlan {
-    width: 50%;
-    max-width: 50vw;
+    width: 80%;
+    max-width: 80vw;
   }
   :root {
     --container-padding: 2rem;
   }
 }
 
-/* Hero section container - full width on mobile, constrained on larger screens */
+/* Medium desktop (1280px to 1439px) */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .container-herlan {
+    width: 75%;
+    max-width: 75vw;
+  }
+  :root {
+    --container-padding: 2.5rem;
+  }
+}
+
+/* Large desktop (1440px to 1919px) */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .container-herlan {
+    width: 70%;
+    max-width: 70vw;
+  }
+  :root {
+    --container-padding: 3rem;
+  }
+}
+
+/* Extra large screens (1920px and up) */
+@media (min-width: 1920px) {
+  .container-herlan {
+    width: 65%;
+    max-width: 65vw;
+  }
+  :root {
+    --container-padding: 3.5rem;
+  }
+}
+
+/* Hero section container - full width on mobile, responsive on larger screens */
 .hero-container {
   width: 100%;
   max-width: 100vw;
@@ -132,8 +165,52 @@ body {
   padding-right: 0;
 }
 
+/* Small tablets (640px to 767px) */
+@media (min-width: 640px) and (max-width: 767px) {
+  .hero-container {
+    width: 90%;
+    max-width: 90vw;
+    margin: 0 auto;
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+  }
+}
+
 /* Tablets (768px to 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
+  .hero-container {
+    width: 85%;
+    max-width: 85vw;
+    margin: 0 auto;
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+  }
+}
+
+/* Small desktop (1024px to 1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .hero-container {
+    width: 80%;
+    max-width: 80vw;
+    margin: 0 auto;
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+  }
+}
+
+/* Medium desktop (1280px to 1439px) */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .hero-container {
+    width: 75%;
+    max-width: 75vw;
+    margin: 0 auto;
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+  }
+}
+
+/* Large desktop (1440px to 1919px) */
+@media (min-width: 1440px) and (max-width: 1919px) {
   .hero-container {
     width: 70%;
     max-width: 70vw;
@@ -143,11 +220,11 @@ body {
   }
 }
 
-/* Desktop (1024px and up) */
-@media (min-width: 1024px) {
+/* Extra large screens (1920px and up) */
+@media (min-width: 1920px) {
   .hero-container {
-    width: 50%;
-    max-width: 50vw;
+    width: 65%;
+    max-width: 65vw;
     margin: 0 auto;
     padding-left: var(--container-padding);
     padding-right: var(--container-padding);
