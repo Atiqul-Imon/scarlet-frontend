@@ -22,15 +22,7 @@ interface CartItemData {
   stock?: number;
 }
 
-interface Cart {
-  _id: string;
-  userId: string;
-  items: Array<{
-    productId: string;
-    quantity: number;
-  }>;
-  updatedAt: string;
-}
+// Removed unused Cart interface
 
 export default function CartPage() {
   const router = useRouter();
@@ -43,12 +35,26 @@ export default function CartPage() {
   const [isUpdating, setIsUpdating] = React.useState(false);
   const lastCartItemsCountRef = React.useRef<number>(0);
 
+  // Debug cart state
+  React.useEffect(() => {
+    console.log('Cart page mounted, cart state:', cart);
+    console.log('User state:', user);
+    console.log('LocalStorage cart:', localStorage.getItem('scarlet_guest_cart'));
+    console.log('Cart items from context:', cart?.items);
+    console.log('Cart items length:', cart?.items?.length);
+  }, [cart, user]);
+
   // Fetch cart data and enrich with product details - only when items are added/removed, not quantity changes
   React.useEffect(() => {
+    console.log('Cart effect triggered, cart:', cart);
+    console.log('Cart items:', cart?.items);
+    console.log('Cart items length:', cart?.items?.length);
+    
     const currentItemsCount = cart?.items?.length || 0;
     
     // Only refetch if the number of items changed or it's the first load
     if (currentItemsCount === lastCartItemsCountRef.current && cartItems.length > 0) {
+      console.log('Skipping refetch - no changes');
       return;
     }
     
@@ -59,7 +65,14 @@ export default function CartPage() {
       setError(null);
 
       try {
+        console.log('Fetching cart data...');
+        console.log('Cart exists:', !!cart);
+        console.log('Cart items exist:', !!cart?.items);
+        console.log('Cart items is array:', Array.isArray(cart?.items));
+        console.log('Cart items length:', cart?.items?.length);
+        
         if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
+          console.log('No cart items found, setting empty array');
           setCartItems([]);
           setLoading(false);
           return;
@@ -69,7 +82,7 @@ export default function CartPage() {
         const allProducts = await productApi.getProducts();
         
         // Ensure we have the products data - handle different response structures
-        let products: Product[] = [];
+        let products: any[] = [];
         if (allProducts?.data && Array.isArray(allProducts.data)) {
           products = allProducts.data;
         } else if (Array.isArray(allProducts)) {
@@ -82,6 +95,22 @@ export default function CartPage() {
         // Enrich cart items with product details
         const enrichedItems: CartItemData[] = cart.items.map(item => {
           const product = products.find(p => p._id === item.productId);
+          
+          // Handle test products that don't exist in database
+          if (item.productId.startsWith('test-product-')) {
+            const testProductNumber = item.productId.split('-')[2] || '1';
+            return {
+              productId: item.productId,
+              title: `Test Product ${testProductNumber}`,
+              slug: `test-product-${testProductNumber}`,
+              image: '/placeholder-product.jpg',
+              price: { currency: 'BDT', amount: 1000 + (parseInt(testProductNumber) * 100) }, // Different prices for each test product
+              quantity: item.quantity,
+              brand: 'Test Brand',
+              stock: 10
+            };
+          }
+          
           return {
             productId: item.productId,
             title: product?.title || 'Product not found',
@@ -94,6 +123,8 @@ export default function CartPage() {
           };
         }).filter(item => item.title !== 'Product not found'); // Remove invalid items
 
+        console.log('Enriched items:', enrichedItems);
+        console.log('Enriched items length:', enrichedItems.length);
         setCartItems(enrichedItems);
 
       } catch (err) {
@@ -241,7 +272,26 @@ export default function CartPage() {
     );
   }
 
-  if (cartItems.length === 0) {
+  // Show empty cart only if we're not loading and there are truly no items
+  // Also check localStorage directly as a fallback
+  const hasItemsInContext = cart?.items && cart.items.length > 0;
+  const hasItemsInLocalStorage = (() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const stored = localStorage.getItem('scarlet_guest_cart');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.items && parsed.items.length > 0;
+      }
+    } catch (e) {
+      console.error('Error checking localStorage:', e);
+    }
+    return false;
+  })();
+  
+  console.log('Cart check - hasItemsInContext:', hasItemsInContext, 'hasItemsInLocalStorage:', hasItemsInLocalStorage, 'cartItems.length:', cartItems.length);
+  
+  if (!loading && cartItems.length === 0 && !hasItemsInContext && !hasItemsInLocalStorage) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container-herlan py-16">
@@ -258,6 +308,116 @@ export default function CartPage() {
                 Start Shopping
               </Button>
             </Link>
+            
+            {/* Debug info */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-8 p-4 bg-gray-100 rounded-lg text-left max-w-md mx-auto">
+                <h3 className="font-bold mb-2">Debug Info:</h3>
+                <p>Loading: {loading.toString()}</p>
+                <p>Cart Items Length: {cartItems.length}</p>
+                <p>Cart Exists: {cart ? 'Yes' : 'No'}</p>
+                <p>Cart Items: {cart?.items?.length || 0}</p>
+                <p>Raw Cart: {JSON.stringify(cart, null, 2)}</p>
+                <div className="mt-4 space-y-2">
+                  <button 
+                    onClick={() => {
+                      // Add a test item to localStorage directly
+                      const testCart = {
+                        id: 'guest',
+                        userId: 'guest',
+                        items: [{ productId: 'test-product-1', quantity: 1 }],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                      };
+                      localStorage.setItem('scarlet_guest_cart', JSON.stringify(testCart));
+                      console.log('Added test item to localStorage');
+                      window.location.reload();
+                    }}
+                    className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Add Test Item
+                  </button>
+                  <button 
+                    onClick={() => {
+                      // Add multiple test items
+                      const testCart = {
+                        id: 'guest',
+                        userId: 'guest',
+                        items: [
+                          { productId: 'test-product-1', quantity: 2 },
+                          { productId: 'test-product-2', quantity: 1 },
+                          { productId: 'test-product-3', quantity: 3 }
+                        ],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                      };
+                      localStorage.setItem('scarlet_guest_cart', JSON.stringify(testCart));
+                      console.log('Added multiple test items to localStorage');
+                      window.location.reload();
+                    }}
+                    className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Add Test Items
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      // Try to add real products from the database
+                      try {
+                        const allProducts = await productApi.getProducts();
+                        let products: any[] = [];
+                        if (allProducts?.data && Array.isArray(allProducts.data)) {
+                          products = allProducts.data;
+                        } else if (Array.isArray(allProducts)) {
+                          products = allProducts;
+                        }
+                        
+                        if (products.length > 0) {
+                          const testCart = {
+                            id: 'guest',
+                            userId: 'guest',
+                            items: products.slice(0, 2).map((product, index) => ({
+                              productId: product._id,
+                              quantity: index + 1
+                            })),
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                          };
+                          localStorage.setItem('scarlet_guest_cart', JSON.stringify(testCart));
+                          console.log('Added real products to localStorage:', testCart);
+                          window.location.reload();
+                        } else {
+                          console.log('No products found in database');
+                        }
+                      } catch (error) {
+                        console.error('Error fetching products:', error);
+                      }
+                    }}
+                    className="bg-purple-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Add Real Products
+                  </button>
+                  <button 
+                    onClick={() => {
+                      localStorage.removeItem('scarlet_guest_cart');
+                      console.log('Cleared cart from localStorage');
+                      window.location.reload();
+                    }}
+                    className="bg-red-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Clear Cart
+                  </button>
+                  <button 
+                    onClick={() => {
+                      console.log('Force refreshing page...');
+                      window.location.reload();
+                    }}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded"
+                  >
+                    Force Refresh
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

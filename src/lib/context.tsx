@@ -271,10 +271,15 @@ const getGuestCart = (): Cart => {
     return { id: 'guest', userId: 'guest', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   }
   
+  console.log('Getting guest cart from localStorage...');
   const stored = localStorage.getItem(GUEST_CART_KEY);
+  console.log('Stored cart data:', stored);
+  
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      console.log('Parsed cart data:', parsed);
+      return parsed;
     } catch (error) {
       console.error('Failed to parse guest cart:', error);
       // Clear corrupted cart data
@@ -282,18 +287,22 @@ const getGuestCart = (): Cart => {
     }
   }
   
-  return {
+  console.log('No stored cart found, creating new guest cart');
+  const newCart = {
     id: 'guest',
     userId: 'guest',
     items: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
+  return newCart;
 };
 
 const saveGuestCart = (cart: Cart): void => {
   if (typeof window !== 'undefined') {
+    console.log('Saving guest cart to localStorage:', cart);
     localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+    console.log('Cart saved successfully');
   }
 };
 
@@ -329,11 +338,44 @@ export const useCart = (): CartContextValue => {
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [cart, setCart] = React.useState<Cart | null>(null);
+  // Initialize cart state with guest cart immediately
+  const [cart, setCart] = React.useState<Cart | null>(() => {
+    if (typeof window !== 'undefined') {
+      const guestCart = getGuestCart();
+      console.log('Initial cart state:', guestCart);
+      return guestCart;
+    }
+    return null;
+  });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<AppError | null>(null);
   const { isAuthenticated } = useAuth();
   const { addToast } = useToast();
+
+  // Ensure cart is always initialized
+  React.useEffect(() => {
+    console.log('Cart provider mounted, current cart:', cart);
+    if (!cart) {
+      console.log('No cart found, initializing...');
+      const guestCart = getGuestCart();
+      console.log('Initialized guest cart:', guestCart);
+      setCart(guestCart);
+    }
+  }, [cart]);
+
+  // Handle authentication changes
+  React.useEffect(() => {
+    if (isAuthenticated && cart?.userId === 'guest') {
+      // User logged in, sync guest cart with server
+      console.log('User logged in, should sync cart');
+      // TODO: Implement cart sync
+    } else if (!isAuthenticated && (!cart || cart.userId !== 'guest')) {
+      // User logged out, load guest cart
+      console.log('User logged out, loading guest cart');
+      const guestCart = getGuestCart();
+      setCart(guestCart);
+    }
+  }, [isAuthenticated, cart]);
 
   const itemCount = React.useMemo(() => {
     return cart?.items.reduce((total, item) => total + item.quantity, 0) || 0;
@@ -530,10 +572,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isAuthenticated, executeCartOperation, addToast]);
 
   const refreshCart = React.useCallback(async (): Promise<void> => {
+    console.log('refreshCart called, isAuthenticated:', isAuthenticated);
     if (!isAuthenticated) {
       // Load guest cart from localStorage
       const guestCart = getGuestCart();
       console.log('Loading guest cart:', guestCart);
+      console.log('Guest cart items:', guestCart.items);
       setCart(guestCart);
       return;
     }
@@ -559,10 +603,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
   }, []);
 
-  // Refresh cart when authentication status changes
-  React.useEffect(() => {
-    refreshCart();
-  }, [refreshCart]);
+  // Removed old refreshCart effect to avoid conflicts
 
   const value = React.useMemo(() => ({
     cart,
