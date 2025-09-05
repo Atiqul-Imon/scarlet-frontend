@@ -123,6 +123,35 @@ export interface ShippingAddress {
   phone?: string;
 }
 
+export interface Address extends BaseEntity {
+  userId: string;
+  label: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  phone?: string;
+  isDefault: boolean;
+}
+
+export interface CreateAddressData {
+  label: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  phone?: string;
+  isDefault?: boolean;
+}
+
 export interface PaymentInfo {
   method: PaymentMethod;
   status: PaymentStatus;

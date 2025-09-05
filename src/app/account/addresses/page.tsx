@@ -7,14 +7,13 @@ import { Select } from '../../../components/ui/select';
 import { Modal } from '../../../components/ui/modal';
 import { useForm } from '../../../lib/hooks';
 import { validators } from '../../../lib/utils';
-import { ShippingAddress, SelectOption } from '../../../lib/types';
+import { Address, CreateAddressData, SelectOption } from '../../../lib/types';
+import { addressApi } from '../../../lib/api';
 
-interface AddressFormData extends ShippingAddress {
-  isDefault: boolean;
-  label: string;
-}
+interface AddressFormData extends CreateAddressData {}
 
 const countryOptions: SelectOption[] = [
+  { value: 'BD', label: 'Bangladesh' },
   { value: 'US', label: 'United States' },
   { value: 'CA', label: 'Canada' },
   { value: 'GB', label: 'United Kingdom' },
@@ -22,6 +21,16 @@ const countryOptions: SelectOption[] = [
 ];
 
 const stateOptions: SelectOption[] = [
+  // Bangladesh Divisions
+  { value: 'DH', label: 'Dhaka' },
+  { value: 'CH', label: 'Chittagong' },
+  { value: 'RA', label: 'Rajshahi' },
+  { value: 'KH', label: 'Khulna' },
+  { value: 'BA', label: 'Barisal' },
+  { value: 'SY', label: 'Sylhet' },
+  { value: 'RJ', label: 'Rangpur' },
+  { value: 'MY', label: 'Mymensingh' },
+  // US States (for international users)
   { value: 'AL', label: 'Alabama' },
   { value: 'AK', label: 'Alaska' },
   { value: 'AZ', label: 'Arizona' },
@@ -74,56 +83,24 @@ const stateOptions: SelectOption[] = [
   { value: 'WY', label: 'Wyoming' },
 ];
 
-interface SavedAddress extends AddressFormData {
-  id: string;
-}
-
 export default function AddressBookPage(): JSX.Element {
-  const [addresses, setAddresses] = React.useState<SavedAddress[]>([]);
+  const [addresses, setAddresses] = React.useState<Address[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [editingAddress, setEditingAddress] = React.useState<SavedAddress | null>(null);
+  const [editingAddress, setEditingAddress] = React.useState<Address | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchAddresses = async () => {
       setLoading(true);
+      setError(null);
       try {
-        // TODO: Replace with actual API call
-        const mockAddresses: SavedAddress[] = [
-          {
-            id: '1',
-            label: 'Home',
-            firstName: 'John',
-            lastName: 'Doe',
-            address: '123 Main Street',
-            address2: 'Apt 4B',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            country: 'US',
-            phone: '(555) 123-4567',
-            isDefault: true,
-          },
-          {
-            id: '2',
-            label: 'Office',
-            firstName: 'John',
-            lastName: 'Doe',
-            address: '456 Business Ave',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10002',
-            country: 'US',
-            phone: '(555) 987-6543',
-            isDefault: false,
-          },
-        ];
-
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setAddresses(mockAddresses);
-      } catch (error) {
+        const addresses = await addressApi.getAddresses();
+        setAddresses(addresses);
+      } catch (error: any) {
         console.error('Error fetching addresses:', error);
+        setError(error.message || 'Failed to load addresses');
+        setAddresses([]);
       } finally {
         setLoading(false);
       }
@@ -141,7 +118,7 @@ export default function AddressBookPage(): JSX.Element {
     city: '',
     state: '',
     zipCode: '',
-    country: 'US',
+    country: 'BD',
     phone: '',
     isDefault: false,
   };
@@ -158,10 +135,11 @@ export default function AddressBookPage(): JSX.Element {
       if (error) errors[field] = error.message;
     });
 
-    // Phone validation (optional)
+    // Phone validation (optional) - Bangladesh format
     if (values.phone) {
-      const phoneError = validators.phone(values.phone);
-      if (phoneError) errors.phone = phoneError.message;
+      if (!/^(\+88)?01[3-9]\d{8}$/.test(values.phone)) {
+        errors.phone = 'Please enter a valid Bangladesh phone number (01XXXXXXXXX)';
+      }
     }
 
     return errors;
@@ -169,36 +147,24 @@ export default function AddressBookPage(): JSX.Element {
 
   const handleSubmit = async (values: AddressFormData) => {
     try {
+      setError(null);
+      
       if (editingAddress) {
         // Update existing address
-        const updatedAddress: SavedAddress = {
-          ...editingAddress,
-          ...values,
-        };
-        
+        const updatedAddress = await addressApi.updateAddress(editingAddress._id!, values);
         setAddresses(prev => 
-          prev.map(addr => addr.id === editingAddress.id ? updatedAddress : addr)
+          prev.map(addr => addr._id === editingAddress._id ? updatedAddress : addr)
         );
       } else {
         // Add new address
-        const newAddress: SavedAddress = {
-          id: Date.now().toString(),
-          ...values,
-        };
-        
+        const newAddress = await addressApi.createAddress(values);
         setAddresses(prev => [...prev, newAddress]);
       }
 
-      // If this is set as default, remove default from others
-      if (values.isDefault) {
-        setAddresses(prev => 
-          prev.map(addr => ({ ...addr, isDefault: addr.id === editingAddress?.id || (!editingAddress && addr === prev[prev.length - 1]) }))
-        );
-      }
-
       handleCloseModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving address:', error);
+      setError(error.message || 'Failed to save address');
     }
   };
 
@@ -215,7 +181,7 @@ export default function AddressBookPage(): JSX.Element {
     setIsModalOpen(true);
   };
 
-  const handleEditAddress = (address: SavedAddress) => {
+  const handleEditAddress = (address: Address) => {
     const formData: AddressFormData = {
       label: address.label,
       firstName: address.firstName,
@@ -241,20 +207,26 @@ export default function AddressBookPage(): JSX.Element {
   const handleDeleteAddress = async (addressId: string) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
       try {
-        setAddresses(prev => prev.filter(addr => addr.id !== addressId));
-      } catch (error) {
+        setError(null);
+        await addressApi.deleteAddress(addressId);
+        setAddresses(prev => prev.filter(addr => addr._id !== addressId));
+      } catch (error: any) {
         console.error('Error deleting address:', error);
+        setError(error.message || 'Failed to delete address');
       }
     }
   };
 
   const handleSetDefault = async (addressId: string) => {
     try {
+      setError(null);
+      const updatedAddress = await addressApi.setDefaultAddress(addressId);
       setAddresses(prev => 
-        prev.map(addr => ({ ...addr, isDefault: addr.id === addressId }))
+        prev.map(addr => ({ ...addr, isDefault: addr._id === addressId }))
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting default address:', error);
+      setError(error.message || 'Failed to set default address');
     }
   };
 
@@ -288,11 +260,30 @@ export default function AddressBookPage(): JSX.Element {
           </Button>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Addresses Grid */}
         {addresses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {addresses.map((address) => (
-              <div key={address.id} className="bg-white rounded-lg border border-gray-200 p-6 relative">
+              <div key={address._id} className="bg-white rounded-lg border border-gray-200 p-6 relative">
                 {/* Default Badge */}
                 {address.isDefault && (
                   <div className="absolute top-4 right-4">
@@ -340,7 +331,7 @@ export default function AddressBookPage(): JSX.Element {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleSetDefault(address.id)}
+                      onClick={() => handleSetDefault(address._id!)}
                     >
                       Set as Default
                     </Button>
@@ -349,7 +340,7 @@ export default function AddressBookPage(): JSX.Element {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDeleteAddress(address.id)}
+                      onClick={() => handleDeleteAddress(address._id!)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       Delete
@@ -528,7 +519,7 @@ export default function AddressBookPage(): JSX.Element {
                   onChange={(e) => form.handleChange('phone', e.target.value)}
                   onBlur={() => form.handleBlur('phone')}
                   error={form.touched.phone ? form.errors.phone : undefined}
-                  placeholder="(555) 123-4567"
+                  placeholder="01XXXXXXXXX"
                   fullWidth
                 />
               </div>

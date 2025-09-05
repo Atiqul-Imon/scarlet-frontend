@@ -11,7 +11,9 @@ import {
   LoginFormData,
   RegisterFormData,
   AuthUser,
-  AppError
+  AppError,
+  Address,
+  CreateAddressData
 } from './types';
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL 
@@ -358,6 +360,49 @@ export const orderApi = {
     return fetchJsonAuth<Order>(`/orders/${orderId}/cancel`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
+    });
+  },
+};
+
+// Address API functions
+export const addressApi = {
+  // Get user's addresses
+  getAddresses: (): Promise<Address[]> => {
+    return fetchJsonAuth<Address[]>('/addresses');
+  },
+
+  // Get specific address
+  getAddress: (addressId: string): Promise<Address> => {
+    return fetchJsonAuth<Address>(`/addresses/${addressId}`);
+  },
+
+  // Create new address
+  createAddress: (addressData: CreateAddressData): Promise<Address> => {
+    return fetchJsonAuth<Address>('/addresses', {
+      method: 'POST',
+      body: JSON.stringify(addressData),
+    });
+  },
+
+  // Update address
+  updateAddress: (addressId: string, addressData: Partial<CreateAddressData>): Promise<Address> => {
+    return fetchJsonAuth<Address>(`/addresses/${addressId}`, {
+      method: 'PUT',
+      body: JSON.stringify(addressData),
+    });
+  },
+
+  // Delete address
+  deleteAddress: (addressId: string): Promise<{ deleted: boolean }> => {
+    return fetchJsonAuth<{ deleted: boolean }>(`/addresses/${addressId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Set default address
+  setDefaultAddress: (addressId: string): Promise<Address> => {
+    return fetchJsonAuth<Address>(`/addresses/${addressId}/default`, {
+      method: 'PATCH',
     });
   },
 };

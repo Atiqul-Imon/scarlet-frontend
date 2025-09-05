@@ -6,6 +6,7 @@ import AccountLayout from '../../components/account/AccountLayout';
 import { Button } from '../../components/ui/button';
 import { formatters } from '../../lib/utils';
 import { Order, OrderStatus } from '../../lib/types';
+import { orderApi } from '../../lib/api';
 
 interface DashboardStats {
   totalOrders: number;
@@ -36,59 +37,63 @@ export default function AccountDashboard(): JSX.Element {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API calls
-        const mockStats: DashboardStats = {
-          totalOrders: 12,
-          pendingOrders: 2,
-          totalSpent: 487.50,
-          wishlistItems: 8,
-          rewardPoints: 245,
+        // Fetch user's orders
+        const ordersResponse = await orderApi.getOrders(1, 10);
+        const orders = ordersResponse.data || ordersResponse;
+        
+        // Calculate stats from real data
+        const totalOrders = orders.length;
+        const pendingOrders = orders.filter((order: Order) => 
+          ['pending', 'confirmed', 'processing', 'shipped'].includes(order.status)
+        ).length;
+        
+        const totalSpent = orders.reduce((sum: number, order: Order) => 
+          sum + (order.total || 0), 0
+        );
+        
+        // For now, we'll use placeholder values for wishlist and rewards
+        // These would need separate API endpoints
+        const stats: DashboardStats = {
+          totalOrders,
+          pendingOrders,
+          totalSpent,
+          wishlistItems: 0, // TODO: Implement wishlist API
+          rewardPoints: Math.floor(totalSpent), // Simple points calculation
         };
 
-        const mockRecentOrders: RecentOrder[] = [
-          {
-            _id: '1',
-            orderNumber: 'SCR-2024-001',
-            total: 89.97,
-            currency: 'USD',
-            status: 'shipped',
-            createdAt: '2024-01-15T10:30:00Z',
-            itemCount: 3,
-          },
-          {
-            _id: '2',
-            orderNumber: 'SCR-2024-002',
-            total: 156.50,
-            currency: 'USD',
-            status: 'processing',
-            createdAt: '2024-01-10T14:20:00Z',
-            itemCount: 5,
-          },
-          {
-            _id: '3',
-            orderNumber: 'SCR-2024-003',
-            total: 45.99,
-            currency: 'USD',
-            status: 'delivered',
-            createdAt: '2024-01-05T09:15:00Z',
-            itemCount: 2,
-          },
-        ];
-
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Transform orders to RecentOrder format
+        const recentOrders: RecentOrder[] = orders.slice(0, 3).map((order: Order) => ({
+          _id: order._id || '',
+          orderNumber: order.orderNumber,
+          total: order.total,
+          currency: order.currency,
+          status: order.status,
+          createdAt: order.createdAt || '',
+          itemCount: order.items?.length || 0,
+        }));
         
-        setStats(mockStats);
-        setRecentOrders(mockRecentOrders);
+        setStats(stats);
+        setRecentOrders(recentOrders);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        // Set empty data on error
+        setStats({
+          totalOrders: 0,
+          pendingOrders: 0,
+          totalSpent: 0,
+          wishlistItems: 0,
+          rewardPoints: 0,
+        });
+        setRecentOrders([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDashboardData();
-  }, []);
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
 
   const getStatusColor = (status: OrderStatus): string => {
     const colors = {
@@ -159,7 +164,7 @@ export default function AccountDashboard(): JSX.Element {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Spent</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatters.formatPrice(stats.totalSpent, 'USD')}
+                    {formatters.formatPrice(stats.totalSpent, 'BDT')}
                   </p>
                 </div>
               </div>
@@ -200,7 +205,7 @@ export default function AccountDashboard(): JSX.Element {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Total value:</span>
-                  <span className="font-medium">{formatters.formatPrice(totalPrice, 'USD')}</span>
+                  <span className="font-medium">{formatters.formatPrice(totalPrice, 'BDT')}</span>
                 </div>
                 <div className="pt-3 border-t">
                   <Link href="/checkout">

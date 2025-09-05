@@ -8,6 +8,7 @@ import { Select } from '../../../components/ui/select';
 import { useDebounce } from '../../../lib/hooks';
 import { formatters } from '../../../lib/utils';
 import { Order, OrderStatus, SelectOption } from '../../../lib/types';
+import { orderApi } from '../../../lib/api';
 
 interface OrderFilters {
   search: string;
@@ -48,111 +49,39 @@ export default function OrderHistoryPage(): JSX.Element {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API call
-        const mockOrders: Order[] = [
-          {
-            _id: '1',
-            orderNumber: 'SCR-2024-001',
-            userId: 'user1',
-            email: 'customer@example.com',
-            items: [
-              {
-                productId: '1',
-                title: 'Vitamin C Brightening Serum',
-                slug: 'vitamin-c-brightening-serum',
-                image: '/products/serum-1.jpg',
-                price: 29.99,
-                quantity: 2,
-                brand: 'Scarlet Beauty',
-              },
-              {
-                productId: '2',
-                title: 'Hydrating Night Cream',
-                slug: 'hydrating-night-cream',
-                image: '/products/cream-1.jpg',
-                price: 45.00,
-                quantity: 1,
-                brand: 'Glow Labs',
-              },
-            ],
-            subtotal: 104.98,
-            shipping: 9.99,
-            tax: 8.40,
-            discount: 0,
-            total: 123.37,
-            currency: 'USD',
-            status: 'shipped',
-            shippingAddress: {
-              firstName: 'John',
-              lastName: 'Doe',
-              address: '123 Main St',
-              city: 'New York',
-              state: 'NY',
-              zipCode: '10001',
-              country: 'US',
-            },
-            paymentInfo: {
-              method: 'card',
-              status: 'completed',
-              last4: '4242',
-              brand: 'visa',
-            },
-            shippingMethod: 'standard',
-            trackingNumber: '1Z999AA1234567890',
-            estimatedDelivery: '2024-01-20',
-            createdAt: '2024-01-15T10:30:00Z',
-            updatedAt: '2024-01-16T14:20:00Z',
-          },
-          {
-            _id: '2',
-            orderNumber: 'SCR-2024-002',
-            userId: 'user1',
-            email: 'customer@example.com',
-            items: [
-              {
-                productId: '3',
-                title: 'Gentle Cleansing Foam',
-                slug: 'gentle-cleansing-foam',
-                image: '/products/cleanser-1.jpg',
-                price: 24.99,
-                quantity: 1,
-                brand: 'Pure Skin',
-              },
-            ],
-            subtotal: 24.99,
-            shipping: 0,
-            tax: 2.00,
-            discount: 5.00,
-            total: 21.99,
-            currency: 'USD',
-            status: 'delivered',
-            shippingAddress: {
-              firstName: 'John',
-              lastName: 'Doe',
-              address: '123 Main St',
-              city: 'New York',
-              state: 'NY',
-              zipCode: '10001',
-              country: 'US',
-            },
-            paymentInfo: {
-              method: 'card',
-              status: 'completed',
-              last4: '4242',
-              brand: 'visa',
-            },
-            shippingMethod: 'standard',
-            deliveredAt: '2024-01-08T16:45:00Z',
-            createdAt: '2024-01-05T09:15:00Z',
-            updatedAt: '2024-01-08T16:45:00Z',
-          },
-        ];
-
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setOrders(mockOrders);
+        // Fetch user's orders from API
+        const ordersResponse = await orderApi.getOrders(1, 50);
+        let orders = ordersResponse.data || ordersResponse;
+        
+        // Apply client-side filtering
+        if (filters.search) {
+          orders = orders.filter((order: Order) => 
+            order.orderNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
+            order.items.some(item => 
+              item.title.toLowerCase().includes(filters.search.toLowerCase())
+            )
+          );
+        }
+        
+        if (filters.status !== 'all') {
+          orders = orders.filter((order: Order) => order.status === filters.status);
+        }
+        
+        if (filters.dateRange !== 'all') {
+          const days = parseInt(filters.dateRange);
+          const cutoffDate = new Date();
+          cutoffDate.setDate(cutoffDate.getDate() - days);
+          
+          orders = orders.filter((order: Order) => {
+            const orderDate = new Date(order.createdAt || '');
+            return orderDate >= cutoffDate;
+          });
+        }
+        
+        setOrders(orders);
       } catch (error) {
         console.error('Error fetching orders:', error);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -269,7 +198,7 @@ export default function OrderHistoryPage(): JSX.Element {
                   <div className="flex items-center gap-3">
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">
-                        {formatters.formatPrice(order.total, order.currency)}
+                        {formatters.formatPrice(order.total, order.currency || 'BDT')}
                       </p>
                       <p className="text-sm text-gray-600">
                         {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
@@ -296,7 +225,7 @@ export default function OrderHistoryPage(): JSX.Element {
                             {item.title}
                           </p>
                           <p className="text-xs text-gray-600">
-                            Qty: {item.quantity} × {formatters.formatPrice(item.price, order.currency)}
+                            Qty: {item.quantity} × {formatters.formatPrice(item.price, order.currency || 'BDT')}
                           </p>
                         </div>
                       </div>
