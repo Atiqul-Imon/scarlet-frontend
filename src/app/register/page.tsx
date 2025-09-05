@@ -6,13 +6,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useForm } from '@/lib/hooks';
-import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/context';
 import type { RegisterFormData } from '@/lib/types';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
@@ -53,7 +52,7 @@ export default function RegisterPage() {
         
         // Validate phone if provided
         if (hasPhone) {
-          const phoneRegex = /^(\+88)?01[3-9]\d{8}$/;
+          const phoneRegex = /^(\+8801|01)[3-9]\d{8}$/;
           if (!phoneRegex.test(values.phone.trim())) {
             errors.phone = 'Please enter a valid phone number (01XXXXXXXXX)';
           }
@@ -81,7 +80,7 @@ export default function RegisterPage() {
       setError('');
       
       try {
-        const response = await authApi.register({
+        await register({
           firstName: values.firstName.trim(),
           lastName: values.lastName?.trim() || undefined,
           email: values.email?.trim() || undefined,
@@ -90,7 +89,6 @@ export default function RegisterPage() {
           acceptTerms: values.acceptTerms,
         });
         
-        await login(response.user, response.tokens);
         router.push('/account');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Registration failed');
