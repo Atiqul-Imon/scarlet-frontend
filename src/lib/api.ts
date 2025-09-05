@@ -13,7 +13,8 @@ import {
   AuthUser,
   AppError,
   Address,
-  CreateAddressData
+  CreateAddressData,
+  WishlistItem
 } from './types';
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL 
@@ -404,6 +405,46 @@ export const addressApi = {
     return fetchJsonAuth<Address>(`/addresses/${addressId}/default`, {
       method: 'PATCH',
     });
+  },
+};
+
+// Wishlist API functions
+export const wishlistApi = {
+  // Get user's wishlist
+  getWishlist: (): Promise<{ items: WishlistItem[]; total: number }> => {
+    return fetchJsonAuth<{ items: WishlistItem[]; total: number }>('/wishlist');
+  },
+
+  // Add item to wishlist
+  addToWishlist: (productId: string): Promise<WishlistItem> => {
+    return fetchJsonAuth<WishlistItem>('/wishlist', {
+      method: 'POST',
+      body: JSON.stringify({ productId }),
+    });
+  },
+
+  // Remove item from wishlist
+  removeFromWishlist: (productId: string): Promise<{ removed: boolean }> => {
+    return fetchJsonAuth<{ removed: boolean }>(`/wishlist/${productId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Clear entire wishlist
+  clearWishlist: (): Promise<{ cleared: boolean; count: number }> => {
+    return fetchJsonAuth<{ cleared: boolean; count: number }>('/wishlist', {
+      method: 'DELETE',
+    });
+  },
+
+  // Check if product is in wishlist
+  checkWishlistStatus: (productId: string): Promise<{ isInWishlist: boolean }> => {
+    return fetchJsonAuth<{ isInWishlist: boolean }>(`/wishlist/${productId}/status`);
+  },
+
+  // Get wishlist statistics
+  getWishlistStats: (): Promise<{ count: number }> => {
+    return fetchJsonAuth<{ count: number }>('/wishlist/stats');
   },
 };
 

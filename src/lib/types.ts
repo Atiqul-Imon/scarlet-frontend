@@ -152,6 +152,13 @@ export interface CreateAddressData {
   isDefault?: boolean;
 }
 
+export interface WishlistItem extends BaseEntity {
+  userId: string;
+  productId: string;
+  product: Product;
+  addedAt: string;
+}
+
 export interface PaymentInfo {
   method: PaymentMethod;
   status: PaymentStatus;

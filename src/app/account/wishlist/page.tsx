@@ -6,87 +6,27 @@ import { useCart } from '../../../lib/context';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
 import { formatters } from '../../../lib/utils';
-import { Product } from '../../../lib/types';
-
-interface WishlistItem {
-  id: string;
-  product: Product;
-  addedAt: string;
-}
+import { WishlistItem } from '../../../lib/types';
+import { wishlistApi } from '../../../lib/api';
 
 export default function WishlistPage(): JSX.Element {
   const { addItem } = useCart();
   const [wishlistItems, setWishlistItems] = React.useState<WishlistItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [addingToCart, setAddingToCart] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchWishlist = async () => {
       setLoading(true);
+      setError(null);
       try {
-        // TODO: Replace with actual API call
-        const mockWishlistItems: WishlistItem[] = [
-          {
-            id: '1',
-            product: {
-              _id: '1',
-              title: 'Vitamin C Brightening Serum',
-              slug: 'vitamin-c-brightening-serum',
-              description: 'A powerful vitamin C serum that brightens and evens skin tone',
-              images: ['/products/serum-1.jpg'],
-              price: { currency: 'USD', amount: 29.99 },
-              brand: 'Scarlet Beauty',
-              stock: 15,
-              categoryIds: ['skincare'],
-              rating: { average: 4.5, count: 128 },
-              createdAt: '2024-01-01T00:00:00Z',
-              updatedAt: '2024-01-01T00:00:00Z',
-            },
-            addedAt: '2024-01-15T10:30:00Z',
-          },
-          {
-            id: '2',
-            product: {
-              _id: '2',
-              title: 'Hydrating Night Cream',
-              slug: 'hydrating-night-cream',
-              description: 'Rich night cream that deeply moisturizes and repairs skin overnight',
-              images: ['/products/cream-1.jpg'],
-              price: { currency: 'USD', amount: 45.00 },
-              brand: 'Glow Labs',
-              stock: 8,
-              categoryIds: ['skincare'],
-              rating: { average: 4.8, count: 89 },
-              createdAt: '2024-01-01T00:00:00Z',
-              updatedAt: '2024-01-01T00:00:00Z',
-            },
-            addedAt: '2024-01-14T16:20:00Z',
-          },
-          {
-            id: '3',
-            product: {
-              _id: '3',
-              title: 'Gentle Cleansing Foam',
-              slug: 'gentle-cleansing-foam',
-              description: 'Mild foam cleanser suitable for all skin types',
-              images: ['/products/cleanser-1.jpg'],
-              price: { currency: 'USD', amount: 24.99, originalAmount: 29.99, discountPercentage: 17 },
-              brand: 'Pure Skin',
-              stock: 0, // Out of stock
-              categoryIds: ['skincare'],
-              rating: { average: 4.2, count: 156 },
-              createdAt: '2024-01-01T00:00:00Z',
-              updatedAt: '2024-01-01T00:00:00Z',
-            },
-            addedAt: '2024-01-12T09:15:00Z',
-          },
-        ];
-
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setWishlistItems(mockWishlistItems);
-      } catch (error) {
+        const response = await wishlistApi.getWishlist();
+        setWishlistItems(response.items);
+      } catch (error: any) {
         console.error('Error fetching wishlist:', error);
+        setError(error.message || 'Failed to load wishlist');
+        setWishlistItems([]);
       } finally {
         setLoading(false);
       }
@@ -95,16 +35,18 @@ export default function WishlistPage(): JSX.Element {
     fetchWishlist();
   }, []);
 
-  const handleRemoveFromWishlist = async (itemId: string) => {
+  const handleRemoveFromWishlist = async (item: WishlistItem) => {
     try {
-      // TODO: Implement actual API call
-      setWishlistItems(prev => prev.filter(item => item.id !== itemId));
-    } catch (error) {
+      setError(null);
+      await wishlistApi.removeFromWishlist(item.productId);
+      setWishlistItems(prev => prev.filter(wishlistItem => wishlistItem._id !== item._id));
+    } catch (error: any) {
       console.error('Error removing from wishlist:', error);
+      setError(error.message || 'Failed to remove item from wishlist');
     }
   };
 
-  const handleAddToCart = async (product: Product) => {
+  const handleAddToCart = async (product: any) => {
     if (product.stock === 0) return;
     
     setAddingToCart(product._id);
@@ -122,9 +64,22 @@ export default function WishlistPage(): JSX.Element {
     
     try {
       await handleAddToCart(item.product);
-      await handleRemoveFromWishlist(item.id);
+      await handleRemoveFromWishlist(item);
     } catch (error) {
       console.error('Error moving to cart:', error);
+    }
+  };
+
+  const handleClearWishlist = async () => {
+    if (window.confirm('Are you sure you want to clear your entire wishlist?')) {
+      try {
+        setError(null);
+        await wishlistApi.clearWishlist();
+        setWishlistItems([]);
+      } catch (error: any) {
+        console.error('Error clearing wishlist:', error);
+        setError(error.message || 'Failed to clear wishlist');
+      }
     }
   };
 
@@ -160,6 +115,25 @@ export default function WishlistPage(): JSX.Element {
   return (
     <AccountLayout>
       <div className="space-y-6">
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -184,11 +158,7 @@ export default function WishlistPage(): JSX.Element {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to clear your entire wishlist?')) {
-                    setWishlistItems([]);
-                  }
-                }}
+                onClick={handleClearWishlist}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 Clear Wishlist
@@ -201,7 +171,7 @@ export default function WishlistPage(): JSX.Element {
         {wishlistItems.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {wishlistItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div key={item._id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                 {/* Product Image */}
                 <div className="relative aspect-square bg-gray-100">
                   <Link href={`/products/${item.product.slug}`}>
@@ -213,7 +183,7 @@ export default function WishlistPage(): JSX.Element {
                   
                   {/* Remove from Wishlist Button */}
                   <button
-                    onClick={() => handleRemoveFromWishlist(item.id)}
+                    onClick={() => handleRemoveFromWishlist(item)}
                     className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
                     aria-label="Remove from wishlist"
                   >
@@ -313,7 +283,7 @@ export default function WishlistPage(): JSX.Element {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveFromWishlist(item.id)}
+                        onClick={() => handleRemoveFromWishlist(item)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         Remove
