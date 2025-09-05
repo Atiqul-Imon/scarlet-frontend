@@ -11,8 +11,8 @@ import { paymentUtils } from '@/lib/payment-api';
 interface CheckoutFormData {
   // Shipping Information
   firstName: string;
-  lastName: string;
-  email: string;
+  lastName?: string; // Made optional
+  email?: string; // Made optional
   phone: string;
   address: string;
   city: string;
@@ -32,7 +32,7 @@ interface CheckoutFormData {
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
 
   const [currentStep, setCurrentStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
@@ -61,12 +61,12 @@ export default function CheckoutPage() {
     }
   }, [cart.items.length, router]);
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated (but wait for auth to load)
   useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       router.push('/login?redirect=/checkout');
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const validateShippingForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -75,13 +75,10 @@ export default function CheckoutPage() {
       newErrors.firstName = 'First name is required';
     }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
+    // Last name is optional - no validation needed
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    // Email is optional, but if provided, must be valid
+    if (formData.email && formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = 'Please enter a valid email address';
     }
 
@@ -154,8 +151,8 @@ export default function CheckoutPage() {
     try {
       const orderData = {
         firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.toLowerCase().trim(),
+        lastName: formData.lastName?.trim() || undefined,
+        email: formData.email?.toLowerCase().trim() || undefined,
         phone: formData.phone.trim(),
         address: formData.address.trim(),
         city: formData.city.trim(),
@@ -260,14 +257,14 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name *
+                        Last Name (Optional)
                       </label>
                       <input
                         type="text"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="Enter your last name"
+                        placeholder="Last name (optional)"
                       />
                       {errors.lastName && (
                         <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
@@ -278,14 +275,14 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email *
+                        Email (Optional)
                       </label>
                       <input
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                        placeholder="Enter your email"
+                        placeholder="Email (optional)"
                       />
                       {errors.email && (
                         <p className="mt-1 text-sm text-red-600">{errors.email}</p>

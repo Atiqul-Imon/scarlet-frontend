@@ -268,7 +268,7 @@ const GUEST_CART_KEY = 'scarlet_guest_cart';
 
 const getGuestCart = (): Cart => {
   if (typeof window === 'undefined') {
-    return { id: 'guest', userId: 'guest', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    return { _id: 'guest', userId: 'guest', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   }
   
   console.log('Getting guest cart from localStorage...');
@@ -289,7 +289,7 @@ const getGuestCart = (): Cart => {
   
   console.log('No stored cart found, creating new guest cart');
   const newCart = {
-    id: 'guest',
+    _id: 'guest',
     userId: 'guest',
     items: [],
     createdAt: new Date().toISOString(),
@@ -363,12 +363,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart]);
 
+
   // Handle authentication changes
   React.useEffect(() => {
     if (isAuthenticated && cart?.userId === 'guest') {
       // User logged in, sync guest cart with server
-      console.log('User logged in, should sync cart');
-      // TODO: Implement cart sync
+      console.log('User logged in, syncing guest cart with server');
+      // This will be called after syncGuestCartWithServer is defined
     } else if (!isAuthenticated && (!cart || cart.userId !== 'guest')) {
       // User logged out, load guest cart
       console.log('User logged out, loading guest cart');
@@ -426,19 +427,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Handle guest cart with localStorage
       try {
         const guestCart = getGuestCart();
-        const existingItemIndex = guestCart.items.findIndex(item => item.productId === productId);
+        const existingItemIndex = guestCart?.items.findIndex(item => item.productId === productId) ?? -1;
         
         if (existingItemIndex >= 0) {
           // Update existing item
-          guestCart.items[existingItemIndex].quantity += quantity;
+          guestCart!.items[existingItemIndex]!.quantity += quantity;
         } else {
           // Add new item
-          guestCart.items.push({ productId, quantity });
+          guestCart!.items.push({ productId, quantity });
         }
         
-        guestCart.updatedAt = new Date().toISOString();
-        saveGuestCart(guestCart);
-        setCart(guestCart);
+        guestCart!.updatedAt = new Date().toISOString();
+        saveGuestCart(guestCart!);
+        setCart(guestCart!);
         
         addToast({
           type: 'success',
@@ -467,20 +468,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Handle guest cart with localStorage
       try {
         const guestCart = getGuestCart();
-        const existingItemIndex = guestCart.items.findIndex(item => item.productId === productId);
+        const existingItemIndex = guestCart?.items.findIndex(item => item.productId === productId) ?? -1;
         
         if (existingItemIndex >= 0) {
           if (quantity <= 0) {
             // Remove item if quantity is 0 or less
-            guestCart.items.splice(existingItemIndex, 1);
+            guestCart!.items.splice(existingItemIndex, 1);
           } else {
             // Update existing item
-            guestCart.items[existingItemIndex].quantity = quantity;
+            guestCart!.items[existingItemIndex]!.quantity = quantity;
           }
           
-          guestCart.updatedAt = new Date().toISOString();
-          saveGuestCart(guestCart);
-          setCart(guestCart);
+          guestCart!.updatedAt = new Date().toISOString();
+          saveGuestCart(guestCart!);
+          setCart(guestCart!);
           
           addToast({
             type: 'success',
@@ -510,13 +511,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Handle guest cart with localStorage
       try {
         const guestCart = getGuestCart();
-        const existingItemIndex = guestCart.items.findIndex(item => item.productId === productId);
+        const existingItemIndex = guestCart?.items.findIndex(item => item.productId === productId) ?? -1;
         
         if (existingItemIndex >= 0) {
-          guestCart.items.splice(existingItemIndex, 1);
-          guestCart.updatedAt = new Date().toISOString();
-          saveGuestCart(guestCart);
-          setCart(guestCart);
+          guestCart!.items.splice(existingItemIndex, 1);
+          guestCart!.updatedAt = new Date().toISOString();
+          saveGuestCart(guestCart!);
+          setCart(guestCart!);
           
           addToast({
             type: 'success',
@@ -596,6 +597,51 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     }
   }, [isAuthenticated]);
+
+  // Sync guest cart with server when user logs in
+  const syncGuestCartWithServer = React.useCallback(async () => {
+    if (!isAuthenticated || !cart || cart.userId !== 'guest') return;
+    
+    try {
+      console.log('Syncing guest cart items:', cart.items);
+      
+      // Add each guest cart item to the server cart
+      for (const item of cart.items) {
+        try {
+          await cartApi.addItem(item.productId, item.quantity);
+          console.log(`Synced item ${item.productId} with quantity ${item.quantity}`);
+        } catch (error) {
+          console.warn(`Failed to sync item ${item.productId}:`, error);
+        }
+      }
+      
+      // Clear guest cart after successful sync
+      clearGuestCart();
+      
+      // Refresh cart from server
+      await refreshCart();
+      
+      addToast({
+        type: 'success',
+        title: 'Cart Synced',
+        message: 'Your cart items have been synced with your account'
+      });
+    } catch (error) {
+      console.error('Failed to sync guest cart:', error);
+      addToast({
+        type: 'warning',
+        title: 'Cart Sync Failed',
+        message: 'Some items may not have been synced to your account'
+      });
+    }
+  }, [isAuthenticated, cart, addToast, refreshCart]);
+
+  // Handle cart sync when user logs in
+  React.useEffect(() => {
+    if (isAuthenticated && cart?.userId === 'guest') {
+      syncGuestCartWithServer();
+    }
+  }, [isAuthenticated, cart, syncGuestCartWithServer]);
 
   const resetCart = React.useCallback(() => {
     clearGuestCart();

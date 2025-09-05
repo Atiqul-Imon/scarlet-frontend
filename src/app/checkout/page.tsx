@@ -11,8 +11,8 @@ import { productApi } from '../../lib/api';
 interface CheckoutFormData {
   // Shipping Information
   firstName: string;
-  lastName: string;
-  email: string;
+  lastName?: string; // Made optional
+  email?: string; // Made optional
   phone: string;
   address: string;
   city: string;
@@ -46,7 +46,7 @@ interface CartItemData {
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
   
   const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
@@ -76,11 +76,10 @@ export default function CheckoutPage() {
         errors.firstName = 'First name is required and must be at least 2 characters';
       }
       
-      if (!values.lastName || values.lastName.length < 2) {
-        errors.lastName = 'Last name is required and must be at least 2 characters';
-      }
+      // Last name is optional - no validation needed
       
-      if (!values.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+      // Email is optional, but if provided, must be valid
+      if (values.email && values.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
         errors.email = 'Please enter a valid email address';
       }
       
@@ -205,12 +204,12 @@ export default function CheckoutPage() {
     }
   }, [cart, router, addToast]);
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated (but wait for auth to load)
   React.useEffect(() => {
-    if (!user) {
+    if (!authLoading && !user) {
       router.push('/login?redirect=/checkout');
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
@@ -250,8 +249,8 @@ export default function CheckoutPage() {
       // Create order data matching backend interface
       const orderData = {
         firstName: values.firstName,
-        lastName: values.lastName,
-        email: values.email,
+        lastName: values.lastName || undefined,
+        email: values.email || undefined,
         phone: values.phone,
         address: values.address,
         city: values.city,
@@ -401,24 +400,24 @@ export default function CheckoutPage() {
                       required
                     />
                     <Input
-                      label="Last Name *"
+                      label="Last Name (Optional)"
                       name="lastName"
                       value={values.lastName}
                       onChange={handleChange}
                       error={errors.lastName}
-                      required
+                      placeholder="Last name (optional)"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <Input
-                      label="Email Address *"
+                      label="Email Address (Optional)"
                       name="email"
                       type="email"
                       value={values.email}
                       onChange={handleChange}
                       error={errors.email}
-                      required
+                      placeholder="Email (optional)"
                     />
                     <Input
                       label="Phone Number *"
@@ -489,7 +488,7 @@ export default function CheckoutPage() {
                     <Button
                       type="button"
                       onClick={() => setStep('payment')}
-                      disabled={!values.firstName || !values.lastName || !values.email || !values.phone || !values.address || !values.area || !values.postalCode}
+                      disabled={!values.firstName || !values.phone || !values.address || !values.area || !values.postalCode}
                     >
                       Continue to Payment
                     </Button>
@@ -660,10 +659,10 @@ export default function CheckoutPage() {
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Shipping Address</h3>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="font-medium text-gray-900">
-                        {values.firstName} {values.lastName}
+                        {values.firstName} {values.lastName ? values.lastName : ''}
                       </p>
                       <p className="text-gray-600">{values.phone}</p>
-                      <p className="text-gray-600">{values.email}</p>
+                      {values.email && <p className="text-gray-600">{values.email}</p>}
                       <p className="text-gray-600 mt-2">
                         {values.address}<br />
                         {values.area}, {values.city} {values.postalCode}
