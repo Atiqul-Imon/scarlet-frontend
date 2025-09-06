@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -18,7 +18,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import {
   CalendarDaysIcon,
   CurrencyDollarIcon,
@@ -36,62 +36,26 @@ import {
   ArrowPathIcon,
   DocumentArrowDownIcon,
   ChartBarIcon,
+  ExclamationTriangleIcon,
+  CubeIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
+import { analyticsApi, inventoryApi } from '@/lib/api';
+import type { SalesAnalytics, TrafficAnalytics, RealTimeAnalytics, InventoryStats } from '@/lib/api';
 
 interface AnalyticsData {
-  overview: {
+  sales: SalesAnalytics;
+  traffic: TrafficAnalytics;
+  realTime: RealTimeAnalytics;
+  inventory: InventoryStats;
+  summary: {
     totalRevenue: number;
     totalOrders: number;
-    totalCustomers: number;
+    totalVisitors: number;
+    conversionRate: number;
     averageOrderValue: number;
-    conversionRate: number;
-    revenueGrowth: number;
-    orderGrowth: number;
-    customerGrowth: number;
+    bounceRate: number;
   };
-  revenueData: Array<{
-    date: string;
-    revenue: number;
-    orders: number;
-    customers: number;
-  }>;
-  productPerformance: Array<{
-    name: string;
-    sales: number;
-    revenue: number;
-    views: number;
-    conversionRate: number;
-    category: string;
-  }>;
-  customerInsights: {
-    demographics: Array<{
-      ageGroup: string;
-      count: number;
-      percentage: number;
-    }>;
-    geography: Array<{
-      city: string;
-      customers: number;
-      revenue: number;
-    }>;
-    devices: Array<{
-      device: string;
-      sessions: number;
-      percentage: number;
-    }>;
-  };
-  salesFunnel: Array<{
-    stage: string;
-    count: number;
-    percentage: number;
-  }>;
-  paymentMethods: Array<{
-    method: string;
-    count: number;
-    revenue: number;
-    percentage: number;
-  }>;
 }
 
 type DateRange = '7d' | '30d' | '90d' | '1y' | 'custom';
@@ -125,618 +89,391 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<DateRange>('30d');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const { addToast } = useToast();
 
-  useEffect(() => {
-    // Mock analytics data
-    const generateMockData = (): AnalyticsData => {
-      const today = new Date();
-      const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
-      
-      // Generate revenue data
-      const revenueData = Array.from({ length: days }, (_, i) => {
-        const date = subDays(today, days - 1 - i);
-        const baseRevenue = 15000 + Math.random() * 10000;
-        const seasonality = Math.sin((i / days) * Math.PI * 2) * 2000;
-        const weekendBoost = [0, 6].includes(date.getDay()) ? 3000 : 0;
-        
-        return {
-          date: format(date, 'MMM dd'),
-          revenue: Math.round(baseRevenue + seasonality + weekendBoost),
-          orders: Math.round((baseRevenue + seasonality + weekendBoost) / 2800),
-          customers: Math.round((baseRevenue + seasonality + weekendBoost) / 3500),
-        };
-      });
-
-      const totalRevenue = revenueData.reduce((sum, day) => sum + day.revenue, 0);
-      const totalOrders = revenueData.reduce((sum, day) => sum + day.orders, 0);
-      const totalCustomers = revenueData.reduce((sum, day) => sum + day.customers, 0);
-
-      return {
-        overview: {
-          totalRevenue,
-          totalOrders,
-          totalCustomers,
-          averageOrderValue: Math.round(totalRevenue / totalOrders),
-          conversionRate: 3.2,
-          revenueGrowth: 12.5,
-          orderGrowth: 8.3,
-          customerGrowth: 15.7,
-        },
-        revenueData,
-        productPerformance: [
-          {
-            name: 'Luxury Rose Gold Lipstick',
-            sales: 156,
-            revenue: 390000,
-            views: 2340,
-            conversionRate: 6.7,
-            category: 'Makeup',
-          },
-          {
-            name: 'Hydrating Face Serum',
-            sales: 89,
-            revenue: 311500,
-            views: 1876,
-            conversionRate: 4.7,
-            category: 'Skincare',
-          },
-          {
-            name: 'Organic Body Butter',
-            sales: 234,
-            revenue: 421200,
-            views: 3210,
-            conversionRate: 7.3,
-            category: 'Bath & Body',
-          },
-          {
-            name: 'Vitamin C Brightening Cream',
-            sales: 67,
-            revenue: 268000,
-            views: 1543,
-            conversionRate: 4.3,
-            category: 'Skincare',
-          },
-          {
-            name: 'Natural Perfume Oil',
-            sales: 123,
-            revenue: 184500,
-            views: 2876,
-            conversionRate: 4.3,
-            category: 'Fragrance',
-          },
-        ],
-        customerInsights: {
-          demographics: [
-            { ageGroup: '18-24', count: 1234, percentage: 28.5 },
-            { ageGroup: '25-34', count: 1876, percentage: 43.2 },
-            { ageGroup: '35-44', count: 876, percentage: 20.2 },
-            { ageGroup: '45-54', count: 234, percentage: 5.4 },
-            { ageGroup: '55+', count: 123, percentage: 2.8 },
-          ],
-          geography: [
-            { city: 'Dhaka', customers: 2340, revenue: 1250000 },
-            { city: 'Chittagong', customers: 876, revenue: 450000 },
-            { city: 'Sylhet', customers: 543, revenue: 280000 },
-            { city: 'Rajshahi', customers: 432, revenue: 220000 },
-            { city: 'Khulna', customers: 321, revenue: 165000 },
-            { city: 'Barisal', customers: 234, revenue: 120000 },
-          ],
-          devices: [
-            { device: 'Mobile', sessions: 3456, percentage: 67.8 },
-            { device: 'Desktop', sessions: 1234, percentage: 24.2 },
-            { device: 'Tablet', sessions: 408, percentage: 8.0 },
-          ],
-        },
-        salesFunnel: [
-          { stage: 'Visitors', count: 15420, percentage: 100 },
-          { stage: 'Product Views', count: 8765, percentage: 56.8 },
-          { stage: 'Add to Cart', count: 2340, percentage: 15.2 },
-          { stage: 'Checkout Started', count: 1456, percentage: 9.4 },
-          { stage: 'Orders Completed', count: 987, percentage: 6.4 },
-        ],
-        paymentMethods: [
-          { method: 'bKash', count: 432, revenue: 1250000, percentage: 43.8 },
-          { method: 'Cash on Delivery', count: 321, revenue: 890000, percentage: 32.5 },
-          { method: 'Nagad', count: 156, revenue: 450000, percentage: 15.8 },
-          { method: 'Rocket', count: 67, revenue: 190000, percentage: 6.8 },
-          { method: 'Card', count: 11, revenue: 35000, percentage: 1.1 },
-        ],
-      };
+  const getDateRange = () => {
+    const today = new Date();
+    let startDate: string;
+    
+    switch (dateRange) {
+      case '7d':
+        startDate = subDays(today, 7).toISOString();
+        break;
+      case '30d':
+        startDate = subDays(today, 30).toISOString();
+        break;
+      case '90d':
+        startDate = subDays(today, 90).toISOString();
+        break;
+      case '1y':
+        startDate = subDays(today, 365).toISOString();
+        break;
+      case 'custom':
+        startDate = customStartDate || subDays(today, 30).toISOString();
+        break;
+      default:
+        startDate = subDays(today, 30).toISOString();
+    }
+    
+    return {
+      startDate,
+      endDate: customEndDate || today.toISOString()
     };
+  };
 
-    setTimeout(() => {
-      setData(generateMockData());
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      const { startDate, endDate } = getDateRange();
+      
+      const [sales, traffic, realTime, inventory] = await Promise.all([
+        analyticsApi.getSalesAnalytics(startDate, endDate),
+        analyticsApi.getTrafficAnalytics(startDate, endDate),
+        analyticsApi.getRealTimeAnalytics(),
+        inventoryApi.getStats()
+      ]);
+
+      const summary = {
+        totalRevenue: sales.totalRevenue,
+        totalOrders: sales.totalOrders,
+        totalVisitors: traffic.totalVisitors,
+        conversionRate: sales.conversionRate,
+        averageOrderValue: sales.averageOrderValue,
+        bounceRate: traffic.bounceRate,
+      };
+
+      setData({
+        sales,
+        traffic,
+        realTime,
+        inventory,
+        summary
+      });
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      addToast('Failed to load analytics data', 'error');
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, [dateRange]);
-
-  const formatCurrency = (amount: number) => {
-    return `৳${amount.toLocaleString()}`;
+    }
   };
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchAnalyticsData();
+    setRefreshing(false);
+    addToast('Analytics data refreshed', 'success');
   };
 
-  const getGrowthIcon = (growth: number) => {
-    return growth >= 0 ? (
-      <ArrowTrendingUpIcon className="w-4 h-4 text-green-500" />
-    ) : (
-      <ArrowTrendingDownIcon className="w-4 h-4 text-red-500" />
-    );
-  };
-
-  const getGrowthColor = (growth: number) => {
-    return growth >= 0 ? 'text-green-600' : 'text-red-600';
-  };
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [dateRange, customStartDate, customEndDate]);
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6">
-                <div className="h-16 bg-gray-200 rounded"></div>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6">
-                <div className="h-64 bg-gray-200 rounded"></div>
-              </div>
-            ))}
-          </div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="text-center py-12">
+        <ChartBarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Analytics Data</h3>
+        <p className="text-gray-500">Analytics data will appear here once you start receiving traffic.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Beauty Analytics</h1>
-            <p className="text-gray-600">
-              Comprehensive insights into your Scarlet business performance
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-            {/* Date Range Selector */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+          <p className="text-gray-600 mt-1">Real-time insights into your beauty store performance</p>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          {/* Date Range Selector */}
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as DateRange)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+            <option value="1y">Last year</option>
+            <option value="custom">Custom range</option>
+          </select>
+          
+          {dateRange === 'custom' && (
             <div className="flex items-center space-x-2">
-              <CalendarDaysIcon className="w-5 h-5 text-gray-400" />
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value as DateRange)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
-              >
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="90d">Last 90 days</option>
-                <option value="1y">Last year</option>
-                <option value="custom">Custom range</option>
-              </select>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              />
+              <span className="text-gray-500">to</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              />
             </div>
-            
-            <button
-              onClick={() => setLoading(true)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-            >
-              <ArrowPathIcon className="w-4 h-4 mr-2" />
-              Refresh
-            </button>
-            
-            <button
-              onClick={() => {/* Export functionality */}}
-              className="inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-            >
-              <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
-              Export
-            </button>
-          </div>
+          )}
+          
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors duration-200 disabled:opacity-50"
+          >
+            <ArrowPathIcon className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(data.overview.totalRevenue)}
-              </p>
-              <div className={`flex items-center mt-2 text-sm ${getGrowthColor(data.overview.revenueGrowth)}`}>
-                {getGrowthIcon(data.overview.revenueGrowth)}
-                <span className="ml-1">{formatPercentage(data.overview.revenueGrowth)}</span>
-                <span className="text-gray-500 ml-1">vs last period</span>
-              </div>
-            </div>
-            <div className="p-3 bg-green-100 rounded-lg">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg">
               <CurrencyDollarIcon className="w-6 h-6 text-green-600" />
             </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900">
+                ৳{data.summary.totalRevenue.toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {data.overview.totalOrders.toLocaleString()}
-              </p>
-              <div className={`flex items-center mt-2 text-sm ${getGrowthColor(data.overview.orderGrowth)}`}>
-                {getGrowthIcon(data.overview.orderGrowth)}
-                <span className="ml-1">{formatPercentage(data.overview.orderGrowth)}</span>
-                <span className="text-gray-500 ml-1">vs last period</span>
-              </div>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-lg">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg">
               <ShoppingCartIcon className="w-6 h-6 text-blue-600" />
             </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Orders</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {data.summary.totalOrders.toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {data.overview.totalCustomers.toLocaleString()}
-              </p>
-              <div className={`flex items-center mt-2 text-sm ${getGrowthColor(data.overview.customerGrowth)}`}>
-                {getGrowthIcon(data.overview.customerGrowth)}
-                <span className="ml-1">{formatPercentage(data.overview.customerGrowth)}</span>
-                <span className="text-gray-500 ml-1">vs last period</span>
-              </div>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-lg">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-purple-100 rounded-lg">
               <UserGroupIcon className="w-6 h-6 text-purple-600" />
             </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Visitors</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {data.summary.totalVisitors.toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Avg. Order Value</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(data.overview.averageOrderValue)}
-              </p>
-              <div className={`flex items-center mt-2 text-sm ${getGrowthColor(data.overview.conversionRate)}`}>
-                <StarIcon className="w-4 h-4 text-yellow-500" />
-                <span className="ml-1">{formatPercentage(data.overview.conversionRate)}</span>
-                <span className="text-gray-500 ml-1">conversion rate</span>
-              </div>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <ChartBarIcon className="w-6 h-6 text-orange-600" />
             </div>
-            <div className="p-3 bg-pink-100 rounded-lg">
-              <ChartBarIcon className="w-6 h-6 text-pink-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {data.summary.conversionRate.toFixed(1)}%
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Revenue Trend */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Revenue Trend</h3>
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
-                Revenue
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                Orders
-              </div>
+      {/* Real-time Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Activity</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Active Users</span>
+              <span className="text-lg font-semibold text-gray-900">
+                {data.realTime.activeUsers}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Page Views (5min)</span>
+              <span className="text-lg font-semibold text-gray-900">
+                {data.realTime.currentPageViews}
+              </span>
             </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Conversion Funnel</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Visitors</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {data.realTime.conversionFunnel.visitors}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Add to Cart</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {data.realTime.conversionFunnel.addToCart}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Checkout Start</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {data.realTime.conversionFunnel.checkoutStart}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Checkout Complete</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {data.realTime.conversionFunnel.checkoutComplete}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Status</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Total Products</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {data.inventory.totalProducts}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Low Stock Items</span>
+              <span className="text-sm font-semibold text-orange-600">
+                {data.inventory.lowStockItems}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Out of Stock</span>
+              <span className="text-sm font-semibold text-red-600">
+                {data.inventory.outOfStockItems}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Total Value</span>
+              <span className="text-sm font-semibold text-gray-900">
+                ৳{data.inventory.totalValue.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Chart */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data.revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="date" stroke="#666" fontSize={12} />
-              <YAxis stroke="#666" fontSize={12} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                }}
-                formatter={(value: number, name: string) => [
-                  name === 'revenue' ? formatCurrency(value) : value,
-                  name === 'revenue' ? 'Revenue' : 'Orders'
-                ]}
+            <LineChart data={data.sales.revenueByDay}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(value) => format(new Date(value), 'MMM dd')}
               />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke={COLORS.primary}
-                fill={`${COLORS.primary}20`}
+              <YAxis />
+              <Tooltip 
+                labelFormatter={(value) => format(new Date(value), 'MMM dd, yyyy')}
+                formatter={(value: number) => [`৳${value.toLocaleString()}`, 'Revenue']}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="revenue" 
+                stroke={COLORS.primary} 
                 strokeWidth={2}
+                dot={{ fill: COLORS.primary }}
               />
-              <Area
-                type="monotone"
-                dataKey="orders"
-                stroke={COLORS.info}
-                fill={`${COLORS.info}20`}
-                strokeWidth={2}
-              />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Top Products */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Top Products</h3>
-            <select className="border border-gray-300 rounded px-3 py-1 text-sm text-gray-900 bg-white">
-              <option>By Revenue</option>
-              <option>By Sales</option>
-              <option>By Views</option>
-            </select>
-          </div>
+        {/* Top Products Chart */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Products</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.productPerformance} layout="horizontal">
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis type="number" stroke="#666" fontSize={12} />
-              <YAxis type="category" dataKey="name" stroke="#666" fontSize={12} width={120} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                }}
-                formatter={(value: number) => [formatCurrency(value), 'Revenue']}
-              />
-              <Bar dataKey="revenue" fill={COLORS.primary} radius={[0, 4, 4, 0]} />
+            <BarChart data={data.sales.topProducts.slice(0, 5)}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value: number) => [`৳${value.toLocaleString()}`, 'Revenue']} />
+              <Bar dataKey="revenue" fill={COLORS.secondary} />
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
 
-        {/* Customer Demographics */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Customer Demographics</h3>
-            <UserGroupIcon className="w-5 h-5 text-gray-400" />
-          </div>
+      {/* Device Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Device Breakdown</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={data.customerInsights.demographics}
+                data={data.traffic.deviceBreakdown}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={120}
-                paddingAngle={2}
-                dataKey="count"
+                labelLine={false}
+                label={({ device, percentage }) => `${device} (${percentage.toFixed(1)}%)`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="visitors"
               >
-                {data.customerInsights.demographics.map((entry, index) => (
+                {data.traffic.deviceBreakdown.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                }}
-                formatter={(value: number, name: string, props: any) => [
-                  `${value.toLocaleString()} (${props.payload.percentage}%)`,
-                  'Customers'
-                ]}
-              />
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                formatter={(value, entry) => (
-                  <span style={{ color: entry.color }}>{value}</span>
-                )}
-              />
+              <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Payment Methods */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Payment Methods</h3>
-            <CurrencyDollarIcon className="w-5 h-5 text-gray-400" />
-          </div>
-          <div className="space-y-4">
-            {data.paymentMethods.map((method, index) => (
-              <div key={method.method} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                  ></div>
-                  <span className="font-medium text-gray-900">{method.method}</span>
-                </div>
-                <div className="text-right">
-                  <div className="font-medium text-gray-900">
-                    {formatCurrency(method.revenue)}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {method.count} orders ({formatPercentage(method.percentage)})
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Sales Funnel */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Sales Funnel</h3>
-            <ArrowTrendingDownIcon className="w-5 h-5 text-gray-400" />
-          </div>
-          <div className="space-y-4">
-            {data.salesFunnel.map((stage, index) => (
-              <div key={stage.stage} className="relative">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-900">{stage.stage}</span>
-                  <span className="text-sm text-gray-500">
-                    {stage.count.toLocaleString()} ({formatPercentage(stage.percentage)})
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${stage.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Geographic Distribution */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Top Cities</h3>
-            <MapPinIcon className="w-5 h-5 text-gray-400" />
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Pages</h3>
           <div className="space-y-3">
-            {data.customerInsights.geography.slice(0, 6).map((city, index) => (
-              <div key={city.city} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                  <span className="font-medium text-gray-900">{city.city}</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">
-                    {city.customers} customers
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {formatCurrency(city.revenue)}
+            {data.traffic.topPages.slice(0, 5).map((page, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 truncate">{page.page}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold text-gray-900">{page.views}</span>
+                  <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-pink-500 h-2 rounded-full" 
+                      style={{ width: `${(page.views / data.traffic.topPages[0]?.views) * 100}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Device Analytics */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Device Usage</h3>
-            <DevicePhoneMobileIcon className="w-5 h-5 text-gray-400" />
-          </div>
-          <div className="space-y-4">
-            {data.customerInsights.devices.map((device, index) => {
-              const Icon = device.device === 'Mobile' ? DevicePhoneMobileIcon :
-                          device.device === 'Desktop' ? ComputerDesktopIcon : GlobeAltIcon;
-              
-              return (
-                <div key={device.device} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Icon className="w-5 h-5 text-gray-400" />
-                    <span className="font-medium text-gray-900">{device.device}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatPercentage(device.percentage)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {device.sessions.toLocaleString()} sessions
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Product Performance Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Product Performance Details</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sales
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Revenue
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Views
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Conversion
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.productPerformance.map((product, index) => (
-                <tr key={product.name} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-pink-600 font-medium text-sm">
-                          {index + 1}
-                        </span>
-                      </div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {product.name}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {product.category}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {product.sales.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {formatCurrency(product.revenue)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {product.views.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2 mr-3">
-                        <div
-                          className="bg-pink-500 h-2 rounded-full"
-                          style={{ width: `${Math.min(product.conversionRate * 10, 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">
-                        {formatPercentage(product.conversionRate)}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

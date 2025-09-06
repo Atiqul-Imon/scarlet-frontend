@@ -17,9 +17,162 @@ import {
   WishlistItem
 } from './types';
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL 
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-  : process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000/api';
+// Analytics Types
+export interface AnalyticsEvent {
+  sessionId: string;
+  eventType: 'page_view' | 'product_view' | 'add_to_cart' | 'remove_from_cart' | 'checkout_start' | 'checkout_complete' | 'purchase' | 'search' | 'filter' | 'wishlist_add' | 'wishlist_remove';
+  eventData: Record<string, any>;
+}
+
+export interface SalesAnalytics {
+  totalRevenue: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  conversionRate: number;
+  topProducts: Array<{
+    productId: string;
+    name: string;
+    revenue: number;
+    quantity: number;
+    orders: number;
+  }>;
+  topCategories: Array<{
+    categoryId: string;
+    name: string;
+    revenue: number;
+    quantity: number;
+  }>;
+  revenueByDay: Array<{
+    date: string;
+    revenue: number;
+    orders: number;
+  }>;
+  revenueByMonth: Array<{
+    month: string;
+    revenue: number;
+    orders: number;
+  }>;
+}
+
+export interface TrafficAnalytics {
+  totalVisitors: number;
+  uniqueVisitors: number;
+  pageViews: number;
+  averageSessionDuration: number;
+  bounceRate: number;
+  topPages: Array<{
+    page: string;
+    views: number;
+    uniqueViews: number;
+    averageTime: number;
+  }>;
+  trafficSources: Array<{
+    source: string;
+    visitors: number;
+    conversions: number;
+  }>;
+  deviceBreakdown: Array<{
+    device: string;
+    percentage: number;
+    visitors: number;
+  }>;
+}
+
+export interface RealTimeAnalytics {
+  activeUsers: number;
+  currentPageViews: number;
+  recentEvents: any[];
+  topPages: Array<{
+    page: string;
+    views: number;
+  }>;
+  topProducts: Array<{
+    productId: string;
+    views: number;
+  }>;
+  conversionFunnel: {
+    visitors: number;
+    addToCart: number;
+    checkoutStart: number;
+    checkoutComplete: number;
+  };
+}
+
+// Inventory Types
+export interface InventoryItem {
+  _id?: string;
+  productId: string;
+  sku: string;
+  currentStock: number;
+  reservedStock: number;
+  availableStock: number;
+  minStockLevel: number;
+  maxStockLevel: number;
+  reorderPoint: number;
+  costPrice: number;
+  sellingPrice: number;
+  supplier?: string;
+  location?: string;
+  lastRestocked?: string;
+  lastSold?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StockMovement {
+  _id?: string;
+  productId: string;
+  sku: string;
+  type: 'in' | 'out' | 'adjustment' | 'reserved' | 'unreserved';
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  reason: string;
+  reference?: string;
+  userId?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LowStockAlert {
+  _id?: string;
+  productId: string;
+  sku: string;
+  currentStock: number;
+  minStockLevel: number;
+  severity: 'low' | 'critical' | 'out_of_stock';
+  isResolved: boolean;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InventoryStats {
+  totalProducts: number;
+  totalValue: number;
+  lowStockItems: number;
+  outOfStockItems: number;
+  recentlyRestocked: number;
+  topSellingProducts: Array<{
+    productId: string;
+    sku: string;
+    name: string;
+    quantitySold: number;
+    revenue: number;
+  }>;
+  stockMovements: Array<{
+    date: string;
+    movements: number;
+    value: number;
+  }>;
+}
+
+export const API_BASE = process.env['NEXT_PUBLIC_API_URL'] 
+  ? `${process.env['NEXT_PUBLIC_API_URL']}/api`
+  : process.env['NEXT_PUBLIC_API_BASE'] || 'http://localhost:4000/api';
 
 // Custom error class for API errors
 export class ApiError extends Error {
@@ -94,7 +247,7 @@ export async function fetchJson<T = any>(
 // Check if token is expired
 function isTokenExpired(token: string): boolean {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split('.')[1] || ''));
     const now = Math.floor(Date.now() / 1000);
     return payload.exp < now;
   } catch {
@@ -516,12 +669,13 @@ export const apiUtils = {
   // Handle API errors consistently
   handleApiError: (error: unknown): AppError => {
     if (error instanceof ApiError) {
-      return {
+      const result: AppError = {
         message: error.message,
-        code: error.code,
-        status: error.status,
-        field: error.field,
       };
+      if (error.code) result.code = error.code;
+      if (error.status) result.status = error.status;
+      if (error.field) result.field = error.field;
+      return result;
     }
 
     if (error instanceof Error) {
@@ -554,8 +708,8 @@ export const apiUtils = {
     if (!token) return false;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 > Date.now();
+    const payload = JSON.parse(atob(token.split('.')[1] || ''));
+    return payload.exp * 1000 > Date.now();
     } catch {
       return false;
     }
@@ -567,12 +721,12 @@ export const apiUtils = {
     if (!token) return null;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return {
-        _id: payload.sub,
-        email: payload.email,
-        role: payload.role,
-      };
+    const payload = JSON.parse(atob(token.split('.')[1] || ''));
+    return {
+      _id: payload.sub,
+      email: payload.email,
+      role: payload.role,
+    };
     } catch {
       return null;
     }
@@ -741,6 +895,183 @@ export const adminApi = {
       });
       return fetchJsonAuth(`/admin/logs/activity?${params.toString()}`);
     }
+  }
+};
+
+// Analytics API functions
+export const analyticsApi = {
+  // Track analytics event
+  trackEvent: (event: AnalyticsEvent): Promise<{ success: boolean }> => {
+    return fetchJson('/analytics/track', {
+      method: 'POST',
+      body: JSON.stringify(event)
+    });
+  },
+
+  // Get analytics events
+  getEvents: (filters: {
+    startDate?: string;
+    endDate?: string;
+    eventType?: string;
+    userId?: string;
+    productId?: string;
+    categoryId?: string;
+    page?: number;
+    limit?: number;
+  } = {}): Promise<{ events: any[]; total: number }> => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined) params.append(key, value.toString());
+    });
+    return fetchJsonAuth(`/analytics/events?${params.toString()}`);
+  },
+
+  // Get sales analytics
+  getSalesAnalytics: (startDate?: string, endDate?: string): Promise<SalesAnalytics> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    return fetchJsonAuth(`/analytics/sales?${params.toString()}`);
+  },
+
+  // Get traffic analytics
+  getTrafficAnalytics: (startDate?: string, endDate?: string): Promise<TrafficAnalytics> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    return fetchJsonAuth(`/analytics/traffic?${params.toString()}`);
+  },
+
+  // Get real-time analytics
+  getRealTimeAnalytics: (): Promise<RealTimeAnalytics> => {
+    return fetchJsonAuth('/analytics/realtime');
+  },
+
+  // Get user behavior
+  getUserBehavior: (userId: string): Promise<any> => {
+    return fetchJsonAuth(`/analytics/user/${userId}`);
+  },
+
+  // Get dashboard analytics (combined)
+  getDashboardAnalytics: (startDate?: string, endDate?: string): Promise<{
+    sales: SalesAnalytics;
+    traffic: TrafficAnalytics;
+    summary: {
+      totalRevenue: number;
+      totalOrders: number;
+      totalVisitors: number;
+      conversionRate: number;
+      averageOrderValue: number;
+      bounceRate: number;
+    };
+  }> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    return fetchJsonAuth(`/analytics/dashboard?${params.toString()}`);
+  }
+};
+
+// Inventory API functions
+export const inventoryApi = {
+  // Get inventory stats
+  getStats: (): Promise<InventoryStats> => {
+    return fetchJsonAuth('/inventory/stats');
+  },
+
+  // Get all inventory items
+  getItems: (page: number = 1, limit: number = 50): Promise<{ items: InventoryItem[]; total: number }> => {
+    const params = new URLSearchParams({ 
+      page: page.toString(), 
+      limit: limit.toString() 
+    });
+    return fetchJsonAuth(`/inventory?${params.toString()}`);
+  },
+
+  // Get specific inventory item
+  getItem: (productId: string): Promise<InventoryItem> => {
+    return fetchJsonAuth(`/inventory/${productId}`);
+  },
+
+  // Create inventory item
+  createItem: (data: {
+    productId: string;
+    sku: string;
+    currentStock: number;
+    minStockLevel: number;
+    maxStockLevel: number;
+    reorderPoint: number;
+    costPrice: number;
+    sellingPrice: number;
+    supplier?: string;
+    location?: string;
+  }): Promise<InventoryItem> => {
+    return fetchJsonAuth('/inventory', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  // Update inventory item
+  updateItem: (productId: string, updates: Partial<InventoryItem>): Promise<InventoryItem> => {
+    return fetchJsonAuth(`/inventory/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    });
+  },
+
+  // Adjust stock
+  adjustStock: (productId: string, data: {
+    quantity: number;
+    type: 'in' | 'out' | 'adjustment';
+    reason: string;
+    reference?: string;
+    notes?: string;
+  }): Promise<InventoryItem> => {
+    return fetchJsonAuth(`/inventory/${productId}/adjust`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  // Reserve stock
+  reserveStock: (productId: string, quantity: number): Promise<{ success: boolean }> => {
+    return fetchJsonAuth(`/inventory/${productId}/reserve`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity })
+    });
+  },
+
+  // Unreserve stock
+  unreserveStock: (productId: string, quantity: number): Promise<{ success: boolean }> => {
+    return fetchJsonAuth(`/inventory/${productId}/unreserve`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity })
+    });
+  },
+
+  // Get stock movements
+  getStockMovements: (productId?: string, page: number = 1, limit: number = 50): Promise<{ movements: StockMovement[]; total: number }> => {
+    const params = new URLSearchParams({ 
+      page: page.toString(), 
+      limit: limit.toString() 
+    });
+    const url = productId ? `/inventory/${productId}/movements` : '/inventory/movements';
+    return fetchJsonAuth(`${url}?${params.toString()}`);
+  },
+
+  // Get low stock alerts
+  getLowStockAlerts: (resolved: boolean = false): Promise<LowStockAlert[]> => {
+    const params = new URLSearchParams({ resolved: resolved.toString() });
+    return fetchJsonAuth(`/inventory/alerts/low-stock?${params.toString()}`);
+  },
+
+  // Resolve low stock alert
+  resolveAlert: (alertId: string, resolvedBy: string): Promise<{ success: boolean }> => {
+    return fetchJsonAuth(`/inventory/alerts/${alertId}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolvedBy })
+    });
   }
 };
 
