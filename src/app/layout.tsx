@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "../components/header/Header";
 import { AppProvider } from "../lib/context";
 import ChatManager from "../components/chat/ChatManager";
+import ApiDebug from "../components/ApiDebug";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,8 @@ export default function RootLayout({
             </main>
             {/* Chat System */}
             <ChatManager />
+            {/* API Debug Component */}
+            <ApiDebug />
           </div>
         </AppProvider>
       </body>
