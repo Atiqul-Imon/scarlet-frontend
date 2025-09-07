@@ -174,6 +174,40 @@ export const API_BASE = process.env['NEXT_PUBLIC_API_URL']
   ? `${process.env['NEXT_PUBLIC_API_URL']}/api`
   : process.env['NEXT_PUBLIC_API_BASE'] || 'http://localhost:4000/api';
 
+// Mobile-friendly API configuration
+export const API_CONFIG = {
+  baseURL: API_BASE,
+  timeout: 30000, // 30 seconds for mobile networks
+  retries: 3,
+  retryDelay: 1000, // 1 second between retries
+};
+
+// Mobile connection test function
+export async function testMobileConnection(): Promise<{ success: boolean; data?: any; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/mobile-debug`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Mobile connection test failed:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
 // Custom error class for API errors
 export class ApiError extends Error {
   constructor(
