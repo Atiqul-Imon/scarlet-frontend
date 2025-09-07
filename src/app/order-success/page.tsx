@@ -1,16 +1,15 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
 import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Button } from '../../components/ui/button';
 import { useAuth, useToast } from '../../lib/context';
 import { orderApi } from '../../lib/api';
 import type { Order } from '../../lib/types';
 
-export default function OrderSuccessPage() {
+function OrderSuccessPageContent() {
   const { user } = useAuth();
   const { addToast } = useToast();
   const searchParams = useSearchParams();
@@ -245,5 +244,13 @@ function ErrorIcon() {
       <line x1="15" y1="9" x2="9" y2="15"/>
       <line x1="9" y1="9" x2="15" y2="15"/>
     </svg>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderSuccessPageContent />
+    </Suspense>
   );
 }

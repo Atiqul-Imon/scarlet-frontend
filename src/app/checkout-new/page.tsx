@@ -58,10 +58,10 @@ export default function CheckoutPage() {
 
   // Redirect if cart is empty
   useEffect(() => {
-    if (cart.items.length === 0) {
+    if (cart && cart.items && cart.items.length === 0) {
       router.push('/cart');
     }
-  }, [cart.items.length, router]);
+  }, [cart, router]);
 
   // Redirect if not authenticated (but wait for auth to load)
   useEffect(() => {
@@ -176,7 +176,7 @@ export default function CheckoutPage() {
   };
 
   const calculateTotals = () => {
-    const subtotal = cart.items.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
+    const subtotal = cart?.items?.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0) || 0;
     const shipping = subtotal > 1000 ? 0 : 100; // Free shipping over 1000 BDT
     const tax = subtotal * 0.05; // 5% tax
     const total = subtotal + shipping + tax;
@@ -186,7 +186,19 @@ export default function CheckoutPage() {
 
   const { subtotal, shipping, tax, total } = calculateTotals();
 
-  if (cart.items.length === 0) {
+  // Show loading state while cart is being loaded
+  if (!cart) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading cart...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cart.items || cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -446,7 +458,7 @@ export default function CheckoutPage() {
               
               {/* Cart Items */}
               <div className="space-y-3 mb-4">
-                {cart.items.map((item) => (
+                {cart?.items?.map((item) => (
                   <div key={item.productId} className="flex items-center space-x-3">
                     <img
                       src={item.image}
