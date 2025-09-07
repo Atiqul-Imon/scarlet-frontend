@@ -138,7 +138,7 @@ export default function CheckoutPage() {
         console.log('Products fetched:', allProducts);
         
         // Ensure we have the products data - handle different response structures
-        let products: any[] = [];
+        let products: unknown[] = [];
         if (allProducts?.data && Array.isArray(allProducts.data)) {
           products = allProducts.data;
         } else if (Array.isArray(allProducts)) {
@@ -273,27 +273,31 @@ export default function CheckoutPage() {
       
       // Redirect to order confirmation page with order ID
       router.push(`/order-success?orderNumber=${order.orderNumber}`);
-
-    } catch (error: any) {
+      
+    } catch (error: unknown) {
       console.error('Error placing order:', error);
       
       // Handle specific error types
       let errorMessage = 'Failed to place order. Please try again.';
       
-      if (error.status === 400) {
-        if (error.code === 'EMPTY_CART') {
-          errorMessage = 'Your cart is empty. Please add items before placing an order.';
-        } else if (error.code === 'PRODUCTS_UNAVAILABLE') {
-          errorMessage = 'Some products in your cart are no longer available. Please review your cart.';
-        } else if (error.code === 'INSUFFICIENT_STOCK') {
-          errorMessage = error.message || 'Some items are out of stock.';
-        } else if (error.code === 'VALIDATION_ERROR') {
-          errorMessage = 'Please check your order details and try again.';
+      if (error && typeof error === 'object' && 'status' in error) {
+        const errorObj = error as { status: number; code?: string; message?: string };
+        
+        if (errorObj.status === 400) {
+          if (errorObj.code === 'EMPTY_CART') {
+            errorMessage = 'Your cart is empty. Please add items before placing an order.';
+          } else if (errorObj.code === 'PRODUCTS_UNAVAILABLE') {
+            errorMessage = 'Some products in your cart are no longer available. Please review your cart.';
+          } else if (errorObj.code === 'INSUFFICIENT_STOCK') {
+            errorMessage = errorObj.message || 'Some items are out of stock.';
+          } else if (errorObj.code === 'VALIDATION_ERROR') {
+            errorMessage = 'Please check your order details and try again.';
+          }
+        } else if (errorObj.status === 401) {
+          errorMessage = 'Please log in to continue with your order.';
+          router.push('/login?redirect=/checkout');
+          return;
         }
-      } else if (error.status === 401) {
-        errorMessage = 'Please log in to continue with your order.';
-        router.push('/login?redirect=/checkout');
-        return;
       }
       
       addToast({
@@ -304,7 +308,7 @@ export default function CheckoutPage() {
     } finally {
       setSubmitting(false);
     }
-  });
+  };
 
   if (!user) {
     return (
@@ -451,7 +455,7 @@ export default function CheckoutPage() {
                       <select
                         name="city"
                         value={values.city}
-                        onChange={(e) => handleChange({ target: { name: 'city', value: e.target.value } } as any)}
+                        onChange={(e) => handleChange({ target: { name: 'city', value: e.target.value } } as React.ChangeEvent<HTMLSelectElement>)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
                         required
                       >
@@ -596,7 +600,7 @@ export default function CheckoutPage() {
                     <textarea
                       name="notes"
                       value={values.notes || ''}
-                      onChange={(e) => handleChange({ target: { name: 'notes', value: e.target.value } } as any)}
+                      onChange={(e) => handleChange({ target: { name: 'notes', value: e.target.value } } as React.ChangeEvent<HTMLTextAreaElement>)}
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                       placeholder="Any special delivery instructions..."

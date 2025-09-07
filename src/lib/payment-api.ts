@@ -1,4 +1,4 @@
-import { api } from './api';
+import { fetchJsonAuth } from './api';
 import type {
   CreatePaymentRequest,
   CreatePaymentResponse,
@@ -12,41 +12,44 @@ import type {
 export const paymentApi = {
   // Create payment
   async createPayment(data: CreatePaymentRequest): Promise<CreatePaymentResponse> {
-    const response = await api.post('/payments/create', data);
-    return response.data;
+    return await fetchJsonAuth<CreatePaymentResponse>('/payments/create', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   },
 
   // Verify payment
   async verifyPayment(data: PaymentVerificationRequest): Promise<PaymentVerificationResponse> {
-    const response = await api.post('/payments/verify', data);
-    return response.data;
+    return await fetchJsonAuth<PaymentVerificationResponse>('/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   },
 
   // Get payment status
   async getPaymentStatus(paymentId: string): Promise<PaymentTransaction> {
-    const response = await api.get(`/payments/status/${paymentId}`);
-    return response.data;
+    return await fetchJsonAuth<PaymentTransaction>(`/payments/status/${paymentId}`);
   },
 
   // Get payments by order
   async getPaymentsByOrder(orderId: string): Promise<PaymentTransaction[]> {
-    const response = await api.get(`/payments/order/${orderId}`);
-    return response.data;
+    return await fetchJsonAuth<PaymentTransaction[]>(`/payments/order/${orderId}`);
   },
 
   // Get user payments
   async getUserPayments(limit = 50, skip = 0): Promise<PaymentTransaction[]> {
-    const response = await api.get(`/payments/user?limit=${limit}&skip=${skip}`);
-    return response.data;
+    return await fetchJsonAuth<PaymentTransaction[]>(`/payments/user?limit=${limit}&skip=${skip}`);
   },
 
   // Refund payment (Admin only)
   async refundPayment(paymentId: string, amount: number, reason?: string): Promise<RefundTransaction> {
-    const response = await api.post(`/payments/refund/${paymentId}`, {
-      amount,
-      reason: reason || 'Customer request'
+    return await fetchJsonAuth<RefundTransaction>(`/payments/refund/${paymentId}`, {
+      method: 'POST',
+      body: JSON.stringify({
+        amount,
+        reason: reason || 'Customer request'
+      })
     });
-    return response.data;
   },
 
   // Get payment statistics (Admin only)
@@ -55,8 +58,7 @@ export const paymentApi = {
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
     
-    const response = await api.get(`/payments/stats?${params.toString()}`);
-    return response.data;
+    return await fetchJsonAuth<PaymentStats>(`/payments/stats?${params.toString()}`);
   }
 };
 

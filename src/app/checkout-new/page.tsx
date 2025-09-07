@@ -114,7 +114,7 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof CheckoutFormData, value: any) => {
+  const handleInputChange = (field: keyof CheckoutFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
     // Clear error when user starts typing
@@ -165,8 +165,9 @@ export default function CheckoutPage() {
       const order = await orderApi.createOrder(orderData);
       setOrderId(order._id);
       setCurrentStep('payment');
-    } catch (error: any) {
-      addToast(error.message || 'Failed to create order', 'error');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
+      addToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
