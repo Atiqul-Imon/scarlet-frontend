@@ -42,8 +42,8 @@ function OrderSuccessPageContent() {
           orderId: orderId,
           orderNumber: `SCR-${orderId}`,
           email: 'customer@example.com',
-          total: 104.97,
-          currency: 'USD',
+          total: 10497,
+          currency: 'BDT',
           estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -85,7 +85,10 @@ function OrderSuccessPageContent() {
     fetchOrderDetails();
   }, [orderId, router]);
 
-  const formatPrice = (amount: number, currency: string = 'USD') => {
+  const formatPrice = (amount: number, currency: string = 'BDT') => {
+    if (currency === 'BDT') {
+      return `৳${amount.toLocaleString('en-US')}`;
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,

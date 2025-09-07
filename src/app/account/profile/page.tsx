@@ -31,6 +31,7 @@ const languageOptions: SelectOption[] = [
 ];
 
 const currencyOptions: SelectOption[] = [
+  { value: 'BDT', label: 'Bangladeshi Taka (৳)' },
   { value: 'USD', label: 'US Dollar ($)' },
   { value: 'EUR', label: 'Euro (€)' },
   { value: 'GBP', label: 'British Pound (£)' },
@@ -51,7 +52,7 @@ export default function ProfilePage(): JSX.Element {
       newsletter: user?.preferences?.newsletter || false,
       smsNotifications: user?.preferences?.smsNotifications || false,
       language: user?.preferences?.language || 'en',
-      currency: user?.preferences?.currency || 'USD',
+      currency: user?.preferences?.currency || 'BDT',
     },
   };
 
@@ -120,7 +121,7 @@ export default function ProfilePage(): JSX.Element {
         newsletter: user.preferences?.newsletter || false,
         smsNotifications: user.preferences?.smsNotifications || false,
         language: user.preferences?.language || 'en',
-        currency: user.preferences?.currency || 'USD',
+        currency: user.preferences?.currency || 'BDT',
       });
     }
   }, [user]);
