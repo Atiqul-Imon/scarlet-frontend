@@ -54,7 +54,7 @@ export default function CheckoutPage() {
     acceptTerms: false
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function CheckoutPage() {
   }, [user, authLoading, router]);
 
   const validateShippingForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Partial<Record<keyof CheckoutFormData, string>> = {};
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required';
@@ -121,7 +121,7 @@ export default function CheckoutPage() {
     
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -134,13 +134,21 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentSuccess = (paymentId: string) => {
-    addToast('Payment successful! Your order has been placed.', 'success');
+    addToast({
+      type: 'success',
+      title: 'Payment Successful',
+      message: 'Your order has been placed successfully!'
+    });
     clearCart();
     router.push(`/payment/success?paymentId=${paymentId}&orderId=${orderId}`);
   };
 
   const handlePaymentError = (error: string) => {
-    addToast(error, 'error');
+    addToast({
+      type: 'error',
+      title: 'Payment Failed',
+      message: error
+    });
   };
 
   const handleCreateOrder = async () => {
@@ -164,19 +172,26 @@ export default function CheckoutPage() {
         notes: formData.notes?.trim() || undefined
       };
 
-      const order = await orderApi.createOrder(orderData);
+      const order = await orderApi.createOrder(orderData as any);
       setOrderId(order._id);
       setCurrentStep('payment');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
-      addToast(errorMessage, 'error');
+      addToast({
+        type: 'error',
+        title: 'Order Creation Failed',
+        message: errorMessage
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const calculateTotals = () => {
-    const subtotal = cart?.items?.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0) || 0;
+    const subtotal = cart?.items?.reduce((sum, item) => {
+      const price = item.product?.price?.amount || 0;
+      return sum + (price * item.quantity);
+    }, 0) || 0;
     const shipping = subtotal > 1000 ? 0 : 100; // Free shipping over 1000 BDT
     const tax = subtotal * 0.05; // 5% tax
     const total = subtotal + shipping + tax;
@@ -458,26 +473,32 @@ export default function CheckoutPage() {
               
               {/* Cart Items */}
               <div className="space-y-3 mb-4">
-                {cart?.items?.map((item) => (
-                  <div key={item.productId} className="flex items-center space-x-3">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {item.title}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Qty: {item.quantity}
+                {cart?.items?.map((item) => {
+                  const product = item.product;
+                  const price = product?.price?.amount || 0;
+                  const totalPrice = price * item.quantity;
+                  
+                  return (
+                    <div key={item.productId} className="flex items-center space-x-3">
+                      <img
+                        src={product?.images?.[0] || '/placeholder-product.jpg'}
+                        alt={product?.title || 'Product'}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {product?.title || 'Product'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {paymentUtils.formatAmount(totalPrice)}
                       </p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {paymentUtils.formatAmount(item.price.amount * item.quantity)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Totals */}
