@@ -106,7 +106,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
             {/* Quick stats */}
             <div className="hidden md:flex items-center space-x-4 text-sm">
               <div className="text-center px-3 py-1 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-100">
-                <div className="text-pink-600 font-semibold">₹25,750</div>
+                <div className="text-pink-600 font-semibold">৳25,750</div>
                 <div className="text-gray-600 text-xs">Today's Sales</div>
               </div>
               <div className="text-center px-3 py-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">

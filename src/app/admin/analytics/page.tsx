@@ -21,7 +21,6 @@ import {
 import { format, subDays } from 'date-fns';
 import {
   CalendarDaysIcon,
-  CurrencyDollarIcon,
   ShoppingCartIcon,
   UserGroupIcon,
   ArrowTrendingUpIcon,
@@ -39,6 +38,7 @@ import {
   ExclamationTriangleIcon,
   CubeIcon,
 } from '@heroicons/react/24/outline';
+import { BDTIcon } from '../../../components/ui/BDTIcon';
 import { useToast } from '@/lib/context';
 import { analyticsApi, inventoryApi } from '@/lib/api';
 import type { SalesAnalytics, TrafficAnalytics, RealTimeAnalytics, InventoryStats } from '@/lib/api';
@@ -253,7 +253,7 @@ export default function AnalyticsPage() {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
-              <CurrencyDollarIcon className="w-6 h-6 text-green-600" />
+              <BDTIcon className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>

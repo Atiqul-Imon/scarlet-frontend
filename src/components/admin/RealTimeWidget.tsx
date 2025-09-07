@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import {
   UsersIcon,
   ShoppingCartIcon,
-  CurrencyDollarIcon,
   ClockIcon,
   FireIcon,
   BellIcon,
   EyeIcon,
   ArrowTrendingUpIcon,
 } from '@heroicons/react/24/outline';
+import { BDTIcon } from '../ui/BDTIcon';
 import { format } from 'date-fns';
 
 interface RealTimeData {
@@ -151,7 +151,7 @@ export default function RealTimeWidget() {
           
           <div className="text-center">
             <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-2">
-              <CurrencyDollarIcon className="w-6 h-6 text-green-600" />
+              <BDTIcon className="w-6 h-6 text-green-600" />
             </div>
             <div className="text-2xl font-bold text-gray-900">
               ৳{data.revenueToday.toLocaleString()}

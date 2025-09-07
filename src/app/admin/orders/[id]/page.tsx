@@ -12,7 +12,6 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  CurrencyDollarIcon,
   UserIcon,
   MapPinIcon,
   PhoneIcon,
@@ -24,6 +23,7 @@ import {
   ChatBubbleLeftIcon,
   PaperAirplaneIcon,
 } from '@heroicons/react/24/outline';
+import { BDTIcon } from '../../../../components/ui/BDTIcon';
 import { useToast } from '@/lib/context';
 import type { AdminOrder } from '@/lib/admin-types';
 
@@ -245,7 +245,7 @@ export default function OrderDetailPage() {
       shipped: { bg: 'bg-purple-100', text: 'text-purple-800', icon: TruckIcon },
       delivered: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircleIcon },
       cancelled: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircleIcon },
-      refunded: { bg: 'bg-gray-100', text: 'text-gray-800', icon: CurrencyDollarIcon },
+      refunded: { bg: 'bg-gray-100', text: 'text-gray-800', icon: BDTIcon },
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
@@ -562,7 +562,7 @@ export default function OrderDetailPage() {
                   Add Tracking
                 </button>
                 <button className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                  <CurrencyDollarIcon className="w-4 h-4 mr-3 text-gray-400" />
+                  <BDTIcon className="w-4 h-4 mr-3 text-gray-400" />
                   Process Refund
                 </button>
                 <button className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">

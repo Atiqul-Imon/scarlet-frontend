@@ -16,7 +16,6 @@ import { format, subMinutes } from 'date-fns';
 import {
   UsersIcon,
   ShoppingCartIcon,
-  CurrencyDollarIcon,
   GlobeAltIcon,
   DevicePhoneMobileIcon,
   ComputerDesktopIcon,
@@ -27,6 +26,7 @@ import {
   HeartIcon,
   ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
+import { BDTIcon } from '../../../../components/ui/BDTIcon';
 import RealTimeWidget from '@/components/admin/RealTimeWidget';
 
 interface RealTimeMetrics {
@@ -320,7 +320,7 @@ export default function RealTimeAnalyticsPage() {
               <p className="text-3xl font-bold text-green-600">৳{currentMetrics.revenue.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
-              <CurrencyDollarIcon className="w-6 h-6 text-green-600" />
+              <BDTIcon className="w-6 h-6 text-green-600" />
             </div>
           </div>
         </div>

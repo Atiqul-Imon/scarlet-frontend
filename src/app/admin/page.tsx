@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { 
   UsersIcon,
   ShoppingCartIcon,
-  BanknotesIcon,
   CubeIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
@@ -13,6 +12,7 @@ import {
   HeartIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
+import { BDTIcon } from '../../components/ui/BDTIcon';
 import { adminApi } from '@/lib/api';
 import type { AdminStats } from '@/lib/admin-types';
 
@@ -182,10 +182,10 @@ export default function AdminDashboard() {
         />
         <StatCard
           title="Total Revenue"
-          value={`₹${stats?.totalRevenue.toLocaleString() || '0'}`}
+          value={`৳${stats?.totalRevenue.toLocaleString() || '0'}`}
           change="+15.3%"
           changeType="increase"
-          icon={BanknotesIcon}
+          icon={BDTIcon}
           color="green"
           subtitle="Beauty sales"
         />
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Today's Sales"
-          value={`₹${stats?.revenueToday.toLocaleString() || '0'}`}
+          value={`৳${stats?.revenueToday.toLocaleString() || '0'}`}
           change="+23.1%"
           changeType="increase"
           icon={SparklesIcon}
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-bold text-green-600">₹{product.revenue.toLocaleString()}</p>
+                <p className="font-bold text-green-600">৳{product.revenue.toLocaleString()}</p>
                 <p className="text-sm text-gray-500">Revenue</p>
               </div>
             </div>

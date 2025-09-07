@@ -15,19 +15,18 @@ import {
   ClockIcon,
   TruckIcon,
   XCircleIcon,
-  CurrencyDollarIcon,
   UserIcon,
   CalendarDaysIcon,
   DocumentArrowDownIcon,
   Squares2X2Icon,
   ListBulletIcon,
   ChevronDownIcon,
-  BanknotesIcon,
   ShoppingBagIcon,
   MapPinIcon,
   PhoneIcon,
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
+import { BDTIcon } from '../../../components/ui/BDTIcon';
 import { useToast } from '@/lib/context';
 import type { AdminOrder } from '@/lib/admin-types';
 
@@ -376,7 +375,7 @@ export default function OrdersPage() {
         case 'shipped': return <TruckIcon className="w-3 h-3 mr-1" />;
         case 'delivered': return <CheckCircleIcon className="w-3 h-3 mr-1" />;
         case 'cancelled': return <XCircleIcon className="w-3 h-3 mr-1" />;
-        case 'refunded': return <CurrencyDollarIcon className="w-3 h-3 mr-1" />;
+        case 'refunded': return <BDTIcon className="w-3 h-3 mr-1" />;
         default: return null;
       }
     };
@@ -529,7 +528,7 @@ export default function OrdersPage() {
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <BanknotesIcon className="w-6 h-6 text-green-600" />
+                <BDTIcon className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
