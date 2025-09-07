@@ -1,6 +1,7 @@
 "use client";
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import ProductGrid from '../../components/products/ProductGrid';
 import ProductFilters from '../../components/products/ProductFilters';
 import ProductSort from '../../components/products/ProductSort';
@@ -14,7 +15,7 @@ interface FilterState {
   priceRange?: string;
 }
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const searchParams = useSearchParams();
   const { addItem } = useCart();
   const { addToast } = useToast();
@@ -289,5 +290,13 @@ function ErrorIcon() {
       <line x1="15" y1="9" x2="9" y2="15"/>
       <line x1="9" y1="9" x2="15" y2="15"/>
     </svg>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProductsPageContent />
+    </Suspense>
   );
 }

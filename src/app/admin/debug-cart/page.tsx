@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = 'force-dynamic';
 import * as React from 'react';
 import { useCart } from '../../../lib/context';
 
@@ -38,31 +40,6 @@ export default function DebugCartPage() {
     }, 100);
   };
 
-  const createTestCart = () => {
-    if (!confirm('This will create a test cart with 4 items. Are you sure?')) {
-      return;
-    }
-    
-    const testCart = {
-      id: 'guest',
-      userId: 'guest',
-      items: [
-        { productId: 'test1', quantity: 2 },
-        { productId: 'test2', quantity: 1 },
-        { productId: 'test3', quantity: 1 }
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    localStorage.setItem('scarlet_guest_cart', JSON.stringify(testCart));
-    setCartData(JSON.stringify(testCart, null, 2));
-    
-    // Update display immediately
-    setTimeout(() => {
-      const stored = localStorage.getItem('scarlet_guest_cart');
-      setCartData(stored || 'No cart data found');
-    }, 100);
-  };
 
   return (
     <div className="p-6">
@@ -97,12 +74,6 @@ export default function DebugCartPage() {
             Clear Cart
           </button>
           
-          <button
-            onClick={createTestCart}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-          >
-            Create Test Cart (4 items)
-          </button>
           
           <button
             onClick={() => window.location.reload()}

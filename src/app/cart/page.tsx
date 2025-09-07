@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = 'force-dynamic';
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -318,104 +320,6 @@ export default function CartPage() {
                 <p>Cart Exists: {cart ? 'Yes' : 'No'}</p>
                 <p>Cart Items: {cart?.items?.length || 0}</p>
                 <p>Raw Cart: {JSON.stringify(cart, null, 2)}</p>
-                <div className="mt-4 space-y-2">
-                  <button 
-                    onClick={() => {
-                      // Add a test item to localStorage directly
-                      const testCart = {
-                        id: 'guest',
-                        userId: 'guest',
-                        items: [{ productId: 'test-product-1', quantity: 1 }],
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                      };
-                      localStorage.setItem('scarlet_guest_cart', JSON.stringify(testCart));
-                      console.log('Added test item to localStorage');
-                      window.location.reload();
-                    }}
-                    className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Add Test Item
-                  </button>
-                  <button 
-                    onClick={() => {
-                      // Add multiple test items
-                      const testCart = {
-                        id: 'guest',
-                        userId: 'guest',
-                        items: [
-                          { productId: 'test-product-1', quantity: 2 },
-                          { productId: 'test-product-2', quantity: 1 },
-                          { productId: 'test-product-3', quantity: 3 }
-                        ],
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                      };
-                      localStorage.setItem('scarlet_guest_cart', JSON.stringify(testCart));
-                      console.log('Added multiple test items to localStorage');
-                      window.location.reload();
-                    }}
-                    className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Add Test Items
-                  </button>
-                  <button 
-                    onClick={async () => {
-                      // Try to add real products from the database
-                      try {
-                        const allProducts = await productApi.getProducts();
-                        let products: any[] = [];
-                        if (allProducts?.data && Array.isArray(allProducts.data)) {
-                          products = allProducts.data;
-                        } else if (Array.isArray(allProducts)) {
-                          products = allProducts;
-                        }
-                        
-                        if (products.length > 0) {
-                          const testCart = {
-                            id: 'guest',
-                            userId: 'guest',
-                            items: products.slice(0, 2).map((product, index) => ({
-                              productId: product._id,
-                              quantity: index + 1
-                            })),
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString()
-                          };
-                          localStorage.setItem('scarlet_guest_cart', JSON.stringify(testCart));
-                          console.log('Added real products to localStorage:', testCart);
-                          window.location.reload();
-                        } else {
-                          console.log('No products found in database');
-                        }
-                      } catch (error) {
-                        console.error('Error fetching products:', error);
-                      }
-                    }}
-                    className="bg-purple-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Add Real Products
-                  </button>
-                  <button 
-                    onClick={() => {
-                      localStorage.removeItem('scarlet_guest_cart');
-                      console.log('Cleared cart from localStorage');
-                      window.location.reload();
-                    }}
-                    className="bg-red-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Clear Cart
-                  </button>
-                  <button 
-                    onClick={() => {
-                      console.log('Force refreshing page...');
-                      window.location.reload();
-                    }}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded"
-                  >
-                    Force Refresh
-                  </button>
-                </div>
               </div>
             )}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Button } from '../../../components/ui/button';
 
@@ -19,7 +20,7 @@ interface OrderDetails {
   }>;
 }
 
-export default function OrderSuccessPage() {
+function OrderSuccessPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [orderDetails, setOrderDetails] = React.useState<OrderDetails | null>(null);
@@ -306,5 +307,13 @@ function RewardIcon() {
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderSuccessPageContent />
+    </Suspense>
   );
 }
