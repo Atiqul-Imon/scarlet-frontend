@@ -521,6 +521,48 @@ export const cartApi = {
       method: 'DELETE',
     });
   },
+
+  // Guest cart functions
+  getGuestCart: (sessionId: string): Promise<Cart> => {
+    return fetchJson<Cart>(`/cart/guest?sessionId=${sessionId}`);
+  },
+
+  addGuestItem: (sessionId: string, productId: string, quantity: number): Promise<Cart> => {
+    return fetchJson<Cart>('/cart/guest/items', {
+      method: 'POST',
+      headers: {
+        'X-Session-ID': sessionId,
+      },
+      body: JSON.stringify({ productId, quantity }),
+    });
+  },
+
+  updateGuestItem: (sessionId: string, productId: string, quantity: number): Promise<Cart> => {
+    return fetchJson<Cart>('/cart/guest/items', {
+      method: 'PUT',
+      headers: {
+        'X-Session-ID': sessionId,
+      },
+      body: JSON.stringify({ productId, quantity }),
+    });
+  },
+
+  removeGuestItem: (sessionId: string, productId: string): Promise<Cart> => {
+    return fetchJson<Cart>(`/cart/guest/items/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-Session-ID': sessionId,
+      },
+    });
+  },
+
+  // Merge guest cart to user cart
+  mergeGuestCart: (sessionId: string): Promise<Cart> => {
+    return fetchJsonAuth<Cart>('/cart/merge-guest', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId }),
+    });
+  },
 };
 
 // Order API functions
@@ -530,6 +572,17 @@ export const orderApi = {
     return fetchJsonAuth<Order>('/orders/create', {
       method: 'POST',
       body: JSON.stringify(checkoutData),
+    });
+  },
+
+  // Create guest order from cart
+  createGuestOrder: (sessionId: string, checkoutData: CheckoutFormData): Promise<Order> => {
+    return fetchJson<Order>('/orders/guest/create', {
+      method: 'POST',
+      headers: {
+        'X-Session-ID': sessionId,
+      },
+      body: JSON.stringify({ ...checkoutData, sessionId }),
     });
   },
 

@@ -28,7 +28,7 @@ interface CartItemData {
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, updateItem, removeItem, clearCart } = useCart();
+  const { cart, updateItem, removeItem, clearCart, markCartAsAbandoned } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
   const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
@@ -237,6 +237,29 @@ export default function CartPage() {
   const handleCheckout = () => {
     router.push('/checkout');
   };
+
+  // Track cart abandonment when user leaves the page
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (cartItems.length > 0) {
+        markCartAsAbandoned();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && cartItems.length > 0) {
+        markCartAsAbandoned();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [cartItems.length, markCartAsAbandoned]);
 
   // Calculate totals for Bangladesh market
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);

@@ -53,12 +53,21 @@ export default function LoginPage() {
       
       try {
         await login(values);
-        // Check if user is admin/staff and redirect accordingly
-        const userFromToken = apiUtils.getUserFromToken();
-        if (userFromToken?.role === 'admin' || userFromToken?.role === 'staff') {
-          router.push('/admin');
+        
+        // Check for redirect parameter first
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect');
+        
+        if (redirectTo) {
+          router.push(redirectTo);
         } else {
-          router.push('/account');
+          // Check if user is admin/staff and redirect accordingly
+          const userFromToken = apiUtils.getUserFromToken();
+          if (userFromToken?.role === 'admin' || userFromToken?.role === 'staff') {
+            router.push('/admin');
+          } else {
+            router.push('/account');
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Login failed');

@@ -47,7 +47,7 @@ interface CartItemData {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, sessionId } = useCart();
   const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
   
@@ -206,12 +206,7 @@ export default function CheckoutPage() {
     }
   }, [cart, router, addToast]);
 
-  // Redirect to login if not authenticated (but wait for auth to load)
-  React.useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login?redirect=/checkout');
-    }
-  }, [user, authLoading, router]);
+  // No longer redirect to login - allow guest checkout
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
@@ -264,8 +259,10 @@ export default function CheckoutPage() {
       
       console.log('Order data:', orderData);
 
-      // Create the order
-      const order = await orderApi.createOrder(orderData);
+      // Create the order (authenticated or guest)
+      const order = user 
+        ? await orderApi.createOrder(orderData)
+        : await orderApi.createGuestOrder(sessionId, orderData);
       
       addToast({
         type: 'success',
@@ -312,18 +309,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please sign in to continue</h2>
-          <Link href="/login?redirect=/checkout">
-            <Button>Sign In</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Guest checkout is now allowed - no authentication required
 
   if (loading) {
     return <CheckoutPageSkeleton />;

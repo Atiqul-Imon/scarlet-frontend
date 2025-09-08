@@ -91,7 +91,15 @@ export default function RegisterPage() {
           acceptTerms: values.acceptTerms,
         });
         
-        router.push('/account');
+        // Check for redirect parameter first
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get('redirect');
+        
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else {
+          router.push('/account');
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Registration failed');
       } finally {

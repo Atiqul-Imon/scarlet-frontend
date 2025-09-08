@@ -106,36 +106,30 @@ export default function CartSummary({
       )}
 
       {/* Checkout Button */}
-      {needsAuth ? (
-        <div className="space-y-3 mb-4">
-          <Link href="/login">
-            <Button className="w-full" size="lg">
-              Sign In to Checkout
-            </Button>
-          </Link>
-          <p className="text-center text-sm text-gray-600">
-            Or{' '}
-            <Link href="/register" className="text-pink-600 hover:text-pink-700 font-medium">
-              create an account
-            </Link>
+      <Button
+        onClick={onCheckout}
+        disabled={isLoading || itemCount === 0}
+        className="w-full mb-4"
+        size="lg"
+      >
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <LoadingSpinner />
+            Processing...
+          </div>
+        ) : (
+          'Proceed to Checkout'
+        )}
+      </Button>
+      
+      {/* Guest checkout info */}
+      {needsAuth && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800 text-center">
+            <strong>Guest Checkout Available!</strong><br />
+            You can complete your purchase without creating an account.
           </p>
         </div>
-      ) : (
-        <Button
-          onClick={onCheckout}
-          disabled={isLoading || itemCount === 0}
-          className="w-full mb-4"
-          size="lg"
-        >
-          {isLoading ? (
-            <div className="flex items-center gap-2">
-              <LoadingSpinner />
-              Processing...
-            </div>
-          ) : (
-            'Proceed to Checkout'
-          )}
-        </Button>
       )}
 
       {/* Continue Shopping */}
