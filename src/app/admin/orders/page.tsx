@@ -28,6 +28,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { BDTIcon } from '../../../components/ui/BDTIcon';
 import { useToast } from '@/lib/context';
+import { adminApi } from '@/lib/api';
 import type { AdminOrder } from '@/lib/admin-types';
 
 interface OrderFilters {
@@ -79,9 +80,16 @@ const SORT_OPTIONS = [
 export default function OrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
   const [showFilters, setShowFilters] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    totalPages: 0,
+  });
   const [filters, setFilters] = useState<OrderFilters>({
     search: '',
     status: '',
@@ -94,205 +102,116 @@ export default function OrdersPage() {
 
   const { addToast } = useToast();
 
-  useEffect(() => {
-    // Mock data for development
-    const mockOrders: AdminOrder[] = [
-      {
-        _id: '1',
-        orderNumber: 'ORD-2025-001',
-        status: 'processing',
-        paymentStatus: 'completed',
-        paymentMethod: 'bkash',
+  // Fetch orders from API
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Build API filters
+      const apiFilters: any = {
+        page: pagination.page,
+        limit: pagination.limit,
+      };
+      
+      if (filters.search) apiFilters.search = filters.search;
+      if (filters.status) apiFilters.status = filters.status;
+      if (filters.paymentStatus) apiFilters.paymentStatus = filters.paymentStatus;
+      if (filters.paymentMethod) apiFilters.paymentMethod = filters.paymentMethod;
+      if (filters.dateRange) {
+        const [startDate, endDate] = filters.dateRange.split(' to ');
+        if (startDate) apiFilters.dateFrom = startDate;
+        if (endDate) apiFilters.dateTo = endDate;
+      }
+      
+      const response = await adminApi.orders.getOrders(apiFilters);
+      
+      // Transform backend order format to frontend AdminOrder format
+      const transformedOrders: AdminOrder[] = response.orders.map((order: any) => ({
+        _id: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        paymentStatus: order.paymentInfo?.status || 'pending',
+        paymentMethod: order.paymentInfo?.method || 'cod',
         customer: {
-          _id: 'cust-1',
-          name: 'Fatima Rahman',
-          email: 'fatima@example.com',
-          phone: '+8801712345678',
+          _id: order.userId || order.guestId || 'unknown',
+          name: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName || ''}`.trim(),
+          email: order.shippingAddress.email || 'N/A',
+          phone: order.shippingAddress.phone,
         },
-        items: [
-          {
-            _id: 'item-1',
-            productId: 'prod-1',
-            productName: 'Luxury Rose Gold Lipstick',
-            productImage: '/api/placeholder/60/60',
-            sku: 'LIP-RG-001',
-            variant: 'Crimson Rose',
-            quantity: 2,
-            price: 2500,
-            total: 5000,
-          },
-          {
-            _id: 'item-2',
-            productId: 'prod-2',
-            productName: 'Hydrating Face Serum',
-            productImage: '/api/placeholder/60/60',
-            sku: 'SER-HYD-002',
-            variant: null,
-            quantity: 1,
-            price: 3500,
-            total: 3500,
-          },
-        ],
-        subtotal: 8500,
-        shippingCost: 100,
-        tax: 0,
-        discount: 500,
-        total: 8100,
-        currency: 'BDT',
+        items: order.items.map((item: any) => ({
+          _id: `${order._id}-${item.productId}`,
+          productId: item.productId,
+          productName: item.title,
+          productImage: item.image || '/api/placeholder/60/60',
+          sku: item.sku || 'N/A',
+          variant: item.variant || null,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.price * item.quantity,
+        })),
+        subtotal: order.subtotal,
+        shippingCost: order.shipping,
+        tax: order.tax,
+        discount: order.discount,
+        total: order.total,
+        currency: order.currency,
         shippingAddress: {
-          name: 'Fatima Rahman',
-          phone: '+8801712345678',
-          address: 'House 123, Road 15, Block C',
-          city: 'Dhaka',
-          state: 'Dhaka Division',
-          postalCode: '1207',
+          name: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName || ''}`.trim(),
+          phone: order.shippingAddress.phone,
+          address: order.shippingAddress.address,
+          city: order.shippingAddress.city,
+          state: order.shippingAddress.area,
+          postalCode: order.shippingAddress.postalCode,
           country: 'Bangladesh',
         },
         billingAddress: {
-          name: 'Fatima Rahman',
-          phone: '+8801712345678',
-          address: 'House 123, Road 15, Block C',
-          city: 'Dhaka',
-          state: 'Dhaka Division',
-          postalCode: '1207',
+          name: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName || ''}`.trim(),
+          phone: order.shippingAddress.phone,
+          address: order.shippingAddress.address,
+          city: order.shippingAddress.city,
+          state: order.shippingAddress.area,
+          postalCode: order.shippingAddress.postalCode,
           country: 'Bangladesh',
         },
-        notes: 'Please handle with care - gift items',
-        trackingNumber: 'TRK-2025-001',
-        estimatedDelivery: '2025-01-25T00:00:00Z',
-        createdAt: '2025-01-18T10:30:00Z',
-        updatedAt: '2025-01-18T14:45:00Z',
-      },
-      {
-        _id: '2',
-        orderNumber: 'ORD-2025-002',
-        status: 'pending',
-        paymentStatus: 'pending',
-        paymentMethod: 'cod',
-        customer: {
-          _id: 'cust-2',
-          name: 'Ayesha Khan',
-          email: 'ayesha@example.com',
-          phone: '+8801798765432',
-        },
-        items: [
-          {
-            _id: 'item-3',
-            productId: 'prod-3',
-            productName: 'Organic Body Butter',
-            productImage: '/api/placeholder/60/60',
-            sku: 'BB-ORG-003',
-            variant: 'Lavender',
-            quantity: 3,
-            price: 1800,
-            total: 5400,
-          },
-        ],
-        subtotal: 5400,
-        shippingCost: 120,
-        tax: 0,
-        discount: 0,
-        total: 5520,
-        currency: 'BDT',
-        shippingAddress: {
-          name: 'Ayesha Khan',
-          phone: '+8801798765432',
-          address: 'Flat 4B, Green Plaza',
-          city: 'Chittagong',
-          state: 'Chittagong Division',
-          postalCode: '4000',
-          country: 'Bangladesh',
-        },
-        billingAddress: {
-          name: 'Ayesha Khan',
-          phone: '+8801798765432',
-          address: 'Flat 4B, Green Plaza',
-          city: 'Chittagong',
-          state: 'Chittagong Division',
-          postalCode: '4000',
-          country: 'Bangladesh',
-        },
-        notes: '',
-        trackingNumber: null,
-        estimatedDelivery: '2025-01-28T00:00:00Z',
-        createdAt: '2025-01-18T16:20:00Z',
-        updatedAt: '2025-01-18T16:20:00Z',
-      },
-      {
-        _id: '3',
-        orderNumber: 'ORD-2025-003',
-        status: 'delivered',
-        paymentStatus: 'completed',
-        paymentMethod: 'nagad',
-        customer: {
-          _id: 'cust-3',
-          name: 'Rashida Begum',
-          email: 'rashida@example.com',
-          phone: '+8801634567890',
-        },
-        items: [
-          {
-            _id: 'item-4',
-            productId: 'prod-1',
-            productName: 'Luxury Rose Gold Lipstick',
-            productImage: '/api/placeholder/60/60',
-            sku: 'LIP-RG-001',
-            variant: 'Nude Pink',
-            quantity: 1,
-            price: 2500,
-            total: 2500,
-          },
-        ],
-        subtotal: 2500,
-        shippingCost: 80,
-        tax: 0,
-        discount: 250,
-        total: 2330,
-        currency: 'BDT',
-        shippingAddress: {
-          name: 'Rashida Begum',
-          phone: '+8801634567890',
-          address: '25 New Market Road',
-          city: 'Sylhet',
-          state: 'Sylhet Division',
-          postalCode: '3100',
-          country: 'Bangladesh',
-        },
-        billingAddress: {
-          name: 'Rashida Begum',
-          phone: '+8801634567890',
-          address: '25 New Market Road',
-          city: 'Sylhet',
-          state: 'Sylhet Division',
-          postalCode: '3100',
-          country: 'Bangladesh',
-        },
-        notes: '',
-        trackingNumber: 'TRK-2025-003',
-        estimatedDelivery: '2025-01-20T00:00:00Z',
-        createdAt: '2025-01-15T09:15:00Z',
-        updatedAt: '2025-01-20T11:30:00Z',
-      },
-    ];
-
-    setTimeout(() => {
-      setOrders(mockOrders);
+        notes: order.notes || '',
+        trackingNumber: order.trackingNumber || null,
+        estimatedDelivery: order.estimatedDelivery || null,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+      }));
+      
+      setOrders(transformedOrders);
+      setPagination(prev => ({
+        ...prev,
+        total: response.total,
+        totalPages: response.totalPages,
+      }));
+      
+    } catch (err: any) {
+      console.error('Failed to fetch orders:', err);
+      setError(err.message || 'Failed to load orders');
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to load orders. Please try again.',
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  }, [pagination.page, pagination.limit, filters, addToast]);
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.orderNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         order.customer.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         order.customer.email.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         order.customer.phone.includes(filters.search);
-    
-    const matchesStatus = !filters.status || order.status === filters.status;
-    const matchesPaymentStatus = !filters.paymentStatus || order.paymentStatus === filters.paymentStatus;
-    const matchesPaymentMethod = !filters.paymentMethod || order.paymentMethod === filters.paymentMethod;
-    
-    return matchesSearch && matchesStatus && matchesPaymentStatus && matchesPaymentMethod;
-  });
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+  }, [filters.search, filters.status, filters.paymentStatus, filters.paymentMethod, filters.dateRange]);
+
+  // Since we're using server-side filtering, we don't need client-side filtering
+  const filteredOrders = orders;
 
   const handleSelectOrder = useCallback((orderId: string) => {
     setSelectedOrders(prev => 
@@ -312,6 +231,9 @@ export default function OrdersPage() {
 
   const handleStatusUpdate = useCallback(async (orderId: string, newStatus: string) => {
     try {
+      await adminApi.orders.updateOrderStatus(orderId, newStatus as any);
+      
+      // Update local state
       setOrders(prev => prev.map(order => 
         order._id === orderId ? { ...order, status: newStatus as any, updatedAt: new Date().toISOString() } : order
       ));
@@ -321,11 +243,12 @@ export default function OrdersPage() {
         title: 'Status updated',
         message: `Order status updated to ${newStatus}.`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Failed to update order status:', error);
       addToast({
         type: 'error',
         title: 'Update failed',
-        message: 'Failed to update order status. Please try again.',
+        message: error.message || 'Failed to update order status. Please try again.',
       });
     }
   }, [addToast]);
@@ -334,6 +257,14 @@ export default function OrdersPage() {
     if (selectedOrders.length === 0) return;
     
     try {
+      // Update each order individually
+      const updatePromises = selectedOrders.map(orderId => 
+        adminApi.orders.updateOrderStatus(orderId, newStatus as any)
+      );
+      
+      await Promise.all(updatePromises);
+      
+      // Update local state
       setOrders(prev => prev.map(order => 
         selectedOrders.includes(order._id) 
           ? { ...order, status: newStatus as any, updatedAt: new Date().toISOString() } 
@@ -346,11 +277,12 @@ export default function OrdersPage() {
         title: 'Bulk update completed',
         message: `${selectedOrders.length} order(s) updated to ${newStatus}.`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Failed to bulk update orders:', error);
       addToast({
         type: 'error',
         title: 'Bulk update failed',
-        message: 'Failed to update orders. Please try again.',
+        message: error.message || 'Failed to update orders. Please try again.',
       });
     }
   }, [selectedOrders, addToast]);
@@ -459,6 +391,14 @@ export default function OrdersPage() {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
+            <button
+              onClick={fetchOrders}
+              disabled={loading}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowPathIcon className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
             <button
               onClick={() => {/* Export orders */}}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
@@ -942,8 +882,109 @@ export default function OrdersPage() {
         </div>
       )}
 
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow-sm border border-gray-200 mt-6">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              disabled={pagination.page === 1}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
+              disabled={pagination.page === pagination.totalPages}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing{' '}
+                <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span>
+                {' '}to{' '}
+                <span className="font-medium">
+                  {Math.min(pagination.page * pagination.limit, pagination.total)}
+                </span>
+                {' '}of{' '}
+                <span className="font-medium">{pagination.total}</span>
+                {' '}results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                  disabled={pagination.page === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="sr-only">Previous</span>
+                  <ChevronDownIcon className="h-5 w-5 transform rotate-90" aria-hidden="true" />
+                </button>
+                
+                {/* Page numbers */}
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  const pageNum = Math.max(1, Math.min(pagination.totalPages - 4, pagination.page - 2)) + i;
+                  if (pageNum > pagination.totalPages) return null;
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPagination(prev => ({ ...prev, page: pageNum }))}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        pageNum === pagination.page
+                          ? 'z-10 bg-pink-50 border-pink-500 text-pink-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
+                  disabled={pagination.page === pagination.totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="sr-only">Next</span>
+                  <ChevronDownIcon className="h-5 w-5 transform -rotate-90" aria-hidden="true" />
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
+          <div className="flex">
+            <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error loading orders</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={fetchOrders}
+                  className="bg-red-100 px-3 py-2 rounded-md text-sm font-medium text-red-800 hover:bg-red-200"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Empty State */}
-      {filteredOrders.length === 0 && !loading && (
+      {filteredOrders.length === 0 && !loading && !error && (
         <div className="text-center py-12">
           <ShoppingBagIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No orders found</h3>

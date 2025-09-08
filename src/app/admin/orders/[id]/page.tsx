@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeftIcon,
@@ -17,7 +17,6 @@ import {
   PhoneIcon,
   EnvelopeIcon,
   CreditCardIcon,
-  CalendarDaysIcon,
   DocumentTextIcon,
   ExclamationTriangleIcon,
   ChatBubbleLeftIcon,
@@ -25,6 +24,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { BDTIcon } from '../../../../components/ui/BDTIcon';
 import { useToast } from '@/lib/context';
+import { adminApi } from '@/lib/api';
 import type { AdminOrder } from '@/lib/admin-types';
 
 interface OrderTimeline {
@@ -46,146 +46,144 @@ interface OrderNote {
 }
 
 export default function OrderDetailPage() {
-  const router = useRouter();
   const params = useParams();
   const { addToast } = useToast();
   const [order, setOrder] = useState<AdminOrder | null>(null);
   const [timeline, setTimeline] = useState<OrderTimeline[]>([]);
   const [notes, setNotes] = useState<OrderNote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [newNote, setNewNote] = useState('');
   const [notePrivate, setNotePrivate] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [newStatus, setNewStatus] = useState('');
+
+  // Fetch order details from API
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const orderData = await adminApi.orders.getOrderById(params['id'] as string);
+      
+      // Transform backend order format to frontend AdminOrder format
+      const transformedOrder: AdminOrder = {
+        _id: orderData._id,
+        orderNumber: orderData.orderNumber,
+        status: orderData.status,
+        paymentStatus: orderData.paymentInfo?.status || 'pending',
+        paymentMethod: orderData.paymentInfo?.method || 'cod',
+        customer: {
+          _id: orderData.userId || orderData.guestId || 'unknown',
+          name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName || ''}`.trim(),
+          email: orderData.shippingAddress.email || 'N/A',
+          phone: orderData.shippingAddress.phone,
+        },
+        items: orderData.items.map((item: any) => ({
+          _id: `${orderData._id}-${item.productId}`,
+          productId: item.productId,
+          productName: item.title,
+          productImage: item.image || '/api/placeholder/80/80',
+          sku: item.sku || 'N/A',
+          variant: item.variant || null,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.price * item.quantity,
+        })),
+        subtotal: orderData.subtotal,
+        shippingCost: orderData.shipping,
+        tax: orderData.tax,
+        discount: orderData.discount,
+        total: orderData.total,
+        currency: orderData.currency,
+        shippingAddress: {
+          name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName || ''}`.trim(),
+          phone: orderData.shippingAddress.phone,
+          address: orderData.shippingAddress.address,
+          city: orderData.shippingAddress.city,
+          state: orderData.shippingAddress.area,
+          postalCode: orderData.shippingAddress.postalCode,
+          country: 'Bangladesh',
+        },
+        billingAddress: {
+          name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName || ''}`.trim(),
+          phone: orderData.shippingAddress.phone,
+          address: orderData.shippingAddress.address,
+          city: orderData.shippingAddress.city,
+          state: orderData.shippingAddress.area,
+          postalCode: orderData.shippingAddress.postalCode,
+          country: 'Bangladesh',
+        },
+        notes: orderData.notes || '',
+        trackingNumber: orderData.trackingNumber || null,
+        estimatedDelivery: orderData.estimatedDelivery || null,
+        createdAt: orderData.createdAt,
+        updatedAt: orderData.updatedAt,
+      };
+      
+      setOrder(transformedOrder);
+      
+      // Generate timeline from order data
+      const generatedTimeline: OrderTimeline[] = [
+        {
+          id: '1',
+          status: orderData.status,
+          title: `Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
+          description: `Order status: ${orderData.status}`,
+          timestamp: orderData.updatedAt || orderData.createdAt,
+          user: 'System',
+          type: 'status_change',
+        },
+        {
+          id: '2',
+          status: 'payment',
+          title: 'Payment Processed',
+          description: `Payment ${orderData.paymentInfo?.status || 'pending'} via ${orderData.paymentInfo?.method || 'N/A'}`,
+          timestamp: orderData.createdAt,
+          user: 'System',
+          type: 'payment',
+        },
+        {
+          id: '3',
+          status: 'pending',
+          title: 'Order Placed',
+          description: 'Order received and awaiting confirmation',
+          timestamp: orderData.createdAt,
+          user: 'Customer',
+          type: 'status_change',
+        },
+      ];
+      
+      setTimeline(generatedTimeline);
+      
+      // For now, we'll use empty notes array since we don't have a notes API yet
+      setNotes([]);
+      
+    } catch (err: any) {
+      console.error('Failed to fetch order details:', err);
+      setError(err.message || 'Failed to load order details');
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to load order details. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Mock data for development
-    const mockOrder: AdminOrder = {
-      _id: params.id as string,
-      orderNumber: 'ORD-2025-001',
-      status: 'processing',
-      paymentStatus: 'completed',
-      paymentMethod: 'bkash',
-      customer: {
-        _id: 'cust-1',
-        name: 'Fatima Rahman',
-        email: 'fatima@example.com',
-        phone: '+8801712345678',
-      },
-      items: [
-        {
-          _id: 'item-1',
-          productId: 'prod-1',
-          productName: 'Luxury Rose Gold Lipstick',
-          productImage: '/api/placeholder/80/80',
-          sku: 'LIP-RG-001',
-          variant: 'Crimson Rose',
-          quantity: 2,
-          price: 2500,
-          total: 5000,
-        },
-        {
-          _id: 'item-2',
-          productId: 'prod-2',
-          productName: 'Hydrating Face Serum',
-          productImage: '/api/placeholder/80/80',
-          sku: 'SER-HYD-002',
-          variant: null,
-          quantity: 1,
-          price: 3500,
-          total: 3500,
-        },
-      ],
-      subtotal: 8500,
-      shippingCost: 100,
-      tax: 0,
-      discount: 500,
-      total: 8100,
-      currency: 'BDT',
-      shippingAddress: {
-        name: 'Fatima Rahman',
-        phone: '+8801712345678',
-        address: 'House 123, Road 15, Block C, Bashundhara R/A',
-        city: 'Dhaka',
-        state: 'Dhaka Division',
-        postalCode: '1229',
-        country: 'Bangladesh',
-      },
-      billingAddress: {
-        name: 'Fatima Rahman',
-        phone: '+8801712345678',
-        address: 'House 123, Road 15, Block C, Bashundhara R/A',
-        city: 'Dhaka',
-        state: 'Dhaka Division',
-        postalCode: '1229',
-        country: 'Bangladesh',
-      },
-      notes: 'Please handle with care - gift items. Customer requested express delivery.',
-      trackingNumber: 'TRK-2025-001',
-      estimatedDelivery: '2025-01-25T00:00:00Z',
-      createdAt: '2025-01-18T10:30:00Z',
-      updatedAt: '2025-01-18T14:45:00Z',
-    };
-
-    const mockTimeline: OrderTimeline[] = [
-      {
-        id: '1',
-        status: 'processing',
-        title: 'Order Processing',
-        description: 'Order is being prepared for shipment',
-        timestamp: '2025-01-18T14:45:00Z',
-        user: 'Admin User',
-        type: 'status_change',
-      },
-      {
-        id: '2',
-        status: 'confirmed',
-        title: 'Order Confirmed',
-        description: 'Payment verified and order confirmed',
-        timestamp: '2025-01-18T11:15:00Z',
-        user: 'System',
-        type: 'payment',
-      },
-      {
-        id: '3',
-        status: 'pending',
-        title: 'Order Placed',
-        description: 'Order received and awaiting confirmation',
-        timestamp: '2025-01-18T10:30:00Z',
-        user: 'Customer',
-        type: 'status_change',
-      },
-    ];
-
-    const mockNotes: OrderNote[] = [
-      {
-        id: '1',
-        message: 'Customer called to confirm delivery address. Updated contact number.',
-        isPrivate: true,
-        createdBy: 'Admin User',
-        createdAt: '2025-01-18T13:20:00Z',
-      },
-      {
-        id: '2',
-        message: 'Gift wrapping requested. Added special handling instructions.',
-        isPrivate: false,
-        createdBy: 'Staff User',
-        createdAt: '2025-01-18T12:45:00Z',
-      },
-    ];
-
-    setTimeout(() => {
-      setOrder(mockOrder);
-      setTimeline(mockTimeline);
-      setNotes(mockNotes);
-      setLoading(false);
-    }, 1000);
-  }, [params.id]);
+    if (params['id']) {
+      fetchOrderDetails();
+    }
+  }, [params['id']]);
 
   const handleStatusUpdate = async (status: string) => {
     if (!order) return;
     
     try {
+      await adminApi.orders.updateOrderStatus(order._id, status as any);
+      
+      // Update local state
       setOrder(prev => prev ? { ...prev, status: status as any, updatedAt: new Date().toISOString() } : null);
       
       // Add to timeline
@@ -206,11 +204,12 @@ export default function OrderDetailPage() {
         title: 'Status updated',
         message: `Order status updated to ${status}.`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Failed to update order status:', error);
       addToast({
         type: 'error',
         title: 'Update failed',
-        message: 'Failed to update order status. Please try again.',
+        message: error.message || 'Failed to update order status. Please try again.',
       });
     }
   };
@@ -297,7 +296,35 @@ export default function OrderDetailPage() {
     );
   }
 
-  if (!order) {
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-400" />
+          <h2 className="text-2xl font-bold text-gray-900 mt-4">Error loading order</h2>
+          <p className="text-gray-600 mt-2">{error}</p>
+          <div className="mt-6 space-x-3">
+            <button
+              onClick={fetchOrderDetails}
+              className="inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+            >
+              <ArrowPathIcon className="w-4 h-4 mr-2" />
+              Try Again
+            </button>
+            <Link
+              href="/admin/orders"
+              className="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            >
+              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              Back to Orders
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order && !loading) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
@@ -313,6 +340,10 @@ export default function OrderDetailPage() {
         </div>
       </div>
     );
+  }
+
+  if (!order) {
+    return null; // This should not happen due to the loading/error states above
   }
 
   return (
@@ -341,6 +372,14 @@ export default function OrderDetailPage() {
             </div>
             
             <div className="flex items-center space-x-3">
+              <button
+                onClick={fetchOrderDetails}
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ArrowPathIcon className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
               <button
                 onClick={() => window.print()}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors"

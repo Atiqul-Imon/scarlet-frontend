@@ -935,6 +935,10 @@ export const adminApi = {
       return fetchJsonAuth(url);
     },
 
+    getOrderById: (orderId: string): Promise<any> => {
+      return fetchJsonAuth(`/admin/orders/${orderId}`);
+    },
+
     updateOrderStatus: (
       orderId: string, 
       status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded',
