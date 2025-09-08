@@ -408,7 +408,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadGuestCart();
       }
     }
-  }, [cart, isAuthenticated, sessionId, user]);
+  }, [isAuthenticated, sessionId, user]);
 
 
   // Handle authentication changes
@@ -423,7 +423,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const guestCart = getGuestCart();
       setCart(guestCart);
     }
-  }, [isAuthenticated, cart]);
+  }, [isAuthenticated]);
 
   const itemCount = React.useMemo(() => {
     return cart?.items.reduce((total, item) => total + item.quantity, 0) || 0;
@@ -760,14 +760,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         message: 'Some items may not have been synced to your account'
       });
     }
-  }, [isAuthenticated, cart, sessionId, addToast]);
+  }, [isAuthenticated, sessionId, addToast]);
 
   // Handle cart sync when user logs in
   React.useEffect(() => {
     if (isAuthenticated && cart?.userId === 'guest') {
       syncGuestCartWithServer();
     }
-  }, [isAuthenticated, cart, syncGuestCartWithServer]);
+  }, [isAuthenticated, syncGuestCartWithServer]);
 
   const resetCart = React.useCallback(() => {
     clearGuestCart();
