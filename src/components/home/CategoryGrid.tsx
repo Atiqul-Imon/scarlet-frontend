@@ -3,6 +3,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { categoryApi, productApi } from '../../lib/api';
 import type { Category } from '../../lib/types';
+import { SectionContainer, CategoryGrid as ResponsiveCategoryGrid } from '../layout';
 
 interface CategoryItem extends Category {
   gradient?: string;
@@ -209,32 +210,29 @@ export default function CategoryGrid() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-white">
-        <div className="container-herlan">
-
-                  <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-8 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-gray-200 rounded-full animate-pulse shadow-lg mx-auto flex items-center justify-center">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded animate-pulse"></div>
+      <section className="bg-white">
+        <SectionContainer>
+          <ResponsiveCategoryGrid>
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="text-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-gray-200 rounded-full animate-pulse shadow-lg mx-auto flex items-center justify-center">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded animate-pulse"></div>
+                </div>
+                <div className="mt-3">
+                  <div className="w-12 sm:w-16 h-3 bg-gray-200 rounded animate-pulse mx-auto"></div>
+                </div>
               </div>
-              <div className="mt-3">
-                <div className="w-12 sm:w-16 h-3 bg-gray-200 rounded animate-pulse mx-auto"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-        </div>
+            ))}
+          </ResponsiveCategoryGrid>
+        </SectionContainer>
       </section>
     );
   }
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container-herlan">
-
-
-        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-8 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+    <section className="bg-white">
+      <SectionContainer>
+        <ResponsiveCategoryGrid>
           {categories.map((category) => (
             <Link
               key={category._id}
@@ -246,18 +244,12 @@ export default function CategoryGrid() {
               }}
             >
               <div className="text-center">
-
-
-
                 {/* Main Category Circle - Gray Background with Icon Only */}
                 <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-gray-100 hover:bg-gray-200 rounded-full overflow-hidden transition-all duration-500 group-hover:scale-110 group-hover:shadow-2xl shadow-lg flex items-center justify-center">
-                  
                   {/* Category Icon Only */}
                   <div className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl transform transition-transform duration-300 group-hover:scale-110">
                     {category.icon || "🌟"}
                   </div>
-
-
                 </div>
 
                 {/* Category Name Below Box */}
@@ -266,12 +258,10 @@ export default function CategoryGrid() {
                     {category.name}
                   </h3>
                 </div>
-
-
               </div>
             </Link>
           ))}
-        </div>
+        </ResponsiveCategoryGrid>
 
         {/* Smart CSS for animations */}
         <style jsx>{`
@@ -299,7 +289,7 @@ export default function CategoryGrid() {
             </svg>
           </Link>
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }

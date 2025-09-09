@@ -12,6 +12,11 @@ import {
   AppError
 } from './types';
 
+// Class name utility function (similar to clsx)
+export const cn = (...classes: (string | undefined | null | false)[]): string => {
+  return classes.filter(Boolean).join(' ');
+};
+
 // Type Guards
 export const typeGuards = {
   // Check if value is a valid Product

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { productApi } from '../../lib/api';
 import type { Product } from '../../lib/types';
 import EnhancedProductCard from './EnhancedProductCard';
+import { SectionContainer, ResponsiveFlex, ProductGrid } from '../layout';
+import { TouchCard, TouchProductCard } from '../ui';
 
 interface ProductShowcaseProps {
   title: string;
@@ -66,27 +68,33 @@ export default function ProductShowcase({
 
   if (error) {
     return (
-      <section className="py-16 bg-gray-50">
-        <div className="container-herlan">
+      <section className="bg-gray-50">
+        <SectionContainer>
           <div className="text-center">
-            <p className="text-gray-600">Unable to load products at the moment.</p>
+            <p className="responsive-text text-gray-600">Unable to load products at the moment.</p>
           </div>
-        </div>
+        </SectionContainer>
       </section>
     );
   }
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container-herlan">
+    <section className="bg-gray-50">
+      <SectionContainer>
         {/* Section Header */}
-        <div className="flex justify-between items-center mb-12">
+        <ResponsiveFlex
+          direction={{ default: 'col', sm: 'row' }}
+          align={{ default: 'start', sm: 'center' }}
+          justify="between"
+          gap="md"
+          className="mb-12"
+        >
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="responsive-heading text-gray-900 mb-2">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-gray-600">
+              <p className="responsive-text text-gray-600">
                 {subtitle}
               </p>
             )}
@@ -100,20 +108,20 @@ export default function ProductShowcase({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-        </div>
+        </ResponsiveFlex>
 
         {/* Products Grid */}
         {loading ? (
           <ProductShowcaseSkeleton />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
+          <ProductGrid>
             {products.map((product) => (
               <EnhancedProductCard
                 key={product._id}
                 product={product}
               />
             ))}
-          </div>
+          </ProductGrid>
         )}
 
         {/* Mobile View All Button */}
@@ -128,17 +136,17 @@ export default function ProductShowcase({
             </svg>
           </Link>
         </div>
-      </div>
+      </SectionContainer>
     </section>
   );
 }
 
 function ProductShowcaseSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
+    <ProductGrid>
       {Array.from({ length: 8 }).map((_, index) => (
-        <div key={index} className="animate-pulse">
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm">
+        <TouchCard key={index} variant="default" interactive={false}>
+          <div className="animate-pulse">
             <div className="aspect-square bg-gray-200"></div>
             <div className="p-4">
               <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -146,8 +154,8 @@ function ProductShowcaseSkeleton() {
               <div className="h-5 bg-gray-200 rounded w-1/2"></div>
             </div>
           </div>
-        </div>
+        </TouchCard>
       ))}
-    </div>
+    </ProductGrid>
   );
 }

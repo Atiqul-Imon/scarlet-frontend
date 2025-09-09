@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "../components/header/Header";
 import { AppProvider } from "../lib/context";
 import ChatManager from "../components/chat/ChatManager";
+import BottomNavigation from "../components/navigation/BottomNavigation";
+import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,14 +33,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
       >
         <AppProvider>
-          <div className="flex flex-col h-full">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            {/* Chat System */}
-            <ChatManager />
-          </div>
+          <ServiceWorkerProvider>
+            <div className="flex flex-col h-full">
+              <Header />
+              <main className="flex-1 pb-16 lg:pb-0">
+                {children}
+              </main>
+              {/* Mobile Bottom Navigation */}
+              <BottomNavigation />
+              {/* Chat System */}
+              <ChatManager />
+            </div>
+          </ServiceWorkerProvider>
         </AppProvider>
       </body>
     </html>
