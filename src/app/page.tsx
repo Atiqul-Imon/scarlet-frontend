@@ -1,15 +1,15 @@
 import Hero from "../components/hero/Hero";
 import ProductShowcase from "../components/products/ProductShowcase";
 import BrandShowcase from "../components/brands/BrandShowcase";
-import CategoryGrid from "../components/home/CategoryGrid";
+import CategorySection from "../components/categories/CategorySection";
 
 export default function Home() {
   return (
     <div className="bg-white">
       <Hero />
       
-      {/* Category Grid */}
-      <CategoryGrid />
+      {/* Category Section */}
+      <CategorySection />
       
       {/* Brand Showcase */}
       <BrandShowcase />
