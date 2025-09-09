@@ -31,10 +31,11 @@ export default function CartPage() {
   const { cart, updateItem, removeItem, clearCart, markCartAsAbandoned } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
-  const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
+  const [enrichedItems, setEnrichedItems] = React.useState<CartItemData[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const [removingItems, setRemovingItems] = React.useState<Set<string>>(new Set());
   const lastCartItemsCountRef = React.useRef<number>(0);
 
   // Debug cart state
@@ -55,7 +56,7 @@ export default function CartPage() {
     const currentItemsCount = cart?.items?.length || 0;
     
     // Only refetch if the number of items changed or it's the first load
-    if (currentItemsCount === lastCartItemsCountRef.current && cartItems.length > 0) {
+    if (currentItemsCount === lastCartItemsCountRef.current && enrichedItems.length > 0) {
       console.log('Skipping refetch - no changes');
       return;
     }
@@ -75,7 +76,7 @@ export default function CartPage() {
         
         if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
           console.log('No cart items found, setting empty array');
-          setCartItems([]);
+          setEnrichedItems([]);
           setLoading(false);
           return;
         }
@@ -127,7 +128,7 @@ export default function CartPage() {
 
         console.log('Enriched items:', enrichedItems);
         console.log('Enriched items length:', enrichedItems.length);
-        setCartItems(enrichedItems);
+        setEnrichedItems(enrichedItems);
 
       } catch (err) {
         setError('Failed to load cart. Please try again.');
@@ -138,38 +139,24 @@ export default function CartPage() {
     };
 
     fetchCartData();
-  }, [cart, cartItems.length]);
+  }, [cart?.items, addToast]);
 
-  const handleUpdateQuantity = async (productId: string, quantity: number) => {
+  const handleUpdateQuantity = React.useCallback(async (productId: string, quantity: number) => {
     if (quantity < 1) return;
-    
-    // Optimistically update the local state first for instant UI feedback
-    setCartItems(prevItems => 
-      prevItems.map(item => 
-        item.productId === productId 
-          ? { ...item, quantity }
-          : item
-      )
-    );
     
     setIsUpdating(true);
     try {
       await updateItem(productId, quantity);
-      addToast({
-        type: 'success',
-        title: 'Cart Updated',
-        message: 'Cart updated successfully!'
-      });
+      // Don't show toast for every quantity change to avoid spam
+      if (quantity === 0) {
+        addToast({
+          type: 'success',
+          title: 'Item Removed',
+          message: 'Item removed from cart'
+        });
+      }
     } catch (error) {
       console.error('Error updating quantity:', error);
-      // Revert the optimistic update on error
-      setCartItems(prevItems => 
-        prevItems.map(item => 
-          item.productId === productId 
-            ? { ...item, quantity: cart?.items.find(cartItem => cartItem.productId === productId)?.quantity || item.quantity }
-            : item
-        )
-      );
       addToast({
         type: 'error',
         title: 'Error',
@@ -178,15 +165,13 @@ export default function CartPage() {
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, [updateItem, addToast]);
 
-  const handleRemoveItem = async (productId: string) => {
-    // Store the item for potential rollback
-    const itemToRemove = cartItems.find(item => item.productId === productId);
+  const handleRemoveItem = React.useCallback(async (productId: string) => {
+    // Prevent multiple clicks on the same item
+    if (removingItems.has(productId)) return;
     
-    // Optimistically remove the item from local state first for instant UI feedback
-    setCartItems(prevItems => prevItems.filter(item => item.productId !== productId));
-    
+    setRemovingItems(prev => new Set(prev).add(productId));
     try {
       await removeItem(productId);
       addToast({
@@ -196,25 +181,21 @@ export default function CartPage() {
       });
     } catch (error) {
       console.error('Error removing item:', error);
-      // Revert the optimistic update on error
-      if (itemToRemove) {
-        setCartItems(prevItems => [...prevItems, itemToRemove]);
-      }
       addToast({
         type: 'error',
         title: 'Error',
         message: 'Failed to remove item'
       });
+    } finally {
+      setRemovingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+      });
     }
-  };
+  }, [removeItem, addToast, removingItems]);
 
-  const handleClearCart = async () => {
-    // Store current items for potential rollback
-    const currentItems = [...cartItems];
-    
-    // Optimistically clear the cart from local state first for instant UI feedback
-    setCartItems([]);
-    
+  const handleClearCart = React.useCallback(async () => {
     try {
       await clearCart();
       addToast({
@@ -224,15 +205,13 @@ export default function CartPage() {
       });
     } catch (error) {
       console.error('Error clearing cart:', error);
-      // Revert the optimistic update on error
-      setCartItems(currentItems);
       addToast({
         type: 'error',
         title: 'Error',
         message: 'Failed to clear cart'
       });
     }
-  };
+  }, [clearCart, addToast]);
 
   const handleCheckout = () => {
     router.push('/checkout');
@@ -241,13 +220,13 @@ export default function CartPage() {
   // Track cart abandonment when user leaves the page
   React.useEffect(() => {
     const handleBeforeUnload = () => {
-      if (cartItems.length > 0) {
+      if (enrichedItems.length > 0) {
         markCartAsAbandoned();
       }
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && cartItems.length > 0) {
+      if (document.visibilityState === 'hidden' && enrichedItems.length > 0) {
         markCartAsAbandoned();
       }
     };
@@ -259,16 +238,16 @@ export default function CartPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [cartItems.length, markCartAsAbandoned]);
+  }, [enrichedItems.length, markCartAsAbandoned]);
 
   // Calculate totals for Bangladesh market
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
+  const subtotal = enrichedItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
   const freeShippingThreshold = 2000; // ৳2000 for free shipping
   const shippingCost = 100; // ৳100 standard shipping
   const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
   const tax = 0; // No VAT on cosmetics in Bangladesh for small amounts
   const total = subtotal + shipping + tax;
-  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const itemCount = enrichedItems.reduce((sum, item) => sum + item.quantity, 0);
   
   // Format currency for Bangladesh
   const formatPrice = (amount: number) => `৳${amount.toLocaleString('en-US')}`;
@@ -314,9 +293,9 @@ export default function CartPage() {
     return false;
   })();
   
-  console.log('Cart check - hasItemsInContext:', hasItemsInContext, 'hasItemsInLocalStorage:', hasItemsInLocalStorage, 'cartItems.length:', cartItems.length);
+  console.log('Cart check - hasItemsInContext:', hasItemsInContext, 'hasItemsInLocalStorage:', hasItemsInLocalStorage, 'enrichedItems.length:', enrichedItems.length);
   
-  if (!loading && cartItems.length === 0 && !hasItemsInContext && !hasItemsInLocalStorage) {
+  if (!loading && enrichedItems.length === 0 && !hasItemsInContext && !hasItemsInLocalStorage) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container-herlan py-16">
@@ -339,7 +318,7 @@ export default function CartPage() {
               <div className="mt-8 p-4 bg-gray-100 rounded-lg text-left max-w-md mx-auto">
                 <h3 className="font-bold mb-2">Debug Info:</h3>
                 <p>Loading: {loading.toString()}</p>
-                <p>Cart Items Length: {cartItems.length}</p>
+                <p>Cart Items Length: {enrichedItems.length}</p>
                 <p>Cart Exists: {cart ? 'Yes' : 'No'}</p>
                 <p>Cart Items: {cart?.items?.length || 0}</p>
                 <p>Raw Cart: {JSON.stringify(cart, null, 2)}</p>
@@ -362,7 +341,7 @@ export default function CartPage() {
               {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
             </p>
           </div>
-          {cartItems.length > 0 && (
+          {enrichedItems.length > 0 && (
             <Button 
               variant="ghost" 
               onClick={handleClearCart}
@@ -376,13 +355,13 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => (
+            {enrichedItems.map((item) => (
               <CartItem
                 key={item.productId}
                 item={item}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemove={handleRemoveItem}
-                isUpdating={isUpdating}
+                isUpdating={isUpdating || removingItems.has(item.productId)}
               />
             ))}
 

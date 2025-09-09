@@ -270,8 +270,17 @@ export default function CheckoutPage() {
         message: `Order #${order.orderNumber} has been placed. You will receive a confirmation email shortly.`
       });
       
-      // Redirect to order confirmation page with order ID
+      // Redirect to order confirmation page immediately
       router.push(`/order-success?orderNumber=${order.orderNumber}`);
+      
+      // Clear the cart after redirect (in background)
+      setTimeout(async () => {
+        try {
+          await clearCart();
+        } catch (error) {
+          console.error('Error clearing cart after order:', error);
+        }
+      }, 100);
       
     } catch (error: unknown) {
       console.error('Error placing order:', error);
