@@ -149,7 +149,7 @@ export default function Hero() {
       <div className="container-herlan">
         {/* Main Banner Carousel */}
         <div 
-          className="relative h-[30vh] md:h-[35vh] overflow-hidden md:rounded-xl cursor-grab active:cursor-grabbing select-none"
+          className="relative h-[30vh] md:h-[35vh] overflow-hidden rounded-xl cursor-grab active:cursor-grabbing select-none"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -165,9 +165,9 @@ export default function Hero() {
                 index === currentSlide ? 'translate-x-0' : index < currentSlide ? '-translate-x-full' : 'translate-x-full'
               }`}
             >
-              <div className={`w-full h-full ${slide.backgroundColor} relative md:rounded-xl`}>
+              <div className={`w-full h-full ${slide.backgroundColor} relative rounded-xl`}>
                 {/* Background overlay for better text readability */}
-                <div className="absolute inset-0 bg-black/20 md:rounded-xl"></div>
+                <div className="absolute inset-0 bg-black/20 rounded-xl"></div>
                 
                 <div className="relative z-10 h-full flex items-center px-4 sm:px-6 md:px-12">
                   <div className="max-w-xl">
