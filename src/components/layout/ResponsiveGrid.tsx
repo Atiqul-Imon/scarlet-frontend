@@ -70,7 +70,7 @@ export default function ResponsiveGrid({
 export function ProductGrid({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <ResponsiveGrid
-      cols={{ default: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+      cols={{ default: 2, sm: 2, md: 3, lg: 4, xl: 5 }}
       gap="md"
       className={cn('auto-rows-fr', className)}
     >
