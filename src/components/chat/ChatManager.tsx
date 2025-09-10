@@ -1,13 +1,9 @@
 "use client";
 import * as React from 'react';
-import { ChatChannel, ChatLanguage, ChatSession } from './types';
-import FloatingChatButton from './ChatButton/FloatingChatButton';
-import ChatWidget from './ChatWidget/ChatWidget';
+import { ChatLanguage } from './types';
 import WhatsAppChat from './Integrations/WhatsAppChat';
 import MessengerChat from './Integrations/MessengerChat';
 import MessengerCustomerChat from './Integrations/MessengerCustomerChat';
-import { whatsappService } from './utils/whatsappUtils';
-import { messengerService } from './utils/messengerUtils';
 
 interface ChatManagerProps {
   className?: string;
@@ -15,11 +11,7 @@ interface ChatManagerProps {
 }
 
 export default function ChatManager({ className = '', showChannelButtons = true }: ChatManagerProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [currentChannel, setCurrentChannel] = React.useState<ChatChannel>('whatsapp');
   const [currentLanguage, setCurrentLanguage] = React.useState<ChatLanguage>('en');
-  const [session, setSession] = React.useState<ChatSession | undefined>();
-  const [unreadCount, setUnreadCount] = React.useState(0);
   const [showWhatsAppRedirect, setShowWhatsAppRedirect] = React.useState(false);
   const [showMessengerRedirect, setShowMessengerRedirect] = React.useState(false);
   const [pendingMessage, setPendingMessage] = React.useState('');
@@ -27,7 +19,6 @@ export default function ChatManager({ className = '', showChannelButtons = true 
   // Initialize language based on user preference or browser
   React.useEffect(() => {
     const savedLanguage = localStorage.getItem('chat-language') as ChatLanguage;
-    const savedChannel = localStorage.getItem('chat-channel') as ChatChannel;
     
     if (savedLanguage) {
       setCurrentLanguage(savedLanguage);
@@ -38,10 +29,6 @@ export default function ChatManager({ className = '', showChannelButtons = true 
         setCurrentLanguage('bn');
       }
     }
-
-    if (savedChannel) {
-      setCurrentChannel(savedChannel);
-    }
   }, []);
 
   // Save preferences
@@ -49,75 +36,25 @@ export default function ChatManager({ className = '', showChannelButtons = true 
     localStorage.setItem('chat-language', currentLanguage);
   }, [currentLanguage]);
 
-  React.useEffect(() => {
-    localStorage.setItem('chat-channel', currentChannel);
-  }, [currentChannel]);
-
-  const handleToggleChat = () => {
-    setIsOpen(!isOpen);
-    if (!isOpen) {
-      // Reset unread count when opening chat
-      setUnreadCount(0);
-    }
-  };
-
-  const handleChannelChange = (channel: ChatChannel) => {
-    setCurrentChannel(channel);
-    // Initialize session for the selected channel
-    console.log('Channel changed to:', channel);
-  };
-
-  const handleSendMessage = (message: string) => {
-    if (currentChannel === 'whatsapp') {
-      // For WhatsApp, redirect to WhatsApp with the message
-      setPendingMessage(message);
-      setShowWhatsAppRedirect(true);
-      setIsOpen(false);
-    } else if (currentChannel === 'messenger') {
-      // For Messenger, redirect to Messenger with the message
-      setPendingMessage(message);
-      setShowMessengerRedirect(true);
-      setIsOpen(false);
-    } else {
-      // For other channels, handle differently
-      console.log('Send message via', currentChannel, ':', message);
-    }
-  };
 
   const handleLanguageChange = (language: ChatLanguage) => {
     setCurrentLanguage(language);
   };
 
   const openWhatsAppDirectly = () => {
-    setCurrentChannel('whatsapp');
     setPendingMessage('');
     setShowWhatsAppRedirect(true);
-    setIsOpen(false);
   };
 
   const openMessengerDirectly = () => {
-    setCurrentChannel('messenger');
     setPendingMessage('');
     setShowMessengerRedirect(true);
-    setIsOpen(false);
   };
-
-  // Simulate receiving messages (for demo purposes)
-  React.useEffect(() => {
-    if (!isOpen) {
-      const timer = setTimeout(() => {
-        // Simulate receiving a message when chat is closed
-        setUnreadCount(prev => prev + 1);
-      }, 10000); // 10 seconds after component mounts
-
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
 
   return (
     <div className={`fixed inset-0 pointer-events-none z-50 ${className}`}>
       {/* Direct Channel Buttons */}
-      {showChannelButtons && !isOpen && !showWhatsAppRedirect && !showMessengerRedirect && (
+      {showChannelButtons && !showWhatsAppRedirect && !showMessengerRedirect && (
         <div className="pointer-events-auto fixed bottom-6 right-6 z-40 flex flex-col gap-3">
           {/* WhatsApp Button */}
           <button
@@ -150,59 +87,9 @@ export default function ChatManager({ className = '', showChannelButtons = true 
               Messenger
             </div>
           </button>
-
-          {/* Main Chat Button */}
-          <button
-            onClick={handleToggleChat}
-            className="w-14 h-14 bg-pink-500 hover:bg-pink-600 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 flex items-center justify-center text-white group relative"
-            aria-label="Open chat options"
-          >
-            <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
-              <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-            </svg>
-            
-            {/* Unread count badge */}
-            {unreadCount > 0 && (
-              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </div>
-            )}
-            
-            {/* Tooltip */}
-            <div className="absolute right-full mr-3 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              More Options
-            </div>
-          </button>
         </div>
       )}
 
-      {/* Original Floating Chat Button (when channel buttons are disabled) */}
-      {!showChannelButtons && (
-        <div className="pointer-events-auto">
-          <FloatingChatButton
-            onToggleChat={handleToggleChat}
-            isOpen={isOpen}
-            unreadCount={unreadCount}
-            preferredChannel={currentChannel}
-          />
-        </div>
-      )}
-
-      {/* Chat Widget */}
-      {isOpen && !showWhatsAppRedirect && !showMessengerRedirect && (
-        <div className="pointer-events-auto">
-          <ChatWidget
-            isOpen={isOpen}
-            onClose={() => setIsOpen(false)}
-            onChannelChange={handleChannelChange}
-            onLanguageChange={handleLanguageChange}
-            onSendMessage={handleSendMessage}
-            currentChannel={currentChannel}
-            currentLanguage={currentLanguage}
-            session={session}
-          />
-        </div>
-      )}
 
       {/* WhatsApp Redirect Modal */}
       {showWhatsAppRedirect && (
