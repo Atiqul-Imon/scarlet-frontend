@@ -146,7 +146,7 @@ export default function Hero() {
 
   return (
     <section className="bg-gray-50 py-0 md:py-8">
-      <div className="hero-container">
+      <div className="container-herlan">
         {/* Main Banner Carousel */}
         <div 
           className="relative h-[30vh] md:h-[35vh] overflow-hidden md:rounded-xl cursor-grab active:cursor-grabbing select-none"
