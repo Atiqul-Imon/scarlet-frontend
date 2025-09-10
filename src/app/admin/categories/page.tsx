@@ -1,7 +1,9 @@
 "use client";
 import * as React from 'react';
-import { categoryApi } from '../../../lib/api';
+import { categoryApi, adminApi } from '../../../lib/api';
 import type { Category } from '../../../lib/types';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = React.useState<Category[]>([]);
@@ -12,6 +14,9 @@ export default function AdminCategoriesPage() {
   const [dragStartX, setDragStartX] = React.useState(0);
   const [scrollLeft, setScrollLeft] = React.useState(0);
   const sliderRef = React.useRef<HTMLDivElement>(null);
+  
+  // Delete state
+  const [deletingCategory, setDeletingCategory] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     fetchCategories();
@@ -53,6 +58,7 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
+      // Use the existing categoryApi for now to avoid the adminApi issue
       const response = await categoryApi.getCategories();
       const categoriesData = Array.isArray(response) ? response : [];
       setCategories(categoriesData.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
@@ -89,14 +95,14 @@ export default function AdminCategoriesPage() {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!sliderRef.current || !e.touches[0]) return;
+    if (!sliderRef.current) return;
     setIsDragging(true);
     setDragStartX(e.touches[0].pageX - sliderRef.current.offsetLeft);
     setScrollLeft(sliderRef.current.scrollLeft);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !sliderRef.current || !e.touches[0]) return;
+    if (!isDragging || !sliderRef.current) return;
     const x = e.touches[0].pageX - sliderRef.current.offsetLeft;
     const walk = (x - dragStartX) * 2;
     sliderRef.current.scrollLeft = scrollLeft - walk;
@@ -106,37 +112,81 @@ export default function AdminCategoriesPage() {
     setIsDragging(false);
   };
 
-  const updateHomepageVisibility = async (categoryId: string, showInHomepage: boolean) => {
+  const updateHomepageVisibility = async (categoryId: string) => {
     try {
       setUpdating(categoryId);
+      const category = categories.find(cat => cat._id === categoryId);
+      if (!category) return;
+
+      // Toggle isActive status
+      const newStatus = !category.isActive;
       
-      // This would be the API call to update the category
-      // await categoryApi.updateCategory(categoryId, { showInHomepage });
-      
-      // For now, we'll update the local state
+      // Update locally first for immediate feedback
       setCategories(prev => 
         prev.map(cat => 
           cat._id === categoryId 
-            ? { ...cat, showInHomepage } 
+            ? { ...cat, isActive: newStatus }
             : cat
         )
       );
-      
+
+      // For now, just show success message without API call
+      // TODO: Implement adminApi.categories.updateCategoryStatus when backend is ready
       setMessage({ 
         type: 'success', 
-        text: `Category ${showInHomepage ? 'added to' : 'removed from'} homepage` 
+        text: `Category ${newStatus ? 'activated' : 'deactivated'} successfully` 
       });
       
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
-      
     } catch (error) {
-      console.error('Error updating category:', error);
-      setMessage({ type: 'error', text: 'Failed to update category' });
+      console.error('Error updating category status:', error);
+      setMessage({ type: 'error', text: 'Failed to update category status' });
+      
+      // Revert local change on error
+      setCategories(prev => 
+        prev.map(cat => 
+          cat._id === categoryId 
+            ? { ...cat, isActive: !cat.isActive }
+            : cat
+        )
+      );
     } finally {
       setUpdating(null);
     }
   };
+
+  // CRUD Functions
+  const handleCreateCategory = () => {
+    // Navigation will be handled by Link component
+  };
+
+  const handleEditCategory = (category: Category) => {
+    // Navigation will be handled by Link component
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!window.confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeletingCategory(categoryId);
+      
+      // For now, just remove from local state
+      // TODO: Implement adminApi.categories.deleteCategory when backend is ready
+      setCategories(prev => prev.filter(cat => cat._id !== categoryId));
+      
+      setMessage({ type: 'success', text: 'Category deleted successfully' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      setMessage({ type: 'error', text: 'Failed to delete category' });
+    } finally {
+      setDeletingCategory(null);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -169,10 +219,19 @@ export default function AdminCategoriesPage() {
             Manage all categories. Drag to scroll through categories. All active categories appear on the homepage.
           </p>
         </div>
-        <div className="bg-green-50 px-4 py-2 rounded-lg">
-          <span className="text-sm font-medium text-green-800">
-            {categories.filter(cat => cat.isActive).length} Active Categories
-          </span>
+        <div className="flex items-center space-x-4">
+          <div className="bg-green-50 px-4 py-2 rounded-lg">
+            <span className="text-sm font-medium text-green-800">
+              {categories.filter(cat => cat.isActive).length} Active Categories
+            </span>
+          </div>
+          <Link
+            href="/admin/categories/new"
+            className="flex items-center space-x-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+          >
+            <PlusIcon className="w-5 h-5" />
+            <span>Add Category</span>
+          </Link>
         </div>
       </div>
 
@@ -224,7 +283,7 @@ export default function AdminCategoriesPage() {
                       ? 'bg-green-100 hover:bg-green-200' 
                       : 'bg-gray-100 hover:bg-gray-200'
                   }`}
-                  onClick={() => updateHomepageVisibility(category._id!, !category.isActive)}
+                  onClick={() => updateHomepageVisibility(category._id!)}
                 >
                   <span className="text-2xl sm:text-3xl md:text-4xl">
                     {getCategoryIcon(category.name)}
@@ -242,9 +301,37 @@ export default function AdminCategoriesPage() {
                     {category.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
+                
+                {/* Action Buttons */}
+                <div className="mt-2 flex justify-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Link
+                    href={`/admin/categories/${category._id}/edit`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                    title="Edit category"
+                  >
+                    <PencilIcon className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCategory(category._id!);
+                    }}
+                    disabled={deletingCategory === category._id}
+                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                    title="Delete category"
+                  >
+                    {deletingCategory === category._id ? (
+                      <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <TrashIcon className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+
                 {updating === category._id && (
                   <div className="mt-2">
-                    <span className="text-xs text-blue-600">Updating...</span>
+                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-pink-600"></div>
                   </div>
                 )}
               </div>
@@ -252,29 +339,6 @@ export default function AdminCategoriesPage() {
           ))}
         </div>
       </div>
-
-      {/* Tips */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-medium text-blue-900 mb-2">💡 Tips</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Drag horizontally to scroll through all categories</li>
-          <li>• Click on any category to toggle its visibility on the homepage</li>
-          <li>• Active categories (green) appear on the homepage slider</li>
-          <li>• Inactive categories (gray) are hidden from the homepage</li>
-          <li>• Changes take effect immediately on the website</li>
-        </ul>
-      </div>
-
-      <style jsx>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 }
-

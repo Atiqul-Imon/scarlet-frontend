@@ -977,6 +977,54 @@ export const adminApi = {
     }
   },
 
+  // Category Management
+  categories: {
+    getCategories: (filters: any = {}): Promise<any> => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+      
+      const queryString = params.toString();
+      const url = `/admin/categories${queryString ? `?${queryString}` : ''}`;
+      
+      return fetchJsonAuth(url);
+    },
+
+    getCategory: (categoryId: string): Promise<any> => {
+      return fetchJsonAuth(`/admin/categories/${categoryId}`);
+    },
+
+    createCategory: (categoryData: any): Promise<any> => {
+      return fetchJsonAuth('/admin/categories', {
+        method: 'POST',
+        body: JSON.stringify(categoryData)
+      });
+    },
+
+    updateCategory: (categoryId: string, categoryData: any): Promise<any> => {
+      return fetchJsonAuth(`/admin/categories/${categoryId}`, {
+        method: 'PUT',
+        body: JSON.stringify(categoryData)
+      });
+    },
+
+    updateCategoryStatus: (categoryId: string, isActive: boolean): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/categories/${categoryId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive })
+      });
+    },
+
+    deleteCategory: (categoryId: string): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/categories/${categoryId}`, {
+        method: 'DELETE'
+      });
+    }
+  },
+
   // Activity Logs
   logs: {
     getActivityLogs: (page: number = 1, limit: number = 50): Promise<any> => {

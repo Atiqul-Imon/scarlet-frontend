@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   
+  // Development cache control
+  ...(process.env.NODE_ENV === 'development' && {
+    // Disable static optimization in development
+    trailingSlash: false,
+  }),
+  
   // ESLint configuration
   eslint: {
     // Warning: This allows production builds to successfully complete even if
@@ -54,7 +60,7 @@ const nextConfig: NextConfig = {
     CUSTOM_KEY: process.env['CUSTOM_KEY'],
   },
 
-  // Headers for security
+  // Headers for security and cache control
   async headers() {
     return [
       {
@@ -76,6 +82,21 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
+          // Cache control for development
+          ...(process.env.NODE_ENV === 'development' ? [
+            {
+              key: 'Cache-Control',
+              value: 'no-cache, no-store, must-revalidate',
+            },
+            {
+              key: 'Pragma',
+              value: 'no-cache',
+            },
+            {
+              key: 'Expires',
+              value: '0',
+            },
+          ] : []),
         ],
       },
     ];
