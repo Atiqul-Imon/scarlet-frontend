@@ -1,7 +1,9 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import TopBar from './TopBar';
 import { MegaMenu } from './MegaMenu';
+import MobileHeader from './mobile/MobileHeader';
+import MobileNavigation from './mobile/MobileNavigation';
 import type { MegaItem } from './MegaMenu';
 
 // Category data structure based on Beauty Booth website
@@ -225,22 +227,45 @@ const categoryItems: MegaItem[] = [
 ];
 
 export default function Header() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleMobileMenuOpen = () => {
+    setIsMobileMenuOpen(true);
+  };
+
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
-      {/* Sticky Top Bar */}
-      <div className="sticky top-0 z-[9999] bg-white border-b border-gray-200 backdrop-blur-md supports-[backdrop-filter]:bg-white/95 w-full">
-        <TopBar />
-      </div>
+      {/* Mobile Header */}
+      <MobileHeader onMenuOpen={handleMobileMenuOpen} />
       
-      {/* Header with Navigation */}
-      <header className="bg-white border-b border-gray-200">
-        {/* Navigation Menu */}
-        <div className="bg-white border-t border-gray-100">
-          <div className="container-herlan">
-            <MegaMenu items={categoryItems} />
-          </div>
+      {/* Desktop Header */}
+      <div className="hidden lg:block">
+        {/* Sticky Top Bar */}
+        <div className="sticky top-0 z-[9999] bg-white border-b border-gray-200 backdrop-blur-md supports-[backdrop-filter]:bg-white/95 w-full">
+          <TopBar />
         </div>
-      </header>
+        
+        {/* Header with Navigation */}
+        <header className="bg-white border-b border-gray-200">
+          {/* Navigation Menu */}
+          <div className="bg-white border-t border-gray-100">
+            <div className="container-herlan">
+              <MegaMenu items={categoryItems} />
+            </div>
+          </div>
+        </header>
+      </div>
+
+      {/* Mobile Navigation Overlay */}
+      <MobileNavigation
+        isOpen={isMobileMenuOpen}
+        onClose={handleMobileMenuClose}
+        categories={categoryItems}
+      />
     </>
   );
 }

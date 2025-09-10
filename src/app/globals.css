@@ -72,8 +72,8 @@ body {
 
 /* Container utility class with responsive design that adapts to screen size */
 .container-herlan {
-  width: 95%;
-  max-width: 95vw;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   padding-left: var(--container-padding);
   padding-right: var(--container-padding);
@@ -82,8 +82,8 @@ body {
 /* Mobile devices (up to 640px) */
 @media (max-width: 639px) {
   .container-herlan {
-    width: 95%;
-    max-width: 95vw;
+    width: 100%;
+    max-width: 100%;
   }
   :root {
     --container-padding: 1rem;
@@ -93,8 +93,8 @@ body {
 /* Small tablets (640px to 767px) */
 @media (min-width: 640px) and (max-width: 767px) {
   .container-herlan {
-    width: 90%;
-    max-width: 90vw;
+    width: 100%;
+    max-width: 100%;
   }
   :root {
     --container-padding: 1.25rem;
@@ -104,8 +104,8 @@ body {
 /* Tablets (768px to 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .container-herlan {
-    width: 85%;
-    max-width: 85vw;
+    width: 100%;
+    max-width: 100%;
   }
   :root {
     --container-padding: 1.5rem;
@@ -115,8 +115,8 @@ body {
 /* Small desktop (1024px to 1279px) */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .container-herlan {
-    width: 80%;
-    max-width: 80vw;
+    width: 100%;
+    max-width: 1200px;
   }
   :root {
     --container-padding: 2rem;
@@ -126,8 +126,8 @@ body {
 /* Medium desktop (1280px to 1439px) */
 @media (min-width: 1280px) and (max-width: 1439px) {
   .container-herlan {
-    width: 75%;
-    max-width: 75vw;
+    width: 100%;
+    max-width: 1200px;
   }
   :root {
     --container-padding: 2.5rem;
@@ -137,8 +137,8 @@ body {
 /* Large desktop (1440px to 1919px) */
 @media (min-width: 1440px) and (max-width: 1919px) {
   .container-herlan {
-    width: 70%;
-    max-width: 70vw;
+    width: 100%;
+    max-width: 1200px;
   }
   :root {
     --container-padding: 3rem;
@@ -148,11 +148,132 @@ body {
 /* Extra large screens (1920px and up) */
 @media (min-width: 1920px) {
   .container-herlan {
-    width: 65%;
-    max-width: 65vw;
+    width: 100%;
+    max-width: 1200px;
   }
   :root {
     --container-padding: 3.5rem;
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 1023px) {
+  /* Ensure touch targets are at least 44px */
+  button, a, input, select, textarea, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve touch feedback */
+  button:active, a:active, [role="button"]:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+  
+  /* Better mobile scrolling */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* Mobile navigation animations */
+.mobile-menu-enter {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.mobile-menu-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 300ms ease-out, opacity 300ms ease-out;
+}
+
+.mobile-menu-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.mobile-menu-exit-active {
+  transform: translateX(-100%);
+  opacity: 0;
+  transition: transform 300ms ease-in, opacity 300ms ease-in;
+}
+
+/* Responsive utility classes */
+.responsive-text {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-text {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-text {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+}
+
+.responsive-heading {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  .responsive-heading {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-heading {
+    font-size: 2.5rem;
+    line-height: 3rem;
+  }
+}
+
+/* Responsive spacing utilities */
+.responsive-padding {
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-padding {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-padding {
+    padding: 2rem;
+  }
+}
+
+.responsive-margin {
+  margin: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-margin {
+    margin: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-margin {
+    margin: 2rem;
   }
 }
 
