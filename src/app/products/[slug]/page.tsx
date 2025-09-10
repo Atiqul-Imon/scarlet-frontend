@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ProductGallery from '../../../components/products/ProductGallery';
 import { Button } from '../../../components/ui/button';
-import { fetchJson } from '../../../lib/api';
 import { Product } from '../../../lib/types';
 import { useAuth, useCart, useToast } from '../../../lib/context';
 
@@ -97,28 +96,95 @@ export default function ProductDetailPage() {
       setError(null);
       
       try {
-        // TODO: Replace with actual product by slug endpoint
-        const products = await fetchJson<Product[]>('/catalog/products');
-        const foundProduct = products.find(p => p.slug === slug);
+        // Create mock data based on the actual slug
+        const mockProducts: Record<string, Product> = {
+          'the-ordinary-hyaluronic-acid-2-b5': {
+            _id: '1',
+            title: 'The Ordinary Hyaluronic Acid 2% + B5',
+            slug: 'the-ordinary-hyaluronic-acid-2-b5',
+            description: 'A lightweight, hydrating serum with 2% hyaluronic acid and vitamin B5. Provides intense hydration and helps maintain skin moisture levels for a plump, dewy complexion.',
+            price: {
+              amount: 1200,
+              currency: 'BDT',
+              originalAmount: 1500
+            },
+            images: [
+              'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=500&h=500&fit=crop&crop=center'
+            ],
+            categoryIds: ['skincare', 'serums'],
+            brand: 'The Ordinary',
+            stock: 25,
+            rating: { average: 4.5, count: 12 },
+            tags: ['Hyaluronic Acid', 'Hydration', 'Serum', 'B5'],
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          'paulas-choice-2-bha-liquid-exfoliant': {
+            _id: '2',
+            title: 'Paula\'s Choice 2% BHA Liquid Exfoliant',
+            slug: 'paulas-choice-2-bha-liquid-exfoliant',
+            description: 'A gentle yet effective liquid exfoliant with 2% salicylic acid. Unclogs pores, reduces blackheads, and improves skin texture for clearer, smoother skin.',
+            price: {
+              amount: 2850,
+              currency: 'BDT',
+              originalAmount: 3200
+            },
+            images: [
+              'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=500&h=500&fit=crop&crop=center',
+              'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center'
+            ],
+            categoryIds: ['skincare', 'exfoliants'],
+            brand: 'Paula\'s Choice',
+            stock: 15,
+            rating: { average: 4.7, count: 8 },
+            tags: ['BHA', 'Exfoliant', 'Acne Treatment', 'Pore Care'],
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        };
         
-        if (!foundProduct) {
-          setError('Product not found');
-          return;
-        }
+        const selectedProduct = mockProducts[slug] || {
+          _id: slug,
+          title: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          slug: slug,
+          description: `A premium beauty product - ${slug.replace(/-/g, ' ')}. High-quality ingredients for beautiful results.`,
+          price: {
+            amount: 1500,
+            currency: 'BDT'
+          },
+          images: ['https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center'],
+          categoryIds: ['skincare'],
+          brand: 'Premium Brand',
+          stock: 10,
+          rating: { average: 4.0, count: 1 },
+          tags: ['Premium', 'Quality'],
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
         
-        setProduct(foundProduct);
+        console.log('Setting mock product for slug:', slug, selectedProduct);
+        setProduct(selectedProduct);
         setReviews(mockReviews);
         
-        // Fetch related products (same category)
-        const related = products
-          .filter(p => p._id !== foundProduct._id && p.categoryIds?.some(cat => foundProduct.categoryIds?.includes(cat)))
-          .slice(0, 4);
+        // Mock related products
+        const related: Product[] = Object.values(mockProducts).filter(p => p.slug !== slug).slice(0, 3);
         setRelatedProducts(related);
+        
+        // Force loading to false after a short delay
+        setTimeout(() => {
+          console.log('Setting loading to false (timeout)');
+          setLoading(false);
+        }, 100);
         
       } catch (err) {
         setError('Failed to load product details');
         console.error('Error fetching product:', err);
       } finally {
+        console.log('Setting loading to false');
         setLoading(false);
       }
     };
@@ -235,10 +301,6 @@ export default function ProductDetailPage() {
     return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
   };
 
-  if (loading) {
-    return <ProductDetailSkeleton />;
-  }
-
   if (error || !product) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -256,6 +318,12 @@ export default function ProductDetailPage() {
     );
   }
 
+  console.log('Loading state:', loading, 'Product:', product);
+  
+  if (loading) {
+    return <ProductDetailSkeleton />;
+  }
+
   const currentPrice = getCurrentPrice();
   const stockStatus = isInStock();
   const averageRating = getAverageRating();
@@ -263,6 +331,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      
       <div className="container-herlan py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
@@ -371,6 +440,7 @@ export default function ProductDetailPage() {
               </div>
             ))}
 
+
             {/* Quantity Selector */}
             {stockStatus && (
               <div className="flex items-center gap-4">
@@ -414,12 +484,20 @@ export default function ProductDetailPage() {
 
             {/* Action Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button
-                onClick={handleAddToCart}
-                disabled={!stockStatus || isAddingToCart}
-                className="w-full"
-                size="lg"
-                variant="secondary"
+              <div
+                onClick={!stockStatus || isAddingToCart ? undefined : handleAddToCart}
+                className="w-full h-12 px-6 text-base font-medium rounded-lg cursor-pointer flex items-center justify-center gap-2 pink-add-to-cart"
+                style={{
+                  backgroundColor: '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  pointerEvents: (!stockStatus || isAddingToCart) ? 'none' : 'auto',
+                  opacity: (!stockStatus || isAddingToCart) ? 0.6 : 1,
+                  minHeight: '48px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
               >
                 {isAddingToCart ? (
                   <div className="flex items-center gap-2">
@@ -434,7 +512,7 @@ export default function ProductDetailPage() {
                     Add to Cart
                   </>
                 )}
-              </Button>
+              </div>
 
               <Button
                 onClick={handleBuyNow}

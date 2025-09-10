@@ -430,3 +430,19 @@ body {
 .shadow-product:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
+
+/* Custom pink button for product detail page */
+.pink-add-to-cart {
+  background-color: #db2777 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.pink-add-to-cart:hover {
+  background-color: #be185d !important;
+}
+
+.pink-add-to-cart:disabled {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+}
