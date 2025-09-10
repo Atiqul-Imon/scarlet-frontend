@@ -5,11 +5,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   
-  // Development cache control
-  ...(process.env.NODE_ENV === 'development' && {
-    // Disable static optimization in development
-    trailingSlash: false,
-  }),
   
   // ESLint configuration
   eslint: {
@@ -82,21 +77,46 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
-          // Cache control for development
-          ...(process.env.NODE_ENV === 'development' ? [
-            {
-              key: 'Cache-Control',
-              value: 'no-cache, no-store, must-revalidate',
-            },
-            {
-              key: 'Pragma',
-              value: 'no-cache',
-            },
-            {
-              key: 'Expires',
-              value: '0',
-            },
-          ] : []),
+        ],
+      },
+      // Static assets caching (production)
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Images caching
+      {
+        source: '/(.*\\.(?:jpg|jpeg|gif|png|svg|ico|webp))',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=31536000',
+          },
+        ],
+      },
+      // API routes caching
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=600',
+          },
+        ],
+      },
+      // HTML pages caching
+      {
+        source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=86400',
+          },
         ],
       },
     ];

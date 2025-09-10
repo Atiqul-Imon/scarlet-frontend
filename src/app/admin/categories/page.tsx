@@ -195,12 +195,12 @@ export default function AdminCategoriesPage() {
           <h1 className="text-2xl font-bold text-gray-900">Category Management</h1>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex gap-6 sm:gap-8 md:gap-10 lg:gap-12 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="flex-shrink-0">
-                <div className="text-center w-24 sm:w-28 md:w-32">
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gray-200 rounded-full animate-pulse mx-auto mb-3 sm:mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse mx-auto w-3/4"></div>
+                <div className="text-center w-20 sm:w-22 md:w-24">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gray-200 rounded-full animate-pulse mx-auto mb-2 sm:mb-3"></div>
+                  <div className="h-3 bg-gray-200 rounded animate-pulse mx-auto w-3/4"></div>
                 </div>
               </div>
             ))}
@@ -257,7 +257,7 @@ export default function AdminCategoriesPage() {
 
         <div 
           ref={sliderRef}
-          className="flex gap-6 sm:gap-8 md:gap-10 lg:gap-12 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+          className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
@@ -276,16 +276,16 @@ export default function AdminCategoriesPage() {
               key={category._id}
               className="group flex-shrink-0 transform transition-all duration-300 hover:-translate-y-1 hover:scale-105"
             >
-              <div className="text-center w-24 sm:w-28 md:w-32">
+              <div className="text-center w-20 sm:w-22 md:w-24">
                 <div 
-                  className={`w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 transition-colors duration-300 group-hover:shadow-lg cursor-pointer ${
+                  className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 transition-colors duration-300 group-hover:shadow-lg cursor-pointer ${
                     category.isActive 
                       ? 'bg-green-100 hover:bg-green-200' 
                       : 'bg-gray-100 hover:bg-gray-200'
                   }`}
                   onClick={() => updateHomepageVisibility(category._id!)}
                 >
-                  <span className="text-2xl sm:text-3xl md:text-4xl">
+                  <span className="text-lg sm:text-xl md:text-2xl">
                     {getCategoryIcon(category.name)}
                   </span>
                 </div>
