@@ -243,9 +243,9 @@ export default function Header() {
       <MobileHeader onMenuOpen={handleMobileMenuOpen} />
       
       {/* Desktop Header */}
-      <div className="hidden lg:block">
-        {/* Sticky Top Bar */}
-        <div className="sticky top-0 z-[9999] bg-white border-b border-gray-200 backdrop-blur-md supports-[backdrop-filter]:bg-white/95 w-full">
+      <div className="hidden lg:block sticky top-0 z-[9999] bg-white border-b border-gray-200 w-full">
+        {/* Top Bar */}
+        <div className="w-full">
           <TopBar />
         </div>
         
