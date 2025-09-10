@@ -88,11 +88,6 @@ export default function EnhancedProductCard({
                 -{discountPercentage}%
               </span>
             )}
-            {product.isFeatured && (
-              <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                Featured
-              </span>
-            )}
             {isOutOfStock && (
               <span className="bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                 Out of Stock
