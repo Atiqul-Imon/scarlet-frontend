@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "../components/header/Header";
+import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
 import ChatManager from "../components/chat/ChatManager";
 import BottomNavigation from "../components/navigation/BottomNavigation";
@@ -34,11 +35,12 @@ export default function RootLayout({
       >
         <AppProvider>
           <ServiceWorkerProvider>
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col min-h-screen">
               <Header />
               <main className="flex-1 pb-16 lg:pb-0">
                 {children}
               </main>
+              <Footer />
               {/* Mobile Bottom Navigation */}
               <BottomNavigation />
               {/* Chat System */}
