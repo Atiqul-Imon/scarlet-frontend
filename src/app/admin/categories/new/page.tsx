@@ -85,8 +85,7 @@ export default function NewCategoryPage() {
 
     setLoading(true);
     try {
-      // For now, just show success message
-      // TODO: Implement categoryApi.createCategory when backend is ready
+      await categoryApi.createCategory(formData);
       addToast({
         type: 'success',
         title: 'Category created',

@@ -42,30 +42,16 @@ export default function EditCategoryPage() {
 
   const loadCategory = async () => {
     try {
-      // For now, we'll use mock data since we don't have the backend API ready
-      // TODO: Replace with actual API call when backend is ready
-      const mockCategory: Category = {
-        _id: categoryId,
-        name: 'Sample Category',
-        slug: 'sample-category',
-        description: 'This is a sample category description',
-        icon: '🌟',
-        isActive: true,
-        showInHomepage: true,
-        sortOrder: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      setCategory(mockCategory);
+      const categoryData = await categoryApi.getCategoryBySlug(categoryId);
+      setCategory(categoryData);
       setFormData({
-        name: mockCategory.name,
-        slug: mockCategory.slug,
-        description: mockCategory.description || '',
-        icon: mockCategory.icon || '🌟',
-        isActive: mockCategory.isActive !== false,
-        showInHomepage: mockCategory.showInHomepage || false,
-        sortOrder: mockCategory.sortOrder || 0
+        name: categoryData.name,
+        slug: categoryData.slug,
+        description: categoryData.description || '',
+        icon: categoryData.icon || '🌟',
+        isActive: categoryData.isActive !== false,
+        showInHomepage: categoryData.showInHomepage || false,
+        sortOrder: categoryData.sortOrder || 0
       });
     } catch (error) {
       console.error('Failed to load category:', error);
@@ -133,8 +119,7 @@ export default function EditCategoryPage() {
 
     setLoading(true);
     try {
-      // For now, just show success message
-      // TODO: Implement categoryApi.updateCategory when backend is ready
+      await categoryApi.updateCategory(categoryId, formData);
       addToast({
         type: 'success',
         title: 'Category updated',

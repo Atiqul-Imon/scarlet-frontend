@@ -13,6 +13,9 @@ export interface Category extends Partial<BaseEntity> {
   description?: string;
   image?: string;
   isActive?: boolean;
+  showInHomepage?: boolean;
+  sortOrder?: number;
+  icon?: string;
 }
 
 export interface ProductPrice {

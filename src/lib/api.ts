@@ -483,6 +483,35 @@ export const categoryApi = {
     
     return fetchJson<PaginatedResponse<Product>>(path);
   },
+
+  // Create category
+  createCategory: (categoryData: Omit<Category, '_id' | 'createdAt' | 'updatedAt'>): Promise<Category> => {
+    return fetchJsonAuth<Category>('/catalog/categories', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  // Update category
+  updateCategory: (categoryId: string, categoryData: Partial<Category>): Promise<Category> => {
+    return fetchJsonAuth<Category>(`/catalog/categories/${categoryId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  // Delete category
+  deleteCategory: (categoryId: string): Promise<void> => {
+    return fetchJsonAuth<void>(`/catalog/categories/${categoryId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // Cart API functions
