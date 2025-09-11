@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { 
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/context';
 import { categoryApi } from '@/lib/api';
 import type { Category } from '@/lib/types';
