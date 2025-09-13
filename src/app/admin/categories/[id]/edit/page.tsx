@@ -6,7 +6,7 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
-import { categoryApi } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 import type { Category } from '@/lib/types';
 
 const categoryIcons = [
@@ -31,7 +31,7 @@ export default function EditCategoryPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const categoryId = params.id as string;
+  const categoryId = params['id'] as string;
 
   useEffect(() => {
     if (categoryId) {
@@ -41,7 +41,8 @@ export default function EditCategoryPage() {
 
   const loadCategory = async () => {
     try {
-      const categoryData = await categoryApi.getCategoryBySlug(categoryId);
+      setLoading(true);
+      const categoryData = await adminApi.categories.getCategory(categoryId);
       setCategory(categoryData);
       setFormData({
         name: categoryData.name,
@@ -59,6 +60,8 @@ export default function EditCategoryPage() {
         title: 'Failed to load category',
         message: 'Could not load category data. Please try again.'
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,18 +94,18 @@ export default function EditCategoryPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Category name is required';
+    if (!formData['name'].trim()) {
+      newErrors['name'] = 'Category name is required';
     }
 
-    if (!formData.slug.trim()) {
-      newErrors.slug = 'Category slug is required';
-    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
-      newErrors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
+    if (!formData['slug'].trim()) {
+      newErrors['slug'] = 'Category slug is required';
+    } else if (!/^[a-z0-9-]+$/.test(formData['slug'])) {
+      newErrors['slug'] = 'Slug can only contain lowercase letters, numbers, and hyphens';
     }
 
-    if (formData.sortOrder < 0) {
-      newErrors.sortOrder = 'Sort order must be a positive number';
+    if (formData['sortOrder'] < 0) {
+      newErrors['sortOrder'] = 'Sort order must be a positive number';
     }
 
     setErrors(newErrors);
@@ -118,7 +121,7 @@ export default function EditCategoryPage() {
 
     setLoading(true);
     try {
-      await categoryApi.updateCategory(categoryId, formData);
+      await adminApi.categories.updateCategory(categoryId, formData);
       addToast({
         type: 'success',
         title: 'Category updated',
@@ -193,11 +196,11 @@ export default function EditCategoryPage() {
                     value={formData.name}
                     onChange={handleNameChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
+                      errors['name'] ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Enter category name"
                   />
-                  {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                  {errors['name'] && <p className="text-red-500 text-sm">{errors['name']}</p>}
                 </div>
 
                 {/* Category Slug */}
@@ -211,11 +214,11 @@ export default function EditCategoryPage() {
                     value={formData.slug}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
-                      errors.slug ? 'border-red-500' : 'border-gray-300'
+                      errors['slug'] ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="category-slug"
                   />
-                  {errors.slug && <p className="text-red-500 text-sm">{errors.slug}</p>}
+                  {errors['slug'] && <p className="text-red-500 text-sm">{errors['slug']}</p>}
                 </div>
               </div>
 
@@ -284,10 +287,10 @@ export default function EditCategoryPage() {
                     onChange={handleInputChange}
                     min="0"
                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 ${
-                      errors.sortOrder ? 'border-red-500' : 'border-gray-300'
+                      errors['sortOrder'] ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
-                  {errors.sortOrder && <p className="text-red-500 text-sm">{errors.sortOrder}</p>}
+                  {errors['sortOrder'] && <p className="text-red-500 text-sm">{errors['sortOrder']}</p>}
                 </div>
 
                 {/* Active Status */}
