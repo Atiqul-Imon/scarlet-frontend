@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useAuth, useCart } from '@/lib/context';
@@ -85,7 +86,14 @@ export default function TopBar() {
             {/* Logo */}
             <Link href="/" className="block select-none">
               <div className="flex items-center">
-                <span className="text-2xl md:text-3xl font-bold text-pink-600 tracking-tight leading-none">Scarlet</span>
+                <Image
+                  src="/logo/scarletlogo.png"
+                  alt="Scarlet"
+                  width={150}
+                  height={50}
+                  className="h-10 md:h-12 w-auto object-contain"
+                  priority
+                />
               </div>
             </Link>
 

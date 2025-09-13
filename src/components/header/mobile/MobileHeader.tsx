@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth, useCart } from '@/lib/context';
 import MobileMenuButton from './MobileMenuButton';
@@ -73,7 +74,14 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
 
         {/* Center: Logo */}
         <Link href="/" className="flex-1 flex justify-center">
-          <span className="text-xl font-bold text-pink-600 tracking-tight">Scarlet</span>
+          <Image
+            src="/logo/scarletlogo.png"
+            alt="Scarlet"
+            width={120}
+            height={40}
+            className="h-8 w-auto object-contain"
+            priority
+          />
         </Link>
 
         {/* Right: Actions */}

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   HeartIcon, 
   EnvelopeIcon, 
@@ -28,7 +29,16 @@ export default function Footer() {
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-pink-400 mb-4">Scarlet</h3>
+              <div className="mb-4">
+                <Image
+                  src="/logo/scarletlogo.png"
+                  alt="Scarlet"
+                  width={120}
+                  height={40}
+                  className="h-8 w-auto object-contain"
+                  priority
+                />
+              </div>
               <p className="text-gray-300 leading-relaxed mb-6">
                 Discover the finest collection of beauty and skincare products. 
                 From K-beauty essentials to premium international brands, 

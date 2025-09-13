@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth, useCart } from '@/lib/context';
 import type { MegaItem } from '../MegaMenu';
@@ -69,7 +70,14 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xl font-bold text-pink-600">Scarlet</span>
+            <Image
+              src="/logo/scarletlogo.png"
+              alt="Scarlet"
+              width={100}
+              height={32}
+              className="h-6 w-auto object-contain"
+              priority
+            />
             {user && (
               <span className="text-sm text-gray-600">
                 Hi, {user.firstName || user.email}
