@@ -545,8 +545,8 @@ export const cartApi = {
   },
 
   // Clear entire cart
-  clearCart: (): Promise<{ success: boolean }> => {
-    return fetchJsonAuth<{ success: boolean }>('/cart', {
+  clearCart: (): Promise<Cart> => {
+    return fetchJsonAuth<Cart>('/cart', {
       method: 'DELETE',
     });
   },
@@ -578,6 +578,16 @@ export const cartApi = {
 
   removeGuestItem: (sessionId: string, productId: string): Promise<Cart> => {
     return fetchJson<Cart>(`/cart/guest/items/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-Session-ID': sessionId,
+      },
+    });
+  },
+
+  // Clear guest cart
+  clearGuestCart: (sessionId: string): Promise<Cart> => {
+    return fetchJson<Cart>('/cart/guest', {
       method: 'DELETE',
       headers: {
         'X-Session-ID': sessionId,

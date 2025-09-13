@@ -164,7 +164,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       apiUtils.clearTokens();
       
-      const appError = apiUtils.handleApiError(error);
       addToast({
         type: 'warning',
         title: 'Logout completed',
@@ -367,37 +366,46 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   React.useEffect(() => {
     console.log('Cart provider effect triggered, isAuthenticated:', isAuthenticated, 'sessionId:', sessionId);
     
-    if (isAuthenticated) {
-      // For authenticated users, load from backend
-      const loadUserCart = async () => {
-        try {
+    const loadCart = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        if (isAuthenticated) {
+          // For authenticated users, load from backend
           const userCart = await cartApi.getCart();
+          console.log('Loaded user cart from backend:', userCart);
           setCart(userCart);
-        } catch (error) {
-          console.error('Failed to load user cart:', error);
-          // Fallback to empty cart
-          setCart({ _id: 'empty', userId: user?._id || '', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        } else {
+          // For guest users, try to load from backend first, then fallback to localStorage
+          try {
+            const guestCart = await cartApi.getGuestCart(sessionId);
+            console.log('Loaded guest cart from backend:', guestCart);
+            setCart(guestCart);
+            // Also update localStorage for offline support
+            saveGuestCart(guestCart);
+          } catch (error) {
+            console.error('Failed to load guest cart from backend:', error);
+            // Fallback to localStorage
+            const localGuestCart = getGuestCart();
+            console.log('Initialized guest cart from localStorage:', localGuestCart);
+            setCart(localGuestCart);
+          }
         }
-      };
-      loadUserCart();
-    } else {
-      // For guest users, try to load from backend first, then fallback to localStorage
-      const loadGuestCart = async () => {
-        try {
-          const guestCart = await cartApi.getGuestCart(sessionId);
-          setCart(guestCart);
-          // Also update localStorage for offline support
-          saveGuestCart(guestCart);
-        } catch (error) {
-          console.error('Failed to load guest cart from backend:', error);
-          // Fallback to localStorage
-          const localGuestCart = getGuestCart();
-          console.log('Initialized guest cart from localStorage:', localGuestCart);
-          setCart(localGuestCart);
-        }
-      };
-      loadGuestCart();
-    }
+      } catch (error) {
+        console.error('Failed to load cart:', error);
+        setError(apiUtils.handleApiError(error));
+        // Set empty cart as fallback
+        const emptyCart = isAuthenticated 
+          ? { _id: 'empty', userId: user?._id || '', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+          : getGuestCart();
+        setCart(emptyCart);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadCart();
   }, [isAuthenticated, sessionId, user]);
 
 
@@ -416,7 +424,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isAuthenticated]);
 
   const itemCount = React.useMemo(() => {
-    return cart?.items.reduce((total, item) => total + item.quantity, 0) || 0;
+    if (!cart || !cart.items || !Array.isArray(cart.items)) {
+      return 0;
+    }
+    return cart.items.reduce((total, item) => {
+      if (!item || typeof item.quantity !== 'number' || item.quantity < 0) {
+        return total;
+      }
+      return total + item.quantity;
+    }, 0);
   }, [cart]);
 
   const totalPrice = React.useMemo(() => {
@@ -486,11 +502,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cart, sessionId, user]);
 
   const addItem = React.useCallback(async (productId: string, quantity: number = 1): Promise<void> => {
+    console.log('Adding item to cart:', { productId, quantity, isAuthenticated });
+    
     if (!isAuthenticated) {
       // Handle guest cart - sync with backend
       try {
         // Add item to backend guest cart
         const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity);
+        console.log('Guest cart updated from backend:', updatedCart);
         setCart(updatedCart);
         
         // Also update localStorage for offline support
@@ -520,6 +539,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           guestCart!.updatedAt = new Date().toISOString();
           saveGuestCart(guestCart!);
           setCart(guestCart!);
+          console.log('Guest cart updated in localStorage:', guestCart);
           
           addToast({
             type: 'success',
@@ -542,8 +562,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       () => cartApi.addItem(productId, quantity),
       'Item added to cart'
     );
-    if (updatedCart) setCart(updatedCart);
-  }, [isAuthenticated, executeCartOperation, addToast]);
+    if (updatedCart) {
+      console.log('User cart updated from backend:', updatedCart);
+      setCart(updatedCart);
+    }
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
 
   const updateItem = React.useCallback(async (productId: string, quantity: number): Promise<void> => {
     if (!isAuthenticated) {
@@ -666,18 +689,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = React.useCallback(async (): Promise<void> => {
     if (!isAuthenticated) {
-      // Handle guest cart with localStorage
+      // Handle guest cart - sync with backend first, then clear localStorage
       try {
+        // Clear guest cart on backend
+        const updatedCart = await cartApi.clearGuestCart(sessionId);
+        setCart(updatedCart);
+        
+        // Also clear localStorage for offline support
         clearGuestCart();
-        // Create a fresh empty cart instead of getting from localStorage
-        const emptyCart = {
-          _id: 'guest',
-          userId: 'guest',
-          items: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        setCart(emptyCart);
         
         addToast({
           type: 'success',
@@ -685,21 +704,44 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           message: 'All items removed from cart!'
         });
       } catch (error) {
-        addToast({
-          type: 'error',
-          title: 'Error',
-          message: 'Failed to clear cart'
-        });
+        console.error('Error clearing guest cart:', error);
+        
+        // Fallback to localStorage if backend fails
+        try {
+          clearGuestCart();
+          // Create a fresh empty cart instead of getting from localStorage
+          const emptyCart = {
+            _id: 'guest',
+            userId: 'guest',
+            items: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          setCart(emptyCart);
+          
+          addToast({
+            type: 'success',
+            title: 'Cart Cleared',
+            message: 'All items removed from cart (offline mode)!'
+          });
+        } catch (fallbackError) {
+          console.error('Error in fallback guest cart clear:', fallbackError);
+          addToast({
+            type: 'error',
+            title: 'Error',
+            message: 'Failed to clear cart'
+          });
+        }
       }
       return;
     }
 
-    await executeCartOperation(
+    const updatedCart = await executeCartOperation(
       () => cartApi.clearCart(),
       'Cart cleared'
     );
-    setCart(null);
-  }, [isAuthenticated, executeCartOperation, addToast]);
+    if (updatedCart) setCart(updatedCart);
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
 
   const refreshCart = React.useCallback(async (): Promise<void> => {
     console.log('refreshCart called, isAuthenticated:', isAuthenticated);
