@@ -334,27 +334,29 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="container-herlan py-8">
         {/* Page Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
-            <p className="text-gray-600">
-              {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
-            </p>
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Shopping Cart</h1>
+            {enrichedItems.length > 0 && (
+              <Button 
+                variant="ghost" 
+                onClick={handleClearCart}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 text-sm sm:text-base"
+                size="sm"
+              >
+                Clear Cart
+              </Button>
+            )}
           </div>
-          {enrichedItems.length > 0 && (
-            <Button 
-              variant="ghost" 
-              onClick={handleClearCart}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              Clear Cart
-            </Button>
-          )}
+          <p className="text-sm sm:text-base text-gray-600">
+            {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+        {/* Mobile-first responsive layout */}
+        <div className="space-y-6">
+          {/* Cart Items - Full width on mobile, 2/3 on desktop */}
+          <div className="space-y-4">
             {enrichedItems.map((item) => (
               <CartItem
                 key={item.productId}
@@ -365,8 +367,8 @@ export default function CartPage() {
               />
             ))}
 
-            {/* Recommended Products */}
-            <div className="mt-12">
+            {/* Recommended Products - Hidden on mobile to save space */}
+            <div className="hidden md:block mt-12">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">You might also like</h3>
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <p className="text-gray-600 text-center">
@@ -376,8 +378,8 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Cart Summary */}
-          <div className="lg:col-span-1">
+          {/* Cart Summary - Sticky on mobile, sidebar on desktop */}
+          <div className="lg:fixed lg:top-24 lg:right-8 lg:w-80 lg:z-10">
             <CartSummary
               subtotal={subtotal}
               shipping={shipping}
@@ -394,8 +396,8 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* Trust Indicators */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Trust Indicators - Hidden on mobile to save space */}
+        <div className="hidden md:block mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
             <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
               <ShippingIcon />

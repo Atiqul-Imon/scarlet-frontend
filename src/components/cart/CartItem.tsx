@@ -70,8 +70,136 @@ export default function CartItem({
   const isLowStock = item.stock !== undefined && item.stock > 0 && item.stock <= 5;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 transition-all duration-200 hover:shadow-md">
-      <div className="flex gap-4">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 transition-all duration-200 hover:shadow-md">
+      {/* Mobile Layout */}
+      <div className="block sm:hidden">
+        {/* Header with image and remove button */}
+        <div className="flex gap-3 mb-3">
+          <Link href={`/products/${item.slug}`}>
+            <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+              {item.image ? (
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-200"
+                  sizes="80px"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <ImagePlaceholder />
+                </div>
+              )}
+            </div>
+          </Link>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start">
+              <div className="flex-1 min-w-0 pr-2">
+                <Link 
+                  href={`/products/${item.slug}`}
+                  className="block hover:text-pink-600 transition-colors"
+                >
+                  <h3 className="text-base font-medium text-gray-900 line-clamp-2 leading-tight">
+                    {item.title}
+                  </h3>
+                </Link>
+                {item.brand && (
+                  <p className="text-xs text-gray-500 mt-1">{item.brand}</p>
+                )}
+              </div>
+              
+              {/* Remove Button */}
+              <button
+                onClick={handleRemove}
+                disabled={isRemoving}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1 flex-shrink-0"
+                aria-label="Remove item"
+              >
+                {isRemoving ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <TrashIcon />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stock Status */}
+        {(isOutOfStock || isLowStock) && (
+          <div className="mb-3">
+            {isOutOfStock ? (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                Out of Stock
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                Only {item.stock} left
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Price and Quantity - Stacked on mobile */}
+        <div className="space-y-3">
+          {/* Price */}
+          <div className="text-center">
+            <div className="text-lg font-semibold text-gray-900">
+              {formatPrice(item.price.amount * quantity, item.price.currency)}
+            </div>
+            <div className="text-sm text-gray-500">
+              {formatPrice(item.price.amount, item.price.currency)} each
+            </div>
+          </div>
+
+          {/* Quantity Controls */}
+          <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center border border-gray-300 rounded-lg">
+              <button
+                onClick={() => handleQuantityChange(quantity - 1)}
+                disabled={quantity <= 1 || isUpdating || isOutOfStock}
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Decrease quantity"
+              >
+                <MinusIcon />
+              </button>
+              
+              <input
+                type="number"
+                min="1"
+                max="99"
+                value={quantity}
+                onChange={(e) => {
+                  const newQty = parseInt(e.target.value) || 1;
+                  handleQuantityChange(newQty);
+                }}
+                disabled={isUpdating || isOutOfStock}
+                className="w-12 text-center border-0 focus:ring-0 text-sm font-medium disabled:opacity-50"
+              />
+              
+              <button
+                onClick={() => handleQuantityChange(quantity + 1)}
+                disabled={quantity >= 99 || isUpdating || isOutOfStock || (item.stock && quantity >= item.stock)}
+                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Increase quantity"
+              >
+                <PlusIcon />
+              </button>
+            </div>
+
+            {isUpdating && (
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <LoadingSpinner size="sm" />
+                <span>Updating...</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden sm:flex gap-4">
         {/* Product Image */}
         <div className="flex-shrink-0">
           <Link href={`/products/${item.slug}`}>

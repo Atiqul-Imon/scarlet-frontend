@@ -44,44 +44,44 @@ export default function CartSummary({
   const amountForFreeShipping = freeShippingThreshold - subtotal;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 sticky top-24">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 sticky top-4 sm:top-24">
+      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Order Summary</h2>
       
       {/* Order Details */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">
             Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
           </span>
-          <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
+          <span className="font-medium text-gray-900 text-right">{formatPrice(subtotal)}</span>
         </div>
         
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Shipping</span>
-          <span className="font-medium text-gray-900">
+          <span className="font-medium text-gray-900 text-right">
             {shipping === 0 ? 'Free' : formatPrice(shipping)}
           </span>
         </div>
         
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Tax</span>
-          <span className="font-medium text-gray-900">{formatPrice(tax)}</span>
+          <span className="font-medium text-gray-900 text-right">{formatPrice(tax)}</span>
         </div>
         
-        <div className="border-t pt-4">
+        <div className="border-t pt-3 sm:pt-4">
           <div className="flex justify-between">
-            <span className="text-lg font-semibold text-gray-900">Total</span>
-            <span className="text-lg font-semibold text-gray-900">{formatPrice(total)}</span>
+            <span className="text-base sm:text-lg font-semibold text-gray-900">Total</span>
+            <span className="text-base sm:text-lg font-semibold text-gray-900 text-right">{formatPrice(total)}</span>
           </div>
         </div>
       </div>
 
       {/* Free Shipping Banner */}
       {!isEligibleForFreeShipping && amountForFreeShipping > 0 && (
-        <div className="bg-pink-50 border border-pink-200 rounded-lg p-4 mb-6">
+        <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-2 mb-2">
             <ShippingIcon />
-            <span className="text-sm font-medium text-pink-800">
+            <span className="text-xs sm:text-sm font-medium text-pink-800">
               Add {formatPrice(amountForFreeShipping)} more for free shipping!
             </span>
           </div>
@@ -95,10 +95,10 @@ export default function CartSummary({
       )}
 
       {isEligibleForFreeShipping && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-2">
             <CheckIcon />
-            <span className="text-sm font-medium text-green-800">
+            <span className="text-xs sm:text-sm font-medium text-green-800">
               You qualify for free shipping!
             </span>
           </div>
@@ -109,25 +109,30 @@ export default function CartSummary({
       <Button
         onClick={onCheckout}
         disabled={isLoading || itemCount === 0}
-        className="w-full mb-4"
+        className="w-full mb-3 sm:mb-4"
         size="lg"
       >
         {isLoading ? (
           <div className="flex items-center gap-2">
             <LoadingSpinner />
-            Processing...
+            <span className="hidden sm:inline">Processing...</span>
+            <span className="sm:hidden">...</span>
           </div>
         ) : (
-          'Proceed to Checkout'
+          <>
+            <span className="hidden sm:inline">Proceed to Checkout</span>
+            <span className="sm:hidden">Checkout</span>
+          </>
         )}
       </Button>
       
       {/* Guest checkout info */}
       {needsAuth && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800 text-center">
+        <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-xs sm:text-sm text-blue-800 text-center">
             <strong>Guest Checkout Available!</strong><br />
-            You can complete your purchase without creating an account.
+            <span className="hidden sm:inline">You can complete your purchase without creating an account.</span>
+            <span className="sm:hidden">No account needed!</span>
           </p>
         </div>
       )}
@@ -135,13 +140,13 @@ export default function CartSummary({
       {/* Continue Shopping */}
       <Link 
         href="/products"
-        className="block text-center text-sm text-pink-600 hover:text-pink-700 font-medium transition-colors"
+        className="block text-center text-xs sm:text-sm text-pink-600 hover:text-pink-700 font-medium transition-colors"
       >
         Continue Shopping
       </Link>
 
-      {/* Security & Trust Badges */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      {/* Security & Trust Badges - Hidden on mobile to save space */}
+      <div className="hidden sm:block mt-6 pt-6 border-t border-gray-200">
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <SecurityIcon />
@@ -158,23 +163,23 @@ export default function CartSummary({
         </div>
       </div>
 
-      {/* Payment Methods */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <p className="text-sm text-gray-600 mb-3">We accept</p>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-xs font-bold">
+      {/* Payment Methods - Compact on mobile */}
+      <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+        <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">We accept</p>
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-pink-100 text-pink-700 rounded text-xs font-bold">
             bKash
           </div>
-          <div className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold">
+          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold">
             Nagad
           </div>
-          <div className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">
+          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">
             Rocket
           </div>
-          <div className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
+          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
             Card
           </div>
-          <div className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
+          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-700 rounded text-xs font-bold">
             COD
           </div>
         </div>
