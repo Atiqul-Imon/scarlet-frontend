@@ -192,6 +192,7 @@ const getMobileFetchConfig = (init?: RequestInit): RequestInit => {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
       'Pragma': 'no-cache',
+      // Mobile-specific headers (now allowed by backend CORS)
       ...(isMobile && {
         'X-Mobile-Request': 'true',
         'X-Requested-With': 'XMLHttpRequest',
