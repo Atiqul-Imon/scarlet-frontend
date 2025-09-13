@@ -182,6 +182,31 @@ export const API_CONFIG = {
   retryDelay: 1000, // 1 second between retries
 };
 
+// Mobile-specific fetch configuration
+const getMobileFetchConfig = (init?: RequestInit): RequestInit => {
+  const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  return {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+      ...(isMobile && {
+        'X-Mobile-Request': 'true',
+        'X-Requested-With': 'XMLHttpRequest',
+      }),
+      ...init?.headers,
+    },
+    // Mobile-specific fetch options
+    ...(isMobile && {
+      mode: 'cors',
+      credentials: 'include',
+      keepalive: true,
+    }),
+  };
+};
+
 // Mobile connection test function
 export async function testMobileConnection(): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
@@ -227,14 +252,10 @@ export async function fetchJson<T = any>(
   init?: RequestInit
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
-  const config: RequestInit = {
+  const config: RequestInit = getMobileFetchConfig({
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...init?.headers,
-    },
     cache: 'no-store',
-  };
+  });
 
   try {
     console.log(`🌐 API Call: ${config.method || 'GET'} ${url}`);

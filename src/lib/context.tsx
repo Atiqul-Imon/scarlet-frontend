@@ -266,18 +266,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 const GUEST_CART_KEY = 'scarlet_guest_cart';
 const SESSION_ID_KEY = 'scarlet_session_id';
 
-// Generate or get session ID
+// Generate or get session ID with mobile-specific handling
 const getSessionId = (): string => {
   if (typeof window === 'undefined') {
     return 'server-session';
   }
   
-  let sessionId = localStorage.getItem(SESSION_ID_KEY);
-  if (!sessionId) {
-    sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem(SESSION_ID_KEY, sessionId);
+  try {
+    let sessionId = localStorage.getItem(SESSION_ID_KEY);
+    if (!sessionId) {
+      // Generate a more robust session ID for mobile devices
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substr(2, 9);
+      const userAgent = navigator.userAgent.substring(0, 10);
+      sessionId = `guest_${timestamp}_${random}_${userAgent.replace(/[^a-zA-Z0-9]/g, '')}`;
+      
+      try {
+        localStorage.setItem(SESSION_ID_KEY, sessionId);
+        console.log('Generated new session ID for mobile:', sessionId);
+      } catch (storageError) {
+        console.warn('Failed to store session ID in localStorage:', storageError);
+        // Fallback to memory-only session ID
+        sessionId = `memory_${timestamp}_${random}`;
+      }
+    }
+    return sessionId;
+  } catch (error) {
+    console.error('Error generating session ID:', error);
+    // Fallback session ID
+    return `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   }
-  return sessionId;
 };
 
 const getGuestCart = (): Cart => {
@@ -285,38 +303,71 @@ const getGuestCart = (): Cart => {
     return { _id: 'guest', userId: 'guest', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   }
   
-  console.log('Getting guest cart from localStorage...');
-  const stored = localStorage.getItem(GUEST_CART_KEY);
-  console.log('Stored cart data:', stored);
-  
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      console.log('Parsed cart data:', parsed);
-      return parsed;
-    } catch (error) {
-      console.error('Failed to parse guest cart:', error);
-      // Clear corrupted cart data
-      localStorage.removeItem(GUEST_CART_KEY);
+  try {
+    console.log('Getting guest cart from localStorage...');
+    const stored = localStorage.getItem(GUEST_CART_KEY);
+    console.log('Stored cart data:', stored);
+    
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        console.log('Parsed cart data:', parsed);
+        
+        // Validate cart structure
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) {
+          return parsed;
+        } else {
+          console.warn('Invalid cart structure, creating new cart');
+          localStorage.removeItem(GUEST_CART_KEY);
+        }
+      } catch (error) {
+        console.error('Failed to parse guest cart:', error);
+        // Clear corrupted cart data
+        localStorage.removeItem(GUEST_CART_KEY);
+      }
     }
+    
+    console.log('No stored cart found, creating new guest cart');
+    const newCart = {
+      _id: 'guest',
+      userId: 'guest',
+      items: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    return newCart;
+  } catch (error) {
+    console.error('Error accessing localStorage for guest cart:', error);
+    // Return empty cart as fallback
+    return {
+      _id: 'guest',
+      userId: 'guest',
+      items: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
   }
-  
-  console.log('No stored cart found, creating new guest cart');
-  const newCart = {
-    _id: 'guest',
-    userId: 'guest',
-    items: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-  return newCart;
 };
 
 const saveGuestCart = (cart: Cart): void => {
   if (typeof window !== 'undefined') {
-    console.log('Saving guest cart to localStorage:', cart);
-    localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
-    console.log('Cart saved successfully');
+    try {
+      console.log('Saving guest cart to localStorage:', cart);
+      localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+      console.log('Cart saved successfully');
+    } catch (error) {
+      console.error('Failed to save guest cart to localStorage:', error);
+      // Try to clear some space by removing old data
+      try {
+        localStorage.removeItem('old_cart_data');
+        localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+        console.log('Cart saved after clearing space');
+      } catch (retryError) {
+        console.error('Failed to save cart even after clearing space:', retryError);
+        // Store in memory as last resort (will be lost on page refresh)
+        (window as any).__scarlet_guest_cart_memory = cart;
+      }
+    }
   }
 };
 
@@ -502,10 +553,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cart, sessionId, user]);
 
   const addItem = React.useCallback(async (productId: string, quantity: number = 1): Promise<void> => {
-    console.log('Adding item to cart:', { productId, quantity, isAuthenticated });
+    console.log('Adding item to cart:', { productId, quantity, isAuthenticated, sessionId });
+    
+    // Validate inputs
+    if (!productId || quantity < 1) {
+      console.error('Invalid product ID or quantity');
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Invalid product or quantity'
+      });
+      return;
+    }
     
     if (!isAuthenticated) {
-      // Handle guest cart - sync with backend
+      // Handle guest cart - sync with backend first, then localStorage
+      console.log('Adding to guest cart, sessionId:', sessionId);
+      
       try {
         // Add item to backend guest cart
         const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity);
@@ -558,13 +622,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const updatedCart = await executeCartOperation(
-      () => cartApi.addItem(productId, quantity),
-      'Item added to cart'
-    );
-    if (updatedCart) {
-      console.log('User cart updated from backend:', updatedCart);
-      setCart(updatedCart);
+    // Handle authenticated user cart
+    try {
+      const updatedCart = await executeCartOperation(
+        () => cartApi.addItem(productId, quantity),
+        'Item added to cart'
+      );
+      if (updatedCart) {
+        console.log('User cart updated from backend:', updatedCart);
+        setCart(updatedCart);
+      }
+    } catch (error) {
+      console.error('Error adding item to user cart:', error);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to add item to cart'
+      });
     }
   }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
 

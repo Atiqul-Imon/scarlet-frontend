@@ -7,6 +7,7 @@ import { AppProvider } from "../lib/context";
 import ChatManager from "../components/chat/ChatManager";
 import BottomNavigation from "../components/navigation/BottomNavigation";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
+import MobileCartDebug from "../components/debug/MobileCartDebug";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,8 @@ export default function RootLayout({
               <BottomNavigation />
               {/* Chat System */}
               <ChatManager />
+              {/* Mobile Cart Debug (Development Only) */}
+              <MobileCartDebug />
             </div>
           </ServiceWorkerProvider>
         </AppProvider>
