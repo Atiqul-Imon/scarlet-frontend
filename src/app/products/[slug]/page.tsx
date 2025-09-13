@@ -542,30 +542,6 @@ export default function ProductDetailPage() {
               </button>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-4 rounded-lg space-y-3">
-              <div className="flex items-center gap-3">
-                <TruckIcon />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Free Delivery</p>
-                  <p className="text-xs text-gray-600">On orders above ৳500 in Dhaka</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <ShieldIcon />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">100% Authentic</p>
-                  <p className="text-xs text-gray-600">Original products guaranteed</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <ReturnIcon />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Easy Returns</p>
-                  <p className="text-xs text-gray-600">7-day return policy</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -815,34 +791,6 @@ function ShareIcon() {
   );
 }
 
-function TruckIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
-      <path d="M1 3h15v13H1z"/>
-      <path d="M16 8h4v8h-4"/>
-      <circle cx="5.5" cy="18.5" r="2.5"/>
-      <circle cx="18.5" cy="18.5" r="2.5"/>
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      <path d="M9 12l2 2 4-4"/>
-    </svg>
-  );
-}
-
-function ReturnIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600">
-      <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"/>
-      <path d="M8 21l4-4 4 4"/>
-    </svg>
-  );
-}
 
 function LoadingSpinner() {
   return (
