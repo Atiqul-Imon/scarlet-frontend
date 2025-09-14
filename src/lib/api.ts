@@ -174,36 +174,33 @@ export const API_BASE = process.env['NEXT_PUBLIC_API_URL']
   ? `${process.env['NEXT_PUBLIC_API_URL']}/api`
   : process.env['NEXT_PUBLIC_API_BASE'] || 'http://localhost:4000/api';
 
-// Mobile-friendly API configuration
+// Unified API configuration - works for all devices
 export const API_CONFIG = {
   baseURL: API_BASE,
-  timeout: 30000, // 30 seconds for mobile networks
+  timeout: 30000, // 30 seconds - sufficient for all networks
   retries: 3,
   retryDelay: 1000, // 1 second between retries
+  // Connection quality detection
+  connectionQuality: 'auto' as 'auto' | 'fast' | 'slow',
 };
 
-// Mobile-specific fetch configuration
-const getMobileFetchConfig = (init?: RequestInit): RequestInit => {
-  const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
+// Unified fetch configuration - no device-specific logic
+const getUnifiedFetchConfig = (init?: RequestInit): RequestInit => {
   return {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      // Remove cache control headers - let backend handle it
-      // Mobile-specific headers (now allowed by backend CORS)
-      ...(isMobile && {
-        'X-Mobile-Request': 'true',
-        'X-Requested-With': 'XMLHttpRequest',
-      }),
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      // Always include these for better compatibility
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
       ...init?.headers,
     },
-    // Mobile-specific fetch options
-    ...(isMobile && {
-      mode: 'cors',
-      credentials: 'include',
-      keepalive: true,
-    }),
+    // Universal fetch options that work well on all devices
+    mode: 'cors',
+    credentials: 'include',
+    keepalive: true,
   };
 };
 
@@ -256,7 +253,7 @@ export async function fetchJson<T = any>(
   // Determine if this is dynamic content that should never be cached
   const isDynamicContent = /^\/(cart|orders|auth|users|checkout|wishlist|payments|addresses|cart-abandonment)/.test(path);
   
-  const config: RequestInit = getMobileFetchConfig({
+  const config: RequestInit = getUnifiedFetchConfig({
     ...init,
     // Only set no-store for dynamic content, let backend handle others
     ...(isDynamicContent && { cache: 'no-store' }),
