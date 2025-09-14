@@ -53,6 +53,7 @@ export default function CheckoutPage() {
   
   // Check for verified guest phone from URL params or session
   const [verifiedGuestPhone, setVerifiedGuestPhone] = React.useState<string | null>(null);
+  const [orderPlaced, setOrderPlaced] = React.useState(false);
   
   const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -143,8 +144,12 @@ export default function CheckoutPage() {
         console.log('Cart data:', cart);
         
         if (!cart?.items || cart.items.length === 0) {
-          console.log('No cart items found, redirecting to cart');
-          router.push('/cart');
+          console.log('No cart items found');
+          // Don't redirect to cart if an order was just placed
+          if (!orderPlaced) {
+            console.log('Redirecting to cart');
+            router.push('/cart');
+          }
           return;
         }
 
@@ -284,6 +289,9 @@ export default function CheckoutPage() {
         title: 'Order Placed Successfully!',
         message: `Order #${order.orderNumber} has been placed. You will receive a confirmation email shortly.`
       });
+      
+      // Set order placed flag before clearing cart
+      setOrderPlaced(true);
       
       // Clear the cart first, then redirect
       try {
@@ -444,6 +452,8 @@ export default function CheckoutPage() {
                       error={errors.phone}
                       placeholder="01XXXXXXXXX"
                       required
+                      readOnly={!user && verifiedGuestPhone ? true : false}
+                      className={!user && verifiedGuestPhone ? "bg-gray-50 cursor-not-allowed" : ""}
                     />
                   </div>
 
