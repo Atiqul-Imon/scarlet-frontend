@@ -227,39 +227,85 @@ function ProductsPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container-herlan py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="container-herlan py-4 sm:py-6 lg:py-8">
+        {/* Mobile-First Page Header */}
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          {/* Breadcrumbs for category pages */}
+          {filters.category && (
+            <nav className="mb-3 sm:mb-4">
+              <ol className="flex items-center space-x-2 text-sm text-gray-500">
+                <li>
+                  <Link href="/" className="hover:text-pink-600 transition-colors">
+                    Home
+                  </Link>
+                </li>
+                <li className="flex items-center">
+                  <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <Link href="/products" className="hover:text-pink-600 transition-colors">
+                    Products
+                  </Link>
+                </li>
+                <li className="flex items-center">
+                  <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-gray-900 font-medium">
+                    {categories.find(cat => cat.slug === filters.category)?.name || 'Category'}
+                  </span>
+                </li>
+              </ol>
+            </nav>
+          )}
+
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
             {filters.category ? 
               categories.find(cat => cat.slug === filters.category)?.name || 'Products' 
               : 'All Products'
             }
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Discover our carefully curated collection of premium beauty and skincare products
           </p>
         </div>
 
-        <div className="flex gap-8">
-          {/* Filters Sidebar */}
-          <ProductFilters
-            categories={categoryOptions}
-            brands={brands}
-            priceRanges={priceRanges}
-            selectedFilters={filters}
-            onFilterChange={handleFilterChange}
-            onClearFilters={handleClearFilters}
-          />
+        {/* Mobile-First Layout */}
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+          {/* Filters Sidebar - Hidden on mobile, shown on desktop */}
+          <div className="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0">
+            <ProductFilters
+              categories={categoryOptions}
+              brands={brands}
+              priceRanges={priceRanges}
+              selectedFilters={filters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={handleClearFilters}
+            />
+          </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            {/* Sort and Results */}
-            <ProductSort
-              currentSort={sortBy}
-              onSortChange={setSortBy}
-              totalResults={filteredAndSortedProducts.length}
-            />
+          <div className="flex-1 min-w-0">
+            {/* Mobile Sort and Results - Sticky on mobile */}
+            <div className="sticky top-0 bg-gray-50 z-10 pb-4 mb-4 lg:pb-0 lg:mb-6">
+              <ProductSort
+                currentSort={sortBy}
+                onSortChange={setSortBy}
+                totalResults={filteredAndSortedProducts.length}
+              />
+            </div>
+
+            {/* Mobile Filters - Show on mobile */}
+            <div className="lg:hidden mb-6">
+              <ProductFilters
+                categories={categoryOptions}
+                brands={brands}
+                priceRanges={priceRanges}
+                selectedFilters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+              />
+            </div>
 
             {/* Products Grid */}
             <ProductGrid

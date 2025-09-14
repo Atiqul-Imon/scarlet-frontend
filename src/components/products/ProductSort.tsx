@@ -33,7 +33,7 @@ export default function ProductSort({
   const currentSortLabel = sortOptions.find(option => option.value === currentSort)?.label || 'Featured';
 
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
       {/* Results Count */}
       <div className="text-sm text-gray-600">
         {totalResults !== undefined && (
@@ -50,9 +50,12 @@ export default function ProductSort({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors bg-white"
+          className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors bg-white shadow-sm"
         >
-          <span className="text-sm font-medium">Sort by: {currentSortLabel}</span>
+          <span className="text-sm font-medium">
+            <span className="hidden sm:inline">Sort by: </span>
+            {currentSortLabel}
+          </span>
           <ChevronIcon expanded={isOpen} />
         </button>
 
@@ -64,8 +67,8 @@ export default function ProductSort({
               onClick={() => setIsOpen(false)}
             />
             
-            {/* Dropdown Menu */}
-            <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+            {/* Dropdown Menu - Mobile optimized */}
+            <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
               <div className="py-2">
                 {sortOptions.map((option) => (
                   <button
@@ -74,16 +77,18 @@ export default function ProductSort({
                       onSortChange(option.value);
                       setIsOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 transition-colors ${
+                    className={`w-full text-left px-4 py-3 text-sm hover:bg-pink-50 transition-colors ${
                       currentSort === option.value 
                         ? 'text-pink-600 bg-pink-50 font-medium' 
                         : 'text-gray-700'
                     }`}
                   >
-                    {option.label}
-                    {currentSort === option.value && (
-                      <CheckIcon />
-                    )}
+                    <div className="flex items-center justify-between">
+                      <span>{option.label}</span>
+                      {currentSort === option.value && (
+                        <CheckIcon />
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>

@@ -38,17 +38,87 @@ export default function ProductFilters({
       <div className="lg:hidden mb-4">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors"
+          className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors bg-white shadow-sm"
         >
-          <FilterIcon />
-          <span>Filters</span>
-          {hasActiveFilters && (
-            <span className="bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {Object.values(selectedFilters).filter(v => v).length}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            <FilterIcon />
+            <span className="font-medium">Filters</span>
+            {hasActiveFilters && (
+              <span className="bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {Object.values(selectedFilters).filter(v => v).length}
+              </span>
+            )}
+          </div>
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
+
+      {/* Mobile Filter Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsOpen(false)} />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-xl shadow-xl max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto max-h-[calc(80vh-80px)] p-4">
+              <div className="space-y-6">
+                {/* Categories */}
+                <FilterSection
+                  title="Categories"
+                  options={categories}
+                  selectedValue={selectedFilters.category}
+                  onSelect={(value) => onFilterChange('category', value)}
+                />
+
+                {/* Brands */}
+                <FilterSection
+                  title="Brands"
+                  options={brands}
+                  selectedValue={selectedFilters.brand}
+                  onSelect={(value) => onFilterChange('brand', value)}
+                />
+
+                {/* Price Range */}
+                <FilterSection
+                  title="Price Range"
+                  options={priceRanges}
+                  selectedValue={selectedFilters.priceRange}
+                  onSelect={(value) => onFilterChange('priceRange', value)}
+                />
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex gap-3">
+                <button
+                  onClick={onClearFilters}
+                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Desktop Filters */}
       <div className="hidden lg:block w-64 flex-shrink-0">
