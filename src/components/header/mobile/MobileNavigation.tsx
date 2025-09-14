@@ -61,8 +61,9 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 cursor-pointer"
         onClick={onClose}
+        aria-label="Close menu"
       />
       
       {/* Mobile Menu */}
@@ -86,8 +87,9 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center min-w-[40px] min-h-[40px]"
             aria-label="Close menu"
+            title="Close menu"
           >
             <CloseIcon />
           </button>
@@ -250,6 +252,18 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
             </div>
           </div>
         </div>
+
+        {/* Bottom Close Button for Easy Access */}
+        <div className="bg-gray-50 border-t border-gray-200 px-4 py-3">
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+            aria-label="Close menu"
+          >
+            <CloseIcon />
+            Close Menu
+          </button>
+        </div>
       </div>
     </>
   );
@@ -258,7 +272,15 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
 // Icon Components
 function CloseIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <svg 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2.5"
+      className="text-gray-700 hover:text-gray-900"
+    >
       <line x1="18" y1="6" x2="6" y2="18"></line>
       <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
