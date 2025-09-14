@@ -14,6 +14,7 @@ interface OTPVerificationProps {
   onVerified: (phone: string) => void;
   onCancel: () => void;
   className?: string;
+  initialOTP?: string; // OTP received from the initial request
 }
 
 export default function OTPVerification({
@@ -22,14 +23,18 @@ export default function OTPVerification({
   purpose,
   onVerified,
   onCancel,
-  className = ''
+  className = '',
+  initialOTP
 }: OTPVerificationProps) {
   const { addToast } = useToast();
-  const [otp, setOtp] = React.useState('');
+  const [otp, setOtp] = React.useState(['', '', '', '']);
   const [loading, setLoading] = React.useState(false);
   const [sending, setSending] = React.useState(false);
   const [timeLeft, setTimeLeft] = React.useState(0);
   const [attemptsRemaining, setAttemptsRemaining] = React.useState(5);
+  const [error, setError] = React.useState<string | null>(null);
+  const [receivedOTP, setReceivedOTP] = React.useState<string | null>(initialOTP || null);
+  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
   // Format phone number for display
   const formatPhone = (phone: string) => {
@@ -49,10 +54,48 @@ export default function OTPVerification({
   }, [timeLeft]);
 
   // Handle OTP input change
-  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // Only digits
-    if (value.length <= 4) {
-      setOtp(value);
+  const handleOtpChange = (index: number, value: string) => {
+    // Only allow single digit
+    const digit = value.replace(/\D/g, '').slice(-1);
+    
+    if (digit) {
+      const newOtp = [...otp];
+      newOtp[index] = digit;
+      setOtp(newOtp);
+      
+      // Clear error when user starts typing
+      if (error) {
+        setError(null);
+      }
+      
+      // Move to next input
+      if (index < 3 && inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    }
+  };
+
+  // Handle backspace
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      // Move to previous input
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  // Handle paste
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+    
+    if (pastedData.length === 4) {
+      const newOtp = pastedData.split('');
+      setOtp(newOtp);
+      
+      // Focus last input
+      if (inputRefs.current[3]) {
+        inputRefs.current[3]?.focus();
+      }
     }
   };
 
@@ -60,20 +103,20 @@ export default function OTPVerification({
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (otp.length !== 4) {
-      addToast({
-        type: 'error',
-        title: 'Invalid OTP',
-        message: 'Please enter a 4-digit OTP code'
-      });
+    const otpString = otp.join('');
+    
+    if (otpString.length !== 4) {
+      setError('Please enter a 4-digit OTP code');
       return;
     }
 
     setLoading(true);
+    setError(null);
+    
     try {
       const verification: OTPVerification = {
         phone,
-        code: otp,
+        code: otpString,
         sessionId,
         purpose
       };
@@ -97,13 +140,19 @@ export default function OTPVerification({
       if (error.message?.includes('Invalid OTP')) {
         errorMessage = error.message;
         setAttemptsRemaining(attemptsLeft);
+        setError(errorMessage);
       } else if (error.message?.includes('Maximum attempts exceeded')) {
         errorMessage = 'Maximum attempts exceeded. Please request a new OTP.';
         setAttemptsRemaining(0);
+        setError(errorMessage);
       } else if (error.message?.includes('already been used')) {
         errorMessage = 'This OTP has already been used. Please request a new one.';
+        setError(errorMessage);
       } else if (error.message?.includes('expired')) {
         errorMessage = 'OTP has expired. Please request a new one.';
+        setError(errorMessage);
+      } else {
+        setError(errorMessage);
       }
       
       addToast({
@@ -113,8 +162,14 @@ export default function OTPVerification({
       });
       
       if (attemptsLeft <= 0) {
-        setOtp('');
+        setOtp(['', '', '', '']);
         setTimeLeft(60); // Start timer for resend
+      } else {
+        // Clear OTP inputs on wrong attempt
+        setOtp(['', '', '', '']);
+        if (inputRefs.current[0]) {
+          inputRefs.current[0].focus();
+        }
       }
     } finally {
       setLoading(false);
@@ -142,7 +197,12 @@ export default function OTPVerification({
         });
         setTimeLeft(60); // 1 minute cooldown
         setAttemptsRemaining(result.attemptsRemaining || 5);
-        setOtp('');
+        setOtp(['', '', '', '']);
+        setError(null);
+        // Store the received OTP for display
+        if (result.otp) {
+          setReceivedOTP(result.otp);
+        }
       }
     } catch (error: any) {
       console.error('Resend OTP error:', error);
@@ -166,7 +226,7 @@ export default function OTPVerification({
   };
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-gray-200 p-6 shadow-2xl ${className}`}>
       <div className="text-center mb-6">
         <div className="w-16 h-16 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
           <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,20 +244,53 @@ export default function OTPVerification({
         </p>
       </div>
 
+      {/* Display OTP for testing purposes */}
+      {receivedOTP && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg">
+          <div className="text-center">
+            <div className="text-lg font-bold text-pink-700 mb-2">
+              🔐 Your OTP: {receivedOTP}
+            </div>
+            <p className="text-sm text-pink-600">
+              This OTP is displayed for testing purposes. Once the website is ready for real use, OTPs will be sent to the provided phone number via SMS.
+            </p>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleVerifyOTP} className="space-y-4">
         <div>
-          <Input
-            label="Enter OTP Code"
-            type="text"
-            value={otp}
-            onChange={handleOtpChange}
-            placeholder="1234"
-            maxLength={4}
-            className="text-center text-2xl font-mono tracking-widest"
-            autoComplete="one-time-code"
-            autoFocus
-          />
-          <p className="text-xs text-gray-500 mt-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Enter OTP Code
+          </label>
+          <div className="flex justify-center space-x-3" onPaste={handlePaste}>
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => (inputRefs.current[index] = el)}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleOtpChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className={`
+                  w-12 h-12 text-center text-2xl font-bold border rounded-lg
+                  focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500
+                  transition-colors duration-200
+                  ${error ? 'border-red-500 bg-red-50 text-red-900' : 'border-gray-300'}
+                  ${digit ? 'bg-pink-50 border-pink-300 text-gray-900' : 'bg-white text-gray-900'}
+                  text-gray-900 placeholder-gray-400
+                `}
+                autoComplete="one-time-code"
+                autoFocus={index === 0}
+              />
+            ))}
+          </div>
+          {error && (
+            <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-2 text-center">
             Enter the 4-digit code sent to your phone
           </p>
         </div>
@@ -214,7 +307,7 @@ export default function OTPVerification({
             variant="primary"
             fullWidth
             loading={loading}
-            disabled={otp.length !== 4 || loading || attemptsRemaining <= 0}
+            disabled={otp.join('').length !== 4 || loading || attemptsRemaining <= 0}
           >
             {loading ? 'Verifying...' : 'Verify Phone Number'}
           </Button>
@@ -244,13 +337,11 @@ export default function OTPVerification({
       </form>
 
       {/* Development notice */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-xs text-yellow-800 text-center">
-            🔧 Development Mode: Check the backend console for the OTP code
-          </p>
-        </div>
-      )}
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <p className="text-xs text-blue-800 text-center">
+          💡 Testing Mode: OTP is displayed above for convenience. In production, it will be sent via SMS.
+        </p>
+      </div>
     </div>
   );
 }

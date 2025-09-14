@@ -10,7 +10,7 @@ import type { OTPRequest } from '../../lib/api';
 interface OTPRequestModalProps {
   sessionId: string;
   purpose: 'guest_checkout' | 'phone_verification' | 'password_reset';
-  onOTPSent: (phone: string) => void;
+  onOTPSent: (phone: string, otp?: string) => void;
   onCancel: () => void;
   isOpen: boolean;
 }
@@ -103,7 +103,7 @@ export default function OTPRequestModal({
           title: 'OTP Sent',
           message: `A verification code has been sent to ${phone}`
         });
-        onOTPSent(normalizedPhone);
+        onOTPSent(normalizedPhone, result.otp);
       }
     } catch (error: any) {
       console.error('OTP generation error:', error);
@@ -130,8 +130,8 @@ export default function OTPRequestModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
+    <div className="fixed inset-0 bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
         <div className="text-center mb-6">
           <div className="w-16 h-16 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
             <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

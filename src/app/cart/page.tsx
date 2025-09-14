@@ -30,7 +30,7 @@ interface CartItemData {
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, updateItem, removeItem, clearCart, markCartAsAbandoned, refreshCart } = useCart();
+  const { cart, updateItem, removeItem, clearCart, markCartAsAbandoned, refreshCart, sessionId } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
   const [enrichedItems, setEnrichedItems] = React.useState<CartItemData[]>([]);
@@ -44,6 +44,7 @@ export default function CartPage() {
   const [showOTPRequest, setShowOTPRequest] = React.useState(false);
   const [showOTPVerification, setShowOTPVerification] = React.useState(false);
   const [verifiedPhone, setVerifiedPhone] = React.useState<string | null>(null);
+  const [receivedOTP, setReceivedOTP] = React.useState<string | null>(null);
 
   // Debug cart state
   React.useEffect(() => {
@@ -257,8 +258,9 @@ export default function CartPage() {
   };
 
   // OTP handlers
-  const handleOTPSent = (phone: string) => {
+  const handleOTPSent = (phone: string, otp?: string) => {
     setVerifiedPhone(phone);
+    setReceivedOTP(otp || null);
     setShowOTPRequest(false);
     setShowOTPVerification(true);
   };
@@ -273,6 +275,7 @@ export default function CartPage() {
     setShowOTPRequest(false);
     setShowOTPVerification(false);
     setVerifiedPhone(null);
+    setReceivedOTP(null);
   };
 
   // Mobile-specific cart refresh mechanism
@@ -536,13 +539,14 @@ export default function CartPage() {
       />
       
       {showOTPVerification && verifiedPhone && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <OTPVerification
             phone={verifiedPhone}
             sessionId={sessionId}
             purpose="guest_checkout"
             onVerified={handleOTPVerified}
             onCancel={handleOTPCancel}
+            initialOTP={receivedOTP}
           />
         </div>
       )}

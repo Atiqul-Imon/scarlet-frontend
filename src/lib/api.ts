@@ -35,6 +35,7 @@ export interface OTPResponse {
   message: string;
   expiresIn?: number;
   attemptsRemaining?: number;
+  otp?: string; // Include OTP for development/testing purposes
 }
 
 export interface OTPStatus {
