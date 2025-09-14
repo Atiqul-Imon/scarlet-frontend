@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Link from 'next/link';
 import ProductGrid from '../../components/products/ProductGrid';
 import ProductFilters from '../../components/products/ProductFilters';
 import ProductSort from '../../components/products/ProductSort';
