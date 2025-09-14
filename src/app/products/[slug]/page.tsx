@@ -203,7 +203,7 @@ export default function ProductDetailPage() {
       addToast({
         type: 'success',
         title: 'Added to Cart',
-        message: 'Product added to cart successfully!'
+        message: `${product.title} added to cart successfully!`
       });
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -485,19 +485,15 @@ export default function ProductDetailPage() {
 
             {/* Action Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div
-                onClick={!stockStatus || isAddingToCart ? undefined : handleAddToCart}
-                className="w-full h-12 px-6 text-base font-medium rounded-lg cursor-pointer flex items-center justify-center gap-2 pink-add-to-cart"
+              <button
+                onClick={handleAddToCart}
+                disabled={!stockStatus || isAddingToCart}
+                className="w-full h-12 px-6 text-base font-medium rounded-lg flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: '#dc2626',
                   color: 'white',
                   border: 'none',
-                  pointerEvents: (!stockStatus || isAddingToCart) ? 'none' : 'auto',
-                  opacity: (!stockStatus || isAddingToCart) ? 0.6 : 1,
-                  minHeight: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  minHeight: '48px'
                 }}
               >
                 {isAddingToCart ? (
@@ -513,7 +509,7 @@ export default function ProductDetailPage() {
                     Add to Cart
                   </>
                 )}
-              </div>
+              </button>
 
               <Button
                 onClick={handleBuyNow}

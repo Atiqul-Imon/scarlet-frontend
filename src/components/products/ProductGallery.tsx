@@ -1,6 +1,5 @@
 "use client";
 import * as React from 'react';
-import Image from 'next/image';
 
 interface ProductGalleryProps {
   images: string[];
@@ -12,7 +11,30 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   const [isZoomed, setIsZoomed] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+  const [imageErrors, setImageErrors] = React.useState<Set<number>>(new Set());
   const imageRef = React.useRef<HTMLDivElement>(null);
+
+  // Generate placeholder images for failed loads
+  const getPlaceholderImage = (index: number) => {
+    const colors = ['FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7', 'DDA0DD', '98D8C8', 'F7DC6F'];
+    const color = colors[index % colors.length];
+    return `data:image/svg+xml;base64,${btoa(`
+      <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="500" height="500" fill="#${color}20"/>
+        <rect x="150" y="150" width="200" height="200" fill="#${color}40"/>
+        <rect x="200" y="200" width="100" height="100" fill="#${color}60"/>
+        <text x="250" y="350" font-family="Arial, sans-serif" font-size="16" fill="#${color}" text-anchor="middle">Product Image ${index + 1}</text>
+      </svg>
+    `)}`;
+  };
+
+  const getCurrentImage = () => {
+    const currentImage = images[selectedImageIndex];
+    if (imageErrors.has(selectedImageIndex)) {
+      return getPlaceholderImage(selectedImageIndex);
+    }
+    return currentImage;
+  };
 
   // Debug logging
   React.useEffect(() => {
@@ -93,11 +115,10 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setIsZoomed(false)}
         >
-          <Image
-            src={currentImage}
+          <img
+            src={getCurrentImage()}
             alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
-            fill
-            className={`object-cover transition-all duration-500 ${
+            className={`w-full h-full object-cover transition-all duration-500 ${
               isZoomed 
                 ? 'scale-200 cursor-zoom-out' 
                 : 'cursor-zoom-in hover:scale-105'
@@ -106,15 +127,13 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
               transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
             } : undefined}
             onClick={handleImageClick}
-            sizes="(max-width: 768px) 100vw, 50vw"
-            priority
             onError={(e) => {
-              console.error('Image failed to load:', currentImage);
-              // Fallback to a simple placeholder
-              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDUwMCA1MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMjAwSDMwMFYzMDBIMjAwVjIwMFoiIGZpbGw9IiNEMUQ1REIiLz4KPHBhdGggZD0iTTIyNSAyMjVIMjc1VjI3NUgyMjVWMjI1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIyNTAiIHk9IjM1MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
+              console.error('Image failed to load:', images[selectedImageIndex]);
+              setImageErrors(prev => new Set([...prev, selectedImageIndex]));
+              e.currentTarget.src = getPlaceholderImage(selectedImageIndex);
             }}
             onLoad={() => {
-              console.log('Image loaded successfully:', currentImage);
+              console.log('Image loaded successfully:', images[selectedImageIndex]);
             }}
           />
           
@@ -197,15 +216,14 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                       : 'border-gray-200 hover:border-pink-300'
                   }`}
                 >
-                    <Image
-                      src={image}
+                    <img
+                      src={imageErrors.has(index) ? getPlaceholderImage(index) : image}
                       alt={`${productTitle} - Thumbnail ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         console.error('Thumbnail failed to load:', image);
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMiAzMkg0OFY0OEgzMlYzMloiIGZpbGw9IiNEMUQ1REIiLz4KPHBhdGggZD0iTTM2IDM2SDQ0VjQ0SDM2VjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4=';
+                        setImageErrors(prev => new Set([...prev, index]));
+                        e.currentTarget.src = getPlaceholderImage(index);
                       }}
                     />
                   {index === selectedImageIndex && (
@@ -239,12 +257,10 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
 
           {/* Main Fullscreen Image */}
           <div className="relative w-full h-full flex items-center justify-center p-8">
-            <Image
-              src={currentImage}
+            <img
+              src={getCurrentImage()}
               alt={`${productTitle} - Fullscreen ${selectedImageIndex + 1}`}
-              fill
-              className="object-contain"
-              sizes="100vw"
+              className="max-w-full max-h-full object-contain"
             />
           </div>
 
@@ -287,15 +303,14 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                         : 'border-white/50 hover:border-white/80'
                     }`}
                   >
-                    <Image
-                      src={image}
+                    <img
+                      src={imageErrors.has(index) ? getPlaceholderImage(index) : image}
                       alt={`${productTitle} - Thumbnail ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         console.error('Fullscreen thumbnail failed to load:', image);
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNiAyNkgzOFYzOEgyNlYyNloiIGZpbGw9IiNEMUQ1REIiLz4KPHBhdGggZD0iTTMwIDMwSDM0VjM0SDMwVjMwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4=';
+                        setImageErrors(prev => new Set([...prev, index]));
+                        e.currentTarget.src = getPlaceholderImage(index);
                       }}
                     />
                   </button>
