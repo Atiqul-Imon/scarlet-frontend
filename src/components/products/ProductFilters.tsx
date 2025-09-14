@@ -42,9 +42,9 @@ export default function ProductFilters({
         >
           <div className="flex items-center gap-2">
             <FilterIcon />
-            <span className="font-medium">Filters</span>
+            <span className="font-semibold text-gray-900">Filters</span>
             {hasActiveFilters && (
-              <span className="bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="bg-pink-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                 {Object.values(selectedFilters).filter(v => v).length}
               </span>
             )}
@@ -61,10 +61,10 @@ export default function ProductFilters({
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsOpen(false)} />
           <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-xl shadow-xl max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+              <h3 className="text-lg font-bold text-gray-900">Filters</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -124,11 +124,11 @@ export default function ProductFilters({
       <div className="hidden lg:block w-64 flex-shrink-0">
         <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-24">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+            <h3 className="text-lg font-bold text-gray-900">Filters</h3>
             {hasActiveFilters && (
               <button
                 onClick={onClearFilters}
-                className="text-sm text-pink-600 hover:text-pink-700 font-medium"
+                className="text-sm text-pink-600 hover:text-pink-700 font-semibold"
               >
                 Clear All
               </button>
@@ -238,7 +238,7 @@ function FilterSection({
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full text-left mb-3"
       >
-        <span className="font-medium text-gray-900">{title}</span>
+        <span className="font-semibold text-gray-900">{title}</span>
         <ChevronIcon expanded={isExpanded} />
       </button>
       
@@ -266,11 +266,11 @@ function FilterSection({
                   <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
                 )}
               </div>
-              <span className="text-sm text-gray-700 group-hover:text-gray-900 flex-1">
+              <span className="text-sm font-medium text-gray-800 group-hover:text-gray-900 flex-1">
                 {option.label}
               </span>
               {option.count !== undefined && (
-                <span className="text-xs text-gray-500">({option.count})</span>
+                <span className="text-xs font-medium text-gray-600">({option.count})</span>
               )}
             </label>
           ))}

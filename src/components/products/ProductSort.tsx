@@ -35,7 +35,7 @@ export default function ProductSort({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
       {/* Results Count */}
-      <div className="text-sm text-gray-600">
+      <div className="text-sm font-medium text-gray-800">
         {totalResults !== undefined && (
           <span>
             {totalResults === 1 
@@ -52,7 +52,7 @@ export default function ProductSort({
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors bg-white shadow-sm"
         >
-          <span className="text-sm font-medium">
+          <span className="text-sm font-semibold text-gray-900">
             <span className="hidden sm:inline">Sort by: </span>
             {currentSortLabel}
           </span>
@@ -79,8 +79,8 @@ export default function ProductSort({
                     }}
                     className={`w-full text-left px-4 py-3 text-sm hover:bg-pink-50 transition-colors ${
                       currentSort === option.value 
-                        ? 'text-pink-600 bg-pink-50 font-medium' 
-                        : 'text-gray-700'
+                        ? 'text-pink-700 bg-pink-50 font-semibold' 
+                        : 'text-gray-800 font-medium'
                     }`}
                   >
                     <div className="flex items-center justify-between">

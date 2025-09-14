@@ -266,7 +266,7 @@ function ProductsPageContent() {
               : 'All Products'
             }
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-gray-700 font-medium">
             Discover our carefully curated collection of premium beauty and skincare products
           </p>
         </div>
