@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { Button } from '../../../components/ui/button';
+import { useToast } from '../../../lib/context';
 
 interface OrderDetails {
   orderId: string;
@@ -23,6 +24,7 @@ interface OrderDetails {
 function OrderSuccessPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { addToast } = useToast();
   const [orderDetails, setOrderDetails] = React.useState<OrderDetails | null>(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -57,10 +59,10 @@ function OrderSuccessPageContent() {
         const orderDetails: OrderDetails = {
           orderId: order._id,
           orderNumber: order.orderNumber || `SCR-${order._id}`,
-          email: order.email || 'customer@scarlet.com',
-          total: order.total?.amount || 0,
-          currency: order.total?.currency || 'BDT',
-          estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+          email: order.shippingAddress?.email || 'customer@scarlet.com',
+          total: order.total || 0,
+          currency: order.currency || 'BDT',
+          estimatedDelivery: order.estimatedDelivery || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -70,7 +72,7 @@ function OrderSuccessPageContent() {
             productId: item.productId,
             title: item.title || 'Product',
             quantity: item.quantity || 1,
-            price: item.price?.amount || 0
+            price: item.price || 0
           }))
         };
 
@@ -78,7 +80,20 @@ function OrderSuccessPageContent() {
 
       } catch (error) {
         console.error('Error fetching order details:', error);
-        router.push('/');
+        console.error('Order ID:', orderId);
+        console.error('Error details:', error);
+        
+        // Show error message instead of redirecting immediately
+        addToast({
+          type: 'error',
+          title: 'Failed to Load Order',
+          message: 'Could not load order details. Please check your order confirmation email.'
+        });
+        
+        // Redirect to home after showing error
+        setTimeout(() => {
+          router.push('/');
+        }, 3000);
       } finally {
         setLoading(false);
       }
@@ -205,6 +220,20 @@ function OrderSuccessPageContent() {
               You'll receive tracking information via email once your order ships.
             </p>
           </div>
+
+          {/* Debug Information (Development Only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-gray-100 rounded-lg p-4 mt-6">
+              <h4 className="font-medium text-gray-900 mb-2">Debug Information</h4>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p><strong>Order ID:</strong> {orderDetails.orderId}</p>
+                <p><strong>Order Number:</strong> {orderDetails.orderNumber}</p>
+                <p><strong>Total Items:</strong> {orderDetails.items.length}</p>
+                <p><strong>Total Amount:</strong> {formatPrice(orderDetails.total, orderDetails.currency)}</p>
+                <p><strong>Email:</strong> {orderDetails.email}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}

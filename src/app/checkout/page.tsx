@@ -285,17 +285,17 @@ export default function CheckoutPage() {
         message: `Order #${order.orderNumber} has been placed. You will receive a confirmation email shortly.`
       });
       
-      // Redirect to order confirmation page immediately
-      router.push(`/checkout/success?orderId=${order._id}`);
+      // Clear the cart first, then redirect
+      try {
+        await clearCart();
+        console.log('Cart cleared successfully');
+      } catch (error) {
+        console.error('Error clearing cart after order:', error);
+        // Continue with redirect even if cart clearing fails
+      }
       
-      // Clear the cart after redirect (in background)
-      setTimeout(async () => {
-        try {
-          await clearCart();
-        } catch (error) {
-          console.error('Error clearing cart after order:', error);
-        }
-      }, 100);
+      // Redirect to order confirmation page
+      router.push(`/checkout/success?orderId=${order._id}`);
       
     } catch (error: unknown) {
       console.error('Error placing order:', error);
