@@ -197,7 +197,6 @@ const getUnifiedFetchConfig = (init?: RequestInit): RequestInit => {
       // Enhanced cache-busting for development
       'Cache-Control': isDevelopment ? 'no-cache, no-store, must-revalidate' : 'no-cache',
       'Pragma': 'no-cache',
-      'Expires': '0',
       // Add timestamp for development to ensure fresh requests
       ...(isDevelopment && {
         'X-Timestamp': Date.now().toString(),
