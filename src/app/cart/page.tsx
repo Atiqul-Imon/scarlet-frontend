@@ -28,7 +28,7 @@ interface CartItemData {
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, updateItem, removeItem, clearCart, markCartAsAbandoned } = useCart();
+  const { cart, updateItem, removeItem, clearCart, markCartAsAbandoned, refreshCart } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
   const [enrichedItems, setEnrichedItems] = React.useState<CartItemData[]>([]);
@@ -74,12 +74,16 @@ export default function CartPage() {
         console.log('Cart items is array:', Array.isArray(cart?.items));
         console.log('Cart items length:', cart?.items?.length);
         
+        // Check if cart has items - if not, show empty state immediately
         if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
           console.log('No cart items found, setting empty array');
           setEnrichedItems([]);
           setLoading(false);
           return;
         }
+
+        // Add a small delay to ensure cart context is fully loaded
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Fetch all products to enrich cart items
         const allProducts = await productApi.getProducts();
@@ -217,6 +221,38 @@ export default function CartPage() {
     router.push('/checkout');
   };
 
+  // Mobile-specific cart refresh mechanism
+  React.useEffect(() => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Refresh cart when page becomes visible on mobile
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          console.log('Page became visible, refreshing cart...');
+          refreshCart();
+        }
+      };
+
+      // Refresh cart when page loads on mobile
+      const handlePageLoad = () => {
+        console.log('Page loaded on mobile, refreshing cart...');
+        refreshCart();
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('load', handlePageLoad);
+
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('load', handlePageLoad);
+      };
+    }
+    
+    // Return undefined for non-mobile devices
+    return undefined;
+  }, [refreshCart]);
+
   // Track cart abandonment when user leaves the page
   React.useEffect(() => {
     const handleBeforeUnload = () => {
@@ -337,16 +373,28 @@ export default function CartPage() {
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Shopping Cart</h1>
-            {enrichedItems.length > 0 && (
-              <Button 
-                variant="ghost" 
-                onClick={handleClearCart}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 text-sm sm:text-base"
+            <div className="flex items-center gap-2">
+              {/* Mobile refresh button */}
+              <Button
+                variant="ghost"
                 size="sm"
+                onClick={() => refreshCart()}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                title="Refresh cart"
               >
-                Clear Cart
+                🔄
               </Button>
-            )}
+              {enrichedItems.length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  onClick={handleClearCart}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 text-sm sm:text-base"
+                  size="sm"
+                >
+                  Clear Cart
+                </Button>
+              )}
+            </div>
           </div>
           <p className="text-sm sm:text-base text-gray-600">
             {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart

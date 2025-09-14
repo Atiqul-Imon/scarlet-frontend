@@ -428,7 +428,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('Loaded user cart from backend:', userCart);
           setCart(userCart);
         } else {
-          // For guest users, always try backend first for real-time data
+          // For guest users, try backend first, then localStorage as fallback
           try {
             const guestCart = await cartApi.getGuestCart(sessionId);
             console.log('Loaded guest cart from backend:', guestCart);
@@ -437,10 +437,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             saveGuestCart(guestCart);
           } catch (error) {
             console.error('Failed to load guest cart from backend:', error);
-            // Only fallback to localStorage if backend is completely unavailable
+            // Fallback to localStorage for offline support
             const localGuestCart = getGuestCart();
             console.log('Fallback to localStorage cart:', localGuestCart);
             setCart(localGuestCart);
+            
+            // If localStorage has items but backend failed, try to sync later
+            if (localGuestCart.items && localGuestCart.items.length > 0) {
+              console.log('LocalStorage has items, will retry backend sync');
+              // Retry backend sync after a short delay
+              setTimeout(async () => {
+                try {
+                  const retryCart = await cartApi.getGuestCart(sessionId);
+                  console.log('Retry sync successful:', retryCart);
+                  setCart(retryCart);
+                  saveGuestCart(retryCart);
+                } catch (retryError) {
+                  console.log('Retry sync failed, keeping localStorage version');
+                }
+              }, 2000);
+            }
           }
         }
       } catch (error) {
@@ -819,37 +835,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshCart = React.useCallback(async (): Promise<void> => {
     console.log('refreshCart called, isAuthenticated:', isAuthenticated);
-    if (!isAuthenticated) {
-      // For guest users, try to load from backend first, then fallback to localStorage
-      try {
-        const guestCart = await cartApi.getGuestCart(sessionId);
-        setCart(guestCart);
-        // Also update localStorage for offline support
-        saveGuestCart(guestCart);
-      } catch (error) {
-        console.error('Failed to load guest cart from backend:', error);
-        // Fallback to localStorage
-        const localGuestCart = getGuestCart();
-        console.log('Loading guest cart from localStorage:', localGuestCart);
-        setCart(localGuestCart);
-      }
-      return;
-    }
-
     setLoading(true);
-    setError(null);
-
+    
     try {
-      const freshCart = await cartApi.getCart();
-      setCart(freshCart);
-    } catch (err) {
-      const appError = apiUtils.handleApiError(err);
-      setError(appError);
-      // Don't show toast for cart refresh errors
+      if (!isAuthenticated) {
+        // For guest users, try to load from backend first, then fallback to localStorage
+        try {
+          const guestCart = await cartApi.getGuestCart(sessionId);
+          console.log('Refreshed guest cart from backend:', guestCart);
+          setCart(guestCart);
+          // Also update localStorage for offline support
+          saveGuestCart(guestCart);
+        } catch (error) {
+          console.error('Failed to load guest cart from backend:', error);
+          // Fallback to localStorage
+          const localGuestCart = getGuestCart();
+          console.log('Fallback to localStorage cart:', localGuestCart);
+          setCart(localGuestCart);
+        }
+      } else {
+        // For authenticated users, load from backend
+        try {
+          const userCart = await cartApi.getCart();
+          console.log('Refreshed user cart from backend:', userCart);
+          setCart(userCart);
+        } catch (error) {
+          console.error('Failed to refresh user cart:', error);
+        }
+      }
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, sessionId]);
 
   // Sync guest cart with server when user logs in
   const syncGuestCartWithServer = React.useCallback(async () => {
