@@ -37,42 +37,44 @@ function OrderSuccessPageContent() {
     const fetchOrderDetails = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual order details API call
-        const mockOrderDetails: OrderDetails = {
-          orderId: orderId,
-          orderNumber: `SCR-${orderId}`,
-          email: 'customer@example.com',
-          total: 10497,
-          currency: 'BDT',
+        // Fetch actual order details from API (public endpoint)
+        const response = await fetch(`/api/proxy/orders/public/${orderId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch order: ${response.status}`);
+        }
+        
+        const orderData = await response.json();
+        
+        if (!orderData.success) {
+          throw new Error(orderData.error?.message || 'Failed to load order');
+        }
+        
+        const order = orderData.data;
+        console.log('Order data from API:', order);
+        
+        // Transform API data to match component interface
+        const orderDetails: OrderDetails = {
+          orderId: order._id,
+          orderNumber: order.orderNumber || `SCR-${order._id}`,
+          email: order.email || 'customer@scarlet.com',
+          total: order.total?.amount || 0,
+          currency: order.total?.currency || 'BDT',
           estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
           }),
-          items: [
-            {
-              productId: '1',
-              title: 'Vitamin C Brightening Serum',
-              quantity: 2,
-              price: 29.99
-            },
-            {
-              productId: '2',
-              title: 'Hydrating Night Cream',
-              quantity: 1,
-              price: 45.00
-            }
-          ]
+          items: (order.items || []).map((item: any) => ({
+            productId: item.productId,
+            title: item.title || 'Product',
+            quantity: item.quantity || 1,
+            price: item.price?.amount || 0
+          }))
         };
 
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setOrderDetails(mockOrderDetails);
-
-        // Actual implementation:
-        // const order = await fetchJson(`/orders/${orderId}`);
-        // setOrderDetails(order);
+        setOrderDetails(orderDetails);
 
       } catch (error) {
         console.error('Error fetching order details:', error);
@@ -85,14 +87,15 @@ function OrderSuccessPageContent() {
     fetchOrderDetails();
   }, [orderId, router]);
 
-  const formatPrice = (amount: number, currency: string = 'BDT') => {
+  const formatPrice = (amount: number | undefined, currency: string = 'BDT') => {
+    const safeAmount = amount || 0;
     if (currency === 'BDT') {
-      return `৳${amount.toLocaleString('en-US')}`;
+      return `৳${safeAmount.toLocaleString('en-US')}`;
     }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
-    }).format(amount);
+    }).format(safeAmount);
   };
 
   if (loading) {
@@ -134,9 +137,9 @@ function OrderSuccessPageContent() {
           <p className="text-lg text-gray-600 mb-2">
             Your order has been confirmed and is being processed.
           </p>
-          <p className="text-sm text-gray-500">
-            A confirmation email has been sent to {orderDetails.email}
-          </p>
+              <p className="text-sm text-gray-500">
+                A confirmation email has been sent to {orderDetails?.email}
+              </p>
         </div>
 
         {/* Order Summary Card */}
@@ -145,7 +148,7 @@ function OrderSuccessPageContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 pb-6 border-b border-gray-200">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Order #{orderDetails.orderNumber}
+                Order #{orderDetails?.orderNumber}
               </h2>
               <p className="text-sm text-gray-600">
                 Placed on {new Date().toLocaleDateString('en-US', {
@@ -157,7 +160,7 @@ function OrderSuccessPageContent() {
             </div>
             <div className="mt-4 sm:mt-0 text-left sm:text-right">
               <p className="text-2xl font-bold text-gray-900">
-                {formatPrice(orderDetails.total, orderDetails.currency)}
+                {formatPrice(orderDetails?.total, orderDetails?.currency)}
               </p>
               <p className="text-sm text-gray-600">Total paid</p>
             </div>
@@ -167,7 +170,7 @@ function OrderSuccessPageContent() {
           <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
             <div className="space-y-4">
-              {orderDetails.items.map((item, index) => (
+              {(orderDetails?.items || []).map((item, index) => (
                 <div key={index} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0">
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{item.title}</h4>
@@ -175,11 +178,11 @@ function OrderSuccessPageContent() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-gray-900">
-                      {formatPrice(item.price * item.quantity, orderDetails.currency)}
+                      {formatPrice(item.price * item.quantity, orderDetails?.currency)}
                     </p>
                     {item.quantity > 1 && (
                       <p className="text-sm text-gray-500">
-                        {formatPrice(item.price, orderDetails.currency)} each
+                        {formatPrice(item.price, orderDetails?.currency)} each
                       </p>
                     )}
                   </div>

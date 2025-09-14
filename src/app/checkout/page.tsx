@@ -271,7 +271,7 @@ export default function CheckoutPage() {
       });
       
       // Redirect to order confirmation page immediately
-      router.push(`/order-success?orderNumber=${order.orderNumber}`);
+      router.push(`/checkout/success?orderId=${order._id}`);
       
       // Clear the cart after redirect (in background)
       setTimeout(async () => {
