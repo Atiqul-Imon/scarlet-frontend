@@ -353,10 +353,10 @@ export default function CartPage() {
           </p>
         </div>
 
-        {/* Mobile-first responsive layout */}
-        <div className="space-y-6">
-          {/* Cart Items - Full width on mobile, 2/3 on desktop */}
-          <div className="space-y-4">
+        {/* Responsive layout - better positioning for order summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items - 2/3 width on desktop */}
+          <div className="lg:col-span-2 space-y-4">
             {enrichedItems.map((item) => (
               <CartItem
                 key={item.productId}
@@ -378,21 +378,23 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Cart Summary - Sticky on mobile, sidebar on desktop */}
-          <div className="lg:fixed lg:top-24 lg:right-8 lg:w-80 lg:z-10">
-            <CartSummary
-              subtotal={subtotal}
-              shipping={shipping}
-              tax={tax}
-              total={total}
-              currency="BDT"
-              itemCount={itemCount}
-              onCheckout={handleCheckout}
-              isLoading={isUpdating}
-              freeShippingThreshold={freeShippingThreshold}
-              needsAuth={needsAuth}
-              formatPrice={formatPrice}
-            />
+          {/* Cart Summary - 1/3 width on desktop, full width on mobile */}
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-24">
+              <CartSummary
+                subtotal={subtotal}
+                shipping={shipping}
+                tax={tax}
+                total={total}
+                currency="BDT"
+                itemCount={itemCount}
+                onCheckout={handleCheckout}
+                isLoading={isUpdating}
+                freeShippingThreshold={freeShippingThreshold}
+                needsAuth={needsAuth}
+                formatPrice={formatPrice}
+              />
+            </div>
           </div>
         </div>
 

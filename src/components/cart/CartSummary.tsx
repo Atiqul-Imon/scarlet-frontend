@@ -44,7 +44,7 @@ export default function CartSummary({
   const amountForFreeShipping = freeShippingThreshold - subtotal;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 sticky top-4 sm:top-24">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
       <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Order Summary</h2>
       
       {/* Order Details */}
