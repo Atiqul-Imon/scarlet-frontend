@@ -17,6 +17,31 @@ import {
   WishlistItem
 } from './types';
 
+// OTP Types
+export interface OTPRequest {
+  phone: string;
+  purpose: 'guest_checkout' | 'phone_verification' | 'password_reset';
+}
+
+export interface OTPVerification {
+  phone: string;
+  code: string;
+  sessionId: string;
+  purpose: 'guest_checkout' | 'phone_verification' | 'password_reset';
+}
+
+export interface OTPResponse {
+  success: boolean;
+  message: string;
+  expiresIn?: number;
+  attemptsRemaining?: number;
+}
+
+export interface OTPStatus {
+  verified: boolean;
+  expiresAt?: string;
+}
+
 // Analytics Types
 export interface AnalyticsEvent {
   sessionId: string;
@@ -1295,6 +1320,38 @@ export const inventoryApi = {
       method: 'PATCH',
       body: JSON.stringify({ resolvedBy })
     });
+  }
+};
+
+// OTP API
+export const otpApi = {
+  // Generate and send OTP
+  generateOTP: (request: OTPRequest, sessionId: string): Promise<OTPResponse> => {
+    return fetchJson('/otp/generate', {
+      method: 'POST',
+      headers: {
+        'X-Session-ID': sessionId,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...request,
+        sessionId
+      })
+    });
+  },
+
+  // Verify OTP
+  verifyOTP: (verification: OTPVerification): Promise<OTPResponse> => {
+    return fetchJson('/otp/verify', {
+      method: 'POST',
+      body: JSON.stringify(verification)
+    });
+  },
+
+  // Check OTP status
+  checkOTPStatus: (phone: string, sessionId: string, purpose: string): Promise<OTPStatus> => {
+    const params = new URLSearchParams({ phone, sessionId, purpose });
+    return fetchJson(`/otp/status?${params.toString()}`);
   }
 };
 

@@ -9,6 +9,8 @@ import CartSummary from '../../components/cart/CartSummary';
 import { Button } from '../../components/ui/button';
 import { useCart, useToast, useAuth } from '../../lib/context';
 import { productApi } from '../../lib/api';
+import OTPRequestModal from '../../components/auth/OTPRequestModal';
+import OTPVerification from '../../components/auth/OTPVerification';
 
 interface CartItemData {
   productId: string;
@@ -37,6 +39,11 @@ export default function CartPage() {
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [removingItems, setRemovingItems] = React.useState<Set<string>>(new Set());
   const lastCartItemsCountRef = React.useRef<number>(0);
+  
+  // OTP verification state for guests
+  const [showOTPRequest, setShowOTPRequest] = React.useState(false);
+  const [showOTPVerification, setShowOTPVerification] = React.useState(false);
+  const [verifiedPhone, setVerifiedPhone] = React.useState<string | null>(null);
 
   // Debug cart state
   React.useEffect(() => {
@@ -239,7 +246,33 @@ export default function CartPage() {
   }, [clearCart, addToast]);
 
   const handleCheckout = () => {
+    // If user is not logged in, require OTP verification
+    if (!user) {
+      setShowOTPRequest(true);
+      return;
+    }
+    
+    // For logged-in users, proceed directly to checkout
     router.push('/checkout');
+  };
+
+  // OTP handlers
+  const handleOTPSent = (phone: string) => {
+    setVerifiedPhone(phone);
+    setShowOTPRequest(false);
+    setShowOTPVerification(true);
+  };
+
+  const handleOTPVerified = (phone: string) => {
+    setShowOTPVerification(false);
+    // Proceed to checkout with verified phone as URL parameter
+    router.push(`/checkout?verifiedPhone=${encodeURIComponent(phone)}`);
+  };
+
+  const handleOTPCancel = () => {
+    setShowOTPRequest(false);
+    setShowOTPVerification(false);
+    setVerifiedPhone(null);
   };
 
   // Mobile-specific cart refresh mechanism
@@ -492,6 +525,27 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+      
+      {/* OTP Verification Modals */}
+      <OTPRequestModal
+        sessionId={sessionId}
+        purpose="guest_checkout"
+        onOTPSent={handleOTPSent}
+        onCancel={handleOTPCancel}
+        isOpen={showOTPRequest}
+      />
+      
+      {showOTPVerification && verifiedPhone && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <OTPVerification
+            phone={verifiedPhone}
+            sessionId={sessionId}
+            purpose="guest_checkout"
+            onVerified={handleOTPVerified}
+            onCancel={handleOTPCancel}
+          />
+        </div>
+      )}
     </div>
   );
 }

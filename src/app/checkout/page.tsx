@@ -51,10 +51,25 @@ export default function CheckoutPage() {
   const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
   
+  // Check for verified guest phone from URL params or session
+  const [verifiedGuestPhone, setVerifiedGuestPhone] = React.useState<string | null>(null);
+  
   const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
   const [step, setStep] = React.useState<'shipping' | 'payment' | 'review'>('shipping');
+
+  // Check for verified guest phone on mount
+  React.useEffect(() => {
+    if (!user) {
+      // Check URL params for verified phone
+      const urlParams = new URLSearchParams(window.location.search);
+      const phone = urlParams.get('verifiedPhone');
+      if (phone) {
+        setVerifiedGuestPhone(phone);
+      }
+    }
+  }, [user]);
 
   // Form handling
   const { values, errors, handleChange, handleSubmit, isValid } = useForm<CheckoutFormData>({
@@ -62,7 +77,7 @@ export default function CheckoutPage() {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       email: user?.email || '',
-      phone: user?.phone || '',
+      phone: user?.phone || verifiedGuestPhone || '',
       address: '',
       city: 'Dhaka',
       area: '',
