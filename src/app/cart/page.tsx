@@ -101,7 +101,9 @@ export default function CartPage() {
         
         // Enrich cart items with product details
         const enrichedItems: CartItemData[] = cart.items.map(item => {
+          console.log('Processing cart item:', item);
           const product = products.find(p => p._id === item.productId);
+          console.log('Found product in API:', product);
           
           // Handle test products that don't exist in database
           if (item.productId.startsWith('test-product-')) {
@@ -114,6 +116,47 @@ export default function CartPage() {
               price: { currency: 'BDT', amount: 1000 + (parseInt(testProductNumber) * 100) }, // Different prices for each test product
               quantity: item.quantity,
               brand: 'Test Brand',
+              stock: 10
+            };
+          }
+          
+          // Handle mock products from product details page that don't exist in database
+          if (item.productId === '1') {
+            return {
+              productId: item.productId,
+              title: 'The Ordinary Hyaluronic Acid 2% + B5',
+              slug: 'the-ordinary-hyaluronic-acid-2-b5',
+              image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center',
+              price: { currency: 'BDT', amount: 1200 },
+              quantity: item.quantity,
+              brand: 'The Ordinary',
+              stock: 25
+            };
+          }
+          
+          if (item.productId === '2') {
+            return {
+              productId: item.productId,
+              title: 'Paula\'s Choice 2% BHA Liquid Exfoliant',
+              slug: 'paulas-choice-2-bha-liquid-exfoliant',
+              image: 'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=500&h=500&fit=crop&crop=center',
+              price: { currency: 'BDT', amount: 2850 },
+              quantity: item.quantity,
+              brand: 'Paula\'s Choice',
+              stock: 15
+            };
+          }
+          
+          // Handle dynamic slug-based products from product details page
+          if (typeof item.productId === 'string' && item.productId.includes('-') && !item.productId.startsWith('test-product-')) {
+            return {
+              productId: item.productId,
+              title: item.productId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+              slug: item.productId,
+              image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center',
+              price: { currency: 'BDT', amount: 1500 },
+              quantity: item.quantity,
+              brand: 'Premium Brand',
               stock: 10
             };
           }

@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:clean": "node clear-cache-dev.js && next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clear-cache": "node clear-cache-dev.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

@@ -3,7 +3,17 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Production optimizations
   poweredByHeader: false,
-  compress: true,
+  compress: process.env.NODE_ENV === 'production',
+  
+  // Development optimizations
+  ...(process.env.NODE_ENV === 'development' && {
+    // Disable static optimization in development
+    trailingSlash: false,
+    // Disable React StrictMode to prevent double-rendering in development
+    reactStrictMode: false,
+    // Disable SWC minification in development
+    swcMinify: false,
+  }),
   
   
   // ESLint configuration
@@ -25,6 +35,8 @@ const nextConfig: NextConfig = {
   
   // Image optimization
   images: {
+    // Disable image optimization in development to prevent caching
+    unoptimized: process.env.NODE_ENV === 'development',
     remotePatterns: [
       {
         protocol: 'https',
@@ -69,6 +81,8 @@ const nextConfig: NextConfig = {
 
   // Headers for security and cache control
   async headers() {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
     return [
       {
         source: '/(.*)',
@@ -89,29 +103,66 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
+          // Disable caching in development
+          ...(isDevelopment ? [
+            {
+              key: 'Cache-Control',
+              value: 'no-cache, no-store, must-revalidate',
+            },
+            {
+              key: 'Pragma',
+              value: 'no-cache',
+            },
+            {
+              key: 'Expires',
+              value: '0',
+            },
+          ] : []),
         ],
       },
-      // Static assets caching (production)
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      // Images caching
-      {
-        source: '/(.*\\.(?:jpg|jpeg|gif|png|svg|ico|webp))',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, s-maxage=31536000',
-          },
-        ],
-      },
-      // Dynamic API routes - NO CACHING
+      // Static assets caching (production only)
+      ...(isDevelopment ? [] : [
+        {
+          source: '/_next/static/(.*)',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
+        // Images caching (production only)
+        {
+          source: '/(.*\\.(?:jpg|jpeg|gif|png|svg|ico|webp))',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=86400, s-maxage=31536000',
+            },
+          ],
+        },
+        // Semi-static API routes - Short cache (production only)
+        {
+          source: '/api/(products|categories)(.*)',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=300, s-maxage=600',
+            },
+          ],
+        },
+        // HTML pages caching (production only)
+        {
+          source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=3600, s-maxage=86400',
+            },
+          ],
+        },
+      ]),
+      // Dynamic API routes - NO CACHING (always)
       {
         source: '/api/(cart|orders|auth|users|checkout|wishlist|payments)(.*)',
         headers: [
@@ -129,26 +180,6 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Semi-static API routes - Short cache
-      {
-        source: '/api/(products|categories)(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=300, s-maxage=600',
-          },
-        ],
-      },
-      // HTML pages caching
-      {
-        source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=86400',
-          },
-        ],
-      },
     ];
   },
 
@@ -157,7 +188,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/proxy/:path*',
-        destination: `${process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:5000'}/api/:path*`,
+        destination: `${process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:4000'}/api/:path*`,
       },
     ];
   },

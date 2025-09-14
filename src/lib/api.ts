@@ -172,7 +172,7 @@ export interface InventoryStats {
 
 export const API_BASE = process.env['NEXT_PUBLIC_API_URL'] 
   ? `${process.env['NEXT_PUBLIC_API_URL']}/api`
-  : process.env['NEXT_PUBLIC_API_BASE'] || 'http://localhost:4000/api';
+  : process.env['NEXT_PUBLIC_API_BASE'] || '/api/proxy';
 
 // Unified API configuration - works for all devices
 export const API_CONFIG = {
@@ -186,15 +186,22 @@ export const API_CONFIG = {
 
 // Unified fetch configuration - no device-specific logic
 const getUnifiedFetchConfig = (init?: RequestInit): RequestInit => {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   return {
     ...init,
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
-      // Always include these for better compatibility
-      'Cache-Control': 'no-cache',
+      // Enhanced cache-busting for development
+      'Cache-Control': isDevelopment ? 'no-cache, no-store, must-revalidate' : 'no-cache',
       'Pragma': 'no-cache',
+      'Expires': '0',
+      // Add timestamp for development to ensure fresh requests
+      ...(isDevelopment && {
+        'X-Timestamp': Date.now().toString(),
+      }),
       ...init?.headers,
     },
     // Universal fetch options that work well on all devices
@@ -293,11 +300,27 @@ export async function fetchJson<T = any>(
     }
     
     console.error(`🔥 Network Error:`, error);
-    // Network or parsing error
-    throw new ApiError(
-      error instanceof Error ? error.message : 'Network error',
-      0
-    );
+    
+    // Enhanced error handling for different error types
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      // Network connectivity issues
+      throw new ApiError(
+        `Network error: Unable to connect to ${url}. Please check if the backend server is running.`,
+        0
+      );
+    } else if (error instanceof SyntaxError) {
+      // JSON parsing errors
+      throw new ApiError(
+        `Invalid response format from ${url}. The server may not be responding correctly.`,
+        0
+      );
+    } else {
+      // Other errors
+      throw new ApiError(
+        error instanceof Error ? error.message : 'Network error',
+        0
+      );
+    }
   }
 }
 

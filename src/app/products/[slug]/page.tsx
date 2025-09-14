@@ -196,9 +196,11 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product || isAddingToCart) return;
     
+    console.log('Adding to cart - Product ID:', product._id, 'Quantity:', quantity);
     setIsAddingToCart(true);
     try {
       await addItem(product._id!, quantity);
+      console.log('Successfully added to cart:', product._id);
       
       addToast({
         type: 'success',

@@ -26,21 +26,43 @@ export default function Header() {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
-  // Fetch categories from API
+  // Fetch categories from API with retry logic
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCategories = async (retryCount = 0) => {
+      const maxRetries = 2;
+      
       try {
         setIsLoadingCategories(true);
         setCategoriesError(null);
         
+        console.log(`🔄 Fetching categories from API... (attempt ${retryCount + 1})`);
         const categories = await categoryApi.getCategories();
+        console.log('✅ Categories fetched successfully:', categories);
+        
         const transformedCategories = transformCategoriesToMegaItems(categories);
         setCategoryItems(transformedCategories);
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
+        console.error(`❌ Failed to fetch categories (attempt ${retryCount + 1}):`, error);
+        
+        // Retry logic for network errors
+        if (retryCount < maxRetries && error instanceof Error && error.message.includes('Network error')) {
+          console.log(`🔄 Retrying in 1 second... (${retryCount + 1}/${maxRetries})`);
+          setTimeout(() => fetchCategories(retryCount + 1), 1000);
+          return;
+        }
+        
         setCategoriesError('Failed to load categories');
-        // Fallback to empty array or show error state
-        setCategoryItems([]);
+        
+        // Fallback to mock categories for development
+        const mockCategories = [
+          { label: 'Skincare', href: '/products?category=skincare', icon: '🧴' },
+          { label: 'Makeup', href: '/products?category=makeup', icon: '💄' },
+          { label: 'Hair Care', href: '/products?category=hair', icon: '💇‍♀️' },
+          { label: 'Body Care', href: '/products?category=body-care', icon: '🧴' },
+        ];
+        
+        console.log('🔄 Using mock categories as fallback:', mockCategories);
+        setCategoryItems(mockCategories);
       } finally {
         setIsLoadingCategories(false);
       }
