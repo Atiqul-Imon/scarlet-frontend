@@ -16,6 +16,7 @@ export default function EnhancedProductCard({
   const { addItem } = useCart();
   const { addToast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -50,6 +51,10 @@ export default function EnhancedProductCard({
     console.log('Quick view:', product.title);
   };
 
+  const handleNavigation = () => {
+    setIsNavigating(true);
+  };
+
   const formatPrice = (amount: number) => `৳${amount.toLocaleString('en-US')}`;
   
   const discountPercentage = product.price.originalAmount 
@@ -65,7 +70,7 @@ export default function EnhancedProductCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href={`/products/${product.slug}`}>
+      <Link href={`/products/${product.slug}`} onClick={handleNavigation}>
         {/* Product Image */}
         <div className="aspect-square relative overflow-hidden bg-gray-50">
           {product.images && product.images.length > 0 ? (
@@ -78,6 +83,16 @@ export default function EnhancedProductCard({
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-100 to-purple-100">
               <span className="text-4xl text-pink-300">💄</span>
+            </div>
+          )}
+          
+          {/* Navigation Loading Overlay */}
+          {isNavigating && (
+            <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10">
+              <div className="flex flex-col items-center gap-2">
+                <LoadingSpinner />
+                <span className="text-sm font-medium text-gray-700">Loading...</span>
+              </div>
             </div>
           )}
           
