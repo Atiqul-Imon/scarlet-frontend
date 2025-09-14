@@ -67,7 +67,10 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
       />
       
       {/* Mobile Menu */}
-      <div className="fixed inset-0 z-50 flex flex-col">
+      <div 
+        className="fixed inset-0 z-50 flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -87,7 +90,7 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center min-w-[40px] min-h-[40px]"
+            className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1"
             aria-label="Close menu"
             title="Close menu"
           >
@@ -252,18 +255,6 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
             </div>
           </div>
         </div>
-
-        {/* Bottom Close Button for Easy Access */}
-        <div className="bg-gray-50 border-t border-gray-200 px-4 py-3">
-          <button
-            onClick={onClose}
-            className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-            aria-label="Close menu"
-          >
-            <CloseIcon />
-            Close Menu
-          </button>
-        </div>
       </div>
     </>
   );
@@ -278,7 +269,7 @@ function CloseIcon() {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2.5"
+      strokeWidth="2"
       className="text-gray-700 hover:text-gray-900"
     >
       <line x1="18" y1="6" x2="6" y2="18"></line>
