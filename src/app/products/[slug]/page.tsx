@@ -96,96 +96,53 @@ export default function ProductDetailPage() {
       setError(null);
       
       try {
-        // Create mock data based on the actual slug
-        const mockProducts: Record<string, Product> = {
-          'the-ordinary-hyaluronic-acid-2-b5': {
-            _id: '1',
-            title: 'The Ordinary Hyaluronic Acid 2% + B5',
-            slug: 'the-ordinary-hyaluronic-acid-2-b5',
-            description: 'A lightweight, hydrating serum with 2% hyaluronic acid and vitamin B5. Provides intense hydration and helps maintain skin moisture levels for a plump, dewy complexion.',
-            price: {
-              amount: 1200,
-              currency: 'BDT',
-              originalAmount: 1500
-            },
-            images: [
-              'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center',
-              'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=500&h=500&fit=crop&crop=center'
-            ],
-            categoryIds: ['skincare', 'serums'],
-            brand: 'The Ordinary',
-            stock: 25,
-            rating: { average: 4.5, count: 12 },
-            tags: ['Hyaluronic Acid', 'Hydration', 'Serum', 'B5'],
-            isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          'paulas-choice-2-bha-liquid-exfoliant': {
-            _id: '2',
-            title: 'Paula\'s Choice 2% BHA Liquid Exfoliant',
-            slug: 'paulas-choice-2-bha-liquid-exfoliant',
-            description: 'A gentle yet effective liquid exfoliant with 2% salicylic acid. Unclogs pores, reduces blackheads, and improves skin texture for clearer, smoother skin.',
-            price: {
-              amount: 2850,
-              currency: 'BDT',
-              originalAmount: 3200
-            },
-            images: [
-              'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=500&h=500&fit=crop&crop=center',
-              'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center'
-            ],
-            categoryIds: ['skincare', 'exfoliants'],
-            brand: 'Paula\'s Choice',
-            stock: 15,
-            rating: { average: 4.7, count: 8 },
-            tags: ['BHA', 'Exfoliant', 'Acne Treatment', 'Pore Care'],
-            isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+        console.log('Fetching product from API for slug:', slug);
+        
+        // Fetch product from the real API
+        const response = await fetch(`/api/proxy/catalog/products/${slug}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Product not found');
+            setLoading(false);
+            return;
           }
-        };
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         
-        const selectedProduct = mockProducts[slug] || {
-          _id: slug,
-          title: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          slug: slug,
-          description: `A premium beauty product - ${slug.replace(/-/g, ' ')}. High-quality ingredients for beautiful results.`,
-          price: {
-            amount: 1500,
-            currency: 'BDT'
-          },
-          images: ['https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center'],
-          categoryIds: ['skincare'],
-          brand: 'Premium Brand',
-          stock: 10,
-          rating: { average: 4.0, count: 1 },
-          tags: ['Premium', 'Quality'],
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+        const productData = await response.json();
+        if (!productData.success) {
+          throw new Error(productData.error?.message || 'Failed to load product');
+        }
         
-        console.log('Setting mock product for slug:', slug, selectedProduct);
-        console.log('Product images:', selectedProduct.images);
-        setProduct(selectedProduct);
-        setReviews(mockReviews);
+        const product = productData.data;
+        console.log('Product loaded from API:', product);
+        setProduct(product);
+        setReviews(mockReviews); // Keep mock reviews for now
         
-        // Mock related products
-        const related: Product[] = Object.values(mockProducts).filter(p => p.slug !== slug).slice(0, 3);
-        setRelatedProducts(related);
+        // Fetch related products from the same category
+        if (product.categoryIds && product.categoryIds.length > 0) {
+          try {
+            const categoryResponse = await fetch(`/api/proxy/catalog/products/category/${product.categoryIds[0]}`);
+            if (categoryResponse.ok) {
+              const categoryData = await categoryResponse.json();
+              if (categoryData.success && categoryData.data) {
+                const related: Product[] = categoryData.data
+                  .filter((p: Product) => p.slug !== slug && p._id !== product._id)
+                  .slice(0, 3);
+                setRelatedProducts(related);
+              }
+            }
+          } catch (err) {
+            console.warn('Failed to fetch related products:', err);
+            // Continue without related products
+          }
+        }
         
-        // Force loading to false after a short delay
-        setTimeout(() => {
-          console.log('Setting loading to false (timeout)');
-          setLoading(false);
-        }, 100);
+        setLoading(false);
         
       } catch (err) {
-        setError('Failed to load product details');
         console.error('Error fetching product:', err);
-      } finally {
-        console.log('Setting loading to false');
+        setError(err instanceof Error ? err.message : 'Failed to load product details');
         setLoading(false);
       }
     };

@@ -99,79 +99,57 @@ export default function CartPage() {
           console.warn('Unexpected API response structure:', allProducts);
         }
         
-        // Enrich cart items with product details
-        const enrichedItems: CartItemData[] = cart.items.map(item => {
+        // Enrich cart items with product details from real API
+        const enrichedItems: CartItemData[] = [];
+        
+        for (const item of cart.items) {
           console.log('Processing cart item:', item);
           const product = products.find(p => p._id === item.productId);
           console.log('Found product in API:', product);
           
-          // Handle test products that don't exist in database
-          if (item.productId.startsWith('test-product-')) {
-            const testProductNumber = item.productId.split('-')[2] || '1';
-            return {
+          if (product) {
+            // Use real product data from the API
+            enrichedItems.push({
               productId: item.productId,
-              title: `Test Product ${testProductNumber}`,
-              slug: `test-product-${testProductNumber}`,
-              image: '/placeholder-product.jpg',
-              price: { currency: 'BDT', amount: 1000 + (parseInt(testProductNumber) * 100) }, // Different prices for each test product
+              title: product.title || 'Unknown Product',
+              slug: product.slug || item.productId,
+              image: product.images?.[0] || '/placeholder-product.jpg',
+              price: product.price || { currency: 'BDT', amount: 0 },
               quantity: item.quantity,
-              brand: 'Test Brand',
-              stock: 10
-            };
+              brand: product.brand,
+              stock: product.stock
+            });
+          } else {
+            // Product not found in API - try to fetch individual product
+            try {
+              console.log('Product not found in list, fetching individual product:', item.productId);
+              const productResponse = await fetch(`/api/proxy/catalog/products/${item.productId}`);
+              if (productResponse.ok) {
+                const productData = await productResponse.json();
+                if (productData.success && productData.data) {
+                  const individualProduct = productData.data;
+                  enrichedItems.push({
+                    productId: item.productId,
+                    title: individualProduct.title || 'Unknown Product',
+                    slug: individualProduct.slug || item.productId,
+                    image: individualProduct.images?.[0] || '/placeholder-product.jpg',
+                    price: individualProduct.price || { currency: 'BDT', amount: 0 },
+                    quantity: item.quantity,
+                    brand: individualProduct.brand,
+                    stock: individualProduct.stock
+                  });
+                } else {
+                  console.warn('Failed to fetch individual product:', item.productId);
+                }
+              } else {
+                console.warn('Individual product fetch failed:', item.productId, productResponse.status);
+              }
+            } catch (err) {
+              console.warn('Error fetching individual product:', item.productId, err);
+              // Skip this item if we can't fetch it
+            }
           }
-          
-          // Handle mock products from product details page that don't exist in database
-          if (item.productId === '1') {
-            return {
-              productId: item.productId,
-              title: 'The Ordinary Hyaluronic Acid 2% + B5',
-              slug: 'the-ordinary-hyaluronic-acid-2-b5',
-              image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center',
-              price: { currency: 'BDT', amount: 1200 },
-              quantity: item.quantity,
-              brand: 'The Ordinary',
-              stock: 25
-            };
-          }
-          
-          if (item.productId === '2') {
-            return {
-              productId: item.productId,
-              title: 'Paula\'s Choice 2% BHA Liquid Exfoliant',
-              slug: 'paulas-choice-2-bha-liquid-exfoliant',
-              image: 'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=500&h=500&fit=crop&crop=center',
-              price: { currency: 'BDT', amount: 2850 },
-              quantity: item.quantity,
-              brand: 'Paula\'s Choice',
-              stock: 15
-            };
-          }
-          
-          // Handle dynamic slug-based products from product details page
-          if (typeof item.productId === 'string' && item.productId.includes('-') && !item.productId.startsWith('test-product-')) {
-            return {
-              productId: item.productId,
-              title: item.productId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-              slug: item.productId,
-              image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&h=500&fit=crop&crop=center',
-              price: { currency: 'BDT', amount: 1500 },
-              quantity: item.quantity,
-              brand: 'Premium Brand',
-              stock: 10
-            };
-          }
-          
-          return {
-            productId: item.productId,
-            title: product?.title || 'Product not found',
-            slug: product?.slug || '',
-            image: product?.images?.[0] || '/placeholder-product.jpg',
-            price: product?.price || { currency: 'BDT', amount: 0 },
-            quantity: item.quantity,
-            brand: product?.brand,
-            stock: product?.stock
-          };
-        }).filter(item => item.title !== 'Product not found'); // Remove invalid items
+        }
 
         console.log('Enriched items:', enrichedItems);
         console.log('Enriched items length:', enrichedItems.length);

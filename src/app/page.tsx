@@ -3,19 +3,11 @@ import ProductShowcase from "../components/products/ProductShowcase";
 import BrandShowcase from "../components/brands/BrandShowcase";
 import CategorySection from "../components/categories/CategorySection";
 import { SectionContainer, ResponsiveFlex } from "../components/layout";
-import ApiConnectivityTest from "../components/debug/ApiConnectivityTest";
 
 export default function Home() {
   return (
     <div className="bg-white">
       <Hero />
-      
-      {/* Debug: API Connectivity Test - Remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <SectionContainer>
-          <ApiConnectivityTest />
-        </SectionContainer>
-      )}
       
       {/* Category Section */}
       <CategorySection />
