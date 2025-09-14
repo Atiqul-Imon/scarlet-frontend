@@ -32,6 +32,15 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
     }
   };
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    // If user is on homepage, reload the page
+    if (window.location.pathname === '/') {
+      e.preventDefault();
+      window.location.reload();
+    }
+    // Otherwise, let the Link navigate normally
+  };
+
   return (
     <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-[9999]">
       {/* Mobile Search Overlay */}
@@ -73,7 +82,7 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
         />
 
         {/* Center: Logo */}
-        <Link href="/" className="flex-1 flex justify-center">
+        <Link href="/" className="flex-1 flex justify-center" onClick={handleLogoClick}>
           <Image
             src="/logo/scarletlogo.png"
             alt="Scarlet"

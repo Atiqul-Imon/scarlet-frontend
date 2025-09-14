@@ -45,6 +45,15 @@ export default function TopBar() {
     }
   }
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    // If user is on homepage, reload the page
+    if (window.location.pathname === '/') {
+      e.preventDefault();
+      window.location.reload();
+    }
+    // Otherwise, let the Link navigate normally
+  };
+
   return (
     <div className="w-full bg-white relative">
       <div className="container-herlan">
@@ -84,7 +93,7 @@ export default function TopBar() {
         {!showMobileSearch && (
           <div className="h-[80px] grid grid-cols-[1fr_1fr] md:grid-cols-[200px_1fr_200px] lg:grid-cols-[250px_1fr_250px] items-center gap-2 md:gap-4 lg:gap-6">
             {/* Logo */}
-            <Link href="/" className="block select-none">
+            <Link href="/" className="block select-none" onClick={handleLogoClick}>
               <div className="flex items-center">
                 <Image
                   src="/logo/scarletlogo.png"

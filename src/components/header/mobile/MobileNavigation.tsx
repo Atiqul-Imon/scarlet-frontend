@@ -55,6 +55,17 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
     router.push('/');
   };
 
+  // Handle logo click
+  const handleLogoClick = (e: React.MouseEvent) => {
+    // If user is on homepage, reload the page
+    if (window.location.pathname === '/') {
+      e.preventDefault();
+      window.location.reload();
+    }
+    // Otherwise, let the Link navigate normally and close the menu
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -74,14 +85,16 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image
-              src="/logo/scarletlogo.png"
-              alt="Scarlet"
-              width={100}
-              height={32}
-              className="h-6 w-auto object-contain"
-              priority
-            />
+            <Link href="/" onClick={handleLogoClick} className="cursor-pointer">
+              <Image
+                src="/logo/scarletlogo.png"
+                alt="Scarlet"
+                width={100}
+                height={32}
+                className="h-6 w-auto object-contain"
+                priority
+              />
+            </Link>
             {user && (
               <span className="text-sm text-gray-600">
                 Hi, {user.firstName || user.email}
