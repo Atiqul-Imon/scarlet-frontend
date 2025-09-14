@@ -167,6 +167,7 @@ export default function ProductDetailPage() {
         };
         
         console.log('Setting mock product for slug:', slug, selectedProduct);
+        console.log('Product images:', selectedProduct.images);
         setProduct(selectedProduct);
         setReviews(mockReviews);
         

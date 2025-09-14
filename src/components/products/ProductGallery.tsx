@@ -14,6 +14,12 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
   const imageRef = React.useRef<HTMLDivElement>(null);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('ProductGallery received images:', images);
+    console.log('ProductGallery productTitle:', productTitle);
+  }, [images, productTitle]);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageRef.current || !isZoomed) return;
     
@@ -57,9 +63,19 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
         document.body.style.overflow = 'unset';
       };
     }
+    return undefined;
   }, [isFullscreen, images.length]);
 
   if (images.length === 0) {
+    return (
+      <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+        <ImagePlaceholder />
+      </div>
+    );
+  }
+
+  const currentImage = images[selectedImageIndex];
+  if (!currentImage) {
     return (
       <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
         <ImagePlaceholder />
@@ -78,7 +94,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           onMouseLeave={() => setIsZoomed(false)}
         >
           <Image
-            src={images[selectedImageIndex]}
+            src={currentImage}
             alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
             fill
             className={`object-cover transition-all duration-500 ${
@@ -92,6 +108,14 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
             onClick={handleImageClick}
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
+            onError={(e) => {
+              console.error('Image failed to load:', currentImage);
+              // Fallback to a simple placeholder
+              e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDUwMCA1MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMjAwSDMwMFYzMDBIMjAwVjIwMFoiIGZpbGw9IiNEMUQ1REIiLz4KPHBhdGggZD0iTTIyNSAyMjVIMjc1VjI3NUgyMjVWMjI1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIyNTAiIHk9IjM1MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBQbGFjZWhvbGRlcjwvdGV4dD4KPC9zdmc+';
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', currentImage);
+            }}
           />
           
           {/* Zoom Indicator */}
@@ -161,28 +185,35 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
         {/* Thumbnail Images */}
         {images.length > 1 && (
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedImageIndex(index)}
-                className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
-                  index === selectedImageIndex 
-                    ? 'border-pink-500 shadow-md' 
-                    : 'border-gray-200 hover:border-pink-300'
-                }`}
-              >
-                <Image
-                  src={image}
-                  alt={`${productTitle} - Thumbnail ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-                {index === selectedImageIndex && (
-                  <div className="absolute inset-0 bg-pink-500/20" />
-                )}
-              </button>
-            ))}
+            {images.map((image, index) => {
+              if (!image) return null;
+              return (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
+                    index === selectedImageIndex 
+                      ? 'border-pink-500 shadow-md' 
+                      : 'border-gray-200 hover:border-pink-300'
+                  }`}
+                >
+                    <Image
+                      src={image}
+                      alt={`${productTitle} - Thumbnail ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                      onError={(e) => {
+                        console.error('Thumbnail failed to load:', image);
+                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMiAzMkg0OFY0OEgzMlYzMloiIGZpbGw9IiNEMUQ1REIiLz4KPHBhdGggZD0iTTM2IDM2SDQ0VjQ0SDM2VjM2WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4=';
+                      }}
+                    />
+                  {index === selectedImageIndex && (
+                    <div className="absolute inset-0 bg-pink-500/20" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -209,7 +240,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           {/* Main Fullscreen Image */}
           <div className="relative w-full h-full flex items-center justify-center p-8">
             <Image
-              src={images[selectedImageIndex]}
+              src={currentImage}
               alt={`${productTitle} - Fullscreen ${selectedImageIndex + 1}`}
               fill
               className="object-contain"
@@ -244,25 +275,32 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           {/* Thumbnail Navigation in Fullscreen */}
           {images.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 max-w-full overflow-x-auto px-4">
-              {images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImageIndex(index)}
-                  className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                    index === selectedImageIndex 
-                      ? 'border-white shadow-lg' 
-                      : 'border-white/50 hover:border-white/80'
-                  }`}
-                >
-                  <Image
-                    src={image}
-                    alt={`${productTitle} - Thumbnail ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                  />
-                </button>
-              ))}
+              {images.map((image, index) => {
+                if (!image) return null;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                      index === selectedImageIndex 
+                        ? 'border-white shadow-lg' 
+                        : 'border-white/50 hover:border-white/80'
+                    }`}
+                  >
+                    <Image
+                      src={image}
+                      alt={`${productTitle} - Thumbnail ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                      onError={(e) => {
+                        console.error('Fullscreen thumbnail failed to load:', image);
+                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNiAyNkgzOFYzOEgyNlYyNloiIGZpbGw9IiNEMUQ1REIiLz4KPHBhdGggZD0iTTMwIDMwSDM0VjM0SDMwVjMwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4=';
+                      }}
+                    />
+                  </button>
+                );
+              })}
             </div>
           )}
 
