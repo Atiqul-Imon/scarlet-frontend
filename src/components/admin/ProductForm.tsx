@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/context';
-import { adminApi } from '@/lib/api';
+import { adminApi, categoryApi } from '@/lib/api';
 import { uploadImage, validateImageFile } from '@/lib/image-upload';
 import { getImageKitStatus } from '@/lib/imagekit-test';
+import { Category } from '@/lib/types';
 
 interface ProductFormProps {
   productId?: string;
@@ -89,6 +90,26 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(mode === 'edit');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  // Load categories
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const categoriesData = await categoryApi.getCategories();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      addToast({
+        type: 'error',
+        title: 'Failed to load categories',
+        message: 'Unable to fetch categories from the database. Please try again.'
+      });
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   // Load product data for edit mode
   useEffect(() => {
@@ -99,6 +120,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
       setImages(initialData.images || []);
     }
   }, [mode, productId, initialData]);
+
+  // Load categories on component mount
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   const loadProductData = async () => {
     try {
@@ -512,14 +538,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <select
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              disabled={categoriesLoading}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value="">Select Category</option>
-              <option value="Makeup">Makeup</option>
-              <option value="Skincare">Skincare</option>
-              <option value="Bath & Body">Bath & Body</option>
-              <option value="Fragrance">Fragrance</option>
+              <option value="">
+                {categoriesLoading ? 'Loading categories...' : 'Select Category'}
+              </option>
+              {categories.map((category) => (
+                <option key={category._id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
             </select>
+            {categoriesLoading && (
+              <p className="text-xs text-gray-500 mt-1">Loading categories from database...</p>
+            )}
           </div>
 
           <div>
