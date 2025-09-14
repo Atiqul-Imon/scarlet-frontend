@@ -423,23 +423,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       try {
         if (isAuthenticated) {
-          // For authenticated users, load from backend
+          // For authenticated users, always load fresh from backend
           const userCart = await cartApi.getCart();
           console.log('Loaded user cart from backend:', userCart);
           setCart(userCart);
         } else {
-          // For guest users, try to load from backend first, then fallback to localStorage
+          // For guest users, always try backend first for real-time data
           try {
             const guestCart = await cartApi.getGuestCart(sessionId);
             console.log('Loaded guest cart from backend:', guestCart);
             setCart(guestCart);
-            // Also update localStorage for offline support
+            // Update localStorage for offline support
             saveGuestCart(guestCart);
           } catch (error) {
             console.error('Failed to load guest cart from backend:', error);
-            // Fallback to localStorage
+            // Only fallback to localStorage if backend is completely unavailable
             const localGuestCart = getGuestCart();
-            console.log('Initialized guest cart from localStorage:', localGuestCart);
+            console.log('Fallback to localStorage cart:', localGuestCart);
             setCart(localGuestCart);
           }
         }

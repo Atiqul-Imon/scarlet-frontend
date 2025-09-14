@@ -190,8 +190,7 @@ const getMobileFetchConfig = (init?: RequestInit): RequestInit => {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
+      // Remove cache control headers - let backend handle it
       // Mobile-specific headers (now allowed by backend CORS)
       ...(isMobile && {
         'X-Mobile-Request': 'true',
@@ -253,9 +252,14 @@ export async function fetchJson<T = any>(
   init?: RequestInit
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
+  
+  // Determine if this is dynamic content that should never be cached
+  const isDynamicContent = /^\/(cart|orders|auth|users|checkout|wishlist|payments|addresses|cart-abandonment)/.test(path);
+  
   const config: RequestInit = getMobileFetchConfig({
     ...init,
-    cache: 'no-store',
+    // Only set no-store for dynamic content, let backend handle others
+    ...(isDynamicContent && { cache: 'no-store' }),
   });
 
   try {

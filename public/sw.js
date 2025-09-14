@@ -12,11 +12,24 @@ const STATIC_FILES = [
   // Add other critical static files
 ];
 
-// API endpoints to cache
-const API_CACHE_PATTERNS = [
+// Dynamic API endpoints - DO NOT CACHE
+const DYNAMIC_API_PATTERNS = [
+  /\/api\/cart/,
+  /\/api\/orders/,
+  /\/api\/auth\/(?!me)/,  // Auth endpoints except /me
+  /\/api\/users/,
+  /\/api\/checkout/,
+  /\/api\/wishlist/,
+  /\/api\/payments/,
+  /\/api\/addresses/,
+  /\/api\/cart-abandonment/,
+];
+
+// Semi-static API endpoints - Cache with short TTL
+const STATIC_API_PATTERNS = [
   /\/api\/products/,
   /\/api\/categories/,
-  /\/api\/auth\/me/,
+  /\/api\/auth\/me/,  // User profile can be cached briefly
 ];
 
 // Install event - cache static files
@@ -86,8 +99,20 @@ async function handleRequest(request) {
   const url = new URL(request.url);
   
   try {
-    // Try network first for API requests
+    // Handle API requests based on type
     if (url.pathname.startsWith('/api/')) {
+      // Check if it's dynamic content - never cache
+      if (isDynamicApiRequest(request)) {
+        console.log('Dynamic API request - no caching:', url.pathname);
+        return await fetch(request);  // Always fetch fresh
+      }
+      
+      // Semi-static API - use network first with short cache
+      if (isStaticApiRequest(request)) {
+        return await networkFirstWithShortCache(request);
+      }
+      
+      // Default API behavior - network first
       return await networkFirst(request);
     }
     
@@ -105,6 +130,11 @@ async function handleRequest(request) {
     // Return offline page for navigation requests
     if (request.mode === 'navigate') {
       return caches.match('/offline');
+    }
+    
+    // For dynamic API requests, don't return cached version
+    if (url.pathname.startsWith('/api/') && isDynamicApiRequest(request)) {
+      throw error;
     }
     
     // Return cached version if available
@@ -161,6 +191,44 @@ async function cacheFirst(request) {
   }
 }
 
+// Network first with short cache (for semi-static content)
+async function networkFirstWithShortCache(request) {
+  try {
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses with short TTL
+    if (networkResponse.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      // Add timestamp to response for TTL checking
+      const responseWithTimestamp = new Response(networkResponse.body, {
+        status: networkResponse.status,
+        statusText: networkResponse.statusText,
+        headers: {
+          ...networkResponse.headers,
+          'sw-cache-timestamp': Date.now().toString(),
+          'sw-cache-ttl': '300000', // 5 minutes
+        },
+      });
+      cache.put(request, responseWithTimestamp.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    // Check if we have a cached version that's not expired
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      const timestamp = cachedResponse.headers.get('sw-cache-timestamp');
+      const ttl = parseInt(cachedResponse.headers.get('sw-cache-ttl') || '300000');
+      
+      if (timestamp && (Date.now() - parseInt(timestamp)) < ttl) {
+        return cachedResponse;
+      }
+    }
+    
+    throw error;
+  }
+}
+
 // Network first with cache fallback
 async function networkFirstWithFallback(request) {
   try {
@@ -197,6 +265,18 @@ function isStaticAsset(request) {
     url.pathname.startsWith('/static/') ||
     url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/)
   );
+}
+
+// Check if API request is dynamic (should never be cached)
+function isDynamicApiRequest(request) {
+  const url = new URL(request.url);
+  return DYNAMIC_API_PATTERNS.some(pattern => pattern.test(url.pathname));
+}
+
+// Check if API request is semi-static (can be cached briefly)
+function isStaticApiRequest(request) {
+  const url = new URL(request.url);
+  return STATIC_API_PATTERNS.some(pattern => pattern.test(url.pathname));
 }
 
 // Background sync for offline actions

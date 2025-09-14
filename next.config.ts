@@ -99,9 +99,27 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // API routes caching
+      // Dynamic API routes - NO CACHING
       {
-        source: '/api/(.*)',
+        source: '/api/(cart|orders|auth|users|checkout|wishlist|payments)(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+      // Semi-static API routes - Short cache
+      {
+        source: '/api/(products|categories)(.*)',
         headers: [
           {
             key: 'Cache-Control',
