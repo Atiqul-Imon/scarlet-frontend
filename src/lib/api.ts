@@ -765,11 +765,20 @@ export const wishlistApi = {
     return fetchJsonAuth<{ items: WishlistItem[]; total: number }>('/wishlist');
   },
 
-  // Add item to wishlist
-  addToWishlist: (productId: string): Promise<WishlistItem> => {
+  // Add item to wishlist with enhanced options for out-of-stock products
+  addToWishlist: (productId: string, options?: {
+    notifyWhenInStock?: boolean;
+    customerNotes?: string;
+    priority?: 'low' | 'medium' | 'high';
+  }): Promise<WishlistItem> => {
     return fetchJsonAuth<WishlistItem>('/wishlist', {
       method: 'POST',
-      body: JSON.stringify({ productId }),
+      body: JSON.stringify({ 
+        productId,
+        notifyWhenInStock: options?.notifyWhenInStock,
+        customerNotes: options?.customerNotes,
+        priority: options?.priority
+      }),
     });
   },
 
@@ -795,6 +804,43 @@ export const wishlistApi = {
   // Get wishlist statistics
   getWishlistStats: (): Promise<{ count: number }> => {
     return fetchJsonAuth<{ count: number }>('/wishlist/stats');
+  },
+
+  // Admin: Get out-of-stock wishlist items
+  getOutOfStockItems: (): Promise<OutOfStockWishlistItem[]> => {
+    return fetchJsonAuth<OutOfStockWishlistItem[]>('/wishlist/admin/out-of-stock');
+  },
+
+  // Admin: Get wishlist analytics
+  getWishlistAnalytics: (): Promise<WishlistAnalytics> => {
+    return fetchJsonAuth<WishlistAnalytics>('/wishlist/admin/analytics');
+  },
+
+  // Admin: Notify customers about restocked items
+  notifyCustomersAboutRestock: (productId: string, options?: {
+    message?: string;
+    estimatedRestockDate?: string;
+  }): Promise<{ notified: number; message: string }> => {
+    return fetchJsonAuth<{ notified: number; message: string }>('/wishlist/admin/notify-restock', {
+      method: 'POST',
+      body: JSON.stringify({
+        productId,
+        message: options?.message,
+        estimatedRestockDate: options?.estimatedRestockDate
+      }),
+    });
+  },
+
+  // Admin: Update wishlist item priority
+  updateWishlistItemPriority: (wishlistItemId: string, options: {
+    priority?: 'low' | 'medium' | 'high';
+    estimatedRestockDate?: string;
+    adminNotes?: string;
+  }): Promise<{ updated: boolean }> => {
+    return fetchJsonAuth<{ updated: boolean }>(`/wishlist/admin/items/${wishlistItemId}/priority`, {
+      method: 'PATCH',
+      body: JSON.stringify(options),
+    });
   },
 };
 

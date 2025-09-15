@@ -1,6 +1,6 @@
 "use client";
 import * as React from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import ProductGrid from '../../components/products/ProductGrid';
@@ -8,7 +8,7 @@ import ProductFilters from '../../components/products/ProductFilters';
 import ProductSort from '../../components/products/ProductSort';
 import { fetchJson } from '../../lib/api';
 import { Product, Category } from '../../lib/types';
-import { useCart, useToast } from '../../lib/context';
+import { useCart, useToast, useAuth } from '../../lib/context';
 
 interface FilterState {
   category?: string;
@@ -18,8 +18,10 @@ interface FilterState {
 
 function ProductsPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { addItem } = useCart();
   const { addToast } = useToast();
+  const { user } = useAuth();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -186,22 +188,43 @@ function ProductsPageContent() {
 
   const handleAddToWishlist = async (productId: string) => {
     try {
+      // Check if user is authenticated
+      if (!user) {
+        addToast({
+          type: 'error',
+          title: 'Login Required',
+          message: 'Please login or register to add items to your wishlist'
+        });
+        router.push('/login');
+        return;
+      }
+      
       const product = products.find(p => p._id === productId);
       if (!product) return;
       
-      // TODO: Implement wishlist API call
-      console.log('Adding to wishlist:', productId);
-      addToast({
-        type: 'success',
-        title: 'Added to Wishlist',
-        message: `${product.title} added to wishlist!`
-      });
+      const isOutOfStock = product.stock === 0 || product.stock === undefined;
+      
+      if (isOutOfStock) {
+        // For out-of-stock products, show info message about wishlist modal
+        addToast({
+          type: 'info',
+          title: 'Wishlist Available',
+          message: 'Click the heart icon on the product card to add to wishlist'
+        });
+      } else {
+        // For in-stock products, show message that wishlist is only for out-of-stock items
+        addToast({
+          type: 'info',
+          title: 'Wishlist Information',
+          message: 'Wishlist is only available for out-of-stock products'
+        });
+      }
     } catch (error) {
-      console.error('Error adding to wishlist:', error);
+      console.error('Error with wishlist:', error);
       addToast({
         type: 'error',
         title: 'Error',
-        message: 'Failed to add product to wishlist'
+        message: 'Failed to process wishlist request'
       });
     }
   };

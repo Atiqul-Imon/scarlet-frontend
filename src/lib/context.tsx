@@ -7,9 +7,10 @@ import {
   AppError,
   AuthUser,
   LoginFormData,
-  RegisterFormData 
+  RegisterFormData,
+  WishlistItem
 } from './types';
-import { authApi, cartApi, apiUtils } from './api';
+import { authApi, cartApi, apiUtils, wishlistApi } from './api';
 import { stringUtils } from './utils';
 
 // Toast Context
@@ -947,12 +948,200 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 // Combined App Provider
+// Wishlist Context for Out-of-Stock Products Only
+interface WishlistContextValue {
+  wishlistItems: WishlistItem[];
+  wishlistCount: number;
+  isLoading: boolean;
+  error: AppError | null;
+  addToWishlist: (productId: string, options?: {
+    notifyWhenInStock?: boolean;
+    customerNotes?: string;
+    priority?: 'low' | 'medium' | 'high';
+  }) => Promise<void>;
+  removeFromWishlist: (productId: string) => Promise<void>;
+  clearWishlist: () => Promise<void>;
+  isInWishlist: (productId: string) => boolean;
+  refreshWishlist: () => Promise<void>;
+}
+
+const WishlistContext = React.createContext<WishlistContextValue | undefined>(undefined);
+
+export const useWishlist = (): WishlistContextValue => {
+  const context = React.useContext(WishlistContext);
+  if (context === undefined) {
+    throw new Error('useWishlist must be used within a WishlistProvider');
+  }
+  return context;
+};
+
+export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  const { addToast } = useToast();
+  const [wishlistItems, setWishlistItems] = React.useState<WishlistItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<AppError | null>(null);
+
+  const wishlistCount = React.useMemo(() => wishlistItems.length, [wishlistItems]);
+
+  const refreshWishlist = React.useCallback(async (): Promise<void> => {
+    if (!isAuthenticated) {
+      setWishlistItems([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await wishlistApi.getWishlist();
+      setWishlistItems(response.items);
+    } catch (err) {
+      const appError = apiUtils.handleApiError(err);
+      setError(appError);
+      console.error('Error fetching wishlist:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  const addToWishlist = React.useCallback(async (
+    productId: string, 
+    options?: {
+      notifyWhenInStock?: boolean;
+      customerNotes?: string;
+      priority?: 'low' | 'medium' | 'high';
+    }
+  ): Promise<void> => {
+    if (!isAuthenticated) {
+      addToast({
+        type: 'error',
+        title: 'Login Required',
+        message: 'Please login or register to add items to your wishlist'
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const newItem = await wishlistApi.addToWishlist(productId, options);
+      setWishlistItems(prev => [newItem, ...prev]);
+      
+      addToast({
+        type: 'success',
+        title: 'Added to Wishlist',
+        message: 'Product added to your wishlist!'
+      });
+    } catch (err) {
+      const appError = apiUtils.handleApiError(err);
+      setError(appError);
+      addToast({
+        type: 'error',
+        title: 'Failed to Add to Wishlist',
+        message: appError.message
+      });
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, addToast]);
+
+  const removeFromWishlist = React.useCallback(async (productId: string): Promise<void> => {
+    if (!isAuthenticated) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      await wishlistApi.removeFromWishlist(productId);
+      setWishlistItems(prev => prev.filter(item => item.productId !== productId));
+      
+      addToast({
+        type: 'success',
+        title: 'Removed from Wishlist',
+        message: 'Product removed from your wishlist'
+      });
+    } catch (err) {
+      const appError = apiUtils.handleApiError(err);
+      setError(appError);
+      addToast({
+        type: 'error',
+        title: 'Failed to Remove from Wishlist',
+        message: appError.message
+      });
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, addToast]);
+
+  const clearWishlist = React.useCallback(async (): Promise<void> => {
+    if (!isAuthenticated) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      await wishlistApi.clearWishlist();
+      setWishlistItems([]);
+      
+      addToast({
+        type: 'success',
+        title: 'Wishlist Cleared',
+        message: 'All items removed from your wishlist'
+      });
+    } catch (err) {
+      const appError = apiUtils.handleApiError(err);
+      setError(appError);
+      addToast({
+        type: 'error',
+        title: 'Failed to Clear Wishlist',
+        message: appError.message
+      });
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, addToast]);
+
+  const isInWishlist = React.useCallback((productId: string): boolean => {
+    return wishlistItems.some(item => item.productId === productId);
+  }, [wishlistItems]);
+
+  // Load wishlist when user logs in
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      refreshWishlist();
+    } else {
+      setWishlistItems([]);
+    }
+  }, [isAuthenticated, refreshWishlist]);
+
+  const value: WishlistContextValue = {
+    wishlistItems,
+    wishlistCount,
+    isLoading,
+    error,
+    addToWishlist,
+    removeFromWishlist,
+    clearWishlist,
+    isInWishlist,
+    refreshWishlist,
+  };
+
+  return (
+    <WishlistContext.Provider value={value}>
+      {children}
+    </WishlistContext.Provider>
+  );
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ToastProvider>
       <AuthProvider>
         <CartProvider>
-          {children}
+          <WishlistProvider>
+            {children}
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </ToastProvider>

@@ -2,47 +2,22 @@
 import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCart } from '../../../lib/context';
+import { useCart, useWishlist } from '../../../lib/context';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
 import { formatters } from '../../../lib/utils';
 import { WishlistItem } from '../../../lib/types';
-import { wishlistApi } from '../../../lib/api';
 
 export default function WishlistPage(): JSX.Element {
   const { addItem } = useCart();
-  const [wishlistItems, setWishlistItems] = React.useState<WishlistItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const { wishlistItems, isLoading: wishlistLoading, removeFromWishlist, error: wishlistError } = useWishlist();
   const [addingToCart, setAddingToCart] = React.useState<string | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    const fetchWishlist = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await wishlistApi.getWishlist();
-        setWishlistItems(response.items);
-      } catch (error: any) {
-        console.error('Error fetching wishlist:', error);
-        setError(error.message || 'Failed to load wishlist');
-        setWishlistItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWishlist();
-  }, []);
 
   const handleRemoveFromWishlist = async (item: WishlistItem) => {
     try {
-      setError(null);
-      await wishlistApi.removeFromWishlist(item.productId);
-      setWishlistItems(prev => prev.filter(wishlistItem => wishlistItem._id !== item._id));
+      await removeFromWishlist(item.productId);
     } catch (error: any) {
       console.error('Error removing from wishlist:', error);
-      setError(error.message || 'Failed to remove item from wishlist');
     }
   };
 
@@ -104,7 +79,7 @@ export default function WishlistPage(): JSX.Element {
     return stars;
   };
 
-  if (loading) {
+  if (wishlistLoading) {
     return (
       <AccountLayout>
         <WishlistSkeleton />
@@ -116,7 +91,7 @@ export default function WishlistPage(): JSX.Element {
     <AccountLayout>
       <div className="space-y-6">
         {/* Error Display */}
-        {error && (
+        {wishlistError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -127,7 +102,7 @@ export default function WishlistPage(): JSX.Element {
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">Error</h3>
                 <div className="mt-2 text-sm text-red-700">
-                  <p>{error}</p>
+                  <p>{wishlistError.message}</p>
                 </div>
               </div>
             </div>

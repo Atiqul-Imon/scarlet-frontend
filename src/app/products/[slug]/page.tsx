@@ -6,7 +6,8 @@ import Image from 'next/image';
 import ProductGallery from '../../../components/products/ProductGallery';
 import { Button } from '../../../components/ui/button';
 import { Product } from '../../../lib/types';
-import { useAuth, useCart, useToast } from '../../../lib/context';
+import { useAuth, useCart, useToast, useWishlist } from '../../../lib/context';
+import OutOfStockWishlistModal from '../../../components/wishlist/OutOfStockWishlistModal';
 
 interface ProductVariant {
   id: string;
@@ -32,6 +33,7 @@ export default function ProductDetailPage() {
   const { user } = useAuth();
   const { addItem } = useCart();
   const { addToast } = useToast();
+  const { isInWishlist } = useWishlist();
   const slug = params['slug'] as string;
 
   const [product, setProduct] = React.useState<Product | null>(null);
@@ -40,7 +42,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = React.useState(1);
   const [selectedVariants, setSelectedVariants] = React.useState<Record<string, string>>({});
   const [isAddingToCart, setIsAddingToCart] = React.useState(false);
-  const [isWishlisted, setIsWishlisted] = React.useState(false);
+  const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('description');
   const [reviews, setReviews] = React.useState<ProductReview[]>([]);
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
@@ -186,26 +188,25 @@ export default function ProductDetailPage() {
       addToast({
         type: 'error',
         title: 'Login Required',
-        message: 'Please login to add items to wishlist'
+        message: 'Please login or register to add items to your wishlist'
       });
       router.push('/login');
       return;
     }
     
-    try {
-      setIsWishlisted(!isWishlisted);
-      // TODO: Implement wishlist API call
+    if (!product) return;
+    
+    const isOutOfStock = product.stock === 0 || product.stock === undefined;
+    
+    if (isOutOfStock) {
+      // For out-of-stock products, show the wishlist modal
+      setShowWishlistModal(true);
+    } else {
+      // For in-stock products, show message that wishlist is only for out-of-stock items
       addToast({
-        type: 'success',
-        title: isWishlisted ? 'Removed from Wishlist' : 'Added to Wishlist',
-        message: isWishlisted ? 'Item removed from wishlist' : 'Item added to wishlist'
-      });
-    } catch (error) {
-      console.error('Error updating wishlist:', error);
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to update wishlist'
+        type: 'info',
+        title: 'Wishlist Information',
+        message: 'Wishlist is only available for out-of-stock products'
       });
     }
   };
@@ -491,11 +492,30 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
               <button
                 onClick={handleWishlistToggle}
-                className="flex items-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg hover:border-pink-400 hover:bg-pink-50 transition-all duration-200 bg-white shadow-sm hover:shadow-md"
+                className={`flex items-center gap-3 px-6 py-3 border-2 rounded-lg transition-all duration-200 bg-white shadow-sm hover:shadow-md ${
+                  product && (product.stock === 0 || product.stock === undefined)
+                    ? (isInWishlist(product._id!) 
+                        ? 'border-red-300 hover:border-red-400 bg-red-50' 
+                        : 'border-gray-300 hover:border-red-400 hover:bg-red-50')
+                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 cursor-not-allowed opacity-60'
+                }`}
+                disabled={product && product.stock !== 0 && product.stock !== undefined}
+                title={product && (product.stock === 0 || product.stock === undefined) 
+                  ? (isInWishlist(product._id!) ? 'In Wishlist' : 'Add to Wishlist') 
+                  : 'Wishlist only for out-of-stock items'}
               >
-                <HeartIcon filled={isWishlisted} />
-                <span className="text-sm font-semibold text-gray-800 hover:text-pink-700">
-                  {isWishlisted ? 'Saved' : 'Save for Later'}
+                <HeartIcon filled={product && isInWishlist(product._id!)} />
+                <span className={`text-sm font-semibold ${
+                  product && (product.stock === 0 || product.stock === undefined)
+                    ? (isInWishlist(product._id!) 
+                        ? 'text-red-700' 
+                        : 'text-gray-800 hover:text-red-700')
+                    : 'text-gray-500'
+                }`}>
+                  {product && (product.stock === 0 || product.stock === undefined)
+                    ? (isInWishlist(product._id!) ? 'In Wishlist' : 'Add to Wishlist')
+                    : 'Wishlist (Out of Stock Only)'
+                  }
                 </span>
               </button>
               
@@ -667,6 +687,19 @@ export default function ProductDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Out of Stock Wishlist Modal */}
+      {product && showWishlistModal && (
+        <OutOfStockWishlistModal
+          product={product}
+          isOpen={showWishlistModal}
+          onClose={() => setShowWishlistModal(false)}
+          onSuccess={() => {
+            setShowWishlistModal(false);
+            // The wishlist context will automatically update
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -3,12 +3,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import { useAuth, useCart } from '@/lib/context';
+import { useAuth, useCart, useWishlist, useToast } from '@/lib/context';
 
 export default function TopBar() {
   const router = useRouter();
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, logout, loading: authLoading, isAuthenticated } = useAuth();
   const { cart, itemCount, loading: cartLoading } = useCart();
+  const { wishlistCount } = useWishlist();
+  const { addToast } = useToast();
   const [q, setQ] = React.useState("");
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [showMobileSearch, setShowMobileSearch] = React.useState(false);
@@ -224,6 +226,37 @@ export default function TopBar() {
                 </div>
               )}
               
+              {/* Wishlist */}
+              {isAuthenticated ? (
+                <Link href="/account/wishlist" className="hover:text-red-500 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Wishlist">
+                  <div className="relative">
+                    <HeartIcon />
+                    {isClient && wishlistCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                        {wishlistCount > 99 ? '99+' : wishlistCount}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ) : (
+                <button 
+                  onClick={() => {
+                    addToast({
+                      type: 'error',
+                      title: 'Login Required',
+                      message: 'Please login or register to view your wishlist'
+                    });
+                    router.push('/login');
+                  }}
+                  className="hover:text-red-500 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" 
+                  aria-label="Wishlist (Login Required)"
+                >
+                  <div className="relative">
+                    <HeartIcon />
+                  </div>
+                </button>
+              )}
+
               {/* Cart */}
               <Link href="/cart" className="hover:text-pink-600 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Cart">
                 <div className="relative">

@@ -1,8 +1,9 @@
 "use client";
 import * as React from 'react';
 import Link from 'next/link';
-import { useCart, useToast } from '../../lib/context';
+import { useCart, useToast, useWishlist, useAuth } from '../../lib/context';
 import type { Product } from '../../lib/types';
+import OutOfStockWishlistModal from '../wishlist/OutOfStockWishlistModal';
 
 interface EnhancedProductCardProps {
   product: Product;
@@ -15,9 +16,12 @@ export default function EnhancedProductCard({
 }: EnhancedProductCardProps) {
   const { addItem } = useCart();
   const { addToast } = useToast();
+  const { isInWishlist, isLoading: wishlistLoading } = useWishlist();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
   const [isNavigating, setIsNavigating] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
+  const [showWishlistModal, setShowWishlistModal] = React.useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -49,6 +53,35 @@ export default function EnhancedProductCard({
     e.stopPropagation();
     // TODO: Implement quick view modal
     console.log('Quick view:', product.title);
+  };
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if user is authenticated
+    if (!user) {
+      addToast({
+        type: 'error',
+        title: 'Login Required',
+        message: 'Please login or register to add items to your wishlist'
+      });
+      // Redirect to login page
+      window.location.href = '/login';
+      return;
+    }
+    
+    if (isOutOfStock) {
+      // For out-of-stock products, show the wishlist modal
+      setShowWishlistModal(true);
+    } else {
+      // For in-stock products, show message that wishlist is only for out-of-stock items
+      addToast({
+        type: 'info',
+        title: 'Wishlist Information',
+        message: 'Wishlist is only available for out-of-stock products'
+      });
+    }
   };
 
   const handleNavigation = () => {
@@ -129,15 +162,18 @@ export default function EnhancedProductCard({
                 <EyeIcon />
               </button>
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // TODO: Add to wishlist
-                }}
-                className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 transition-colors duration-200 shadow-sm"
-                title="Add to Wishlist"
+                onClick={handleWishlistToggle}
+                disabled={wishlistLoading}
+                className={`w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center transition-colors duration-200 shadow-sm ${
+                  isOutOfStock 
+                    ? (isInWishlist(product._id!) 
+                        ? 'text-red-500 hover:text-red-600' 
+                        : 'text-gray-600 hover:text-red-500')
+                    : 'text-gray-400 cursor-not-allowed'
+                }`}
+                title={isOutOfStock ? (isInWishlist(product._id!) ? 'In Wishlist' : 'Add to Wishlist') : 'Wishlist only for out-of-stock items'}
               >
-                <HeartIcon />
+                <HeartIcon filled={isOutOfStock && isInWishlist(product._id!)} />
               </button>
             </div>
           )}
@@ -217,6 +253,19 @@ export default function EnhancedProductCard({
           </div>
         </div>
       </Link>
+
+      {/* Out of Stock Wishlist Modal */}
+      {showWishlistModal && (
+        <OutOfStockWishlistModal
+          product={product}
+          isOpen={showWishlistModal}
+          onClose={() => setShowWishlistModal(false)}
+          onSuccess={() => {
+            setShowWishlistModal(false);
+            // The wishlist context will automatically update
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -231,9 +280,9 @@ function EyeIcon() {
   );
 }
 
-function HeartIcon() {
+function HeartIcon({ filled = false }: { filled?: boolean }) {
   return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-4 h-4" fill={filled ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
     </svg>
   );
