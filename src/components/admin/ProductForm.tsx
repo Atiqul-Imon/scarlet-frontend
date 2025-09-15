@@ -180,9 +180,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
       const [parent, child] = field.split('.');
       setFormData(prev => ({
         ...prev,
-        [parent]: {
-          ...prev[parent as keyof ProductFormData],
-          [child]: value
+        [parent as string]: {
+          ...(prev[parent as keyof ProductFormData] as any),
+          [child as string]: value
         }
       }));
     } else {
@@ -260,16 +260,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
   };
 
   const handleImageUpload = useCallback(async (file: File) => {
-    if (!validateImageFile(file)) {
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
       addToast({
         type: 'error',
         title: 'Invalid image',
-        message: 'Please select a valid image file (JPG, PNG, WebP) under 5MB.'
+        message: validation.error || 'Please select a valid image file (JPG, PNG, WebP) under 5MB.'
       });
       return;
     }
 
-    if (!getImageKitStatus().isConfigured) {
+    if (!getImageKitStatus().configured) {
       addToast({
         type: 'error',
         title: 'ImageKit Not Configured',
@@ -281,12 +282,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     setIsUploading(true);
     try {
       const result = await uploadImage(file, formData.slug || 'temp');
-      setImages(prev => [...prev, result.url]);
-      addToast({
-        type: 'success',
-        title: 'Image uploaded',
-        message: 'Image uploaded successfully!'
-      });
+      if (result.success && result.url) {
+        setImages(prev => [...prev, result.url!]);
+        addToast({
+          type: 'success',
+          title: 'Image uploaded',
+          message: 'Image uploaded successfully!'
+        });
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
     } catch (error) {
       console.error('Image upload failed:', error);
       addToast({
@@ -314,7 +319,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     setIsDragOver(false);
     
     const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
+    if (files.length > 0 && files[0]) {
       handleImageUpload(files[0]);
     }
   };
@@ -625,7 +630,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             accept="image/*"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) handleImageUpload(file);
+              if (file) {
+                handleImageUpload(file);
+              }
             }}
             className="hidden"
             id="image-upload"
@@ -715,7 +722,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
           <h2 className="text-lg font-medium text-gray-900">Product Variants</h2>
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={addVariant}
           >
             Add Variant
@@ -795,7 +802,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
       <div className="flex items-center justify-end space-x-4">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={() => router.back()}
         >
           Cancel

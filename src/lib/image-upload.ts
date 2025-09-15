@@ -9,6 +9,7 @@ export interface UploadResult {
     type: string;
     path: string;
   };
+  url?: string;
   error?: string;
 }
 
@@ -37,7 +38,8 @@ export async function uploadImage(file: File, productSlug?: string): Promise<Upl
 
     return {
       success: true,
-      data: result.data
+      data: result.data,
+      url: result.data.url
     };
   } catch (error) {
     console.error('Upload error:', error);
