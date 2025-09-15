@@ -276,6 +276,8 @@ export default function CartPage() {
     setShowOTPVerification(false);
     setVerifiedPhone(null);
     setReceivedOTP(null);
+    // Clear verified phone from sessionStorage
+    sessionStorage.removeItem('scarlet_verified_guest_phone');
   };
 
   // Mobile-specific cart refresh mechanism
@@ -546,7 +548,7 @@ export default function CartPage() {
             purpose="guest_checkout"
             onVerified={handleOTPVerified}
             onCancel={handleOTPCancel}
-            initialOTP={receivedOTP}
+            initialOTP={receivedOTP || undefined}
           />
         </div>
       )}

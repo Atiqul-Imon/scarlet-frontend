@@ -53,6 +53,7 @@ export default function CheckoutPage() {
   
   // Check for verified guest phone from URL params or session
   const [verifiedGuestPhone, setVerifiedGuestPhone] = React.useState<string | null>(null);
+  const [isGuestPhoneVerified, setIsGuestPhoneVerified] = React.useState(false);
   const [orderPlaced, setOrderPlaced] = React.useState(false);
   
   const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
@@ -68,12 +69,22 @@ export default function CheckoutPage() {
       const phone = urlParams.get('verifiedPhone');
       if (phone) {
         setVerifiedGuestPhone(phone);
+        setIsGuestPhoneVerified(true);
+        // Store in sessionStorage for persistence
+        sessionStorage.setItem('scarlet_verified_guest_phone', phone);
+      } else {
+        // Check sessionStorage as fallback
+        const storedPhone = sessionStorage.getItem('scarlet_verified_guest_phone');
+        if (storedPhone) {
+          setVerifiedGuestPhone(storedPhone);
+          setIsGuestPhoneVerified(true);
+        }
       }
     }
   }, [user]);
 
   // Form handling
-  const { values, errors, handleChange, handleSubmit, isValid } = useForm<CheckoutFormData>({
+  const { values, errors, handleChange, handleSubmit, isValid, setFieldValue } = useForm<CheckoutFormData>({
     initialValues: {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
@@ -135,6 +146,25 @@ export default function CheckoutPage() {
       // This will be handled by handlePlaceOrder
     },
   });
+
+  // Update form phone when verified guest phone is set
+  React.useEffect(() => {
+    if (!user && verifiedGuestPhone && isGuestPhoneVerified) {
+      setFieldValue('phone', verifiedGuestPhone);
+    }
+  }, [verifiedGuestPhone, isGuestPhoneVerified, user, setFieldValue]);
+
+  // Clear verified phone from sessionStorage when order is placed or user leaves
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (orderPlaced) {
+        sessionStorage.removeItem('scarlet_verified_guest_phone');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [orderPlaced]);
 
   // Fetch cart data and enrich with product details
   React.useEffect(() => {
@@ -293,6 +323,9 @@ export default function CheckoutPage() {
       // Set order placed flag before clearing cart
       setOrderPlaced(true);
       
+      // Clear verified phone from sessionStorage
+      sessionStorage.removeItem('scarlet_verified_guest_phone');
+      
       // Clear the cart first, then redirect
       try {
         await clearCart();
@@ -443,18 +476,28 @@ export default function CheckoutPage() {
                       error={errors.email}
                       placeholder="Email (optional)"
                     />
-                    <Input
-                      label="Phone Number *"
-                      name="phone"
-                      type="tel"
-                      value={values.phone}
-                      onChange={handleChange}
-                      error={errors.phone}
-                      placeholder="01XXXXXXXXX"
-                      required
-                      readOnly={!user && verifiedGuestPhone ? true : false}
-                      className={!user && verifiedGuestPhone ? "bg-gray-50 cursor-not-allowed" : ""}
-                    />
+                    <div>
+                      <Input
+                        label="Phone Number *"
+                        name="phone"
+                        type="tel"
+                        value={values.phone}
+                        onChange={handleChange}
+                        error={errors.phone}
+                        placeholder="01XXXXXXXXX"
+                        required
+                        readOnly={!user && isGuestPhoneVerified}
+                        className={!user && isGuestPhoneVerified ? "bg-gray-50 cursor-not-allowed" : ""}
+                      />
+                      {!user && isGuestPhoneVerified && (
+                        <div className="mt-2 flex items-center text-sm text-green-600">
+                          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span>Phone number verified via OTP</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mb-4">
