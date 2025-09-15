@@ -258,7 +258,7 @@ export default function AccountDashboard(): JSX.Element {
                 </div>
               </Link>
               
-              <Link href="/account/wishlist" className="block">
+              <Link href="/wishlist" className="block">
                 <div className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
                   <HeartIcon className="w-5 h-5 text-gray-400 mr-3" />
                   <span className="text-gray-700">View Wishlist</span>

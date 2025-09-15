@@ -189,7 +189,7 @@ export default function TopBar() {
                       </Link>
                       
                       <Link
-                        href="/account/wishlist"
+                        href="/wishlist"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -228,7 +228,7 @@ export default function TopBar() {
               
               {/* Wishlist */}
               {isAuthenticated ? (
-                <Link href="/account/wishlist" className="hover:text-red-500 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Wishlist">
+                <Link href="/wishlist" className="hover:text-red-500 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Wishlist">
                   <div className="relative">
                     <HeartIcon />
                     {isClient && wishlistCount > 0 && (

@@ -32,7 +32,7 @@ const accountNavItems: NavigationItem[] = [
   },
   {
     label: 'Wishlist',
-    href: '/account/wishlist',
+    href: '/wishlist',
     icon: HeartIcon,
   },
   {
