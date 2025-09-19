@@ -6,8 +6,12 @@ interface BannerSlide {
   id: number;
   title: string;
   backgroundImage: {
-    desktop: string;
-    mobile: string;
+    mobileSmall: string;    // 320x200px
+    mobileLarge: string;    // 480x300px
+    tabletSmall: string;    // 768x400px
+    tabletLarge: string;    // 1024x500px
+    desktopSmall: string;   // 1200x600px
+    desktopLarge: string;   // 1920x800px
   };
 }
 
@@ -16,8 +20,12 @@ const bannerSlides: BannerSlide[] = [
     id: 1,
     title: "Beauty Collection",
     backgroundImage: {
-      desktop: "/images/hero/hero-1-1920x800.webp",
-      mobile: "/images/hero/hero-1-mobile-768x400.webp"
+      mobileSmall: "/images/hero/newhero01mobile.webp",        // 320x200px
+      mobileLarge: "/images/hero/newhero01mobile.webp",        // 480x300px
+      tabletSmall: "/images/hero/newhero01tablet1200_500.webp", // 768x400px
+      tabletLarge: "/images/hero/newhero01tablet1200_500.webp", // 1024x500px
+      desktopSmall: "/images/hero/newhero01dekstop.webp",      // 1200x600px
+      desktopLarge: "/images/hero/newhero01dekstop.webp"       // 1920x800px
     }
   }
 ];
@@ -121,7 +129,7 @@ export default function Hero() {
       <div className="container-herlan">
         {/* Main Banner Carousel */}
         <div 
-          className="relative h-[30vh] md:h-[35vh] overflow-hidden rounded-xl cursor-grab active:cursor-grabbing select-none"
+          className="relative min-h-[200px] sm:min-h-[250px] md:min-h-[300px] lg:min-h-[350px] xl:min-h-[400px] 2xl:min-h-[450px] overflow-hidden rounded-xl cursor-grab active:cursor-grabbing select-none"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -138,28 +146,100 @@ export default function Hero() {
               }`}
             >
               <div className="w-full h-full relative rounded-xl overflow-hidden">
-                {/* Responsive Background Image */}
-                <Image
-                  src={slide.backgroundImage.desktop}
-                  alt={slide.title}
-                  fill
-                  priority={index === 0}
-                  className="object-cover"
-                  sizes="(max-width: 768px) 768px, 1920px"
-                  quality={85}
-                />
+                {/* Desktop Large Image - 1440px+ */}
+                <div className="hidden 2xl:block absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image
+                      src={slide.backgroundImage.desktopLarge}
+                      alt={slide.title}
+                      width={1920}
+                      height={800}
+                      priority={index === 0}
+                      className="max-w-full max-h-full object-contain rounded-xl"
+                      sizes="(min-width: 1440px) 1920px"
+                      quality={85}
+                    />
+                  </div>
+                </div>
                 
-                {/* Mobile Image Overlay */}
-                <div className="md:hidden absolute inset-0">
-                  <Image
-                    src={slide.backgroundImage.mobile}
-                    alt={slide.title}
-                    fill
-                    priority={index === 0}
-                    className="object-cover"
-                    sizes="768px"
-                    quality={85}
-                  />
+                {/* Desktop Small Image - 1200px-1439px */}
+                <div className="hidden xl:block 2xl:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image
+                      src={slide.backgroundImage.desktopSmall}
+                      alt={slide.title}
+                      width={1200}
+                      height={600}
+                      priority={index === 0}
+                      className="max-w-full max-h-full object-contain rounded-xl"
+                      sizes="(min-width: 1200px) and (max-width: 1439px) 1200px"
+                      quality={85}
+                    />
+                  </div>
+                </div>
+                
+                {/* Tablet Large Image - 1024px-1199px */}
+                <div className="hidden lg:block xl:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image
+                      src={slide.backgroundImage.tabletLarge}
+                      alt={slide.title}
+                      width={1024}
+                      height={500}
+                      priority={index === 0}
+                      className="max-w-full max-h-full object-contain rounded-xl"
+                      sizes="(min-width: 1024px) and (max-width: 1199px) 1024px"
+                      quality={85}
+                    />
+                  </div>
+                </div>
+                
+                {/* Tablet Small Image - 768px-1023px */}
+                <div className="hidden md:block lg:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image
+                      src={slide.backgroundImage.tabletSmall}
+                      alt={slide.title}
+                      width={768}
+                      height={400}
+                      priority={index === 0}
+                      className="max-w-full max-h-full object-contain rounded-xl"
+                      sizes="(min-width: 768px) and (max-width: 1023px) 768px"
+                      quality={85}
+                    />
+                  </div>
+                </div>
+                
+                {/* Mobile Large Image - 480px-767px */}
+                <div className="hidden sm:block md:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image
+                      src={slide.backgroundImage.mobileLarge}
+                      alt={slide.title}
+                      width={480}
+                      height={300}
+                      priority={index === 0}
+                      className="max-w-full max-h-full object-contain rounded-xl"
+                      sizes="(min-width: 480px) and (max-width: 767px) 480px"
+                      quality={85}
+                    />
+                  </div>
+                </div>
+                
+                {/* Mobile Small Image - 320px-479px */}
+                <div className="sm:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image
+                      src={slide.backgroundImage.mobileSmall}
+                      alt={slide.title}
+                      width={320}
+                      height={200}
+                      priority={index === 0}
+                      className="max-w-full max-h-full object-contain rounded-xl"
+                      sizes="(max-width: 479px) 320px"
+                      quality={85}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
