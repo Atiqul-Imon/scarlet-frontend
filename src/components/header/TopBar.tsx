@@ -140,13 +140,6 @@ export default function TopBar() {
               >
                 <SearchIcon />
               </button>
-
-              {/* Wishlist */}
-              <Link href="/wishlist" className="hover:text-pink-600 inline-flex items-center justify-center transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Wishlist">
-                <div className="relative">
-                  <HeartIcon />
-                </div>
-              </Link>
               
               {/* User Account - Show loading state or content */}
               {!isClient || authLoading ? (
