@@ -7,6 +7,7 @@ import { AppProvider } from "../lib/context";
 import ChatManager from "../components/chat/ChatManager";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 import MobileCartDebug from "../components/debug/MobileCartDebug";
+import StickyCartButton from "../components/cart/StickyCartButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,8 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
+              {/* Sticky Cart Button */}
+              <StickyCartButton />
               {/* Chat System */}
               <ChatManager />
               {/* Mobile Cart Debug (Development Only) */}

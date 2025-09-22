@@ -504,12 +504,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cart]);
 
   const totalPrice = React.useMemo(() => {
-    // Mock calculation - would need product prices from populated cart
-    return cart?.items.reduce((total, item) => {
-      // Mock price calculation
-      const mockPrice = 29.99;
-      return total + (mockPrice * item.quantity);
-    }, 0) || 0;
+    // Calculate real total price from cart items with product data
+    if (!cart?.items || !Array.isArray(cart.items)) {
+      return 0;
+    }
+    
+    return cart.items.reduce((total, item) => {
+      // Use product price if available, otherwise fallback to 0
+      const price = item.product?.price?.amount || 0;
+      return total + (price * item.quantity);
+    }, 0);
   }, [cart]);
 
   const executeCartOperation = React.useCallback(async <T,>(
