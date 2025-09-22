@@ -8,6 +8,7 @@ import ChatManager from "../components/chat/ChatManager";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 import MobileCartDebug from "../components/debug/MobileCartDebug";
 import StickyCartButton from "../components/cart/StickyCartButton";
+import FloatingMessageButton from "../components/contact/FloatingMessageButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,8 @@ export default function RootLayout({
               <Footer />
               {/* Sticky Cart Button */}
               <StickyCartButton />
+              {/* Floating Message Button */}
+              <FloatingMessageButton />
               {/* Chat System */}
               <ChatManager />
               {/* Mobile Cart Debug (Development Only) */}
