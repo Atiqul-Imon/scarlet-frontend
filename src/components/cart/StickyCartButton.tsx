@@ -168,8 +168,13 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
   const realTotalPrice = calculateTotalPrice();
 
   if (!cart || itemCount === 0) {
+    // Don't show on mobile
+    if (isMobile) {
+      return null;
+    }
+    
     return (
-      <div className={`fixed ${isMobile ? 'right-4 top-1/2 transform -translate-y-1/2' : 'right-4 top-1/2 transform -translate-y-1/2'} z-50 ${className}`}>
+      <div className={`fixed right-4 top-1/2 transform -translate-y-1/2 z-50 ${className}`}>
         <Link
           href="/cart"
           className="group relative bg-pink-600 hover:bg-pink-700 text-white px-4 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center space-x-3 min-w-[120px] border border-pink-500"
@@ -188,8 +193,13 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
     );
   }
 
+  // Don't show on mobile
+  if (isMobile) {
+    return null;
+  }
+
   return (
-    <div className={`fixed ${isMobile ? 'right-4 top-1/2 transform -translate-y-1/2' : 'right-4 top-1/2 transform -translate-y-1/2'} z-50 ${className}`}>
+    <div className={`fixed right-4 top-1/2 transform -translate-y-1/2 z-50 ${className}`}>
       {/* Main Cart Button */}
       <div className="relative">
         <button
