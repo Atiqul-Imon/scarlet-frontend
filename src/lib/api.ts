@@ -16,7 +16,11 @@ import {
   AppError,
   Address,
   CreateAddressData,
-  WishlistItem
+  WishlistItem,
+  BlogPost,
+  BlogCategory,
+  BlogQuery,
+  BlogStats
 } from './types';
 
 // OTP Types
@@ -1432,6 +1436,103 @@ export const otpApi = {
   checkOTPStatus: (phone: string, sessionId: string, purpose: string): Promise<OTPStatus> => {
     const params = new URLSearchParams({ phone, sessionId, purpose });
     return fetchJson(`/otp/status?${params.toString()}`);
+  }
+};
+
+// Blog API
+export const blogApi = {
+  // Get blog posts
+  getPosts: (query: BlogQuery = {}): Promise<BlogPost[]> => {
+    const searchParams = new URLSearchParams();
+    
+    if (query.page) searchParams.append('page', query.page.toString());
+    if (query.limit) searchParams.append('limit', query.limit.toString());
+    if (query.category) searchParams.append('category', query.category);
+    if (query.tag) searchParams.append('tag', query.tag);
+    if (query.search) searchParams.append('search', query.search);
+    if (query.status) searchParams.append('status', query.status);
+    if (query.featured !== undefined) searchParams.append('featured', query.featured.toString());
+    if (query.sortBy) searchParams.append('sortBy', query.sortBy);
+    
+    const queryString = searchParams.toString();
+    return fetchJson(`/blog/posts${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get blog post by slug
+  getPostBySlug: (slug: string): Promise<BlogPost> => {
+    return fetchJson(`/blog/posts/slug/${slug}`);
+  },
+
+  // Get blog post by ID (admin)
+  getPostById: (id: string): Promise<BlogPost> => {
+    return fetchJsonAuth(`/blog/posts/${id}`);
+  },
+
+  // Create blog post (admin)
+  createPost: (postData: Partial<BlogPost>): Promise<BlogPost> => {
+    return fetchJsonAuth('/blog/posts', {
+      method: 'POST',
+      body: JSON.stringify(postData)
+    });
+  },
+
+  // Update blog post (admin)
+  updatePost: (id: string, postData: Partial<BlogPost>): Promise<BlogPost> => {
+    return fetchJsonAuth(`/blog/posts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(postData)
+    });
+  },
+
+  // Delete blog post (admin)
+  deletePost: (id: string): Promise<{ success: boolean }> => {
+    return fetchJsonAuth(`/blog/posts/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
+  // Search blog posts
+  searchPosts: (query: string, page = 1, limit = 10): Promise<BlogPost[]> => {
+    const searchParams = new URLSearchParams({ q: query, page: page.toString(), limit: limit.toString() });
+    return fetchJson(`/blog/posts/search?${searchParams.toString()}`);
+  },
+
+  // Get related blog posts
+  getRelatedPosts: (slug: string, limit = 5): Promise<BlogPost[]> => {
+    return fetchJson(`/blog/posts/${slug}/related?limit=${limit}`);
+  },
+
+  // Get blog categories
+  getCategories: (): Promise<BlogCategory[]> => {
+    return fetchJson('/blog/categories');
+  },
+
+  // Create blog category (admin)
+  createCategory: (categoryData: Partial<BlogCategory>): Promise<BlogCategory> => {
+    return fetchJsonAuth('/blog/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData)
+    });
+  },
+
+  // Update blog category (admin)
+  updateCategory: (categoryId: string, categoryData: Partial<BlogCategory>): Promise<BlogCategory> => {
+    return fetchJsonAuth(`/blog/categories/${categoryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData)
+    });
+  },
+
+  // Delete blog category (admin)
+  deleteCategory: (categoryId: string): Promise<{ success: boolean }> => {
+    return fetchJsonAuth(`/blog/categories/${categoryId}`, {
+      method: 'DELETE'
+    });
+  },
+
+  // Get blog stats
+  getStats: (): Promise<BlogStats> => {
+    return fetchJson('/blog/stats');
   }
 };
 

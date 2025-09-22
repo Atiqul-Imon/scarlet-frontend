@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import TopStrip from './TopStrip';
 import TopBar from './TopBar';
 import { MegaMenu } from './MegaMenu';
 import MobileHeader from './mobile/MobileHeader';
@@ -86,6 +87,9 @@ export default function Header() {
       
       {/* Desktop Header */}
       <div className="hidden lg:block sticky top-0 z-[9999] bg-white border-b border-gray-200 w-full">
+        {/* Top Strip */}
+        <TopStrip />
+        
         {/* Top Bar */}
         <div className="w-full">
           <TopBar />

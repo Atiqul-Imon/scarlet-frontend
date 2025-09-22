@@ -33,6 +33,75 @@ export interface CategoryHierarchy {
   maxLevel: number;
 }
 
+// Blog Types
+export interface BlogAuthor {
+  name?: string;
+  email?: string;
+  avatar?: string;
+  bio?: string;
+  socialLinks?: {
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
+}
+
+export interface BlogCategory {
+  _id?: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BlogPost extends Partial<BaseEntity> {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  featuredImage?: string;
+  author: BlogAuthor;
+  categories: string[]; // Array of category IDs
+  tags: string[];
+  status: 'draft' | 'published' | 'archived';
+  publishedAt?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords: string[];
+  readingTime: number; // in minutes
+  viewCount: number;
+  isFeatured?: boolean;
+  isPinned?: boolean;
+}
+
+export interface BlogQuery {
+  page?: number;
+  limit?: number;
+  category?: string;
+  tag?: string;
+  search?: string;
+  status?: 'draft' | 'published' | 'archived';
+  featured?: boolean;
+  sortBy?: 'newest' | 'oldest' | 'popular' | 'title';
+}
+
+export interface BlogStats {
+  totalPosts: number;
+  publishedPosts: number;
+  draftPosts: number;
+  totalViews: number;
+  totalCategories: number;
+  mostPopularPost?: {
+    title: string;
+    slug: string;
+    viewCount: number;
+  };
+  recentPosts: BlogPost[];
+}
+
 export interface ProductPrice {
   currency: string;
   amount: number;

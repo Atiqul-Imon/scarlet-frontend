@@ -5,7 +5,7 @@ import { productApi } from '../../lib/api';
 import type { Product } from '../../lib/types';
 import EnhancedProductCard from './EnhancedProductCard';
 import { SectionContainer, ResponsiveFlex, ProductGrid } from '../layout';
-import { TouchCard, TouchProductCard } from '../ui';
+import { TouchCard } from '../ui';
 
 interface ProductShowcaseProps {
   title: string;
@@ -80,11 +80,11 @@ export default function ProductShowcase({
 
   return (
     <section className="bg-gray-50">
-      <SectionContainer>
+      <div className="container-herlan py-12 sm:py-16 lg:py-20">
         {/* Section Header */}
         <ResponsiveFlex
           direction={{ default: 'col', sm: 'row' }}
-          align={{ default: 'start', sm: 'center' }}
+          align="center"
           justify="between"
           gap="md"
           className="mb-12"
@@ -136,7 +136,7 @@ export default function ProductShowcase({
             </svg>
           </Link>
         </div>
-      </SectionContainer>
+      </div>
     </section>
   );
 }

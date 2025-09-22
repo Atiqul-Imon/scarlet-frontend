@@ -219,6 +219,7 @@ export default function TopBar() {
                 </div>
               )}
               
+
               {/* Wishlist */}
               {isAuthenticated ? (
                 <Link href="/wishlist" className="hover:text-red-500 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Wishlist">

@@ -49,7 +49,7 @@ export default function Home() {
       
       {/* Newsletter Signup */}
       <section className="bg-gradient-to-r from-pink-50 to-purple-50">
-        <SectionContainer>
+        <div className="container-herlan py-12 sm:py-16 lg:py-20">
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="responsive-heading text-gray-900 mb-4">
               Stay Beautiful with Scarlet
@@ -74,7 +74,7 @@ export default function Home() {
               </button>
             </ResponsiveFlex>
           </div>
-        </SectionContainer>
+        </div>
       </section>
     </div>
   );

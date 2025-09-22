@@ -55,6 +55,29 @@ const navigationItems: AdminNavItem[] = [
     icon: DocumentTextIcon,
   },
   {
+    id: 'blog',
+    label: 'Blog Management',
+    href: '/admin/blog',
+    icon: DocumentTextIcon,
+    children: [
+      {
+        id: 'blog-dashboard',
+        label: 'Dashboard',
+        href: '/admin/blog',
+      },
+      {
+        id: 'blog-posts',
+        label: 'All Posts',
+        href: '/admin/blog/posts',
+      },
+      {
+        id: 'blog-categories',
+        label: 'Categories',
+        href: '/admin/blog/categories',
+      },
+    ],
+  },
+  {
     id: 'debug-cart',
     label: 'Debug Cart',
     href: '/admin/debug-cart',

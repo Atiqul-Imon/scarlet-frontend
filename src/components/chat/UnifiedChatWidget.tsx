@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface UnifiedChatWidgetProps {
@@ -8,8 +9,12 @@ interface UnifiedChatWidgetProps {
 }
 
 export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetProps) {
+  const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Hide on admin pages
+  const isAdminPage = pathname?.startsWith('/admin');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -61,6 +66,11 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
     window.open(facebookUrl, '_blank');
     setIsExpanded(false);
   };
+
+  // Hide on admin pages
+  if (isAdminPage) {
+    return null;
+  }
 
   return (
     <div className={`fixed ${isMobile ? 'right-4 bottom-20' : 'right-4 bottom-6'} z-50 ${className}`} style={{ zIndex: 50 }} data-chat-widget>

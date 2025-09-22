@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   ShoppingCartIcon, 
   XMarkIcon,
@@ -21,7 +22,11 @@ interface StickyCartButtonProps {
 export default function StickyCartButton({ className = '' }: StickyCartButtonProps) {
   const { cart, addItem, updateItem, removeItem, itemCount, totalPrice, loading } = useCart();
   const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Hide on admin pages
+  const isAdminPage = pathname?.startsWith('/admin');
   const [isAnimating, setIsAnimating] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
@@ -195,6 +200,11 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
 
   // Don't show on mobile
   if (isMobile) {
+    return null;
+  }
+
+  // Hide on admin pages
+  if (isAdminPage) {
     return null;
   }
 
