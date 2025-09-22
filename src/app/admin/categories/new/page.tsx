@@ -1,13 +1,16 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/context';
 import { categoryApi } from '@/lib/api';
+import { CategoryTree as CategoryTreeType, Category } from '@/lib/types';
 
 const categoryIcons = [
   '💇‍♀️', '🧪', '💧', '🧼', '🌊', '✨', '☀️', '💄', '🌿', 
@@ -16,8 +19,12 @@ const categoryIcons = [
 
 export default function NewCategoryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [loadingHierarchy, setLoadingHierarchy] = useState(true);
+  const [hierarchy, setHierarchy] = useState<CategoryTreeType[]>([]);
+  const [showParentSelector, setShowParentSelector] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -25,9 +32,54 @@ export default function NewCategoryPage() {
     icon: '🌟',
     isActive: true,
     showInHomepage: false,
-    sortOrder: 0
+    sortOrder: 0,
+    parentId: null as string | null
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedParent, setSelectedParent] = useState<Category | null>(null);
+
+  // Get parent ID from URL params
+  const parentIdFromUrl = searchParams.get('parent');
+
+  useEffect(() => {
+    loadHierarchy();
+  }, []);
+
+  useEffect(() => {
+    if (parentIdFromUrl) {
+      setFormData(prev => ({ ...prev, parentId: parentIdFromUrl }));
+      // Load parent category details
+      loadParentCategory(parentIdFromUrl);
+    }
+  }, [parentIdFromUrl]);
+
+  const loadHierarchy = async () => {
+    try {
+      setLoadingHierarchy(true);
+      const hierarchyData = await categoryApi.getCategoryTree();
+      setHierarchy(hierarchyData);
+    } catch (error) {
+      console.error('Error loading category hierarchy:', error);
+      addToast({
+        type: 'error',
+        title: 'Failed to load categories',
+        message: 'Could not load category hierarchy for parent selection.'
+      });
+    } finally {
+      setLoadingHierarchy(false);
+    }
+  };
+
+  const loadParentCategory = async (parentId: string) => {
+    try {
+      const parentCategory = await categoryApi.getCategoryAncestors(parentId);
+      if (parentCategory.length > 0) {
+        setSelectedParent(parentCategory[parentCategory.length - 1]);
+      }
+    } catch (error) {
+      console.error('Error loading parent category:', error);
+    }
+  };
 
   const generateSlug = (name: string) => {
     return name
@@ -53,6 +105,17 @@ export default function NewCategoryPage() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+  };
+
+  const handleParentSelect = (category: Category) => {
+    setSelectedParent(category);
+    setFormData(prev => ({ ...prev, parentId: category._id! }));
+    setShowParentSelector(false);
+  };
+
+  const handleRemoveParent = () => {
+    setSelectedParent(null);
+    setFormData(prev => ({ ...prev, parentId: null }));
   };
 
   const validateForm = () => {
@@ -188,6 +251,86 @@ export default function NewCategoryPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
                   placeholder="Enter category description"
                 />
+              </div>
+
+              {/* Parent Category Selection */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Parent Category
+                </label>
+                <div className="space-y-3">
+                  {selectedParent ? (
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-lg">{selectedParent.icon || '🌟'}</span>
+                        <div>
+                          <h4 className="font-medium text-green-900">{selectedParent.name}</h4>
+                          <p className="text-sm text-green-700">
+                            Level {selectedParent.level || 0} • {selectedParent.path || 'Root'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveParent}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                      <p className="text-sm">No parent category selected</p>
+                      <p className="text-xs text-gray-400 mt-1">This will be a root category</p>
+                    </div>
+                  )}
+                  
+                  <button
+                    type="button"
+                    onClick={() => setShowParentSelector(!showParentSelector)}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      {selectedParent ? 'Change Parent' : 'Select Parent Category'}
+                    </span>
+                    {showParentSelector ? (
+                      <ChevronUpIcon className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+                    )}
+                  </button>
+                  
+                  {showParentSelector && (
+                    <div className="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+                      {loadingHierarchy ? (
+                        <div className="p-4 text-center text-gray-500">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-pink-600 mx-auto"></div>
+                          <p className="mt-2 text-sm">Loading categories...</p>
+                        </div>
+                      ) : (
+                        <div className="p-2">
+                          <div className="space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => handleParentSelect({ _id: null, name: 'Root Category', slug: '', level: -1 } as Category)}
+                              className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm text-gray-700"
+                            >
+                              🌟 Root Category (No Parent)
+                            </button>
+                            {hierarchy.map((category) => (
+                              <CategoryTreeItem
+                                key={category._id}
+                                category={category}
+                                onSelect={handleParentSelect}
+                                level={0}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -342,3 +485,67 @@ export default function NewCategoryPage() {
     </div>
   );
 }
+
+// Helper component for category tree items in parent selector
+interface CategoryTreeItemProps {
+  category: CategoryTreeType;
+  onSelect: (category: Category) => void;
+  level: number;
+}
+
+const CategoryTreeItem: React.FC<CategoryTreeItemProps> = ({ category, onSelect, level }) => {
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = category.children && category.children.length > 0;
+
+  const handleClick = () => {
+    onSelect(category);
+  };
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={handleClick}
+        className={`w-full text-left p-2 hover:bg-gray-50 rounded text-sm text-gray-700 flex items-center space-x-2 ${
+          level > 0 ? `ml-${level * 4}` : ''
+        }`}
+      >
+        {hasChildren && (
+          <button
+            type="button"
+            onClick={handleToggle}
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            {expanded ? (
+              <ChevronDownIcon className="w-3 h-3 text-gray-500" />
+            ) : (
+              <ChevronRightIcon className="w-3 h-3 text-gray-500" />
+            )}
+          </button>
+        )}
+        {!hasChildren && <div className="w-5 h-5" />}
+        <span className="text-sm">{category.icon || '🌟'}</span>
+        <span className="flex-1 truncate">{category.name}</span>
+        <span className="text-xs text-gray-500">L{category.level || 0}</span>
+      </button>
+      
+      {expanded && hasChildren && (
+        <div className="ml-4">
+          {category.children!.map((child) => (
+            <CategoryTreeItem
+              key={child._id}
+              category={child}
+              onSelect={onSelect}
+              level={level + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

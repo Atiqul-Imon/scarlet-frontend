@@ -3,6 +3,8 @@ import {
   PaginatedResponse, 
   Product, 
   Category, 
+  CategoryTree,
+  CategoryHierarchy,
   Cart, 
   Order, 
   User,
@@ -581,6 +583,37 @@ export const categoryApi = {
   deleteCategory: (categoryId: string): Promise<void> => {
     return fetchJsonAuth<void>(`/catalog/categories/${categoryId}`, {
       method: 'DELETE',
+    });
+  },
+
+  // Hierarchy functions
+  getCategoryTree: (): Promise<CategoryTree[]> => {
+    return fetchJson<CategoryTree[]>('/catalog/categories/tree');
+  },
+
+  getCategoryHierarchy: (): Promise<CategoryHierarchy> => {
+    return fetchJson<CategoryHierarchy>('/catalog/categories/hierarchy');
+  },
+
+  getCategoryChildren: (parentId: string): Promise<Category[]> => {
+    return fetchJson<Category[]>(`/catalog/categories/${parentId}/children`);
+  },
+
+  getCategoryAncestors: (categoryId: string): Promise<Category[]> => {
+    return fetchJson<Category[]>(`/catalog/categories/${categoryId}/ancestors`);
+  },
+
+  getCategoryPath: (categoryId: string): Promise<string> => {
+    return fetchJson<string>(`/catalog/categories/${categoryId}/path`);
+  },
+
+  updateCategoryHierarchy: (categoryId: string, parentId: string | null): Promise<Category> => {
+    return fetchJsonAuth<Category>(`/catalog/categories/${categoryId}/hierarchy`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ parentId }),
     });
   },
 };

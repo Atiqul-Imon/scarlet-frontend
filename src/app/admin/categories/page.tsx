@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { categoryApi, adminApi } from '../../../lib/api';
 import type { Category } from '../../../lib/types';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 export default function AdminCategoriesPage() {
@@ -225,6 +225,13 @@ export default function AdminCategoriesPage() {
               {categories.filter(cat => cat.isActive).length} Active Categories
             </span>
           </div>
+          <Link
+            href="/admin/categories/hierarchy"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Bars3Icon className="w-5 h-5" />
+            <span>Hierarchy View</span>
+          </Link>
           <Link
             href="/admin/categories/new"
             className="flex items-center space-x-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"

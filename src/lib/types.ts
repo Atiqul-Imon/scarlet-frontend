@@ -16,6 +16,21 @@ export interface Category extends Partial<BaseEntity> {
   showInHomepage?: boolean;
   sortOrder?: number;
   icon?: string;
+  // Hierarchy support
+  level?: number;
+  path?: string; // e.g., "skincare/face-care/cleansers"
+  childrenCount?: number;
+  hasChildren?: boolean;
+}
+
+export interface CategoryTree extends Category {
+  children?: CategoryTree[];
+}
+
+export interface CategoryHierarchy {
+  rootCategories: CategoryTree[];
+  allCategories: Category[];
+  maxLevel: number;
 }
 
 export interface ProductPrice {

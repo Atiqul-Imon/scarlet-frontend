@@ -5,7 +5,6 @@ import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
 import ChatManager from "../components/chat/ChatManager";
-import BottomNavigation from "../components/navigation/BottomNavigation";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 import MobileCartDebug from "../components/debug/MobileCartDebug";
 
@@ -38,12 +37,10 @@ export default function RootLayout({
           <ServiceWorkerProvider>
             <div className="flex flex-col min-h-screen">
               <Header />
-              <main className="flex-1 pb-16 lg:pb-0">
+              <main className="flex-1">
                 {children}
               </main>
               <Footer />
-              {/* Mobile Bottom Navigation */}
-              <BottomNavigation />
               {/* Chat System */}
               <ChatManager />
               {/* Mobile Cart Debug (Development Only) */}
