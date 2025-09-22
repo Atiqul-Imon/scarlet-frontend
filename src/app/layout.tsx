@@ -4,11 +4,10 @@ import "./globals.css";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
-import ChatManager from "../components/chat/ChatManager";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 import MobileCartDebug from "../components/debug/MobileCartDebug";
 import StickyCartButton from "../components/cart/StickyCartButton";
-import FloatingMessageButton from "../components/contact/FloatingMessageButton";
+import UnifiedChatWidget from "../components/chat/UnifiedChatWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,10 +44,8 @@ export default function RootLayout({
               <Footer />
               {/* Sticky Cart Button */}
               <StickyCartButton />
-              {/* Floating Message Button */}
-              <FloatingMessageButton />
-              {/* Chat System */}
-              <ChatManager />
+              {/* Unified Chat Widget */}
+              <UnifiedChatWidget />
               {/* Mobile Cart Debug (Development Only) */}
               <MobileCartDebug />
             </div>
