@@ -22,6 +22,21 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Close chat widget when clicking outside on mobile
+  useEffect(() => {
+    if (isExpanded && isMobile) {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Element;
+        if (!target.closest('[data-chat-widget]')) {
+          setIsExpanded(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isExpanded, isMobile]);
+
   // Auto-collapse after 5 seconds
   useEffect(() => {
     if (isExpanded) {
@@ -48,7 +63,7 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
   };
 
   return (
-    <div className={`fixed ${isMobile ? 'right-4 bottom-20' : 'right-4 bottom-6'} z-50 ${className}`} style={{ zIndex: 50 }}>
+    <div className={`fixed ${isMobile ? 'right-4 bottom-20' : 'right-4 bottom-6'} z-50 ${className}`} style={{ zIndex: 50 }} data-chat-widget>
       {/* Main Chat Button */}
       <div className="relative">
         <button
@@ -99,14 +114,7 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
           </div>
         )}
 
-        {/* Backdrop for mobile */}
-        {isExpanded && isMobile && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-25"
-            onClick={() => setIsExpanded(false)}
-            style={{ zIndex: 45 }}
-          />
-        )}
+        {/* No backdrop needed for mobile - causes black screen issue */}
       </div>
     </div>
   );
