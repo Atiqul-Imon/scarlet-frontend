@@ -48,7 +48,7 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
   };
 
   return (
-    <div className={`fixed ${isMobile ? 'right-4 bottom-20' : 'right-4 bottom-6'} z-50 ${className}`}>
+    <div className={`fixed ${isMobile ? 'right-4 bottom-20' : 'right-4 bottom-6'} z-50 ${className}`} style={{ zIndex: 50 }}>
       {/* Main Chat Button */}
       <div className="relative">
         <button
@@ -64,7 +64,7 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
 
         {/* Expanded Chat Options */}
         {isExpanded && (
-          <div className="absolute bottom-full right-0 mb-4 space-y-3">
+          <div className="absolute bottom-full right-0 mb-4 space-y-3 z-50">
             {/* WhatsApp Button */}
             <button
               onClick={handleWhatsAppClick}
@@ -102,8 +102,9 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
         {/* Backdrop for mobile */}
         {isExpanded && isMobile && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-25 z-40"
+            className="fixed inset-0 bg-black bg-opacity-25"
             onClick={() => setIsExpanded(false)}
+            style={{ zIndex: 45 }}
           />
         )}
       </div>

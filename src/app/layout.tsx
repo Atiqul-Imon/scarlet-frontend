@@ -5,7 +5,6 @@ import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
-import MobileCartDebug from "../components/debug/MobileCartDebug";
 import StickyCartButton from "../components/cart/StickyCartButton";
 import UnifiedChatWidget from "../components/chat/UnifiedChatWidget";
 
@@ -46,8 +45,6 @@ export default function RootLayout({
               <StickyCartButton />
               {/* Unified Chat Widget */}
               <UnifiedChatWidget />
-              {/* Mobile Cart Debug (Development Only) */}
-              <MobileCartDebug />
             </div>
           </ServiceWorkerProvider>
         </AppProvider>
