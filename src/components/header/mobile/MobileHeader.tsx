@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth, useCart } from '@/lib/context';
 import MobileMenuButton from './MobileMenuButton';
-import TopStrip from '../TopStrip';
 
 interface MobileHeaderProps {
   onMenuOpen: () => void;
@@ -44,9 +43,6 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
 
   return (
     <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-[9999]">
-      {/* Top Strip */}
-      <TopStrip />
-      
       {/* Mobile Search Overlay */}
       {showSearch && (
         <div className="absolute inset-0 bg-white z-50 flex items-center gap-2 px-4 py-3">

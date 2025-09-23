@@ -164,6 +164,18 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
             </div>
           </div>
 
+          {/* Blog Section */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <Link
+              href="/blog"
+              onClick={onClose}
+              className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              <BlogIcon />
+              <span className="text-sm font-medium text-gray-900">Scarlet Blog</span>
+            </Link>
+          </div>
+
           {/* User Account Section */}
           {user ? (
             <div className="px-4 py-3 border-b border-gray-200">
@@ -349,6 +361,15 @@ function ChevronIcon({ className }: { className?: string }) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
       <path d="M6 9l6 6 6-6"/>
+    </svg>
+  );
+}
+
+function BlogIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
     </svg>
   );
 }
