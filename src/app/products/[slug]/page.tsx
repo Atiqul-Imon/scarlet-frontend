@@ -8,6 +8,8 @@ import { Button } from '../../../components/ui/button';
 import { Product } from '../../../lib/types';
 import { useAuth, useCart, useToast, useWishlist } from '../../../lib/context';
 import OutOfStockWishlistModal from '../../../components/wishlist/OutOfStockWishlistModal';
+import StructuredData from '../../../components/seo/StructuredData';
+import { generateProductMetadata, generateBreadcrumbJsonLd } from '../../../lib/seo';
 
 interface ProductVariant {
   id: string;
@@ -299,6 +301,16 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Structured Data */}
+      <StructuredData type="product" data={product} />
+      <StructuredData 
+        type="breadcrumb" 
+        data={[
+          { name: 'Home', url: '/' },
+          { name: 'Products', url: '/products' },
+          { name: product.title, url: `/products/${product.slug}` }
+        ]} 
+      />
       
       <div className="container-herlan py-8">
         {/* Breadcrumb */}

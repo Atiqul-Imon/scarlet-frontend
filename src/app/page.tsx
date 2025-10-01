@@ -3,6 +3,36 @@ import ProductShowcase from "../components/products/ProductShowcase";
 import BrandShowcase from "../components/brands/BrandShowcase";
 import CategorySection from "../components/categories/CategorySection";
 import { SectionContainer, ResponsiveFlex } from "../components/layout";
+import StructuredData from "../components/seo/StructuredData";
+
+export const metadata = {
+  title: "Premium Beauty & Skincare Store in Bangladesh",
+  description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.",
+  keywords: [
+    "beauty store Bangladesh",
+    "skincare products Dhaka",
+    "makeup online Bangladesh",
+    "K-beauty Bangladesh",
+    "premium cosmetics",
+    "beauty products online",
+    "skincare routine",
+    "makeup tutorial",
+    "beauty tips",
+    "cosmetics store"
+  ],
+  openGraph: {
+    title: "Premium Beauty & Skincare Store in Bangladesh",
+    description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.",
+    images: [
+      {
+        url: '/images/og-home.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Scarlet - Premium Beauty & Skincare Store',
+      },
+    ],
+  },
+};
 
 export default function Home() {
   return (

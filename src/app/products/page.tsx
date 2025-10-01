@@ -9,6 +9,7 @@ import ProductSort from '../../components/products/ProductSort';
 import { fetchJson } from '../../lib/api';
 import { Product, Category } from '../../lib/types';
 import { useCart, useToast, useAuth } from '../../lib/context';
+import StructuredData from '../../components/seo/StructuredData';
 
 interface FilterState {
   category?: string;

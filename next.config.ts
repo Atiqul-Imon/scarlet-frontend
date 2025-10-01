@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: process.env.NODE_ENV === 'production',
   
+  // SEO optimizations
+  trailingSlash: false,
+  generateEtags: true,
+  
   // Development optimizations
   ...(process.env.NODE_ENV === 'development' && {
     // Disable static optimization in development

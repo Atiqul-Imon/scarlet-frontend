@@ -8,22 +8,98 @@ import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider
 import StickyCartButton from "../components/cart/StickyCartButton";
 import FloatingWhatsAppButton from "../components/chat/FloatingWhatsAppButton";
 import FloatingMessengerButton from "../components/chat/FloatingMessengerButton";
+import StructuredData from "../components/seo/StructuredData";
 
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
   weight: ["300", "400", "500", "700", "900"],
+  display: 'swap',
 });
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Scarlet - Beauty & Skincare Store",
-  description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands.",
+  title: {
+    default: "Scarlet - Premium Beauty & Skincare Store",
+    template: "%s | Scarlet"
+  },
+  description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.",
+  keywords: [
+    "beauty",
+    "skincare", 
+    "makeup",
+    "cosmetics",
+    "K-beauty",
+    "premium beauty",
+    "Bangladesh",
+    "Dhaka",
+    "online beauty store",
+    "beauty products",
+    "skincare routine",
+    "makeup tutorial",
+    "beauty tips"
+  ],
+  authors: [{ name: "Scarlet Team" }],
+  creator: "Scarlet",
+  publisher: "Scarlet",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://scarletunlimited.net'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    siteName: 'Scarlet',
+    title: 'Scarlet - Premium Beauty & Skincare Store',
+    description: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.',
+    images: [
+      {
+        url: '/images/og-home.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Scarlet - Premium Beauty & Skincare Store',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@ScarletBeauty',
+    creator: '@ScarletBeauty',
+    title: 'Scarlet - Premium Beauty & Skincare Store',
+    description: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.',
+    images: ['/images/og-home.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+    yahoo: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION,
+  },
+  other: {
+    'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
+  },
 };
 
 export default function RootLayout({
@@ -33,6 +109,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
+      <head>
+        <StructuredData type="organization" />
+        <StructuredData type="localBusiness" />
+      </head>
       <body
         className={`${roboto.variable} ${playfairDisplay.variable} antialiased h-full`}
       >
