@@ -6,6 +6,10 @@
   --container-max-width: 50vw;
   --container-padding: 1rem;
   
+  /* Font families */
+  --font-roboto: 'Roboto', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
+  
   /* Tailwind v4 CSS variables */
   --color-background: 0 0% 100%;
   --color-foreground: 222.2 84% 4.9%;
@@ -64,10 +68,20 @@ html {
 body {
   min-height: 100vh;
   background: var(--background);
+  font-family: var(--font-roboto);
   color: var(--foreground);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+}
+
+/* Font utility classes */
+.font-display {
+  font-family: var(--font-playfair);
+}
+
+.font-body {
+  font-family: var(--font-roboto);
 }
 
 /* Container utility class with responsive design that adapts to screen size */

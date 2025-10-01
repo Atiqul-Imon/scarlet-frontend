@@ -7,6 +7,12 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'roboto': ['var(--font-roboto)', 'sans-serif'],
+        'playfair': ['var(--font-playfair)', 'serif'],
+        'sans': ['var(--font-roboto)', 'sans-serif'],
+        'serif': ['var(--font-playfair)', 'serif'],
+      },
       colors: {
         border: 'hsl(214.3 31.8% 91.4%)',
         input: 'hsl(214.3 31.8% 91.4%)',
