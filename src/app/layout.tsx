@@ -6,7 +6,8 @@ import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 import StickyCartButton from "../components/cart/StickyCartButton";
-import UnifiedChatWidget from "../components/chat/UnifiedChatWidget";
+import FloatingWhatsAppButton from "../components/chat/FloatingWhatsAppButton";
+import FloatingMessengerButton from "../components/chat/FloatingMessengerButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,8 +44,9 @@ export default function RootLayout({
               <Footer />
               {/* Sticky Cart Button */}
               <StickyCartButton />
-              {/* Unified Chat Widget */}
-              <UnifiedChatWidget />
+              {/* Separated Chat Widgets */}
+              <FloatingWhatsAppButton />
+              <FloatingMessengerButton />
             </div>
           </ServiceWorkerProvider>
         </AppProvider>
