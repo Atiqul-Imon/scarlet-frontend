@@ -543,30 +543,12 @@ export const productApi = {
 
   // Get single product by slug
   getProductBySlug: async (slug: string): Promise<Product> => {
-    const result = await safeApiCall(
-      () => fetchJson(`/catalog/products/${slug}`),
-      validateProduct
-    );
-    
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-    
-    return result.data;
+    return fetchJson<Product>(`/catalog/products/${slug}`);
   },
 
   // Get product by ID
   getProductById: async (id: string): Promise<Product> => {
-    const result = await safeApiCall(
-      () => fetchJson(`/catalog/products/${id}`),
-      validateProduct
-    );
-    
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-    
-    return result.data;
+    return fetchJson<Product>(`/catalog/products/${id}`);
   },
 
   // Search products
@@ -794,16 +776,7 @@ export const orderApi = {
 
   // Get specific order
   getOrder: async (orderId: string): Promise<Order> => {
-    const result = await safeApiCall(
-      () => fetchJsonAuth(`/orders/${orderId}`),
-      validateOrder
-    );
-    
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-    
-    return result.data;
+    return fetchJsonAuth<Order>(`/orders/${orderId}`);
   },
 
   // Cancel order
@@ -979,16 +952,7 @@ export const authApi = {
 
   // Get current user profile
   getProfile: async (): Promise<User> => {
-    const result = await safeApiCall(
-      () => fetchJsonAuth('/users/me'),
-      validateUser
-    );
-    
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-    
-    return result.data;
+    return fetchJsonAuth<User>('/users/me');
   },
 
   // Update user profile

@@ -230,17 +230,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If we have a refresh token, try to refresh the access token
       if (refreshToken) {
         try {
-          const response = await fetch('/api/auth/refresh', {
+          console.log('🔄 Attempting token refresh with refresh token:', refreshToken.substring(0, 20) + '...');
+          const response = await fetch('/api/proxy/auth/refresh', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({ refreshToken }),
           });
+          
+          console.log('🔄 Refresh token response status:', response.status);
 
           if (response.ok) {
             const data = await response.json();
-            if (data.success && data.data.tokens) {
+            console.log('Refresh token response:', data);
+            if (data.success && data.data && data.data.tokens) {
               const { accessToken, refreshToken: newRefreshToken } = data.data.tokens;
               
               // Store new tokens
@@ -254,7 +258,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser(currentUser);
               console.log('✅ Token refreshed and user profile loaded successfully');
               return;
+            } else {
+              console.error('Invalid refresh token response:', data);
             }
+          } else {
+            console.error('Refresh token request failed:', response.status, response.statusText);
           }
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError);
