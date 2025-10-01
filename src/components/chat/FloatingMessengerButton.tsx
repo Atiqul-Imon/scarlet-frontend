@@ -40,7 +40,7 @@ export default function FloatingMessengerButton({ className = '' }: FloatingMess
     <div className={`fixed ${isMobile ? 'right-4 bottom-44' : 'right-4 bottom-44'} z-50 ${className}`}>
       <button
         onClick={handleMessengerClick}
-        className="group relative bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-110"
+        className="group relative bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg"
         aria-label="Chat on Messenger"
       >
         {/* Messenger Icon */}
@@ -54,8 +54,6 @@ export default function FloatingMessengerButton({ className = '' }: FloatingMess
           <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
         </div>
 
-        {/* Pulse animation */}
-        <span className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75"></span>
       </button>
     </div>
   );

@@ -41,7 +41,7 @@ export default function FloatingWhatsAppButton({ className = '' }: FloatingWhats
     <div className={`fixed ${isMobile ? 'right-4 bottom-24' : 'right-4 bottom-24'} z-50 ${className}`}>
       <button
         onClick={handleWhatsAppClick}
-        className="group relative bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-110"
+        className="group relative bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg"
         aria-label="Chat on WhatsApp"
       >
         {/* WhatsApp Icon */}
@@ -55,8 +55,6 @@ export default function FloatingWhatsAppButton({ className = '' }: FloatingWhats
           <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
         </div>
 
-        {/* Pulse animation */}
-        <span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-75"></span>
       </button>
     </div>
   );
