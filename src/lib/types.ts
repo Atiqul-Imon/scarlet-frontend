@@ -244,6 +244,46 @@ export interface WishlistItem extends BaseEntity {
   productId: string;
   product: Product;
   addedAt: string;
+  isOutOfStock?: boolean;
+  notifyWhenInStock?: boolean;
+  notificationSent?: boolean;
+  priority?: 'low' | 'medium' | 'high';
+  customerNotes?: string;
+  estimatedRestockDate?: string;
+}
+
+export interface OutOfStockWishlistItem extends WishlistItem {
+  isOutOfStock: true;
+  notifyWhenInStock: true;
+  customer: {
+    _id: string;
+    firstName: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+  };
+  product: Product & {
+    stock: 0;
+    stockStatus: 'out_of_stock';
+  };
+}
+
+export interface WishlistAnalytics {
+  totalWishlistItems: number;
+  outOfStockItems: number;
+  inStockItems: number;
+  mostWishedProducts: Array<{
+    productId: string;
+    productName: string;
+    wishlistCount: number;
+    isOutOfStock: boolean;
+  }>;
+  recentWishlistActivity: Array<{
+    userId: string;
+    productId: string;
+    action: 'added' | 'removed';
+    timestamp: string;
+  }>;
 }
 
 export interface PaymentInfo {

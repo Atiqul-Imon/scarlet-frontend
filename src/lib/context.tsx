@@ -211,16 +211,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, addToast]);
 
   const refreshUser = React.useCallback(async (): Promise<void> => {
-    if (!apiUtils.isAuthenticated()) {
+    const token = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    // If no tokens at all, user is not authenticated
+    if (!token && !refreshToken) {
       setLoading(false);
       return;
     }
 
     try {
+      // First try to get user profile with current token
       const currentUser = await authApi.getProfile();
       setUser(currentUser);
-    } catch (error) {
-      // Token might be expired or invalid
+    } catch (error: any) {
+      console.log('Profile fetch failed, attempting token refresh...', error);
+      
+      // If we have a refresh token, try to refresh the access token
+      if (refreshToken) {
+        try {
+          const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refreshToken }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data.tokens) {
+              const { accessToken, refreshToken: newRefreshToken } = data.data.tokens;
+              
+              // Store new tokens
+              localStorage.setItem('accessToken', accessToken);
+              if (newRefreshToken) {
+                localStorage.setItem('refreshToken', newRefreshToken);
+              }
+              
+              // Try to get user profile again with new token
+              const currentUser = await authApi.getProfile();
+              setUser(currentUser);
+              console.log('✅ Token refreshed and user profile loaded successfully');
+              return;
+            }
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+        }
+      }
+      
+      // If refresh failed or no refresh token, clear everything
+      console.log('❌ Authentication failed, clearing user session');
       setUser(null);
       apiUtils.clearTokens();
     } finally {
@@ -236,6 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Listen for token refresh failures
   React.useEffect(() => {
     const handleTokenRefreshFailureEvent = () => {
+      console.log('Token refresh failed event received');
       handleTokenRefreshFailure();
     };
 
@@ -244,6 +287,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.removeEventListener('tokenRefreshFailed', handleTokenRefreshFailureEvent);
     };
   }, [handleTokenRefreshFailure]);
+
+  // Add a retry mechanism for failed authentication
+  const retryAuthentication = React.useCallback(async () => {
+    console.log('Retrying authentication...');
+    setLoading(true);
+    await refreshUser();
+  }, [refreshUser]);
 
   const value = React.useMemo(() => ({
     user,
