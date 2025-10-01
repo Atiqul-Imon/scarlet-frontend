@@ -22,6 +22,21 @@ import {
   BlogQuery,
   BlogStats
 } from './types';
+import {
+  AdminStats,
+  AdminUser,
+  AdminProduct,
+  AdminOrder,
+  AdminUserFilters,
+  AdminProductFilters,
+  AdminOrderFilters,
+  AdminPaginatedResponse,
+  SalesAnalytics,
+  UserAnalytics,
+  SystemSettings,
+  AdminActivityLog
+} from './admin-types';
+import { validateProduct, validateUser, validateOrder, safeApiCall } from './validation';
 
 // OTP Types
 export interface OTPRequest {
@@ -53,7 +68,7 @@ export interface OTPStatus {
 export interface AnalyticsEvent {
   sessionId: string;
   eventType: 'page_view' | 'product_view' | 'add_to_cart' | 'remove_from_cart' | 'checkout_start' | 'checkout_complete' | 'purchase' | 'search' | 'filter' | 'wishlist_add' | 'wishlist_remove';
-  eventData: Record<string, any>;
+  eventData: Record<string, string | number | boolean | null>;
 }
 
 export interface SalesAnalytics {
@@ -110,10 +125,20 @@ export interface TrafficAnalytics {
   }>;
 }
 
+export interface RecentEvent {
+  id: string;
+  eventType: string;
+  timestamp: string;
+  userId?: string;
+  productId?: string;
+  page: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}
+
 export interface RealTimeAnalytics {
   activeUsers: number;
   currentPageViews: number;
-  recentEvents: any[];
+  recentEvents: RecentEvent[];
   topPages: Array<{
     page: string;
     views: number;
@@ -243,7 +268,18 @@ const getUnifiedFetchConfig = (init?: RequestInit): RequestInit => {
 };
 
 // Mobile connection test function
-export async function testMobileConnection(): Promise<{ success: boolean; data?: any; error?: string }> {
+export interface MobileConnectionTestResult {
+  success: boolean;
+  data?: {
+    status: string;
+    timestamp: string;
+    serverTime: string;
+    environment: string;
+  };
+  error?: string;
+}
+
+export async function testMobileConnection(): Promise<MobileConnectionTestResult> {
   try {
     const response = await fetch(`${API_BASE}/mobile-debug`, {
       method: 'GET',
@@ -282,7 +318,7 @@ export class ApiError extends Error {
 }
 
 // Generic fetch function with type safety and enhanced error handling
-export async function fetchJson<T = any>(
+export async function fetchJson<T = unknown>(
   path: string, 
   init?: RequestInit
 ): Promise<T> {
@@ -420,7 +456,7 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 // Authenticated fetch function with automatic token refresh
-export async function fetchJsonAuth<T = any>(
+export async function fetchJsonAuth<T = unknown>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
@@ -457,9 +493,9 @@ export async function fetchJsonAuth<T = any>(
         ...(token && { Authorization: `Bearer ${token}` }),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If we get a 401 and have a refresh token, try to refresh
-    if (error.status === 401 && localStorage.getItem('refreshToken')) {
+    if (error instanceof ApiError && error.status === 401 && localStorage.getItem('refreshToken')) {
       console.log('🔄 Got 401, attempting token refresh...');
       
       const newToken = await refreshAccessToken();
@@ -506,13 +542,31 @@ export const productApi = {
   },
 
   // Get single product by slug
-  getProductBySlug: (slug: string): Promise<Product> => {
-    return fetchJson<Product>(`/catalog/products/${slug}`);
+  getProductBySlug: async (slug: string): Promise<Product> => {
+    const result = await safeApiCall(
+      () => fetchJson(`/catalog/products/${slug}`),
+      validateProduct
+    );
+    
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+    
+    return result.data;
   },
 
   // Get product by ID
-  getProductById: (id: string): Promise<Product> => {
-    return fetchJson<Product>(`/catalog/products/${id}`);
+  getProductById: async (id: string): Promise<Product> => {
+    const result = await safeApiCall(
+      () => fetchJson(`/catalog/products/${id}`),
+      validateProduct
+    );
+    
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+    
+    return result.data;
   },
 
   // Search products
@@ -739,8 +793,17 @@ export const orderApi = {
   },
 
   // Get specific order
-  getOrder: (orderId: string): Promise<Order> => {
-    return fetchJsonAuth<Order>(`/orders/${orderId}`);
+  getOrder: async (orderId: string): Promise<Order> => {
+    const result = await safeApiCall(
+      () => fetchJsonAuth(`/orders/${orderId}`),
+      validateOrder
+    );
+    
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+    
+    return result.data;
   },
 
   // Cancel order
@@ -915,8 +978,17 @@ export const authApi = {
   },
 
   // Get current user profile
-  getProfile: (): Promise<User> => {
-    return fetchJsonAuth<User>('/users/me');
+  getProfile: async (): Promise<User> => {
+    const result = await safeApiCall(
+      () => fetchJsonAuth('/users/me'),
+      validateUser
+    );
+    
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+    
+    return result.data;
   },
 
   // Update user profile
@@ -1029,14 +1101,14 @@ export const apiUtils = {
 export const adminApi = {
   // Dashboard
   dashboard: {
-    getStats: (): Promise<any> => {
-      return fetchJsonAuth('/admin/dashboard/stats');
+    getStats: (): Promise<AdminStats> => {
+      return fetchJsonAuth<AdminStats>('/admin/dashboard/stats');
     }
   },
 
   // User Management
   users: {
-    getUsers: (filters: any = {}): Promise<any> => {
+    getUsers: (filters: AdminUserFilters = {}): Promise<AdminPaginatedResponse<AdminUser>> => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -1047,7 +1119,7 @@ export const adminApi = {
       const queryString = params.toString();
       const url = `/admin/users${queryString ? `?${queryString}` : ''}`;
       
-      return fetchJsonAuth(url);
+      return fetchJsonAuth<AdminPaginatedResponse<AdminUser>>(url);
     },
 
     updateUserRole: (userId: string, role: 'admin' | 'staff' | 'customer'): Promise<{ message: string }> => {
@@ -1066,7 +1138,7 @@ export const adminApi = {
 
   // Product Management
   products: {
-    getProducts: (filters: any = {}): Promise<any> => {
+    getProducts: (filters: AdminProductFilters = {}): Promise<AdminPaginatedResponse<AdminProduct>> => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -1077,22 +1149,22 @@ export const adminApi = {
       const queryString = params.toString();
       const url = `/admin/products${queryString ? `?${queryString}` : ''}`;
       
-      return fetchJsonAuth(url);
+      return fetchJsonAuth<AdminPaginatedResponse<AdminProduct>>(url);
     },
 
-    getProduct: (productId: string): Promise<any> => {
-      return fetchJsonAuth(`/admin/products/${productId}`);
+    getProduct: (productId: string): Promise<AdminProduct> => {
+      return fetchJsonAuth<AdminProduct>(`/admin/products/${productId}`);
     },
 
-    createProduct: (productData: any): Promise<any> => {
-      return fetchJsonAuth('/admin/products', {
+    createProduct: (productData: Partial<AdminProduct>): Promise<AdminProduct> => {
+      return fetchJsonAuth<AdminProduct>('/admin/products', {
         method: 'POST',
         body: JSON.stringify(productData)
       });
     },
 
-    updateProduct: (productId: string, productData: any): Promise<any> => {
-      return fetchJsonAuth(`/admin/products/${productId}`, {
+    updateProduct: (productId: string, productData: Partial<AdminProduct>): Promise<AdminProduct> => {
+      return fetchJsonAuth<AdminProduct>(`/admin/products/${productId}`, {
         method: 'PUT',
         body: JSON.stringify(productData)
       });
@@ -1114,7 +1186,7 @@ export const adminApi = {
 
   // Order Management
   orders: {
-    getOrders: (filters: any = {}): Promise<any> => {
+    getOrders: (filters: AdminOrderFilters = {}): Promise<AdminPaginatedResponse<AdminOrder>> => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -1125,11 +1197,11 @@ export const adminApi = {
       const queryString = params.toString();
       const url = `/admin/orders${queryString ? `?${queryString}` : ''}`;
       
-      return fetchJsonAuth(url);
+      return fetchJsonAuth<AdminPaginatedResponse<AdminOrder>>(url);
     },
 
-    getOrderById: (orderId: string): Promise<any> => {
-      return fetchJsonAuth(`/admin/orders/${orderId}`);
+    getOrderById: (orderId: string): Promise<AdminOrder> => {
+      return fetchJsonAuth<AdminOrder>(`/admin/orders/${orderId}`);
     },
 
     updateOrderStatus: (
@@ -1146,24 +1218,24 @@ export const adminApi = {
 
   // Analytics
   analytics: {
-    getSalesAnalytics: (dateFrom: string, dateTo: string): Promise<any> => {
+    getSalesAnalytics: (dateFrom: string, dateTo: string): Promise<SalesAnalytics> => {
       const params = new URLSearchParams({ dateFrom, dateTo });
-      return fetchJsonAuth(`/admin/analytics/sales?${params.toString()}`);
+      return fetchJsonAuth<SalesAnalytics>(`/admin/analytics/sales?${params.toString()}`);
     },
 
-    getUserAnalytics: (): Promise<any> => {
-      return fetchJsonAuth('/admin/analytics/users');
+    getUserAnalytics: (): Promise<UserAnalytics> => {
+      return fetchJsonAuth<UserAnalytics>('/admin/analytics/users');
     }
   },
 
   // System Settings
   settings: {
-    getSettings: (): Promise<any> => {
-      return fetchJsonAuth('/admin/settings');
+    getSettings: (): Promise<SystemSettings> => {
+      return fetchJsonAuth<SystemSettings>('/admin/settings');
     },
 
-    updateSettings: (settings: any): Promise<{ message: string }> => {
-      return fetchJsonAuth('/admin/settings', {
+    updateSettings: (settings: Partial<SystemSettings>): Promise<{ message: string }> => {
+      return fetchJsonAuth<{ message: string }>('/admin/settings', {
         method: 'PATCH',
         body: JSON.stringify(settings)
       });
@@ -1172,7 +1244,7 @@ export const adminApi = {
 
   // Category Management
   categories: {
-    getCategories: (filters: any = {}): Promise<any> => {
+    getCategories: (filters: AdminFilters = {}): Promise<AdminPaginatedResponse<Category>> => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -1183,22 +1255,22 @@ export const adminApi = {
       const queryString = params.toString();
       const url = `/admin/categories${queryString ? `?${queryString}` : ''}`;
       
-      return fetchJsonAuth(url);
+      return fetchJsonAuth<AdminPaginatedResponse<Category>>(url);
     },
 
-    getCategory: (categoryId: string): Promise<any> => {
-      return fetchJsonAuth(`/admin/categories/${categoryId}`);
+    getCategory: (categoryId: string): Promise<Category> => {
+      return fetchJsonAuth<Category>(`/admin/categories/${categoryId}`);
     },
 
-    createCategory: (categoryData: any): Promise<any> => {
-      return fetchJsonAuth('/admin/categories', {
+    createCategory: (categoryData: Partial<Category>): Promise<Category> => {
+      return fetchJsonAuth<Category>('/admin/categories', {
         method: 'POST',
         body: JSON.stringify(categoryData)
       });
     },
 
-    updateCategory: (categoryId: string, categoryData: any): Promise<any> => {
-      return fetchJsonAuth(`/admin/categories/${categoryId}`, {
+    updateCategory: (categoryId: string, categoryData: Partial<Category>): Promise<Category> => {
+      return fetchJsonAuth<Category>(`/admin/categories/${categoryId}`, {
         method: 'PUT',
         body: JSON.stringify(categoryData)
       });
@@ -1220,12 +1292,12 @@ export const adminApi = {
 
   // Activity Logs
   logs: {
-    getActivityLogs: (page: number = 1, limit: number = 50): Promise<any> => {
+    getActivityLogs: (page: number = 1, limit: number = 50): Promise<AdminPaginatedResponse<AdminActivityLog>> => {
       const params = new URLSearchParams({ 
         page: page.toString(), 
         limit: limit.toString() 
       });
-      return fetchJsonAuth(`/admin/logs/activity?${params.toString()}`);
+      return fetchJsonAuth<AdminPaginatedResponse<AdminActivityLog>>(`/admin/logs/activity?${params.toString()}`);
     }
   }
 };
@@ -1250,12 +1322,12 @@ export const analyticsApi = {
     categoryId?: string;
     page?: number;
     limit?: number;
-  } = {}): Promise<{ events: any[]; total: number }> => {
+  } = {}): Promise<{ events: AnalyticsEvent[]; total: number }> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined) params.append(key, value.toString());
     });
-    return fetchJsonAuth(`/analytics/events?${params.toString()}`);
+    return fetchJsonAuth<{ events: AnalyticsEvent[]; total: number }>(`/analytics/events?${params.toString()}`);
   },
 
   // Get sales analytics
@@ -1280,7 +1352,19 @@ export const analyticsApi = {
   },
 
   // Get user behavior
-  getUserBehavior: (userId: string): Promise<any> => {
+  getUserBehavior: (userId: string): Promise<{
+    userId: string;
+    totalEvents: number;
+    lastActive: string;
+    topPages: Array<{ page: string; views: number }>;
+    topProducts: Array<{ productId: string; views: number }>;
+    conversionFunnel: {
+      pageViews: number;
+      addToCart: number;
+      checkoutStart: number;
+      purchase: number;
+    };
+  }> => {
     return fetchJsonAuth(`/analytics/user/${userId}`);
   },
 
@@ -1300,7 +1384,18 @@ export const analyticsApi = {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
-    return fetchJsonAuth(`/analytics/dashboard?${params.toString()}`);
+    return fetchJsonAuth<{
+      sales: SalesAnalytics;
+      traffic: TrafficAnalytics;
+      summary: {
+        totalRevenue: number;
+        totalOrders: number;
+        totalVisitors: number;
+        conversionRate: number;
+        averageOrderValue: number;
+        bounceRate: number;
+      };
+    }>(`/analytics/dashboard?${params.toString()}`);
   }
 };
 

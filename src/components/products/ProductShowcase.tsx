@@ -32,7 +32,14 @@ export default function ProductShowcase({
         setLoading(true);
         setError(null);
         
-        let queryParams: any = { limit };
+        let queryParams: {
+          limit: number;
+          sort?: string;
+          isNewArrival?: boolean;
+          isBestSeller?: boolean;
+          isFeatured?: boolean;
+          category?: string;
+        } = { limit };
         
         // Handle special categories and filtering
         if (category === 'new' || category === 'new-arrivals') {

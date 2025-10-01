@@ -44,7 +44,7 @@ export interface AdminProduct {
     amount: number;
   };
   stock: number;
-  attributes?: Record<string, any>;
+  attributes?: Record<string, string | number | boolean | null>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -223,7 +223,7 @@ export interface AdminActivityLog {
   userId: string;
   userEmail: string;
   action: string;
-  details?: any;
+  details?: Record<string, unknown>;
   timestamp: string;
   ip: string;
   userAgent?: string;
