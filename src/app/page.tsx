@@ -42,6 +42,9 @@ export default function Home() {
       {/* Category Section */}
       <CategorySection />
       
+      {/* Brand Showcase */}
+      <BrandShowcase />
+      
       {/* New Arrivals */}
       <ProductShowcase 
         title="New Arrivals"
@@ -73,9 +76,6 @@ export default function Home() {
         category="makeup"
         viewAllLink="/makeup"
       />
-      
-      {/* Brand Showcase */}
-      <BrandShowcase />
       
       {/* Newsletter Signup */}
       <section className="bg-gradient-to-r from-pink-50 to-purple-50">
