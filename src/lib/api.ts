@@ -20,7 +20,11 @@ import {
   BlogPost,
   BlogCategory,
   BlogQuery,
-  BlogStats
+  BlogStats,
+  Brand,
+  BrandTree,
+  BrandHierarchy,
+  BrandStats
 } from './types';
 import {
   AdminStats,
@@ -1592,6 +1596,101 @@ export const blogApi = {
   // Get blog stats
   getStats: (): Promise<BlogStats> => {
     return fetchJson('/blog/stats');
+  }
+};
+
+// Brand API
+export const brandApi = {
+  // Get all brands
+  getBrands: (): Promise<Brand[]> => {
+    return fetchJson('/brands');
+  },
+
+  // Get brand by ID
+  getBrandById: (brandId: string): Promise<Brand> => {
+    return fetchJson(`/brands/${brandId}`);
+  },
+
+  // Get brand by slug
+  getBrandBySlug: (slug: string): Promise<Brand> => {
+    return fetchJson(`/brands/slug/${slug}`);
+  },
+
+  // Get featured brands
+  getFeaturedBrands: (limit?: number): Promise<Brand[]> => {
+    const params = limit ? `?limit=${limit}` : '';
+    return fetchJson(`/brands/featured${params}`);
+  },
+
+  // Get brands by category
+  getBrandsByCategory: (category: string): Promise<Brand[]> => {
+    return fetchJson(`/brands/category/${category}`);
+  },
+
+  // Search brands
+  searchBrands: (query: string, limit?: number): Promise<Brand[]> => {
+    const params = new URLSearchParams({ q: query });
+    if (limit) params.append('limit', limit.toString());
+    return fetchJson(`/brands/search?${params}`);
+  },
+
+  // Get brand tree
+  getBrandTree: (): Promise<BrandTree[]> => {
+    return fetchJson('/brands/tree');
+  },
+
+  // Get brand hierarchy
+  getBrandHierarchy: (): Promise<BrandHierarchy> => {
+    return fetchJson('/brands/hierarchy');
+  },
+
+  // Get brand stats
+  getBrandStats: (): Promise<BrandStats> => {
+    return fetchJson('/brands/stats');
+  },
+
+  // Create brand (admin only)
+  createBrand: (brandData: Partial<Brand>): Promise<Brand> => {
+    return fetchJsonAuth('/brands', {
+      method: 'POST',
+      body: JSON.stringify(brandData)
+    });
+  },
+
+  // Update brand (admin only)
+  updateBrand: (brandId: string, brandData: Partial<Brand>): Promise<Brand> => {
+    return fetchJsonAuth(`/brands/${brandId}`, {
+      method: 'PUT',
+      body: JSON.stringify(brandData)
+    });
+  },
+
+  // Delete brand (admin only)
+  deleteBrand: (brandId: string): Promise<{ success: boolean }> => {
+    return fetchJsonAuth(`/brands/${brandId}`, {
+      method: 'DELETE'
+    });
+  },
+
+  // Toggle brand status (admin only)
+  toggleBrandStatus: (brandId: string): Promise<Brand> => {
+    return fetchJsonAuth(`/brands/${brandId}/toggle-status`, {
+      method: 'PATCH'
+    });
+  },
+
+  // Toggle brand featured status (admin only)
+  toggleBrandFeatured: (brandId: string): Promise<Brand> => {
+    return fetchJsonAuth(`/brands/${brandId}/toggle-featured`, {
+      method: 'PATCH'
+    });
+  },
+
+  // Update brand product count (admin only)
+  updateBrandProductCount: (brandId: string): Promise<{ success: boolean }> => {
+    return fetchJsonAuth(`/brands/${brandId}/update-product-count`, {
+      method: 'PATCH'
+    });
   }
 };
 

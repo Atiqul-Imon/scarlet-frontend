@@ -1,83 +1,92 @@
 "use client";
 import * as React from 'react';
 import Link from 'next/link';
-
-interface Brand {
-  name: string;
-  href: string;
-  logo?: string;
-  description: string;
-  featured?: boolean;
-}
-
-const brands: Brand[] = [
-  {
-    name: "Skin Care",
-    href: "/brands/skin-care",
-    description: "Complete skincare solutions",
-    featured: true
-  },
-  {
-    name: "Hair Band",
-    href: "/brands/hair-band", 
-    description: "Professional hair care products"
-  },
-  {
-    name: "Make Up",
-    href: "/brands/make-up",
-    description: "Premium cosmetics collection"
-  },
-  {
-    name: "Exclusive Collections",
-    href: "/brands/exclusive-collections",
-    description: "Limited edition beauty items"
-  },
-  {
-    name: "Baby Care",
-    href: "/brands/baby-care",
-    description: "Gentle products for babies"
-  },
-  {
-    name: "Jewelry",
-    href: "/brands/jewelry",
-    description: "Elegant jewelry collection"
-  },
-  {
-    name: "UK product",
-    href: "/brands/uk-product",
-    description: "Authentic UK beauty brands"
-  },
-  {
-    name: "Others",
-    href: "/brands/others",
-    description: "Additional beauty categories"
-  }
-];
+import { brandApi } from '../../lib/api';
+import type { Brand } from '../../lib/types';
 
 export default function BrandShowcase() {
+  const [brands, setBrands] = React.useState<Brand[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        setLoading(true);
+        const brandsData = await brandApi.getBrands();
+        // Sort by sortOrder to maintain the correct display order
+        const sortedBrands = brandsData.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        setBrands(sortedBrands);
+      } catch (err) {
+        console.error('Error fetching brands:', err);
+        setError('Failed to load brands');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBrands();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="container-herlan">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              Shop by Brand
+            </h2>
+            <p className="text-gray-600">
+              Discover your favorite beauty brands
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || brands.length === 0) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="container-herlan">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              Shop by Brand
+            </h2>
+            <p className="text-gray-600">
+              Discover your favorite beauty brands
+            </p>
+          </div>
+          <div className="text-center text-gray-500">
+            <p>No brands available at the moment.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="py-16 bg-white">
       <div className="container-herlan">
         <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
             Shop by Brand
           </h2>
-          <p className="text-gray-600">
-            Discover your favorite beauty brands
-          </p>
         </div>
         
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-4">
           {brands.map((brand) => (
             <Link
-              key={brand.name}
-              href={brand.href}
+              key={brand._id}
+              href={`/brands/${brand.slug}`}
               className="group"
             >
               <div className={`
                 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 text-center 
                 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1
-                ${brand.featured ? 'ring-2 ring-pink-200 bg-gradient-to-br from-pink-50 to-rose-50' : ''}
+                ${brand.isFeatured ? 'ring-2 ring-pink-200 bg-gradient-to-br from-pink-50 to-rose-50' : ''}
               `}>
                 <div className="w-12 h-12 mx-auto mb-3 bg-white rounded-lg flex items-center justify-center shadow-sm">
                   <span className="text-xl font-bold text-gray-700">
@@ -88,23 +97,11 @@ export default function BrandShowcase() {
                   {brand.name}
                 </h3>
                 <p className="text-xs text-gray-600">
-                  {brand.description}
+                  {brand.shortDescription || brand.description}
                 </p>
               </div>
             </Link>
           ))}
-        </div>
-        
-        <div className="text-center mt-8">
-          <Link
-            href="/brands"
-            className="inline-flex items-center text-pink-600 hover:text-pink-700 font-medium"
-          >
-            View All Brands
-            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
         </div>
       </div>
     </section>

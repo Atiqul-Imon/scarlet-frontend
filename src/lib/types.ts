@@ -102,6 +102,62 @@ export interface BlogStats {
   recentPosts: BlogPost[];
 }
 
+// Brand Types
+export interface Brand {
+  _id?: string;
+  name: string;
+  slug: string;
+  description: string;
+  shortDescription?: string;
+  logo?: string;
+  banner?: string;
+  website?: string;
+  establishedYear?: number;
+  origin?: string;
+  category: string;
+  specialties?: string[];
+  about?: string;
+  isActive: boolean;
+  isFeatured: boolean;
+  sortOrder: number;
+  productCount: number;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  socialLinks?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+    youtube?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy?: string;
+}
+
+export interface BrandTree extends Brand {
+  children?: BrandTree[];
+  hasChildren?: boolean;
+  childrenCount?: number;
+  level?: number;
+  path?: string[];
+}
+
+export interface BrandHierarchy {
+  rootBrands: BrandTree[];
+  allBrands: Brand[];
+  maxLevel: number;
+}
+
+export interface BrandStats {
+  totalBrands: number;
+  activeBrands: number;
+  featuredBrands: number;
+  totalProducts: number;
+  categories: string[];
+}
+
 export interface ProductPrice {
   currency: string;
   amount: number;
