@@ -1,19 +1,28 @@
 "use client";
 import * as React from 'react';
-import { categoryApi, adminApi } from '../../../lib/api';
-import type { Category } from '../../../lib/types';
-import { PlusIcon, PencilIcon, TrashIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { categoryApi } from '../../../lib/api';
+import type { Category, CategoryTree } from '../../../lib/types';
+import { 
+  PlusIcon, 
+  PencilIcon, 
+  TrashIcon, 
+  ChevronRightIcon, 
+  ChevronDownIcon,
+  FolderIcon,
+  FolderOpenIcon
+} from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = React.useState<Category[]>([]);
+  const [categoryTree, setCategoryTree] = React.useState<CategoryTree[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [updating, setUpdating] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [isDragging, setIsDragging] = React.useState(false);
-  const [dragStartX, setDragStartX] = React.useState(0);
-  const [scrollLeft, setScrollLeft] = React.useState(0);
-  const sliderRef = React.useRef<HTMLDivElement>(null);
+  
+  // Hierarchy view state
+  const [viewMode, setViewMode] = React.useState<'grid' | 'hierarchy'>('hierarchy');
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   
   // Delete state
   const [deletingCategory, setDeletingCategory] = React.useState<string | null>(null);
@@ -51,17 +60,90 @@ export default function AdminCategoriesPage() {
     'sunscreen': '☀️'
   };
 
-  const getCategoryIcon = (categoryName: string) => {
-    return categoryIcons[categoryName.toLowerCase()] || '🌟';
+  const getCategoryIcon = (category: Category) => {
+    // Use the icon from the database if available, otherwise fall back to name-based mapping
+    if (category.icon) {
+      return category.icon;
+    }
+    return categoryIcons[category.name.toLowerCase()] || '🌟';
+  };
+
+  // Build hierarchy from flat category data
+  const buildHierarchyFromFlatData = (categories: Category[]): CategoryTree[] => {
+    const categoryMap = new Map<string, CategoryTree>();
+    const rootCategories: CategoryTree[] = [];
+    
+    // Create map of all categories
+    categories.forEach(category => {
+      if (category._id) {
+        categoryMap.set(category._id, { ...category, children: [] });
+      }
+    });
+    
+    // Build tree structure
+    categories.forEach(category => {
+      if (!category._id) return;
+      const categoryTree = categoryMap.get(category._id);
+      if (!categoryTree) return;
+      
+      if (category.parentId) {
+        const parent = categoryMap.get(category.parentId);
+        if (parent) {
+          parent.children = parent.children || [];
+          parent.children.push(categoryTree);
+          parent.hasChildren = true;
+          parent.childrenCount = (parent.childrenCount || 0) + 1;
+        }
+      } else {
+        rootCategories.push(categoryTree);
+      }
+    });
+    
+    console.log('🏗️ Built hierarchy:', {
+      rootCategories: rootCategories.length,
+      rootNames: rootCategories.map(c => c.name),
+      firstRootChildren: rootCategories[0]?.children?.length || 0
+    });
+    
+    return rootCategories;
   };
 
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      // Use the existing categoryApi for now to avoid the adminApi issue
-      const response = await categoryApi.getCategories();
-      const categoriesData = Array.isArray(response) ? response : [];
+      // Fetch both flat categories and tree structure
+      const [categoriesResponse, treeResponse] = await Promise.all([
+        categoryApi.getCategories(),
+        categoryApi.getCategoryTree()
+      ]);
+      
+      const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : [];
+      const treeData = Array.isArray(treeResponse) ? treeResponse : [];
+      
+      console.log('📊 Categories Data:', categoriesData);
+      console.log('🌳 Tree Data:', treeData);
+      console.log('🔍 Tree Data Structure Check:', {
+        hasTreeData: treeData.length > 0,
+        firstItem: treeData[0],
+        hasChildren: treeData[0]?.children?.length ? treeData[0].children.length > 0 : false,
+        children: treeData[0]?.children
+      });
+      
+      // Check if tree data has proper hierarchy, if not build it from flat data
+      let processedTreeData = treeData;
+      const hasHierarchy = treeData.some(cat => cat.children && cat.children.length > 0);
+      
+      if (!hasHierarchy && categoriesData.length > 0) {
+        console.log('🔧 Building hierarchy from flat data...');
+        processedTreeData = buildHierarchyFromFlatData(categoriesData);
+      }
+      
       setCategories(categoriesData.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
+      setCategoryTree(processedTreeData);
+      
+      // Auto-expand root categories by default
+      const rootCategoryIds = new Set(processedTreeData.map(cat => cat._id).filter((id): id is string => Boolean(id)));
+      setExpandedCategories(rootCategoryIds);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setMessage({ type: 'error', text: 'Failed to load categories' });
@@ -70,47 +152,40 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // Drag functionality for slider
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!sliderRef.current) return;
-    setIsDragging(true);
-    setDragStartX(e.pageX - sliderRef.current.offsetLeft);
-    setScrollLeft(sliderRef.current.scrollLeft);
+  // Hierarchy view helper functions
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
   };
 
-  const handleMouseLeave = () => {
-    setIsDragging(false);
+  const expandAllCategories = () => {
+    const allCategoryIds = new Set<string>();
+    const collectIds = (categories: CategoryTree[]) => {
+      categories.forEach(cat => {
+        if (cat._id) {
+          allCategoryIds.add(cat._id);
+        }
+        if (cat.children && cat.children.length > 0) {
+          collectIds(cat.children);
+        }
+      });
+    };
+    collectIds(categoryTree);
+    setExpandedCategories(allCategoryIds);
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
+  const collapseAllCategories = () => {
+    const rootCategoryIds = new Set(categoryTree.map(cat => cat._id).filter((id): id is string => Boolean(id)));
+    setExpandedCategories(rootCategoryIds);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !sliderRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - sliderRef.current.offsetLeft;
-    const walk = (x - dragStartX) * 2;
-    sliderRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!sliderRef.current) return;
-    setIsDragging(true);
-    setDragStartX(e.touches[0].pageX - sliderRef.current.offsetLeft);
-    setScrollLeft(sliderRef.current.scrollLeft);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !sliderRef.current) return;
-    const x = e.touches[0].pageX - sliderRef.current.offsetLeft;
-    const walk = (x - dragStartX) * 2;
-    sliderRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
 
   const updateHomepageVisibility = async (categoryId: string) => {
     try {
@@ -156,14 +231,6 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // CRUD Functions
-  const handleCreateCategory = () => {
-    // Navigation will be handled by Link component
-  };
-
-  const handleEditCategory = (category: Category) => {
-    // Navigation will be handled by Link component
-  };
 
   const handleDeleteCategory = async (categoryId: string) => {
     if (!window.confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
@@ -187,6 +254,242 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  // Helper function to find parent category
+  const findParentCategory = (categoryId: string): Category | null => {
+    const findInTree = (categories: CategoryTree[], targetId: string): CategoryTree | null => {
+      for (const cat of categories) {
+        if (cat.children) {
+          for (const child of cat.children) {
+            if (child._id === targetId) {
+              return cat;
+            }
+            const found = findInTree([child], targetId);
+            if (found) return found;
+          }
+        }
+      }
+      return null;
+    };
+    return findInTree(categoryTree, categoryId);
+  };
+
+  // Hierarchy Category Item Component
+  const HierarchyCategoryItem: React.FC<{
+    category: CategoryTree;
+    level: number;
+    parentPath?: string[];
+  }> = ({ category, level, parentPath = [] }) => {
+    const hasChildren = category.children && category.children.length > 0;
+    const isExpanded = expandedCategories.has(category._id!);
+    const isUpdating = updating === category._id;
+    const isDeleting = deletingCategory === category._id;
+    const parentCategory = level > 0 ? findParentCategory(category._id!) : null;
+
+    // Debug logging for this category
+    console.log(`🏷️ Category: ${category.name}`, {
+      level,
+      hasChildren,
+      childrenCount: category.children?.length || 0,
+      isExpanded,
+      children: category.children?.map(c => c.name) || []
+    });
+
+    return (
+      <div className="relative">
+        {/* Tree Lines */}
+        {level > 0 && (
+          <div className="absolute left-0 top-0 bottom-0 w-6 flex">
+            {/* Vertical line */}
+            <div className="w-0.5 bg-gray-300 ml-3"></div>
+            {/* Horizontal line */}
+            <div className="absolute top-6 left-3 w-3 h-0.5 bg-gray-300"></div>
+          </div>
+        )}
+
+        <div 
+          className={`relative flex items-center space-x-3 p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 ${
+            level === 0 ? 'bg-white border-l-4 border-l-blue-500' : 
+            level === 1 ? 'bg-gray-50 border-l-4 border-l-green-500' :
+            level === 2 ? 'bg-gray-25 border-l-4 border-l-purple-500' :
+            'bg-gray-25 border-l-4 border-l-orange-500'
+          }`}
+          style={{ marginLeft: `${level * 32}px` }}
+        >
+          {/* Expand/Collapse Button */}
+          <div className="flex-shrink-0 w-8 flex justify-center">
+            {hasChildren ? (
+              <button
+                onClick={() => toggleCategoryExpansion(category._id!)}
+                className="p-1 text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-full shadow-sm border border-gray-200"
+              >
+                {isExpanded ? (
+                  <ChevronDownIcon className="w-4 h-4" />
+                ) : (
+                  <ChevronRightIcon className="w-4 h-4" />
+                )}
+              </button>
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              </div>
+            )}
+          </div>
+
+          {/* Category Icon */}
+          <div className="flex-shrink-0">
+            <div 
+              className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm border-2 ${
+                level === 0 ? 'border-blue-200' :
+                level === 1 ? 'border-green-200' :
+                level === 2 ? 'border-purple-200' :
+                'border-orange-200'
+              } ${
+                category.isActive 
+                  ? 'bg-green-100 hover:bg-green-200' 
+                  : 'bg-gray-100 hover:bg-gray-200'
+              }`}
+              onClick={() => updateHomepageVisibility(category._id!)}
+            >
+              <span className="text-xl">
+                {getCategoryIcon(category)}
+              </span>
+            </div>
+          </div>
+
+          {/* Category Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-3 flex-wrap">
+              <h3 className="text-base font-semibold text-gray-900 truncate">
+                {category.name}
+              </h3>
+              
+              {/* Parent Category Info */}
+              {parentCategory && (
+                <div className="flex items-center space-x-1">
+                  <span className="text-xs text-gray-500">under</span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {parentCategory.name}
+                  </span>
+                </div>
+              )}
+              
+              {/* Level Indicator */}
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                level === 0 ? 'bg-blue-100 text-blue-800' :
+                level === 1 ? 'bg-green-100 text-green-800' :
+                level === 2 ? 'bg-purple-100 text-purple-800' :
+                'bg-orange-100 text-orange-800'
+              }`}>
+                {level === 0 ? 'Root' : `Level ${level}`}
+              </span>
+              
+              {/* Children Count */}
+              {hasChildren && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                  <FolderOpenIcon className="w-3 h-3 mr-1" />
+                  {category.childrenCount || category.children?.length || 0}
+                </span>
+              )}
+            </div>
+            
+            {/* Breadcrumb Path */}
+            {parentPath.length > 0 && (
+              <div className="flex items-center space-x-1 mt-1">
+                <span className="text-xs text-gray-400">Path:</span>
+                {parentPath.map((path, index) => (
+                  <span key={index} className="text-xs text-gray-500">
+                    {path}
+                    {index < parentPath.length - 1 && <span className="mx-1">›</span>}
+                  </span>
+                ))}
+                <span className="text-xs text-gray-700 font-medium">{category.name}</span>
+              </div>
+            )}
+            
+            {category.description && (
+              <p className="text-sm text-gray-600 mt-1 truncate">
+                {category.description}
+              </p>
+            )}
+            
+            {/* Full Path */}
+            {category.path && (
+              <p className="text-xs text-gray-400 mt-1 font-mono bg-gray-100 px-2 py-1 rounded">
+                {category.path}
+              </p>
+            )}
+          </div>
+
+          {/* Status Badges */}
+          <div className="flex-shrink-0 flex items-center space-x-2">
+            <span className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${
+              category.isActive 
+                ? 'bg-green-100 text-green-800 border border-green-200' 
+                : 'bg-gray-100 text-gray-600 border border-gray-200'
+            }`}>
+              {category.isActive ? 'Active' : 'Inactive'}
+            </span>
+            
+            {category.showInHomepage && (
+              <span className="inline-block px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800 border border-blue-200 font-medium">
+                Homepage
+              </span>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex-shrink-0 flex items-center space-x-1">
+            {isUpdating && (
+              <div className="w-4 h-4 border-2 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
+            )}
+            
+            <Link
+              href={`/admin/categories/${category._id}/edit`}
+              className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+              title="Edit category"
+            >
+              <PencilIcon className="w-4 h-4" />
+            </Link>
+            
+            <button
+              onClick={() => handleDeleteCategory(category._id!)}
+              disabled={isDeleting}
+              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+              title="Delete category"
+            >
+              {isDeleting ? (
+                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <TrashIcon className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Children */}
+        {hasChildren && isExpanded && (
+          <div className="relative">
+            {/* Debug: Rendering children for ${category.name} */}
+            {category.children!.map((child) => (
+              <HierarchyCategoryItem
+                key={child._id}
+                category={child}
+                level={level + 1}
+                parentPath={[...parentPath, category.name]}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Debug info for categories with children but not expanded */}
+        {hasChildren && !isExpanded && (
+          <div className="text-xs text-gray-400 ml-4">
+            (Has {category.children!.length} children - click to expand)
+          </div>
+        )}
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -194,16 +497,22 @@ export default function AdminCategoriesPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Category Management</h1>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="flex-shrink-0">
-                <div className="text-center w-20 sm:w-22 md:w-24">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gray-200 rounded-full animate-pulse mx-auto mb-2 sm:mb-3"></div>
-                  <div className="h-3 bg-gray-200 rounded animate-pulse mx-auto w-3/4"></div>
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6">
+            <div className="animate-pulse space-y-4">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="flex items-center space-x-4">
+                  <div className="w-6 h-6 bg-gray-200 rounded"></div>
+                  <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                  <div className="w-16 h-6 bg-gray-200 rounded"></div>
+                  <div className="w-12 h-8 bg-gray-200 rounded"></div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -212,26 +521,47 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Category Management</h1>
           <p className="text-gray-600 mt-1">
-            Manage all categories. Drag to scroll through categories. All active categories appear on the homepage.
+            Manage category hierarchy with parent-child relationships. Click on category icons to toggle visibility.
           </p>
         </div>
         <div className="flex items-center space-x-4">
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('hierarchy')}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'hierarchy'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Hierarchy
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Grid
+            </button>
+          </div>
+
+          {/* Stats */}
           <div className="bg-green-50 px-4 py-2 rounded-lg">
             <span className="text-sm font-medium text-green-800">
               {categories.filter(cat => cat.isActive).length} Active Categories
             </span>
           </div>
-          <Link
-            href="/admin/categories/hierarchy"
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Bars3Icon className="w-5 h-5" />
-            <span>Hierarchy View</span>
-          </Link>
+
+          {/* Add Category */}
           <Link
             href="/admin/categories/new"
             className="flex items-center space-x-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
@@ -242,6 +572,7 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
 
+      {/* Message */}
       {message && (
         <div className={`mb-6 p-4 rounded-lg ${
           message.type === 'success' 
@@ -252,99 +583,201 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            All Categories ({categories.length})
-          </h2>
-          <p className="text-sm text-gray-600">
-            Drag to scroll through all categories. Click on a category to toggle its visibility on the homepage.
-          </p>
-        </div>
+      {/* Hierarchy Controls */}
+      {viewMode === 'hierarchy' && (
+        <div className="mb-6 space-y-4">
+          {/* Main Controls */}
+          <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Category Hierarchy ({categories.length} total)
+              </h2>
+              <span className="text-sm text-gray-600">
+                Root categories: {categoryTree.length}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={expandAllCategories}
+                className="px-3 py-1 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+              >
+                Expand All
+              </button>
+              <button
+                onClick={collapseAllCategories}
+                className="px-3 py-1 text-sm bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+              >
+                Collapse All
+              </button>
+            </div>
+          </div>
 
-        <div 
-          ref={sliderRef}
-          className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch'
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {categories.map((category) => (
-            <div
-              key={category._id}
-              className="group flex-shrink-0 transform transition-all duration-300 hover:-translate-y-1 hover:scale-105"
-            >
-              <div className="text-center w-20 sm:w-22 md:w-24">
-                <div 
-                  className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 transition-colors duration-300 group-hover:shadow-lg cursor-pointer ${
-                    category.isActive 
-                      ? 'bg-green-100 hover:bg-green-200' 
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  }`}
-                  onClick={() => updateHomepageVisibility(category._id!)}
-                >
-                  <span className="text-lg sm:text-xl md:text-2xl">
-                    {getCategoryIcon(category.name)}
-                  </span>
-                </div>
-                <h3 className="text-xs sm:text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-300 leading-tight px-1">
-                  {category.name}
-                </h3>
-                <div className="mt-2">
-                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                    category.isActive 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {category.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="mt-2 flex justify-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Link
-                    href={`/admin/categories/${category._id}/edit`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                    title="Edit category"
-                  >
-                    <PencilIcon className="w-4 h-4" />
-                  </Link>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteCategory(category._id!);
-                    }}
-                    disabled={deletingCategory === category._id}
-                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                    title="Delete category"
-                  >
-                    {deletingCategory === category._id ? (
-                      <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <TrashIcon className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
+          {/* Debug Info */}
+          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold text-yellow-800 mb-2">Debug Info</h3>
+            <div className="text-xs text-yellow-700 space-y-1">
+              <p>Categories with children: {categoryTree.filter(cat => cat.children && cat.children.length > 0).length}</p>
+              <p>Total categories: {categories.length}</p>
+              <p>Root categories: {categoryTree.length}</p>
+              {categoryTree.slice(0, 3).map(cat => (
+                <p key={cat._id}>
+                  {cat.name}: {cat.children?.length || 0} children
+                  {cat.children && cat.children.length > 0 && ` (${cat.children.map(c => c.name).join(', ')})`}
+                </p>
+              ))}
+            </div>
+          </div>
 
-                {updating === category._id && (
-                  <div className="mt-2">
-                    <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-pink-600"></div>
-                  </div>
-                )}
+          {/* Hierarchy Legend */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Hierarchy Legend</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-white border-2 border-blue-200 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Root Categories</p>
+                  <p className="text-xs text-gray-500">Top-level categories</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-white border-2 border-green-200 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Level 1</p>
+                  <p className="text-xs text-gray-500">Direct children of root</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-white border-2 border-purple-200 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Level 2</p>
+                  <p className="text-xs text-gray-500">Sub-categories</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-white border-2 border-orange-200 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Level 3+</p>
+                  <p className="text-xs text-gray-500">Deep nesting</p>
+                </div>
               </div>
             </div>
-          ))}
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="flex items-center space-x-6 text-xs text-gray-600">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
+                    <ChevronRightIcon className="w-3 h-3" />
+                  </div>
+                  <span>Collapsed</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
+                    <ChevronDownIcon className="w-3 h-3" />
+                  </div>
+                  <span>Expanded</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                  <span>No children</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Content */}
+      <div className="bg-white rounded-lg shadow">
+        {viewMode === 'hierarchy' ? (
+          /* Hierarchy View */
+          <div className="divide-y divide-gray-200">
+            {categoryTree.length > 0 ? (
+              categoryTree.map((category) => (
+                <HierarchyCategoryItem
+                  key={category._id}
+                  category={category}
+                  level={0}
+                />
+              ))
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                <FolderIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Found</h3>
+                <p className="text-gray-500 mb-4">Get started by creating your first category.</p>
+                <Link
+                  href="/admin/categories/new"
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                >
+                  <PlusIcon className="w-5 h-5" />
+                  <span>Create Category</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Grid View (Original) */
+          <div className="p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {categories.map((category) => (
+                <div
+                  key={category._id}
+                  className="group text-center p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+                >
+                  <div 
+                    className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 transition-colors duration-300 cursor-pointer ${
+                      category.isActive 
+                        ? 'bg-green-100 hover:bg-green-200' 
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                    onClick={() => updateHomepageVisibility(category._id!)}
+                  >
+                    <span className="text-xl">
+                      {getCategoryIcon(category)}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-2 truncate">
+                    {category.name}
+                  </h3>
+                  <div className="flex items-center justify-center space-x-1">
+                    <Link
+                      href={`/admin/categories/${category._id}/edit`}
+                      className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                      title="Edit category"
+                    >
+                      <PencilIcon className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteCategory(category._id!)}
+                      disabled={deletingCategory === category._id}
+                      className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                      title="Delete category"
+                    >
+                      {deletingCategory === category._id ? (
+                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <TrashIcon className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                  {updating === category._id && (
+                    <div className="mt-2">
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-pink-600"></div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
