@@ -12,45 +12,45 @@ interface Brand {
 
 const brands: Brand[] = [
   {
-    name: "SCARLET",
-    href: "/brands/scarlet",
-    description: "Premium beauty essentials",
+    name: "Skin Care",
+    href: "/brands/skin-care",
+    description: "Complete skincare solutions",
     featured: true
   },
   {
-    name: "K-Beauty",
-    href: "/brands/k-beauty", 
-    description: "Korean skincare innovation"
+    name: "Hair Band",
+    href: "/brands/hair-band", 
+    description: "Professional hair care products"
   },
   {
-    name: "GLOW",
-    href: "/brands/glow",
-    description: "Natural radiance"
+    name: "Make Up",
+    href: "/brands/make-up",
+    description: "Premium cosmetics collection"
   },
   {
-    name: "PURE",
-    href: "/brands/pure",
-    description: "Clean beauty solutions"
+    name: "Exclusive Collections",
+    href: "/brands/exclusive-collections",
+    description: "Limited edition beauty items"
   },
   {
-    name: "LUXE",
-    href: "/brands/luxe",
-    description: "Premium cosmetics"
+    name: "Baby Care",
+    href: "/brands/baby-care",
+    description: "Gentle products for babies"
   },
   {
-    name: "BLOOM",
-    href: "/brands/bloom",
-    description: "Botanical skincare"
+    name: "Jewelry",
+    href: "/brands/jewelry",
+    description: "Elegant jewelry collection"
   },
   {
-    name: "ESSENCE",
-    href: "/brands/essence",
-    description: "Beauty fundamentals"
+    name: "UK product",
+    href: "/brands/uk-product",
+    description: "Authentic UK beauty brands"
   },
   {
-    name: "RADIANT",
-    href: "/brands/radiant",
-    description: "Illuminating products"
+    name: "Others",
+    href: "/brands/others",
+    description: "Additional beauty categories"
   }
 ];
 
