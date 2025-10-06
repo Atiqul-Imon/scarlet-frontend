@@ -275,8 +275,6 @@ export interface ExtendedAdminProduct extends AdminProduct {
   seoKeywords?: string[];
   salesCount: number;
   viewCount: number;
-  rating: number;
-  reviewCount: number;
 }
 
 export interface InventoryItem extends ExtendedAdminProduct {

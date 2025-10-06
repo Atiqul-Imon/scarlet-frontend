@@ -58,26 +58,6 @@ export default function WishlistPage(): JSX.Element {
     }
   };
 
-  const renderStars = (rating: number): JSX.Element[] => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(<StarIcon key={i} className="w-4 h-4 text-yellow-400 fill-current" />);
-    }
-
-    if (hasHalfStar) {
-      stars.push(<StarHalfIcon key="half" className="w-4 h-4 text-yellow-400 fill-current" />);
-    }
-
-    const remainingStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < remainingStars; i++) {
-      stars.push(<StarIcon key={`empty-${i}`} className="w-4 h-4 text-gray-300" />);
-    }
-
-    return stars;
-  };
 
   if (wishlistLoading) {
     return (
@@ -198,17 +178,6 @@ export default function WishlistPage(): JSX.Element {
                     </h3>
                   </Link>
 
-                  {/* Rating */}
-                  {item.product.rating && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center">
-                        {renderStars(item.product.rating.average)}
-                      </div>
-                      <span className="text-sm text-gray-600">
-                        ({item.product.rating.count})
-                      </span>
-                    </div>
-                  )}
 
                   {/* Price */}
                   <div className="flex items-center gap-2 mb-3">

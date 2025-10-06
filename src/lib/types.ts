@@ -196,10 +196,6 @@ export interface Product extends BaseEntity {
   isFeatured?: boolean;
   seoTitle?: string;
   seoDescription?: string;
-  rating?: {
-    average: number;
-    count: number;
-  };
 }
 
 // User Related Types
@@ -410,7 +406,7 @@ export interface ProductFilters {
   search?: string;
 }
 
-export type ProductSortOption = 'featured' | 'newest' | 'price-low' | 'price-high' | 'name-asc' | 'name-desc' | 'rating' | 'popularity';
+export type ProductSortOption = 'featured' | 'newest' | 'price-low' | 'price-high' | 'name-asc' | 'name-desc' | 'popularity';
 
 export interface ProductQuery extends ProductFilters {
   page?: number;
@@ -432,13 +428,6 @@ export interface NewsletterFormData {
   preferences?: string[];
 }
 
-export interface ReviewFormData {
-  productId: string;
-  rating: number;
-  title: string;
-  comment: string;
-  wouldRecommend?: boolean;
-}
 
 // Authentication Types
 export interface LoginFormData {

@@ -324,11 +324,6 @@ export function validateProduct(product: unknown): {
     isFeatured: validateOptional(validateBoolean, product.isFeatured),
     seoTitle: validateOptional(validateString, product.seoTitle),
     seoDescription: validateOptional(validateString, product.seoDescription),
-    rating: validateOptional((value) => 
-      validateObject(value, 'rating', {
-        average: validateNumber,
-        count: validateNumber,
-      }), product.rating),
     createdAt: validateString(product.createdAt, 'createdAt'),
     updatedAt: validateString(product.updatedAt, 'updatedAt'),
   };

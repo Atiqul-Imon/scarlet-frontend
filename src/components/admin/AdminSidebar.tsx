@@ -129,12 +129,6 @@ const navigationItems: AdminNavItem[] = [
     icon: GiftIcon,
   },
   {
-    id: 'reviews',
-    label: 'Reviews & Ratings',
-    href: '/admin/reviews',
-    icon: StarIcon,
-  },
-  {
     id: 'settings',
     label: 'Settings',
     href: '/admin/settings',

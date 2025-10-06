@@ -222,23 +222,6 @@ export default function EnhancedProductCard({
             {product.title}
           </h3>
           
-          {/* Rating */}
-          {product.rating && (
-            <div className="flex items-center mb-2">
-              <div className="flex items-center">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <StarIcon
-                    key={i}
-                    filled={i < Math.floor(product.rating!.average)}
-                    className="w-3 h-3"
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-gray-500 ml-1">
-                ({product.rating.count})
-              </span>
-            </div>
-          )}
           
           {/* Price */}
           <div className="flex items-center gap-2">

@@ -12,8 +12,6 @@ interface Product {
   price: number;
   originalPrice?: number;
   image: string;
-  rating: number;
-  reviewCount: number;
   inStock: boolean;
   category: string;
 }
@@ -28,8 +26,6 @@ const mockProducts: Record<string, Product[]> = {
       price: 24.99,
       originalPrice: 29.99,
       image: '/images/products/cleanser.jpg',
-      rating: 4.5,
-      reviewCount: 128,
       inStock: true,
       category: 'Cleansers'
     },
@@ -38,8 +34,6 @@ const mockProducts: Record<string, Product[]> = {
       name: 'Anti-Aging Night Cream',
       price: 49.99,
       image: '/images/products/night-cream.jpg',
-      rating: 4.7,
-      reviewCount: 89,
       inStock: true,
       category: 'Moisturizers'
     }
@@ -50,8 +44,6 @@ const mockProducts: Record<string, Product[]> = {
       name: 'Color Protection Shampoo',
       price: 18.99,
       image: '/images/products/shampoo.jpg',
-      rating: 4.3,
-      reviewCount: 156,
       inStock: true,
       category: 'Shampoo'
     }
@@ -62,8 +54,6 @@ const mockProducts: Record<string, Product[]> = {
       name: 'Matte Foundation',
       price: 32.99,
       image: '/images/products/foundation.jpg',
-      rating: 4.6,
-      reviewCount: 203,
       inStock: true,
       category: 'Foundation'
     }
@@ -274,23 +264,6 @@ export default function BrandPage() {
                   <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
                     {product.name}
                   </h3>
-                  <div className="flex items-center mb-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <StarIcon
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.floor(product.rating)
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-500 ml-2">
-                      ({product.reviewCount})
-                    </span>
-                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-bold text-gray-900">
                       ${product.price}

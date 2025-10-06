@@ -12,11 +12,10 @@ import {
   ChartBarIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  StarIcon,
-  ShoppingCartIcon,
-  HeartIcon
+  ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
+import { adminApi } from '@/lib/api';
 import type { AdminProduct } from '@/lib/admin-types';
 
 export default function ProductDetailPage() {
@@ -25,59 +24,27 @@ export default function ProductDetailPage() {
   const { addToast } = useToast();
   const [product, setProduct] = useState<AdminProduct | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
-    // Mock product data - in real app, fetch from API
-    const mockProduct: AdminProduct = {
-      id: params.id as string,
-      name: 'Luxury Rose Gold Lipstick',
-      slug: 'luxury-rose-gold-lipstick',
-      description: 'Experience the ultimate in luxury with our Rose Gold Lipstick collection. This premium matte formula delivers intense color payoff with a comfortable, long-lasting finish that won\'t dry out your lips.\n\nKey Features:\n• Long-lasting matte formula\n• Highly pigmented colors\n• Comfortable wear for up to 8 hours\n• Enriched with vitamin E and jojoba oil\n• Cruelty-free and paraben-free\n• Available in 12 stunning shades',
-      shortDescription: 'Premium matte lipstick with long-lasting formula and intense color payoff',
-      price: 2500,
-      comparePrice: 3000,
-      cost: 1200,
-      sku: 'LIP-RG-001',
-      barcode: '1234567890123',
-      category: 'Makeup',
-      subcategory: 'Lipstick',
-      brand: 'Scarlet Beauty',
-      tags: ['lipstick', 'matte', 'luxury', 'rose gold', 'long-lasting', 'cruelty-free'],
-      images: [
-        '/api/placeholder/600/600',
-        '/api/placeholder/600/600',
-        '/api/placeholder/600/600',
-        '/api/placeholder/600/600'
-      ],
-      variants: [
-        { id: '1a', name: 'Crimson Rose', sku: 'LIP-RG-001-CR', stock: 45, price: 2500 },
-        { id: '1b', name: 'Nude Pink', sku: 'LIP-RG-001-NP', stock: 23, price: 2500 },
-        { id: '1c', name: 'Berry Blush', sku: 'LIP-RG-001-BB', stock: 67, price: 2500 },
-        { id: '1d', name: 'Coral Dream', sku: 'LIP-RG-001-CD', stock: 12, price: 2500 },
-      ],
-      stock: 147,
-      lowStockThreshold: 20,
-      trackInventory: true,
-      status: 'active',
-      stockStatus: 'in_stock',
-      weight: 0.05,
-      dimensions: { length: 10, width: 2, height: 2 },
-      seoTitle: 'Luxury Rose Gold Lipstick - Premium Matte Formula | Scarlet Beauty',
-      seoDescription: 'Discover our premium matte lipstick collection with long-lasting formula and intense color payoff. Available in 12 stunning shades.',
-      seoKeywords: ['lipstick', 'matte', 'luxury', 'cosmetics', 'rose gold', 'beauty'],
-      createdAt: '2025-01-15T10:00:00Z',
-      updatedAt: '2025-01-18T14:30:00Z',
-      salesCount: 156,
-      viewCount: 2340,
-      rating: 4.8,
-      reviewCount: 23,
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const productData = await adminApi.products.getProduct(params.id as string);
+        setProduct(productData);
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load product');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setTimeout(() => {
-      setProduct(mockProduct);
-      setLoading(false);
-    }, 1000);
+    if (params.id) {
+      fetchProduct();
+    }
   }, [params.id]);
 
   const handleDelete = async () => {
@@ -85,7 +52,7 @@ export default function ProductDetailPage() {
     
     if (window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
       try {
-        // await adminApi.products.delete(product.id);
+        await adminApi.products.deleteProduct(product._id);
         addToast({
           type: 'success',
           title: 'Product deleted',
@@ -106,7 +73,14 @@ export default function ProductDetailPage() {
     if (!product) return;
     
     try {
-      // await adminApi.products.duplicate(product.id);
+      // Create a copy of the product with a new title and slug
+      const duplicateData = {
+        ...product,
+        title: `${product.title} (Copy)`,
+        slug: `${product.slug}-copy-${Date.now()}`,
+      };
+      
+      await adminApi.products.createProduct(duplicateData);
       addToast({
         type: 'success',
         title: 'Product duplicated',
@@ -123,9 +97,9 @@ export default function ProductDetailPage() {
   };
 
   const getStockStatusBadge = (product: AdminProduct) => {
-    const { stockStatus, stock, lowStockThreshold } = product;
+    const { stock } = product;
     
-    if (stockStatus === 'out_of_stock' || stock === 0) {
+    if (stock === 0) {
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
           <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
@@ -134,7 +108,7 @@ export default function ProductDetailPage() {
       );
     }
     
-    if (stockStatus === 'low_stock' || stock <= lowStockThreshold) {
+    if (stock <= 10) {
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
           <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
@@ -151,21 +125,6 @@ export default function ProductDetailPage() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Active' },
-      draft: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Draft' },
-      archived: { bg: 'bg-red-100', text: 'text-red-800', label: 'Archived' },
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    
-    return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.bg} ${config.text}`}>
-        {config.label}
-      </span>
-    );
-  };
 
   if (loading) {
     return (
@@ -180,6 +139,24 @@ export default function ProductDetailPage() {
               <div className="h-20 bg-gray-200 rounded"></div>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-gray-900">Error loading product</h2>
+          <p className="text-gray-600 mt-2">{error}</p>
+          <Link
+            href="/admin/products"
+            className="mt-4 inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+          >
+            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            Back to Products
+          </Link>
         </div>
       </div>
     );
@@ -217,12 +194,14 @@ export default function ProductDetailPage() {
                 <ArrowLeftIcon className="w-5 h-5" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{product.title}</h1>
                 <div className="flex items-center space-x-3 mt-1">
-                  {getStatusBadge(product.status)}
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    Active
+                  </span>
                   {getStockStatusBadge(product)}
                   <span className="text-sm text-gray-500">
-                    SKU: {product.sku}
+                    ID: {product._id}
                   </span>
                 </div>
               </div>
@@ -245,7 +224,7 @@ export default function ProductDetailPage() {
                 Duplicate
               </button>
               <Link
-                href={`/admin/products/${product.id}/edit`}
+                href={`/admin/products/${product._id}/edit`}
                 className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
                 <PencilIcon className="w-4 h-4 mr-2" />
@@ -267,14 +246,20 @@ export default function ProductDetailPage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="aspect-square bg-gray-100 relative">
-                <img
-                  src={product.images[activeImageIndex]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
+                {product.images && product.images.length > 0 ? (
+                  <img
+                    src={product.images[activeImageIndex]}
+                    alt={product.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    No image available
+                  </div>
+                )}
               </div>
               
-              {product.images.length > 1 && (
+              {product.images && product.images.length > 1 && (
                 <div className="p-4 border-t border-gray-200">
                   <div className="flex space-x-2 overflow-x-auto">
                     {product.images.map((image, index) => (
@@ -289,7 +274,7 @@ export default function ProductDetailPage() {
                       >
                         <img
                           src={image}
-                          alt={`${product.name} ${index + 1}`}
+                          alt={`${product.title} ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -309,18 +294,9 @@ export default function ProductDetailPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Price</span>
                   <span className="font-medium text-gray-900">
-                    ৳{product.price.toLocaleString()}
+                    {product.price.currency} {product.price.amount.toLocaleString()}
                   </span>
                 </div>
-                
-                {product.comparePrice && product.comparePrice > product.price && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Compare Price</span>
-                    <span className="text-sm text-gray-500 line-through">
-                      ৳{product.comparePrice.toLocaleString()}
-                    </span>
-                  </div>
-                )}
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Stock</span>
@@ -328,75 +304,18 @@ export default function ProductDetailPage() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Sales</span>
-                  <span className="font-medium text-gray-900">{product.salesCount}</span>
+                  <span className="text-sm text-gray-600">Brand</span>
+                  <span className="font-medium text-gray-900">{product.brand || 'N/A'}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Views</span>
-                  <span className="font-medium text-gray-900">{product.viewCount.toLocaleString()}</span>
+                  <span className="text-sm text-gray-600">Categories</span>
+                  <span className="font-medium text-gray-900">{product.categoryIds.length}</span>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Rating</span>
-                  <div className="flex items-center space-x-1">
-                    <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="font-medium text-gray-900">{product.rating}</span>
-                    <span className="text-sm text-gray-500">({product.reviewCount})</span>
-                  </div>
-                </div>
               </div>
             </div>
 
-            {/* Performance Metrics */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="font-medium text-gray-900 mb-4">Performance</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-600">Conversion Rate</span>
-                    <span className="font-medium text-gray-900">
-                      {((product.salesCount / product.viewCount) * 100).toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
-                      style={{ width: `${(product.salesCount / product.viewCount) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-600">Profit Margin</span>
-                    <span className="font-medium text-gray-900">
-                      {(((product.price - product.cost) / product.price) * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full" 
-                      style={{ width: `${((product.price - product.cost) / product.price) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="pt-2 border-t border-gray-200">
-                  <div className="text-sm text-gray-600 mb-1">Total Revenue</div>
-                  <div className="text-lg font-bold text-green-600">
-                    ৳{(product.price * product.salesCount).toLocaleString()}
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Total Profit</div>
-                  <div className="text-lg font-bold text-blue-600">
-                    ৳{((product.price - product.cost) * product.salesCount).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -410,10 +329,6 @@ export default function ProductDetailPage() {
                   <ShoppingCartIcon className="w-4 h-4 mr-3 text-gray-400" />
                   View Orders
                 </button>
-                <button className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                  <HeartIcon className="w-4 h-4 mr-3 text-gray-400" />
-                  View Reviews
-                </button>
               </div>
             </div>
           </div>
@@ -425,23 +340,27 @@ export default function ProductDetailPage() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="font-medium text-gray-900 mb-4">Product Description</h3>
             <div className="prose prose-sm max-w-none">
-              {product.description.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-3 text-gray-700">
-                  {paragraph}
-                </p>
-              ))}
+              {product.description ? (
+                product.description.split('\n').map((paragraph, index) => (
+                  <p key={index} className="mb-3 text-gray-700">
+                    {paragraph}
+                  </p>
+                ))
+              ) : (
+                <p className="text-gray-500 italic">No description available</p>
+              )}
             </div>
             
-            {product.tags.length > 0 && (
+            {product.attributes && Object.keys(product.attributes).length > 0 && (
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-2">Tags</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Attributes</h4>
                 <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag, index) => (
+                  {Object.entries(product.attributes).map(([key, value]) => (
                     <span
-                      key={index}
+                      key={key}
                       className="px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full"
                     >
-                      {tag}
+                      {key}: {String(value)}
                     </span>
                   ))}
                 </div>
@@ -449,78 +368,57 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Variants & Stock */}
+          {/* Product Details */}
           <div className="space-y-6">
-            {/* Variants */}
-            {product.variants.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="font-medium text-gray-900 mb-4">Product Variants</h3>
-                <div className="space-y-3">
-                  {product.variants.map((variant) => (
-                    <div key={variant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium text-gray-900">{variant.name}</div>
-                        <div className="text-sm text-gray-500">SKU: {variant.sku}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900">
-                          ৳{variant.price.toLocaleString()}
-                        </div>
-                        <div className={`text-sm ${
-                          variant.stock > 20 ? 'text-green-600' : 
-                          variant.stock > 0 ? 'text-amber-600' : 'text-red-600'
-                        }`}>
-                          Stock: {variant.stock}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Product Details */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="font-medium text-gray-900 mb-4">Product Details</h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Category</span>
-                  <span className="text-gray-900">{product.category}</span>
+                  <span className="text-gray-600">Product ID</span>
+                  <span className="text-gray-900 font-mono">{product._id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subcategory</span>
-                  <span className="text-gray-900">{product.subcategory}</span>
+                  <span className="text-gray-600">Slug</span>
+                  <span className="text-gray-900">{product.slug}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Brand</span>
-                  <span className="text-gray-900">{product.brand}</span>
+                  <span className="text-gray-900">{product.brand || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Weight</span>
-                  <span className="text-gray-900">{product.weight}kg</span>
+                  <span className="text-gray-600">Categories</span>
+                  <span className="text-gray-900">{product.categoryIds.length} categories</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Dimensions</span>
+                  <span className="text-gray-600">Images</span>
+                  <span className="text-gray-900">{product.images.length} images</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Stock</span>
+                  <span className="text-gray-900">{product.stock} units</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Price</span>
                   <span className="text-gray-900">
-                    {product.dimensions.length} × {product.dimensions.width} × {product.dimensions.height} cm
+                    {product.price.currency} {product.price.amount.toLocaleString()}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Barcode</span>
-                  <span className="text-gray-900 font-mono">{product.barcode}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Created</span>
-                  <span className="text-gray-900">
-                    {new Date(product.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Last Updated</span>
-                  <span className="text-gray-900">
-                    {new Date(product.updatedAt).toLocaleDateString()}
-                  </span>
-                </div>
+                {product.createdAt && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Created</span>
+                    <span className="text-gray-900">
+                      {new Date(product.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {product.updatedAt && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Last Updated</span>
+                    <span className="text-gray-900">
+                      {new Date(product.updatedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

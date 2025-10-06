@@ -9,25 +9,8 @@ import { Product } from '../../../lib/types';
 import { useAuth, useCart, useToast, useWishlist } from '../../../lib/context';
 import OutOfStockWishlistModal from '../../../components/wishlist/OutOfStockWishlistModal';
 import StructuredData from '../../../components/seo/StructuredData';
-import { generateProductMetadata, generateBreadcrumbJsonLd } from '../../../lib/seo';
 
-interface ProductVariant {
-  id: string;
-  name: string;
-  value: string;
-  price?: number;
-  stock?: number;
-}
 
-interface ProductReview {
-  id: string;
-  userId: string;
-  userName: string;
-  rating: number;
-  comment: string;
-  date: string;
-  verified: boolean;
-}
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -42,56 +25,12 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [quantity, setQuantity] = React.useState(1);
-  const [selectedVariants, setSelectedVariants] = React.useState<Record<string, string>>({});
   const [isAddingToCart, setIsAddingToCart] = React.useState(false);
   const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('description');
-  const [reviews, setReviews] = React.useState<ProductReview[]>([]);
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
 
-  // Mock data for demonstration - Replace with real API calls
-  const mockVariants: Record<string, ProductVariant[]> = {
-    size: [
-      { id: '1', name: 'size', value: '30ml', stock: 10 },
-      { id: '2', name: 'size', value: '50ml', price: 50, stock: 5 },
-      { id: '3', name: 'size', value: '100ml', price: 100, stock: 8 }
-    ],
-    shade: [
-      { id: '4', name: 'shade', value: 'Fair', stock: 15 },
-      { id: '5', name: 'shade', value: 'Medium', stock: 12 },
-      { id: '6', name: 'shade', value: 'Dark', stock: 7 }
-    ]
-  };
 
-  const mockReviews: ProductReview[] = [
-    {
-      id: '1',
-      userId: 'user1',
-      userName: 'Fatima Rahman',
-      rating: 5,
-      comment: 'অসাধারণ প্রোডাক্ট! আমার ত্বকে খুবই ভালো কাজ করেছে। দাম অনুযায়ী কোয়ালিটি চমৎকার।',
-      date: '2024-01-15',
-      verified: true
-    },
-    {
-      id: '2',
-      userId: 'user2',
-      userName: 'Nusrat Jahan',
-      rating: 4,
-      comment: 'Very good product quality. Fast delivery and authentic product. Highly recommended!',
-      date: '2024-01-10',
-      verified: true
-    },
-    {
-      id: '3',
-      userId: 'user3',
-      userName: 'Sadia Akter',
-      rating: 5,
-      comment: 'Perfect for sensitive skin. No irritation at all. Will definitely repurchase.',
-      date: '2024-01-05',
-      verified: false
-    }
-  ];
 
   // Fetch product data
   React.useEffect(() => {
@@ -121,7 +60,6 @@ export default function ProductDetailPage() {
         const product = productData.data;
         console.log('Product loaded from API:', product);
         setProduct(product);
-        setReviews(mockReviews); // Keep mock reviews for now
         
         // Fetch related products from the same category
         if (product.categoryIds && product.categoryIds.length > 0) {
@@ -229,17 +167,7 @@ export default function ProductDetailPage() {
 
   const getCurrentPrice = () => {
     if (!product) return 0;
-    let basePrice = product.price.amount;
-    
-    // Add variant price modifications
-    Object.entries(selectedVariants).forEach(([variantType, variantValue]) => {
-      const variant = mockVariants[variantType]?.find(v => v.value === variantValue);
-      if (variant?.price) {
-        basePrice += variant.price;
-      }
-    });
-    
-    return basePrice;
+    return product.price.amount;
   };
 
   const isInStock = () => {
@@ -248,21 +176,9 @@ export default function ProductDetailPage() {
     // Check main stock
     if (product.stock !== undefined && product.stock <= 0) return false;
     
-    // Check variant stock
-    for (const [variantType, variantValue] of Object.entries(selectedVariants)) {
-      const variant = mockVariants[variantType]?.find(v => v.value === variantValue);
-      if (variant && variant.stock !== undefined && variant.stock <= 0) {
-        return false;
-      }
-    }
-    
     return true;
   };
 
-  const getAverageRating = () => {
-    if (reviews.length === 0) return 0;
-    return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
-  };
 
   console.log('Loading state:', loading, 'Product:', product, 'Error:', error);
   
@@ -296,7 +212,6 @@ export default function ProductDetailPage() {
 
   const currentPrice = getCurrentPrice();
   const stockStatus = isInStock();
-  const averageRating = getAverageRating();
   const hasDiscount = product.price.originalAmount && product.price.originalAmount > product.price.amount;
 
   return (
@@ -351,23 +266,6 @@ export default function ProductDetailPage() {
             {/* Title */}
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">{product.title}</h1>
 
-            {/* Rating */}
-            {reviews.length > 0 && (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <StarIcon 
-                      key={i} 
-                      filled={i < Math.floor(averageRating)} 
-                      halfFilled={i === Math.floor(averageRating) && averageRating % 1 >= 0.5}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-medium text-gray-700">
-                  {averageRating.toFixed(1)} ({reviews.length} reviews)
-                </span>
-              </div>
-            )}
 
             {/* Price */}
             <div className="flex items-center gap-4">
@@ -394,31 +292,6 @@ export default function ProductDetailPage() {
               </p>
             )}
 
-            {/* Variants */}
-            {Object.entries(mockVariants).map(([variantType, variants]) => (
-              <div key={variantType} className="space-y-3">
-                <label className="block text-base font-semibold text-gray-900 capitalize">
-                  {variantType}:
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {variants.map((variant) => (
-                    <button
-                      key={variant.id}
-                      onClick={() => setSelectedVariants(prev => ({ ...prev, [variantType]: variant.value }))}
-                      className={`px-4 py-3 border-2 rounded-lg text-sm font-semibold transition-all duration-200 min-w-[80px] ${
-                        selectedVariants[variantType] === variant.value
-                          ? 'border-pink-500 bg-pink-500 text-white shadow-md'
-                          : 'border-gray-300 bg-white text-gray-800 hover:border-pink-400 hover:bg-pink-50 hover:text-pink-700'
-                      } ${variant.stock === 0 ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400' : ''}`}
-                      disabled={variant.stock === 0}
-                    >
-                      <span className="block">{variant.value}</span>
-                      {variant.stock === 0 && <span className="text-xs">(Out of Stock)</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
 
 
             {/* Quantity Selector */}
@@ -547,7 +420,6 @@ export default function ProductDetailPage() {
               {[
                 { id: 'description', label: 'Description' },
                 { id: 'ingredients', label: 'Ingredients' },
-                { id: 'reviews', label: `Reviews (${reviews.length})` },
                 { id: 'shipping', label: 'Shipping & Returns' }
               ].map((tab) => (
                 <button
@@ -597,46 +469,6 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {activeTab === 'reviews' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-gray-900">Customer Reviews</h4>
-                  {user && (
-                    <Button size="sm" variant="ghost">
-                      Write a Review
-                    </Button>
-                  )}
-                </div>
-
-                {reviews.length === 0 ? (
-                  <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
-                ) : (
-                  <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-100 pb-6 last:border-b-0">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <StarIcon key={i} filled={i < review.rating} />
-                            ))}
-                          </div>
-                          <span className="font-medium text-gray-900">{review.userName}</span>
-                          {review.verified && (
-                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                              Verified Purchase
-                            </span>
-                          )}
-                          <span className="text-sm text-gray-500">
-                            {new Date(review.date).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 leading-relaxed">{review.comment}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
             {activeTab === 'shipping' && (
               <div className="space-y-6">
@@ -725,24 +557,6 @@ function ChevronRightIcon() {
   );
 }
 
-function StarIcon({ filled = false, halfFilled = false }: { filled?: boolean; halfFilled?: boolean }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" className="text-yellow-400">
-      <defs>
-        <linearGradient id="half-fill">
-          <stop offset="50%" stopColor="currentColor"/>
-          <stop offset="50%" stopColor="transparent"/>
-        </linearGradient>
-      </defs>
-      <path
-        fill={filled ? "currentColor" : halfFilled ? "url(#half-fill)" : "none"}
-        stroke="currentColor"
-        strokeWidth="1"
-        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-      />
-    </svg>
-  );
-}
 
 function MinusIcon() {
   return (

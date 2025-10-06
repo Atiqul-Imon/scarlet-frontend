@@ -249,11 +249,6 @@ export function generateProductJsonLd(product: Product) {
         },
         url: `${seoConfig.siteUrl}/products/${product.slug}`,
       },
-      aggregateRating: product.rating ? {
-        '@type': 'AggregateRating',
-        ratingValue: product.rating.average,
-        reviewCount: product.rating.count,
-      } : undefined,
       category: product.category?.name,
       sku: product.sku,
       gtin: product.gtin,
