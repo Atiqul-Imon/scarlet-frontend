@@ -1,7 +1,7 @@
 "use client";
 import * as React from 'react';
 import Link from 'next/link';
-import { productApi } from '../../lib/api';
+import { productApi, fetchJson } from '../../lib/api';
 import type { Product } from '../../lib/types';
 import EnhancedProductCard from './EnhancedProductCard';
 import { SectionContainer, ResponsiveFlex, ProductGrid } from '../layout';
@@ -34,20 +34,30 @@ export default function ProductShowcase({
         
         let queryParams: {
           limit: number;
-          sort?: string;
+          sort?: 'featured' | 'newest' | 'price-low' | 'price-high' | 'name-asc' | 'name-desc' | 'popularity';
           isNewArrival?: boolean;
           isBestSeller?: boolean;
           isFeatured?: boolean;
           category?: string;
+          homepageSection?: string;
         } = { limit };
         
         // Handle special categories and filtering
         if (category === 'new' || category === 'new-arrivals') {
           queryParams.sort = 'newest';
           queryParams.isNewArrival = true;
-        } else if (category === 'bestselling' || category === 'best-sellers') {
-          queryParams.sort = 'popularity';
-          queryParams.isBestSeller = true;
+        } else if (category === 'skincare-essentials') {
+          // Use the new homepage section API
+          const response = await fetchJson<Product[]>(`/catalog/products/homepage/skincare-essentials`);
+          const productsData = Array.isArray(response) ? response : [];
+          setProducts(productsData.slice(0, limit));
+          return;
+        } else if (category === 'makeup-collection') {
+          // Use the new homepage section API
+          const response = await fetchJson<Product[]>(`/catalog/products/homepage/makeup-collection`);
+          const productsData = Array.isArray(response) ? response : [];
+          setProducts(productsData.slice(0, limit));
+          return;
         } else if (category === 'featured') {
           queryParams.isFeatured = true;
           queryParams.sort = 'featured';
@@ -75,7 +85,7 @@ export default function ProductShowcase({
 
   if (error) {
     return (
-      <section className="bg-gray-50">
+      <section className="bg-amber-50">
         <SectionContainer>
           <div className="text-center">
             <p className="responsive-text text-gray-600">Unable to load products at the moment.</p>
@@ -86,7 +96,7 @@ export default function ProductShowcase({
   }
 
   return (
-    <section className="bg-gray-50">
+    <section className="bg-amber-50">
       <div className="container-herlan py-12 sm:py-16 lg:py-20">
         {/* Section Header */}
         <ResponsiveFlex

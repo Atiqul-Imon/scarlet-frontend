@@ -30,7 +30,7 @@ export default function BrandShowcase() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-amber-50">
         <div className="container-herlan">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -50,7 +50,7 @@ export default function BrandShowcase() {
 
   if (error || brands.length === 0) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-amber-50">
         <div className="container-herlan">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -68,7 +68,7 @@ export default function BrandShowcase() {
     );
   }
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-amber-50">
       <div className="container-herlan">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">

@@ -42,6 +42,7 @@ interface ProductFormData {
   seoTitle: string;
   seoDescription: string;
   seoKeywords: string[];
+  homepageSection: string;
   variants: Array<{
     id: string;
     name: string;
@@ -82,6 +83,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     seoTitle: '',
     seoDescription: '',
     seoKeywords: [],
+    homepageSection: '',
     variants: []
   });
 
@@ -381,7 +383,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
           ...variant,
           stock: parseInt(variant.stock) || 0,
           price: parseFloat(variant.price) || 0
-        }))
+        })),
+        homepageSection: formData.homepageSection || null
       };
 
       if (mode === 'create') {
@@ -796,6 +799,30 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Homepage Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-6">Homepage Display</h2>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Homepage Section
+          </label>
+          <select
+            value={formData.homepageSection}
+            onChange={(e) => handleInputChange('homepageSection', e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+          >
+            <option value="">No section (default)</option>
+            <option value="new-arrivals">New Arrivals</option>
+            <option value="skincare-essentials">Skincare Essentials</option>
+            <option value="makeup-collection">Makeup Collection</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Select which homepage section this product should appear in. Leave empty to not show on homepage.
+          </p>
+        </div>
       </div>
 
       {/* Submit Buttons */}

@@ -51,21 +51,15 @@ export default function Home() {
         subtitle="Discover our latest beauty essentials"
         category="new"
         viewAllLink="/products?filter=new"
+        limit={12}
       />
       
-      {/* Best Selling */}
-      <ProductShowcase 
-        title="Best Selling"
-        subtitle="Customer favorites that deliver results"
-        category="bestselling"
-        viewAllLink="/products?filter=bestselling"
-      />
       
       {/* Skincare Section */}
       <ProductShowcase 
         title="Skincare Essentials"
         subtitle="Nourish and protect your skin"
-        category="skincare"
+        category="skincare-essentials"
         viewAllLink="/skincare"
       />
       
@@ -73,7 +67,7 @@ export default function Home() {
       <ProductShowcase 
         title="Makeup Collection"
         subtitle="Enhance your natural beauty"
-        category="makeup"
+        category="makeup-collection"
         viewAllLink="/makeup"
       />
       

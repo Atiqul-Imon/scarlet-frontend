@@ -45,6 +45,7 @@ export interface AdminProduct {
   };
   stock: number;
   attributes?: Record<string, string | number | boolean | null>;
+  homepageSection?: 'new-arrivals' | 'skincare-essentials' | 'makeup-collection' | null;
   createdAt?: string;
   updatedAt?: string;
 }
