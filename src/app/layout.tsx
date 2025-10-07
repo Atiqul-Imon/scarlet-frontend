@@ -8,6 +8,8 @@ import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider
 import StickyCartButton from "../components/cart/StickyCartButton";
 import FloatingWhatsAppButton from "../components/chat/FloatingWhatsAppButton";
 import FloatingMessengerButton from "../components/chat/FloatingMessengerButton";
+import { ChatProvider } from "../lib/chat-context";
+import ChatWidget from "../components/chat/ChatWidget";
 import StructuredData from "../components/seo/StructuredData";
 
 const roboto = Roboto({
@@ -117,20 +119,24 @@ export default function RootLayout({
         className={`${roboto.variable} ${playfairDisplay.variable} antialiased h-full`}
       >
         <AppProvider>
-          <ServiceWorkerProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-              {/* Sticky Cart Button */}
-              <StickyCartButton />
-              {/* Separated Chat Widgets */}
-              <FloatingWhatsAppButton />
-              <FloatingMessengerButton />
-            </div>
-          </ServiceWorkerProvider>
+          <ChatProvider>
+            <ServiceWorkerProvider>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+                {/* Sticky Cart Button */}
+                <StickyCartButton />
+                {/* Chat Widget */}
+                <ChatWidget />
+                {/* Separated Chat Widgets */}
+                <FloatingWhatsAppButton />
+                <FloatingMessengerButton />
+              </div>
+            </ServiceWorkerProvider>
+          </ChatProvider>
         </AppProvider>
       </body>
     </html>

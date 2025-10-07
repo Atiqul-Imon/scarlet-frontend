@@ -19,7 +19,8 @@ import {
   UserGroupIcon,
   DocumentTextIcon,
   BellIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import type { AdminNavItem } from '@/lib/admin-types';
 
@@ -40,6 +41,13 @@ const navigationItems: AdminNavItem[] = [
     label: 'Customer Management',
     href: '/admin/users',
     icon: UserGroupIcon,
+  },
+  {
+    id: 'chat',
+    label: 'Live Chat',
+    href: '/admin/chat',
+    icon: ChatBubbleLeftRightIcon,
+    badge: 0, // Will be updated with unread count
   },
   {
     id: 'products',

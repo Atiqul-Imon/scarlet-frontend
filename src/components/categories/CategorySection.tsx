@@ -190,7 +190,7 @@ export default function CategorySection() {
   };
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-amber-50">
+    <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
       <div className="container-herlan">
         {loading ? (
           <div className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide">

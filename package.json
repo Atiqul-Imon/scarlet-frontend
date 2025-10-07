@@ -48,10 +48,12 @@
     "is-emoji-supported": "^0.0.5",
     "jspdf": "^3.0.2",
     "lowlight": "^3.3.0",
+    "lucide-react": "^0.545.0",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.1.2",
+    "socket.io-client": "^4.8.1",
     "swr": "^2.3.5"
   },
   "devDependencies": {

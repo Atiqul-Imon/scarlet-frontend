@@ -125,7 +125,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="bg-amber-50 py-0 md:py-8">
+    <section className="bg-gray-50 py-0 md:py-8">
       <div className="container-herlan">
         {/* Main Banner Carousel */}
         <div 
