@@ -436,12 +436,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       await chatApi.markNotificationAsRead(notificationId);
       dispatch({ 
         type: 'SET_NOTIFICATIONS', 
-        payload: state.notifications.filter(n => n._id !== notificationId) 
+        payload: stateRef.current.notifications.filter(n => n._id !== notificationId) 
       });
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
-  }, [state.notifications]);
+  }, []);
 
   // Load initial data when authenticated
   useEffect(() => {

@@ -1267,6 +1267,101 @@ export const adminApi = {
       });
       return fetchJsonAuth<AdminPaginatedResponse<AdminActivityLog>>(`/admin/logs/activity?${params.toString()}`);
     }
+  },
+
+  // Consultations
+  consultations: {
+    getConsultations: (filters: {
+      status?: string;
+      priority?: string;
+      assignedTo?: string;
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    } = {}): Promise<AdminPaginatedResponse<{
+      _id: string;
+      name: string;
+      email?: string;
+      mobile?: string;
+      subject: string;
+      message: string;
+      status: 'pending' | 'read' | 'contacted' | 'resolved' | 'closed';
+      priority?: 'low' | 'medium' | 'high';
+      assignedTo?: string;
+      adminNotes?: string;
+      contactedAt?: string;
+      resolvedAt?: string;
+      createdAt: string;
+      updatedAt: string;
+    }>> => {
+      const params = new URLSearchParams();
+      if (filters.status) params.append('status', filters.status);
+      if (filters.priority) params.append('priority', filters.priority);
+      if (filters.assignedTo) params.append('assignedTo', filters.assignedTo);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.page) params.append('page', filters.page.toString());
+      if (filters.limit) params.append('limit', filters.limit.toString());
+      return fetchJsonAuth(`/consultations?${params.toString()}`);
+    },
+
+    getConsultationById: (id: string): Promise<{
+      _id: string;
+      name: string;
+      email?: string;
+      mobile?: string;
+      subject: string;
+      message: string;
+      status: 'pending' | 'read' | 'contacted' | 'resolved' | 'closed';
+      priority?: 'low' | 'medium' | 'high';
+      assignedTo?: string;
+      adminNotes?: string;
+      contactedAt?: string;
+      resolvedAt?: string;
+      createdAt: string;
+      updatedAt: string;
+    }> => {
+      return fetchJsonAuth(`/consultations/${id}`);
+    },
+
+    updateConsultationStatus: (id: string, status: 'pending' | 'read' | 'contacted' | 'resolved' | 'closed'): Promise<any> => {
+      return fetchJsonAuth(`/consultations/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      });
+    },
+
+    updateConsultation: (id: string, updates: {
+      status?: 'pending' | 'read' | 'contacted' | 'resolved' | 'closed';
+      priority?: 'low' | 'medium' | 'high';
+      assignedTo?: string;
+      adminNotes?: string;
+    }): Promise<any> => {
+      return fetchJsonAuth(`/consultations/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+    },
+
+    deleteConsultation: (id: string): Promise<{ success: boolean }> => {
+      return fetchJsonAuth(`/consultations/${id}`, {
+        method: 'DELETE',
+      });
+    },
+
+    getStats: (): Promise<{
+      total: number;
+      pending: number;
+      read: number;
+      contacted: number;
+      resolved: number;
+      closed: number;
+    }> => {
+      return fetchJsonAuth('/consultations/stats');
+    }
   }
 };
 

@@ -50,6 +50,12 @@ const navigationItems: AdminNavItem[] = [
     badge: 0, // Will be updated with unread count
   },
   {
+    id: 'consultations',
+    label: 'Skincare Consultations',
+    href: '/admin/consultations',
+    icon: ClipboardDocumentListIcon,
+  },
+  {
     id: 'products',
     label: 'Product Catalog',
     href: '/admin/products',

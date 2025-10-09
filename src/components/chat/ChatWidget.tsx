@@ -40,8 +40,14 @@ export default function ChatWidget({
     stopTyping
   } = useChat();
 
+  // Use ref to store temp user ID to prevent regeneration on every render
+  const tempUserIdRef = React.useRef<string | null>(null);
+  if (!tempUserIdRef.current) {
+    tempUserIdRef.current = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
   // Get user information from auth context or props
-  const currentUserId = userId || user?._id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const currentUserId = userId || user?._id || tempUserIdRef.current;
   const currentUserType = userType || (user?.role === 'admin' ? 'admin' : 'customer');
   const currentUserInfo = userInfo || {
     name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Anonymous',
@@ -50,9 +56,13 @@ export default function ChatWidget({
     currentPage: typeof window !== 'undefined' ? window.location.pathname : '/'
   };
 
+  // Track if connection has been initiated
+  const connectionInitiated = React.useRef(false);
+
   // Auto-connect when component mounts
   useEffect(() => {
-    if (currentUserId && currentUserType && !isConnected) {
+    if (currentUserId && currentUserType && !isConnected && !connectionInitiated.current) {
+      connectionInitiated.current = true;
       // Use a timeout to prevent immediate re-calls
       const timeoutId = setTimeout(() => {
         connect(currentUserId, currentUserType);
@@ -61,7 +71,7 @@ export default function ChatWidget({
       return () => clearTimeout(timeoutId);
     }
     return undefined; // Explicit return for all code paths
-  }, [currentUserId, currentUserType, isConnected]); // Remove connect from dependencies to prevent infinite loop
+  }, []); // Empty dependency array - only run once on mount
 
   // Start conversation when widget opens
   useEffect(() => {
