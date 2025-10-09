@@ -17,7 +17,15 @@ export const chatApi = {
   },
 
   async getActiveConversations(): Promise<ChatConversation[]> {
-    return fetchJson('/chat/admin/conversations');
+    console.log('Chat API: Getting active conversations...');
+    try {
+      const result = await fetchJson('/chat/admin/conversations');
+      console.log('Chat API: Got conversations:', result);
+      return result;
+    } catch (error) {
+      console.error('Chat API: Failed to get conversations:', error);
+      throw error;
+    }
   },
 
   async assignConversationToAdmin(conversationId: string, adminId: string): Promise<ChatConversation> {

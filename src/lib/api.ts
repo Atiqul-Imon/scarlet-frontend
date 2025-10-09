@@ -328,6 +328,17 @@ export async function fetchJson<T = unknown>(
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
   
+  // Debug logging for chat API calls
+  if (path.includes('/chat/')) {
+    console.log('Fetch Debug:', {
+      path,
+      url,
+      API_BASE,
+      method: init?.method || 'GET',
+      hasAuth: !!init?.headers?.['Authorization']
+    });
+  }
+  
   // Determine if this is dynamic content that should never be cached
   const isDynamicContent = /^\/(cart|orders|auth|users|checkout|wishlist|payments|addresses|cart-abandonment)/.test(path);
   

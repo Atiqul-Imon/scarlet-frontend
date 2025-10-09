@@ -429,11 +429,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [socket]);
 
   const loadConversations = useCallback(async () => {
+    console.log('Chat Context: Loading conversations...');
     try {
       const conversations = await chatApi.getActiveConversations();
+      console.log('Chat Context: Got conversations:', conversations);
       dispatch({ type: 'SET_CONVERSATIONS', payload: conversations });
     } catch (error) {
-      console.error('Failed to load conversations:', error);
+      console.error('Chat Context: Failed to load conversations:', error);
     }
   }, []);
 

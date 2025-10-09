@@ -51,10 +51,20 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
 
   // Load conversations when authenticated
   useEffect(() => {
+    console.log('Admin Chat Debug:', {
+      isAuthenticated,
+      adminId,
+      adminName,
+      isConnected
+    });
+    
     if (isAuthenticated) {
-      loadConversations();
+      console.log('Loading conversations...');
+      loadConversations().catch(error => {
+        console.error('Failed to load conversations:', error);
+      });
     }
-  }, [isAuthenticated, loadConversations]);
+  }, [isAuthenticated, loadConversations, adminId, adminName, isConnected]);
 
   const handleSelectConversation = (conversation: ChatConversation) => {
     setSelectedConversation(conversation);
