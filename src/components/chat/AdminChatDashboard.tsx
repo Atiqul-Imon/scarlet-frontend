@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useChat } from '@/lib/chat-context';
+import { chatApi } from '@/lib/chat-api';
 import { 
   MessageCircle, 
   Users, 
@@ -24,6 +25,8 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
   const [selectedConversation, setSelectedConversation] = useState<ChatConversation | null>(null);
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [localConversations, setLocalConversations] = useState<ChatConversation[]>([]);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   
   const {
     isConnected,
@@ -49,7 +52,7 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
     }
   }, [adminId, isConnected, connect]);
 
-  // Load conversations when authenticated
+  // Load conversations directly from API (admin is already authenticated via admin panel)
   useEffect(() => {
     console.log('Admin Chat Debug:', {
       isAuthenticated,
@@ -58,13 +61,24 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
       isConnected
     });
     
-    if (isAuthenticated) {
-      console.log('Loading conversations...');
-      loadConversations().catch(error => {
-        console.error('Failed to load conversations:', error);
-      });
+    // Load conversations immediately since admin is already authenticated via admin panel
+    if (adminId) {
+      console.log('Loading conversations for admin:', adminId);
+      setIsLoadingConversations(true);
+      
+      chatApi.getActiveConversations()
+        .then(convos => {
+          console.log('Loaded conversations:', convos);
+          setLocalConversations(convos);
+        })
+        .catch(error => {
+          console.error('Failed to load conversations:', error);
+        })
+        .finally(() => {
+          setIsLoadingConversations(false);
+        });
     }
-  }, [isAuthenticated, loadConversations, adminId, adminName, isConnected]);
+  }, [adminId]);
 
   const handleSelectConversation = (conversation: ChatConversation) => {
     setSelectedConversation(conversation);
@@ -163,13 +177,18 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
         </div>
 
         <div className="overflow-y-auto h-full">
-          {conversations.length === 0 ? (
+          {isLoadingConversations ? (
+            <div className="p-4 text-center text-gray-500">
+              <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300 animate-pulse" />
+              <p>Loading conversations...</p>
+            </div>
+          ) : localConversations.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
               <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
               <p>No active conversations</p>
             </div>
           ) : (
-            conversations.map((conversation) => (
+            localConversations.map((conversation) => (
               <div
                 key={conversation._id}
                 onClick={() => handleSelectConversation(conversation)}
