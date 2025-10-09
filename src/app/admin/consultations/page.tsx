@@ -12,10 +12,18 @@ import { useAuth } from '@/lib/context';
 interface Consultation {
   _id: string;
   name: string;
+  address: string;
+  phone: string;
   email?: string;
-  mobile?: string;
-  subject: string;
-  message: string;
+  age: number;
+  gender?: 'male' | 'female' | 'other';
+  skinType: 'oily' | 'dry' | 'normal' | 'combination' | 'sensitive';
+  mainProblem: string;
+  problemDuration: string;
+  currentProducts?: string;
+  images?: string[];
+  preferredContactMethod: 'phone' | 'email' | 'whatsapp';
+  additionalComments?: string;
   status: 'pending' | 'read' | 'contacted' | 'resolved' | 'closed';
   priority?: 'low' | 'medium' | 'high';
   assignedTo?: string;
@@ -280,7 +288,8 @@ export default function AdminConsultationsPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{consultation.name}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-1">{consultation.subject}</p>
+                      <p className="text-sm text-gray-600 line-clamp-1">{consultation.mainProblem}</p>
+                      <p className="text-xs text-gray-500">Age: {consultation.age} • {consultation.skinType}</p>
                     </div>
                     <div className="flex gap-2 ml-2">
                       <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(consultation.status)}`}>
@@ -294,16 +303,14 @@ export default function AdminConsultationsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span className="flex items-center">
+                      <Phone className="w-3 h-3 mr-1" />
+                      {consultation.phone}
+                    </span>
                     {consultation.email && (
                       <span className="flex items-center">
                         <Mail className="w-3 h-3 mr-1" />
                         {consultation.email}
-                      </span>
-                    )}
-                    {consultation.mobile && (
-                      <span className="flex items-center">
-                        <Phone className="w-3 h-3 mr-1" />
-                        {consultation.mobile}
                       </span>
                     )}
                   </div>
@@ -339,29 +346,68 @@ export default function AdminConsultationsPage() {
                   </h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     <p className="text-gray-900"><strong>Name:</strong> {selectedConsultation.name}</p>
+                    <p className="text-gray-900"><strong>Phone:</strong> {selectedConsultation.phone}</p>
                     {selectedConsultation.email && (
                       <p className="text-gray-900"><strong>Email:</strong> {selectedConsultation.email}</p>
                     )}
-                    {selectedConsultation.mobile && (
-                      <p className="text-gray-900"><strong>Mobile:</strong> {selectedConsultation.mobile}</p>
+                    <p className="text-gray-900"><strong>Address:</strong> {selectedConsultation.address}</p>
+                    <p className="text-gray-900"><strong>Age:</strong> {selectedConsultation.age}</p>
+                    {selectedConsultation.gender && (
+                      <p className="text-gray-900"><strong>Gender:</strong> {selectedConsultation.gender}</p>
                     )}
+                    <p className="text-gray-900"><strong>Preferred Contact:</strong> {selectedConsultation.preferredContactMethod}</p>
                     <p className="text-sm text-gray-600">
                       <strong>Submitted:</strong> {new Date(selectedConsultation.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
 
-                {/* Subject & Message */}
+                {/* Skin Information */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <MessageSquare className="w-5 h-5 mr-2" />
-                    Consultation Request
+                    <AlertCircle className="w-5 h-5 mr-2" />
+                    Skin Information
                   </h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="font-semibold text-gray-900 mb-2">{selectedConsultation.subject}</p>
-                    <p className="text-gray-700 whitespace-pre-wrap">{selectedConsultation.message}</p>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <p className="text-gray-900"><strong>Skin Type:</strong> <span className="capitalize">{selectedConsultation.skinType}</span></p>
+                    <p className="text-gray-900"><strong>Main Problem:</strong> {selectedConsultation.mainProblem}</p>
+                    <p className="text-gray-900"><strong>Problem Duration:</strong> {selectedConsultation.problemDuration}</p>
+                    {selectedConsultation.currentProducts && (
+                      <p className="text-gray-900"><strong>Current Products:</strong> {selectedConsultation.currentProducts}</p>
+                    )}
                   </div>
                 </div>
+
+                {/* Images */}
+                {selectedConsultation.images && selectedConsultation.images.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Uploaded Images</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      {selectedConsultation.images.map((image, index) => (
+                        <a key={index} href={image} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={image}
+                            alt={`Skin condition ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-500 transition-colors cursor-pointer"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Comments */}
+                {selectedConsultation.additionalComments && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <MessageSquare className="w-5 h-5 mr-2" />
+                      Additional Comments
+                    </h3>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <p className="text-gray-700 whitespace-pre-wrap">{selectedConsultation.additionalComments}</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Status Control */}
                 <div>
