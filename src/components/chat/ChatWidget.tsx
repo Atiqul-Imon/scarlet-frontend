@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -101,7 +102,7 @@ export default function ChatWidget({
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || !currentConversation) return;
+    if (!message.trim()) return;
 
     try {
       await sendMessage(message.trim());

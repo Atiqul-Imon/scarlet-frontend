@@ -331,28 +331,47 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const sendMessage = useCallback(async (content: string, messageType: 'text' | 'image' | 'file' = 'text') => {
-    if (socket && stateRef.current.currentConversation) {
-      const user = currentUserRef.current;
-      if (user) {
-        try {
-          await chatApi.sendMessage(
-            stateRef.current.currentConversation._id,
-            user.userId,
-            user.userType,
-            content,
-            messageType
-          );
-          
-          // The message will be added via socket event
-          socket.emit('send_message', {
-            conversationId: stateRef.current.currentConversation._id,
-            content,
-            messageType
-          });
-        } catch (error) {
-          console.error('Failed to send message:', error);
+    if (!socket) return;
+    
+    const user = currentUserRef.current;
+    if (!user) return;
+
+    try {
+      let conversation = stateRef.current.currentConversation;
+      
+      // If no conversation exists for customers, start one
+      if (!conversation && user.userType === 'customer') {
+        const customerInfo = {
+          name: user.userId.includes('temp_') ? 'Anonymous Customer' : 'Customer',
+          currentPage: typeof window !== 'undefined' ? window.location.pathname : '/',
+          userAgent: typeof window !== 'undefined' ? navigator.userAgent : ''
+        };
+        
+        conversation = await chatApi.startConversation(user.userId, customerInfo);
+        if (conversation) {
+          dispatch({ type: 'SET_CONVERSATION', payload: conversation });
+          socket.emit('join_conversation', { conversationId: conversation._id });
         }
       }
+      
+      if (conversation) {
+        await chatApi.sendMessage(
+          conversation._id,
+          user.userId,
+          user.userType,
+          content,
+          messageType
+        );
+        
+        // The message will be added via socket event
+        socket.emit('send_message', {
+          conversationId: conversation._id,
+          content,
+          messageType
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
   }, [socket]);
 
