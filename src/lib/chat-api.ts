@@ -6,18 +6,33 @@ import type {
   ChatUser 
 } from './chat-types';
 
+// Helper to get auth token
+const getAuthToken = () => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('accessToken');
+};
+
 export const chatApi = {
-  // Conversation management
+  // Conversation management (requires authentication)
   async startConversation(customerId: string, customerInfo: any): Promise<ChatConversation> {
+    const token = getAuthToken();
     return fetchJson('/chat/conversations', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify({ customerId, customerInfo })
     });
   },
 
   async getConversationByCustomer(customerId: string): Promise<ChatConversation | null> {
-    return fetchJson(`/chat/conversations/customer/${customerId}`);
+    const token = getAuthToken();
+    return fetchJson(`/chat/conversations/customer/${customerId}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
   },
 
   async getActiveConversations(): Promise<ChatConversation[]> {
@@ -62,32 +77,49 @@ export const chatApi = {
     });
   },
 
-  // Message management
+  // Message management (requires authentication)
   async sendMessage(conversationId: string, senderId: string, senderType: 'customer' | 'admin', content: string, messageType: 'text' | 'image' | 'file' = 'text'): Promise<ChatMessage> {
+    const token = getAuthToken();
     return fetchJson('/chat/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify({ conversationId, senderId, senderType, content, messageType })
     });
   },
 
   async getConversationMessages(conversationId: string, limit: number = 50, skip: number = 0): Promise<ChatMessage[]> {
-    return fetchJson(`/chat/conversations/${conversationId}/messages?limit=${limit}&skip=${skip}`);
+    const token = getAuthToken();
+    return fetchJson(`/chat/conversations/${conversationId}/messages?limit=${limit}&skip=${skip}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
   },
 
   async markMessagesAsRead(conversationId: string, userId: string): Promise<void> {
+    const token = getAuthToken();
     return fetchJson(`/chat/conversations/${conversationId}/read`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify({ userId })
     });
   },
 
-  // User management
+  // User management (requires authentication)
   async updateUserOnlineStatus(userId: string, isOnline: boolean): Promise<void> {
+    const token = getAuthToken();
     return fetchJson(`/chat/users/${userId}/online-status`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify({ isOnline })
     });
   },
@@ -102,17 +134,31 @@ export const chatApi = {
   },
 
   async getUnreadCount(userId: string, userType: 'customer' | 'admin'): Promise<{ count: number }> {
-    return fetchJson(`/chat/users/${userId}/unread-count/${userType}`);
+    const token = getAuthToken();
+    return fetchJson(`/chat/users/${userId}/unread-count/${userType}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
   },
 
-  // Notifications
+  // Notifications (requires authentication)
   async getNotifications(userId: string, userType: 'customer' | 'admin'): Promise<ChatNotification[]> {
-    return fetchJson(`/chat/users/${userId}/notifications/${userType}`);
+    const token = getAuthToken();
+    return fetchJson(`/chat/users/${userId}/notifications/${userType}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
   },
 
   async markNotificationAsRead(notificationId: string): Promise<void> {
+    const token = getAuthToken();
     return fetchJson(`/chat/notifications/${notificationId}/read`, {
-      method: 'PUT'
+      method: 'PUT',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
     });
   }
 };

@@ -27,7 +27,7 @@ export default function ChatWidget({
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   
-  const { user } = useAuth();
+  const { user, isAuthenticated: isUserAuthenticated } = useAuth();
   const {
     isConnected,
     isAuthenticated,
@@ -41,19 +41,18 @@ export default function ChatWidget({
     stopTyping
   } = useChat();
 
-  // Use ref to store temp user ID to prevent regeneration on every render
-  const tempUserIdRef = React.useRef<string | null>(null);
-  if (!tempUserIdRef.current) {
-    tempUserIdRef.current = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Only show chat widget for authenticated users (no anonymous chat)
+  if (!isUserAuthenticated || !user) {
+    return null;
   }
 
-  // Get user information from auth context or props
-  const currentUserId = userId || user?._id || tempUserIdRef.current;
-  const currentUserType = userType || (user?.role === 'admin' ? 'admin' : 'customer');
+  // Get user information from authenticated user (required)
+  const currentUserId = userId || user._id;
+  const currentUserType = userType || (user.role === 'admin' ? 'admin' : 'customer');
   const currentUserInfo = userInfo || {
-    name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Anonymous',
-    email: user?.email,
-    phone: user?.phone,
+    name: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email || 'User',
+    email: user.email,
+    phone: user.phone,
     currentPage: typeof window !== 'undefined' ? window.location.pathname : '/'
   };
 
