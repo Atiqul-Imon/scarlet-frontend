@@ -5,7 +5,7 @@ import {
   Search, Mail, Phone, Clock, CheckCircle, 
   XCircle, Trash2, User, Calendar, AlertCircle,
   MessageSquare, UserCheck, AlertOctagon, MapPin,
-  Image as ImageIcon, FileText, Activity
+  Image as ImageIcon, FileText, Activity, Eye
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { useAuth } from '@/lib/context';
