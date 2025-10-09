@@ -90,6 +90,7 @@ export default function AdminConsultationsPage() {
         page: 1,
         limit: 100
       });
+      console.log('Loaded consultations:', response.data);
       setConsultations(response.data || []);
     } catch (error) {
       console.error('Failed to load consultations:', error);
@@ -447,9 +448,13 @@ export default function AdminConsultationsPage() {
                                 alt={`Skin condition ${index + 1}`}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
+                                  console.error('Image failed to load:', imageUrl);
                                   const target = e.target as HTMLImageElement;
                                   target.src = '/images/placeholders/no-image.png';
                                   target.onerror = null;
+                                }}
+                                onLoad={() => {
+                                  console.log('Image loaded successfully:', imageUrl);
                                 }}
                               />
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">

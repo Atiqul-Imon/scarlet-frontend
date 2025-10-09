@@ -161,7 +161,7 @@ export default function SkincareConsultationPage() {
         const formDataImg = new FormData();
         formDataImg.append('file', image);
         
-        const response = await fetch('/api/upload', {
+        const response = await fetch('/api/upload/consultation', {
           method: 'POST',
           body: formDataImg,
         });
