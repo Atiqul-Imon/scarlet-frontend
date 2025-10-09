@@ -54,28 +54,38 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
 
   // Load conversations directly from API (admin is already authenticated via admin panel)
   useEffect(() => {
-    console.log('Admin Chat Debug:', {
+    console.log('🔧 Admin Chat Debug:', {
       isAuthenticated,
       adminId,
       adminName,
-      isConnected
+      isConnected,
+      hasToken: !!localStorage.getItem('accessToken')
     });
     
     // Load conversations immediately since admin is already authenticated via admin panel
     if (adminId) {
-      console.log('Loading conversations for admin:', adminId);
+      console.log('📡 Loading conversations for admin:', adminId);
       setIsLoadingConversations(true);
       
       chatApi.getActiveConversations()
         .then(convos => {
-          console.log('Loaded conversations:', convos);
-          setLocalConversations(convos);
+          console.log('✅ Loaded conversations:', {
+            count: convos?.length || 0,
+            conversations: convos
+          });
+          setLocalConversations(convos || []);
         })
         .catch(error => {
-          console.error('Failed to load conversations:', error);
+          console.error('❌ Failed to load conversations:', {
+            error,
+            message: error.message,
+            status: error.status
+          });
+          setLocalConversations([]);
         })
         .finally(() => {
           setIsLoadingConversations(false);
+          console.log('🏁 Finished loading conversations');
         });
     }
   }, [adminId]);
@@ -186,6 +196,7 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
             <div className="p-4 text-center text-gray-500">
               <MessageCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
               <p>No active conversations</p>
+              <p className="text-xs mt-2">Check browser console for debug info</p>
             </div>
           ) : (
             localConversations.map((conversation) => (
