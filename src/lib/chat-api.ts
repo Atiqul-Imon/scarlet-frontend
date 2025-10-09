@@ -16,10 +16,20 @@ export const chatApi = {
     });
   },
 
+  async getConversationByCustomer(customerId: string): Promise<ChatConversation | null> {
+    return fetchJson(`/chat/conversations/customer/${customerId}`);
+  },
+
   async getActiveConversations(): Promise<ChatConversation[]> {
     console.log('Chat API: Getting active conversations...');
     try {
-      const result = await fetchJson('/chat/admin/conversations');
+      // Use fetchJsonAuth for admin endpoints to include authentication token
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      const result = await fetchJson('/chat/admin/conversations', {
+        headers: {
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       console.log('Chat API: Got conversations:', result);
       return result;
     } catch (error) {
@@ -29,17 +39,25 @@ export const chatApi = {
   },
 
   async assignConversationToAdmin(conversationId: string, adminId: string): Promise<ChatConversation> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     return fetchJson(`/chat/admin/conversations/${conversationId}/assign`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify({ adminId })
     });
   },
 
   async closeConversation(conversationId: string, adminId: string): Promise<ChatConversation> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     return fetchJson(`/chat/admin/conversations/${conversationId}/close`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      },
       body: JSON.stringify({ adminId })
     });
   },
@@ -75,7 +93,12 @@ export const chatApi = {
   },
 
   async getOnlineUsers(): Promise<ChatUser[]> {
-    return fetchJson('/chat/admin/users/online');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return fetchJson('/chat/admin/users/online', {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` })
+      }
+    });
   },
 
   async getUnreadCount(userId: string, userType: 'customer' | 'admin'): Promise<{ count: number }> {
