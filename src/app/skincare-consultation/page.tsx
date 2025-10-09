@@ -268,17 +268,6 @@ export default function SkincareConsultationPage() {
             Get personalized skincare advice from our medical professionals
           </p>
 
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 text-blue-900 p-4 mb-8 rounded-lg flex items-start space-x-3">
-            <InformationCircleIcon className="h-6 w-6 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-blue-900 mb-1">গুরুত্বপূর্ণ তথ্য / Important Information</h3>
-              <p className="text-sm">
-                সঠিক তথ্য প্রদান করুন। আমাদের বিশেষজ্ঞরা ২৪-৪৮ ঘণ্টার মধ্যে আপনার সাথে যোগাযোগ করবেন।
-                <br />
-                Please provide accurate information. Our experts will contact you within 24-48 hours.
-              </p>
-            </div>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
