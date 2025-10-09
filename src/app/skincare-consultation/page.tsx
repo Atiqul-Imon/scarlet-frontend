@@ -292,7 +292,7 @@ export default function SkincareConsultationPage() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border-2 ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                className={`w-full px-4 py-3 border-2 ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400`}
                 required
               />
               {errors.name && <p className="mt-2 text-sm text-red-600">{errors.name}</p>}
@@ -309,7 +309,7 @@ export default function SkincareConsultationPage() {
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border-2 ${errors.address ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                className={`w-full px-4 py-3 border-2 ${errors.address ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400`}
                 required
               />
               {errors.address && <p className="mt-2 text-sm text-red-600">{errors.address}</p>}
@@ -327,7 +327,7 @@ export default function SkincareConsultationPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border-2 ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                  className={`w-full px-4 py-3 border-2 ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400`}
                   required
                 />
                 {errors.phone && <p className="mt-2 text-sm text-red-600">{errors.phone}</p>}
@@ -343,7 +343,7 @@ export default function SkincareConsultationPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border-2 ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                  className={`w-full px-4 py-3 border-2 ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400`}
                 />
                 {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
               </div>
@@ -363,7 +363,7 @@ export default function SkincareConsultationPage() {
                   onChange={handleChange}
                   min="1"
                   max="120"
-                  className={`w-full px-4 py-3 border-2 ${errors.age ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                  className={`w-full px-4 py-3 border-2 ${errors.age ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400`}
                   required
                 />
                 {errors.age && <p className="mt-2 text-sm text-red-600">{errors.age}</p>}
@@ -378,7 +378,7 @@ export default function SkincareConsultationPage() {
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900"
                 >
                   <option value="">নির্বাচন করুন / Select</option>
                   <option value="male">পুরুষ / Male</option>
@@ -398,7 +398,7 @@ export default function SkincareConsultationPage() {
                 name="skinType"
                 value={formData.skinType}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border-2 ${errors.skinType ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                className={`w-full px-4 py-3 border-2 ${errors.skinType ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900`}
                 required
               >
                 <option value="">নির্বাচন করুন / Select</option>
@@ -423,7 +423,7 @@ export default function SkincareConsultationPage() {
                 value={formData.mainProblem}
                 onChange={handleChange}
                 placeholder="যেমন: ব্রণ, কালো দাগ, ত্বক নিস্তেজ, সংবেদনশীল / E.g., Acne, Pigmentation, Dullness, Sensitivity"
-                className={`w-full px-4 py-3 border-2 ${errors.mainProblem ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                className={`w-full px-4 py-3 border-2 ${errors.mainProblem ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400`}
                 required
               ></textarea>
               {errors.mainProblem && <p className="mt-2 text-sm text-red-600">{errors.mainProblem}</p>}
@@ -441,7 +441,7 @@ export default function SkincareConsultationPage() {
                 value={formData.problemDuration}
                 onChange={handleChange}
                 placeholder="যেমন: ৬ মাস, ২ বছর / E.g., 6 months, 2 years"
-                className={`w-full px-4 py-3 border-2 ${errors.problemDuration ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
+                className={`w-full px-4 py-3 border-2 ${errors.problemDuration ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400`}
                 required
               />
               {errors.problemDuration && <p className="mt-2 text-sm text-red-600">{errors.problemDuration}</p>}
@@ -459,7 +459,7 @@ export default function SkincareConsultationPage() {
                 value={formData.currentProducts}
                 onChange={handleChange}
                 placeholder="আপনি বর্তমানে যে পণ্যগুলো ব্যবহার করছেন তা উল্লেখ করুন / List products you're currently using"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400"
               ></textarea>
             </div>
 
@@ -526,7 +526,7 @@ export default function SkincareConsultationPage() {
                 name="preferredContactMethod"
                 value={formData.preferredContactMethod}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900"
                 required
               >
                 <option value="phone">ফোন / Phone</option>
@@ -547,7 +547,7 @@ export default function SkincareConsultationPage() {
                 value={formData.additionalComments}
                 onChange={handleChange}
                 placeholder="অন্য কোনো তথ্য যা আমাদের জানা প্রয়োজন / Any other information we should know"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors bg-white text-gray-900 placeholder-gray-400"
               ></textarea>
             </div>
 
