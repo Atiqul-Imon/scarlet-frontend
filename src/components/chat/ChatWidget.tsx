@@ -41,27 +41,22 @@ export default function ChatWidget({
     stopTyping
   } = useChat();
 
-  // Only show chat widget for authenticated users (no anonymous chat)
-  if (!isUserAuthenticated || !user) {
-    return null;
-  }
-
-  // Get user information from authenticated user (required)
-  const currentUserId = userId || user._id;
-  const currentUserType = userType || (user.role === 'admin' ? 'admin' : 'customer');
+  // Get user information from authenticated user (or fallback for when not authenticated)
+  const currentUserId = userId || user?._id || '';
+  const currentUserType = userType || (user?.role === 'admin' ? 'admin' : 'customer');
   const currentUserInfo = userInfo || {
-    name: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email || 'User',
-    email: user.email,
-    phone: user.phone,
+    name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email || 'User',
+    email: user?.email,
+    phone: user?.phone,
     currentPage: typeof window !== 'undefined' ? window.location.pathname : '/'
   };
 
   // Track if connection has been initiated
   const connectionInitiated = React.useRef(false);
 
-  // Auto-connect when component mounts
+  // Auto-connect when component mounts (only for authenticated users)
   useEffect(() => {
-    if (currentUserId && currentUserType && !isConnected && !connectionInitiated.current) {
+    if (isUserAuthenticated && user && currentUserId && currentUserType && !isConnected && !connectionInitiated.current) {
       connectionInitiated.current = true;
       // Use a timeout to prevent immediate re-calls
       const timeoutId = setTimeout(() => {
@@ -71,7 +66,7 @@ export default function ChatWidget({
       return () => clearTimeout(timeoutId);
     }
     return undefined; // Explicit return for all code paths
-  }, []); // Empty dependency array - only run once on mount
+  }, [isUserAuthenticated, user]); // Only depend on auth state
 
   // Start conversation when widget opens
   useEffect(() => {
@@ -144,6 +139,11 @@ export default function ChatWidget({
     setIsOpen(false);
     setIsMinimized(false);
   };
+
+  // Only show chat widget for authenticated users (no anonymous chat)
+  if (!isUserAuthenticated || !user) {
+    return null;
+  }
 
   if (!isOpen) {
     return (
