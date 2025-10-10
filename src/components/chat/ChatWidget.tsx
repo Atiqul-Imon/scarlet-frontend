@@ -68,17 +68,30 @@ export default function ChatWidget({
     return undefined; // Explicit return for all code paths
   }, [isUserAuthenticated, user]); // Only depend on auth state
 
-  // Start conversation when widget opens
+  // Start or join conversation when widget opens
   useEffect(() => {
     if (isOpen && isAuthenticated && currentUserType === 'customer' && !currentConversation) {
-      startConversation();
+      startOrJoinConversation();
     }
   }, [isOpen, isAuthenticated, currentUserType, currentConversation]);
 
-  const startConversation = async () => {
+  const startOrJoinConversation = async () => {
     if (currentUserId && currentUserInfo) {
       try {
         const { chatApi } = await import('@/lib/chat-api');
+        
+        // First check if customer already has an active conversation
+        console.log('🔍 Checking for existing conversation for customer:', currentUserId);
+        const existingConversation = await chatApi.getConversationByCustomer(currentUserId);
+        
+        if (existingConversation) {
+          console.log('✅ Found existing conversation:', existingConversation._id);
+          joinConversation(existingConversation._id);
+          return;
+        }
+        
+        // No existing conversation, create new one
+        console.log('🆕 Creating new conversation for customer:', currentUserId);
         const conversation = await chatApi.startConversation(currentUserId, {
           ...currentUserInfo,
           currentPage: window.location.pathname,
@@ -86,10 +99,11 @@ export default function ChatWidget({
         });
         
         if (conversation) {
+          console.log('✅ Conversation created, joining:', conversation._id);
           joinConversation(conversation._id);
         }
       } catch (error) {
-        console.error('Failed to start conversation:', error);
+        console.error('❌ Failed to start/join conversation:', error);
       }
     }
   };

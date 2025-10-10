@@ -174,13 +174,27 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         newSocket.emit('authenticate', { userId, userType });
       });
 
-      newSocket.on('authenticated', () => {
+      newSocket.on('authenticated', async () => {
         console.log('Socket authenticated');
         dispatch({ type: 'SET_AUTHENTICATED', payload: true });
         setCurrentUser({ userId, userType });
         
         // Update online status
-        chatApi.updateUserOnlineStatus(userId, true);
+        await chatApi.updateUserOnlineStatus(userId, true);
+        
+        // Auto-rejoin conversation if user has one (critical for customers on reconnect)
+        if (userType === 'customer') {
+          try {
+            const existingConversation = await chatApi.getConversationByCustomer(userId);
+            if (existingConversation) {
+              console.log('🔄 Rejoining existing conversation:', existingConversation._id);
+              dispatch({ type: 'SET_CONVERSATION', payload: existingConversation });
+              newSocket.emit('join_conversation', { conversationId: existingConversation._id });
+            }
+          } catch (error) {
+            console.error('Failed to rejoin conversation:', error);
+          }
+        }
       });
 
       newSocket.on('auth_error', (data) => {
@@ -188,8 +202,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_AUTHENTICATED', payload: false });
       });
 
+      newSocket.on('joined_conversation', (data) => {
+        console.log('✅ Successfully joined conversation:', data.conversationId);
+        // Load messages for the conversation
+        chatApi.getConversationMessages(data.conversationId)
+          .then(messages => {
+            console.log('📥 Loaded', messages.length, 'messages for conversation:', data.conversationId);
+            dispatch({ type: 'SET_MESSAGES', payload: messages });
+          })
+          .catch(error => console.error('Failed to load messages:', error));
+      });
+
       newSocket.on('new_message', (message) => {
-        console.log('New message received:', message);
+        console.log('📨 New message received:', message);
         dispatch({ type: 'ADD_MESSAGE', payload: message });
       });
 
@@ -210,8 +235,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
       });
 
+      newSocket.on('user_joined_conversation', (data) => {
+        console.log('👋 User joined conversation:', data);
+        // This is fired when another user joins the conversation room
+        // Useful for showing "Admin has joined" or "Customer has joined" notifications
+      });
+
       newSocket.on('admin_joined', (data) => {
-        console.log('Admin joined conversation:', data);
+        console.log('👨‍💼 Admin joined conversation:', data);
         // Update conversation status
         const currentConversation = stateRef.current.currentConversation;
         if (currentConversation && currentConversation._id === data.conversationId) {
@@ -309,19 +340,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const joinConversation = useCallback((conversationId: string) => {
     if (socket && stateRef.current.isAuthenticated) {
+      console.log('🚪 Joining conversation:', conversationId);
       socket.emit('join_conversation', { conversationId });
-      // Load messages directly to avoid circular dependency
-      chatApi.getConversationMessages(conversationId)
-        .then(messages => {
-          dispatch({ type: 'SET_MESSAGES', payload: messages });
-          // Mark messages as read - use currentUser from ref
-          const user = currentUserRef.current;
-          if (user) {
-            chatApi.markMessagesAsRead(conversationId, user.userId)
-              .catch(error => console.error('Failed to mark messages as read:', error));
-          }
-        })
-        .catch(error => console.error('Failed to load messages:', error));
+      // Messages will be loaded in 'joined_conversation' event handler
+      // Mark messages as read
+      const user = currentUserRef.current;
+      if (user) {
+        chatApi.markMessagesAsRead(conversationId, user.userId)
+          .catch(error => console.error('Failed to mark messages as read:', error));
+      }
+    } else {
+      console.error('❌ Cannot join conversation: Socket not connected or not authenticated');
     }
   }, [socket]);
 
@@ -331,16 +360,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const sendMessage = useCallback(async (content: string, messageType: 'text' | 'image' | 'file' = 'text') => {
-    if (!socket) return;
+    if (!socket) {
+      console.error('❌ Cannot send message: Socket not connected');
+      return;
+    }
     
     const user = currentUserRef.current;
-    if (!user) return;
+    if (!user) {
+      console.error('❌ Cannot send message: User not set');
+      return;
+    }
 
     try {
       let conversation = stateRef.current.currentConversation;
       
       // If no conversation exists for customers, start one
       if (!conversation && user.userType === 'customer') {
+        console.log('🆕 Starting new conversation for customer:', user.userId);
         const customerInfo = {
           name: user.userId.includes('temp_') ? 'Anonymous Customer' : 'Customer',
           currentPage: typeof window !== 'undefined' ? window.location.pathname : '/',
@@ -349,12 +385,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         
         conversation = await chatApi.startConversation(user.userId, customerInfo);
         if (conversation) {
+          console.log('✅ Conversation created:', conversation._id);
           dispatch({ type: 'SET_CONVERSATION', payload: conversation });
           socket.emit('join_conversation', { conversationId: conversation._id });
+          // Wait a bit for join to complete
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
       
       if (conversation) {
+        console.log('📤 Sending message to conversation:', conversation._id, 'from', user.userType);
+        
+        // Save message to database via API
         await chatApi.sendMessage(
           conversation._id,
           user.userId,
@@ -363,15 +405,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           messageType
         );
         
-        // The message will be added via socket event
+        // Emit message via socket for real-time delivery
         socket.emit('send_message', {
           conversationId: conversation._id,
           content,
           messageType
         });
+        
+        console.log('✅ Message sent successfully');
+      } else {
+        console.error('❌ No conversation available to send message');
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('❌ Failed to send message:', error);
+      throw error;
     }
   }, [socket]);
 

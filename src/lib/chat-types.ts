@@ -82,12 +82,14 @@ export interface ChatSocketEvents {
   authenticated: (data: { success: boolean }) => void;
   auth_error: (data: { message: string }) => void;
   joined_conversation: (data: { conversationId: string }) => void;
+  user_joined_conversation: (data: { userId: string; userType: 'customer' | 'admin'; conversationId: string }) => void;
   new_message: (message: ChatMessage) => void;
   user_typing: (data: { userId: string; userType: 'customer' | 'admin'; isTyping: boolean }) => void;
   customer_message: (data: { conversationId: string; message: ChatMessage; customerId: string }) => void;
   admin_joined: (data: { conversationId: string; adminId: string }) => void;
   conversation_assigned: (conversation: ChatConversation) => void;
   user_offline: (data: { userId: string; userType: 'customer' | 'admin' }) => void;
+  user_online: (data: { userId: string }) => void;
   error: (data: { message: string }) => void;
 }
 

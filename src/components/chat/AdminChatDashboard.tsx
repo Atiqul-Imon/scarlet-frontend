@@ -91,8 +91,15 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
   }, [adminId]);
 
   const handleSelectConversation = (conversation: ChatConversation) => {
+    console.log('👤 Admin selecting conversation:', conversation._id);
     setSelectedConversation(conversation);
-    joinConversation(conversation._id);
+    
+    // Ensure admin joins the conversation room
+    if (conversation._id) {
+      joinConversation(conversation._id);
+    } else {
+      console.error('❌ Invalid conversation ID');
+    }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
