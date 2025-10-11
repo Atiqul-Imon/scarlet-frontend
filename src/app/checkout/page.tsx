@@ -110,8 +110,12 @@ export default function CheckoutPage() {
       // Create SSLCommerz payment session
       const paymentResponse = await paymentApi.createPayment(paymentData);
       
+      console.log('Payment response:', paymentResponse);
+      
       if (!paymentResponse.success || !paymentResponse.data) {
-        throw new Error(paymentResponse.error || 'Failed to create payment session');
+        const errorMsg = paymentResponse.error || 'Failed to create payment session';
+        console.error('Payment creation failed:', errorMsg, paymentResponse);
+        throw new Error(errorMsg);
       }
       
       console.log('Payment session created:', paymentResponse.data);
