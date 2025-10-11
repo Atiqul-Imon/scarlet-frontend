@@ -50,10 +50,21 @@ class PaymentAPI {
    */
   async createPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {
     try {
-      return await fetchJsonAuth<PaymentResponse>('/payments/create', {
+      // fetchJsonAuth returns the unwrapped data directly
+      const data = await fetchJsonAuth<{
+        sessionKey: string;
+        gatewayUrl: string;
+        orderId: string;
+      }>('/payments/create', {
         method: 'POST',
         body: JSON.stringify(paymentData),
       });
+      
+      // Wrap it in the expected format
+      return {
+        success: true,
+        data
+      };
     } catch (error) {
       console.error('Payment creation error:', error);
       return {
