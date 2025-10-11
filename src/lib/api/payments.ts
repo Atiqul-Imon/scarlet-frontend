@@ -2,6 +2,8 @@
  * Payment API for SSLCommerz integration
  */
 
+import { fetchJsonAuth, fetchJson } from '../api';
+
 export interface PaymentRequest {
   orderId: string;
   amount: string;
@@ -43,35 +45,15 @@ export interface PaymentVerification {
 }
 
 class PaymentAPI {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://your-backend-url.onrender.com' 
-      : 'http://localhost:4000';
-  }
-
   /**
    * Create a payment session with SSLCommerz
    */
   async createPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/payments/create`, {
+      return await fetchJsonAuth<PaymentResponse>('/payments/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`,
-        },
         body: JSON.stringify(paymentData),
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to create payment session');
-      }
-
-      return result;
     } catch (error) {
       console.error('Payment creation error:', error);
       return {
@@ -86,21 +68,10 @@ class PaymentAPI {
    */
   async verifyPayment(sessionKey: string, orderId: string): Promise<PaymentVerification> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/payments/verify`, {
+      const result = await fetchJsonAuth<{ data: PaymentVerification }>('/payments/verify', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getAuthToken()}`,
-        },
         body: JSON.stringify({ sessionKey, orderId }),
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to verify payment');
-      }
-
       return result.data;
     } catch (error) {
       console.error('Payment verification error:', error);
@@ -113,20 +84,9 @@ class PaymentAPI {
    */
   async testIntegration(): Promise<PaymentResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/payments/test`, {
+      return await fetchJsonAuth<PaymentResponse>('/payments/test', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.getAuthToken()}`,
-        },
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Integration test failed');
-      }
-
-      return result;
     } catch (error) {
       console.error('Integration test error:', error);
       return {
@@ -134,16 +94,6 @@ class PaymentAPI {
         error: error instanceof Error ? error.message : 'Integration test failed',
       };
     }
-  }
-
-  /**
-   * Get authentication token
-   */
-  private getAuthToken(): string {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token') || '';
-    }
-    return '';
   }
 }
 
