@@ -87,7 +87,7 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
           <div className="flex items-center gap-3">
             <Link href="/" onClick={handleLogoClick} className="cursor-pointer">
               <Image
-                src="/logo/scarletlogo.png"
+                src="https://res.cloudinary.com/db5yniogx/image/upload/v1760152223/scarletlogopng001_tebeai_10b44a.png"
                 alt="Scarlet"
                 width={100}
                 height={32}

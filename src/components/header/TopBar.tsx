@@ -98,7 +98,7 @@ export default function TopBar() {
             <Link href="/" className="block select-none" onClick={handleLogoClick}>
               <div className="flex items-center">
                 <Image
-                  src="/logo/scarletlogo.png"
+                  src="https://res.cloudinary.com/db5yniogx/image/upload/v1760152223/scarletlogopng001_tebeai_10b44a.png"
                   alt="Scarlet"
                   width={150}
                   height={50}

@@ -84,7 +84,7 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
         {/* Center: Logo */}
         <Link href="/" className="flex-1 flex justify-center" onClick={handleLogoClick}>
           <Image
-            src="/logo/scarletlogo.png"
+            src="https://res.cloudinary.com/db5yniogx/image/upload/v1760152223/scarletlogopng001_tebeai_10b44a.png"
             alt="Scarlet"
             width={120}
             height={40}

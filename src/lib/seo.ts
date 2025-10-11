@@ -201,7 +201,7 @@ export function generateOrganizationJsonLd() {
     data: {
       name: seoConfig.siteName,
       url: seoConfig.siteUrl,
-      logo: `${seoConfig.siteUrl}/logo/scarletlogo.png`,
+      logo: 'https://res.cloudinary.com/db5yniogx/image/upload/v1760152223/scarletlogopng001_tebeai_10b44a.png',
       description: seoConfig.defaultDescription,
       address: {
         '@type': 'PostalAddress',
@@ -277,7 +277,7 @@ export function generateArticleJsonLd(post: BlogPost) {
         name: seoConfig.siteName,
         logo: {
           '@type': 'ImageObject',
-          url: `${seoConfig.siteUrl}/logo/scarletlogo.png`,
+          url: 'https://res.cloudinary.com/db5yniogx/image/upload/v1760152223/scarletlogopng001_tebeai_10b44a.png',
         },
       },
       mainEntityOfPage: {

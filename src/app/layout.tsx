@@ -102,6 +102,17 @@ export const metadata: Metadata = {
   other: {
     'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
   },
+  icons: {
+    icon: [
+      {
+        url: '/favicon.png',
+        type: 'image/png',
+        sizes: '48x48',
+      },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
