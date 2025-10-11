@@ -1,217 +1,184 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { paymentApi, paymentUtils } from '@/lib/payment-api';
-import type { PaymentTransaction } from '@/lib/payment-types';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
-function PaymentSuccessPageContent() {
-  const router = useRouter();
+interface PaymentSuccessData {
+  tran_id?: string;
+  amount?: string;
+  currency?: string;
+  status?: string;
+  bank_tran_id?: string;
+  card_type?: string;
+  card_no?: string;
+  store_amount?: string;
+  currency_type?: string;
+  currency_amount?: string;
+  currency_rate?: string;
+  base_fair?: string;
+  value_a?: string;
+  value_b?: string;
+  value_c?: string;
+  value_d?: string;
+  risk_title?: string;
+  risk_level?: string;
+  APIConnect?: string;
+  validated_on?: string;
+  gw_version?: string;
+}
+
+function PaymentSuccessContent() {
   const searchParams = useSearchParams();
-  const [payment, setPayment] = useState<PaymentTransaction | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentSuccessData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const orderId = searchParams.get('orderId');
-  const paymentId = searchParams.get('paymentId');
-  const status = searchParams.get('status');
 
   useEffect(() => {
-    const verifyPayment = async () => {
-      if (!paymentId) {
-        setError('Payment ID not found');
-        setLoading(false);
-        return;
-      }
+    // Extract payment data from URL parameters
+    const data: PaymentSuccessData = {};
+    
+    // SSLCommerz success parameters
+    const tranId = searchParams.get('tran_id');
+    const amount = searchParams.get('amount');
+    const currency = searchParams.get('currency');
+    const status = searchParams.get('status');
+    const bankTranId = searchParams.get('bank_tran_id');
+    const cardType = searchParams.get('card_type');
+    const cardNo = searchParams.get('card_no');
+    const storeAmount = searchParams.get('store_amount');
+    const currencyType = searchParams.get('currency_type');
+    const currencyAmount = searchParams.get('currency_amount');
+    const currencyRate = searchParams.get('currency_rate');
+    const baseFair = searchParams.get('base_fair');
+    const valueA = searchParams.get('value_a');
+    const valueB = searchParams.get('value_b');
+    const valueC = searchParams.get('value_c');
+    const valueD = searchParams.get('value_d');
+    const riskTitle = searchParams.get('risk_title');
+    const riskLevel = searchParams.get('risk_level');
+    const apiConnect = searchParams.get('APIConnect');
+    const validatedOn = searchParams.get('validated_on');
+    const gwVersion = searchParams.get('gw_version');
 
-      try {
-        // Get payment details
-        const paymentData = await paymentApi.getPaymentStatus(paymentId);
-        setPayment(paymentData);
-
-        // If payment is not completed, try to verify it
-        if (paymentData.status === 'pending' || paymentData.status === 'processing') {
-          try {
-            const verificationResult = await paymentApi.verifyPayment({
-              paymentId: paymentId
-            });
-            
-            if (verificationResult.status === 'completed') {
-              setPayment(verificationResult as any);
-            } else {
-              setError('Payment verification failed');
-            }
-          } catch (verifyError) {
-            console.error('Payment verification error:', verifyError);
-            setError('Payment verification failed');
-          }
-        }
-      } catch (err: any) {
-        console.error('Payment fetch error:', err);
-        setError(err.message || 'Failed to fetch payment details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    verifyPayment();
-  }, [paymentId]);
-
-  const handleContinueShopping = () => {
-    router.push('/products');
-  };
-
-  const handleViewOrder = () => {
-    if (orderId) {
-      router.push(`/account/orders/${orderId}`);
-    } else {
-      router.push('/account/orders');
+    if (tranId) {
+      data.tran_id = tranId;
+      data.amount = amount || '';
+      data.currency = currency || '';
+      data.status = status || '';
+      data.bank_tran_id = bankTranId || '';
+      data.card_type = cardType || '';
+      data.card_no = cardNo || '';
+      data.store_amount = storeAmount || '';
+      data.currency_type = currencyType || '';
+      data.currency_amount = currencyAmount || '';
+      data.currency_rate = currencyRate || '';
+      data.base_fair = baseFair || '';
+      data.value_a = valueA || '';
+      data.value_b = valueB || '';
+      data.value_c = valueC || '';
+      data.value_d = valueD || '';
+      data.risk_title = riskTitle || '';
+      data.risk_level = riskLevel || '';
+      data.APIConnect = apiConnect || '';
+      data.validated_on = validatedOn || '';
+      data.gw_version = gwVersion || '';
+      
+      setPaymentData(data);
     }
-  };
+    
+    setLoading(false);
+  }, [searchParams]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying your payment...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-scarlet-600"></div>
       </div>
     );
   }
-
-  if (error || !payment) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <ExclamationTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Payment Verification Failed
-          </h1>
-          <p className="text-gray-600 mb-6">
-            {error || 'We could not verify your payment. Please contact support if you have been charged.'}
-          </p>
-          <div className="space-y-3">
-            <button
-              onClick={handleContinueShopping}
-              className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors"
-            >
-              Continue Shopping
-            </button>
-            <button
-              onClick={() => router.push('/contact')}
-              className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Contact Support
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const isSuccessful = payment.status === 'completed';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        {isSuccessful ? (
-          <>
-            <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Payment Successful!
-            </h1>
-            <p className="text-gray-600 mb-6">
-              Your payment has been processed successfully. You will receive a confirmation email shortly.
-            </p>
-          </>
-        ) : (
-          <>
-            <ExclamationTriangleIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Payment {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-            </h1>
-            <p className="text-gray-600 mb-6">
-              Your payment is currently {payment.status}. Please wait for confirmation or contact support if needed.
-            </p>
-          </>
-        )}
-
-        {/* Payment Details */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-          <h3 className="font-medium text-gray-900 mb-3">Payment Details</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Payment ID:</span>
-              <span className="font-mono text-xs">{payment._id}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Order ID:</span>
-              <span className="font-mono text-xs">{payment.orderId}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Amount:</span>
-              <span className="font-medium">{paymentUtils.formatAmount(payment.amount, payment.currency)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Method:</span>
-              <span className="font-medium">{paymentUtils.getPaymentMethodName(payment.paymentMethod)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Status:</span>
-              <span className={`font-medium ${paymentUtils.getPaymentStatusColor(payment.status)} px-2 py-1 rounded-full text-xs`}>
-                {paymentUtils.getPaymentStatusName(payment.status)}
-              </span>
-            </div>
-            {payment.paymentDate && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Date:</span>
-                <span className="font-medium">
-                  {new Date(payment.paymentDate).toLocaleDateString('en-BD', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-              </div>
-            )}
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Success Header */}
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+            <CheckCircleIcon className="h-8 w-8 text-green-600" />
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          {isSuccessful && (
-            <button
-              onClick={handleViewOrder}
-              className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors"
-            >
-              View Order Details
-            </button>
-          )}
-          <button
-            onClick={handleContinueShopping}
-            className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Continue Shopping
-          </button>
-          {!isSuccessful && (
-            <button
-              onClick={() => router.push('/contact')}
-              className="w-full bg-yellow-100 text-yellow-800 py-2 px-4 rounded-lg hover:bg-yellow-200 transition-colors"
-            >
-              Contact Support
-            </button>
-          )}
-        </div>
-
-        {/* Additional Information */}
-        <div className="mt-6 text-xs text-gray-500">
-          <p>
-            If you have any questions about your payment, please contact our support team.
+          
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Payment Successful! 🎉
+          </h1>
+          
+          <p className="text-lg text-gray-600 mb-8">
+            Thank you for your purchase! Your payment has been processed successfully.
           </p>
+
+          {/* Payment Details */}
+          {paymentData && (
+            <div className="bg-gray-50 rounded-lg p-6 mb-8 text-left">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                {paymentData.tran_id && (
+                  <div>
+                    <span className="font-medium text-gray-700">Transaction ID:</span>
+                    <p className="text-gray-900">{paymentData.tran_id}</p>
+                  </div>
+                )}
+                {paymentData.amount && (
+                  <div>
+                    <span className="font-medium text-gray-700">Amount:</span>
+                    <p className="text-gray-900">৳{paymentData.amount}</p>
+                  </div>
+                )}
+                {paymentData.status && (
+                  <div>
+                    <span className="font-medium text-gray-700">Status:</span>
+                    <p className="text-green-600 font-medium">{paymentData.status}</p>
+                  </div>
+                )}
+                {paymentData.bank_tran_id && (
+                  <div>
+                    <span className="font-medium text-gray-700">Bank Transaction ID:</span>
+                    <p className="text-gray-900">{paymentData.bank_tran_id}</p>
+                  </div>
+                )}
+                {paymentData.card_type && (
+                  <div>
+                    <span className="font-medium text-gray-700">Payment Method:</span>
+                    <p className="text-gray-900">{paymentData.card_type}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/account/orders"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-scarlet-600 hover:bg-scarlet-700 transition-colors"
+            >
+              View Your Orders
+              <ArrowRightIcon className="ml-2 h-5 w-5" />
+            </Link>
+            
+            <Link
+              href="/"
+              className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            >
+              Continue Shopping
+            </Link>
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-8 text-sm text-gray-500">
+            <p>
+              You will receive an email confirmation shortly. If you have any questions, 
+              please contact our customer support.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -220,8 +187,12 @@ function PaymentSuccessPageContent() {
 
 export default function PaymentSuccessPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <PaymentSuccessPageContent />
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-scarlet-600"></div>
+      </div>
+    }>
+      <PaymentSuccessContent />
     </Suspense>
   );
 }

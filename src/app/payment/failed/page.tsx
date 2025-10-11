@@ -1,39 +1,45 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { XCircleIcon, ArrowRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
+interface PaymentFailedData {
+  tran_id?: string;
+  amount?: string;
+  currency?: string;
+  status?: string;
+  error?: string;
+  fail_reason?: string;
+}
+
 function PaymentFailedContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const [paymentData, setPaymentData] = useState<{
-    orderId: string;
-    status: string;
-    reason: string;
-    amount: number;
-    currency: string;
-  } | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentFailedData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get payment data from URL parameters
-    const valId = searchParams.get('val_id');
+    // Extract payment data from URL parameters
+    const data: PaymentFailedData = {};
+    
+    // SSLCommerz failed parameters
+    const tranId = searchParams.get('tran_id');
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency');
-    const tranId = searchParams.get('tran_id');
     const status = searchParams.get('status');
-    const failedreason = searchParams.get('failedreason');
+    const error = searchParams.get('error');
+    const failReason = searchParams.get('fail_reason');
 
     if (tranId) {
-      setPaymentData({
-        orderId: tranId,
-        status: status || 'failed',
-        reason: failedreason || 'Payment failed',
-        amount: amount ? parseFloat(amount) : 0,
-        currency: currency || 'BDT'
-      });
+      data.tran_id = tranId;
+      data.amount = amount || '';
+      data.currency = currency || '';
+      data.status = status || '';
+      data.error = error || '';
+      data.fail_reason = failReason || '';
+      
+      setPaymentData(data);
     }
     
     setLoading(false);
@@ -41,124 +47,99 @@ function PaymentFailedContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-r-transparent mx-auto"></div>
-          <p className="mt-4 text-pink-600 font-medium">Processing payment status...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-scarlet-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-2xl mx-auto">
-          {/* Failure Icon */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-4">
-              <XCircleIcon className="w-12 h-12 text-red-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Payment Failed
-            </h1>
-            <p className="text-lg text-gray-600">
-              We're sorry, but your payment could not be processed at this time.
-            </p>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Failed Header */}
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+            <XCircleIcon className="h-8 w-8 text-red-600" />
           </div>
+          
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Payment Failed 😞
+          </h1>
+          
+          <p className="text-lg text-gray-600 mb-8">
+            We're sorry, but your payment could not be processed at this time.
+          </p>
 
           {/* Payment Details */}
           {paymentData && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Details</h2>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Order Number:</span>
-                  <span className="font-medium text-gray-900">{paymentData.orderId}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Amount:</span>
-                  <span className="font-medium text-gray-900">
-                    {paymentData.amount.toLocaleString()} {paymentData.currency}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    {paymentData.status}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Reason:</span>
-                  <span className="font-medium text-red-600 text-right max-w-xs">
-                    {paymentData.reason}
-                  </span>
-                </div>
+            <div className="bg-red-50 rounded-lg p-6 mb-8 text-left">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Transaction Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                {paymentData.tran_id && (
+                  <div>
+                    <span className="font-medium text-gray-700">Transaction ID:</span>
+                    <p className="text-gray-900">{paymentData.tran_id}</p>
+                  </div>
+                )}
+                {paymentData.amount && (
+                  <div>
+                    <span className="font-medium text-gray-700">Amount:</span>
+                    <p className="text-gray-900">৳{paymentData.amount}</p>
+                  </div>
+                )}
+                {paymentData.status && (
+                  <div>
+                    <span className="font-medium text-gray-700">Status:</span>
+                    <p className="text-red-600 font-medium">{paymentData.status}</p>
+                  </div>
+                )}
+                {paymentData.fail_reason && (
+                  <div className="md:col-span-2">
+                    <span className="font-medium text-gray-700">Reason:</span>
+                    <p className="text-red-600">{paymentData.fail_reason}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Common Reasons */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
-            <h3 className="text-lg font-semibold text-yellow-900 mb-3">Common Reasons for Payment Failure</h3>
-            <ul className="space-y-2 text-yellow-800">
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-2 h-2 bg-yellow-400 rounded-full mt-2 mr-3"></span>
-                Insufficient funds in your account
-              </li>
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-2 h-2 bg-yellow-400 rounded-full mt-2 mr-3"></span>
-                Incorrect payment information entered
-              </li>
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-2 h-2 bg-yellow-400 rounded-full mt-2 mr-3"></span>
-                Network connectivity issues
-              </li>
-              <li className="flex items-start">
-                <span className="flex-shrink-0 w-2 h-2 bg-yellow-400 rounded-full mt-2 mr-3"></span>
-                Payment gateway temporarily unavailable
-              </li>
+          {/* Common Reasons & Solutions */}
+          <div className="bg-blue-50 rounded-lg p-6 mb-8 text-left">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Common Reasons for Payment Failure</h3>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li>• <strong>Insufficient funds:</strong> Please check your account balance</li>
+              <li>• <strong>Card expired:</strong> Verify your card expiry date</li>
+              <li>• <strong>Incorrect details:</strong> Double-check card number, CVV, and expiry</li>
+              <li>• <strong>Network issues:</strong> Try again with a stable internet connection</li>
+              <li>• <strong>Bank restrictions:</strong> Contact your bank if payment is blocked</li>
             </ul>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={() => router.back()}
-              className="flex-1 bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors text-center flex items-center justify-center"
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/cart"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-scarlet-600 hover:bg-scarlet-700 transition-colors"
             >
-              <ArrowPathIcon className="w-5 h-5 mr-2" />
+              <ArrowPathIcon className="mr-2 h-5 w-5" />
               Try Again
-            </button>
+            </Link>
+            
             <Link
               href="/checkout"
-              className="flex-1 bg-white text-pink-600 px-6 py-3 rounded-lg font-medium border border-pink-600 hover:bg-pink-50 transition-colors text-center flex items-center justify-center"
+              className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
             >
-              <ArrowRightIcon className="w-5 h-5 mr-2" />
-              Go to Checkout
+              <ArrowRightIcon className="mr-2 h-5 w-5" />
+              Back to Checkout
             </Link>
           </div>
 
-          {/* Support Information */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-2">
-              Still having trouble? We're here to help!
+          {/* Support Info */}
+          <div className="mt-8 text-sm text-gray-500">
+            <p>
+              If you continue to experience issues, please contact our customer support 
+              with your transaction ID for assistance.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact"
-                className="text-pink-600 hover:text-pink-700 font-medium"
-              >
-                Contact Support
-              </Link>
-              <span className="hidden sm:block text-gray-300">|</span>
-              <Link
-                href="/help"
-                className="text-pink-600 hover:text-pink-700 font-medium"
-              >
-                Help Center
-              </Link>
-            </div>
           </div>
         </div>
       </div>
@@ -169,11 +150,8 @@ function PaymentFailedContent() {
 export default function PaymentFailedPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-r-transparent mx-auto"></div>
-          <p className="mt-4 text-pink-600 font-medium">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-scarlet-600"></div>
       </div>
     }>
       <PaymentFailedContent />
