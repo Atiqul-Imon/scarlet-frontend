@@ -50,8 +50,8 @@ class PaymentAPI {
    */
   async createPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {
     try {
-      // fetchJsonAuth returns the unwrapped data directly
-      const data = await fetchJsonAuth<{
+      // Use fetchJson for guest checkout (no authentication required)
+      const data = await fetchJson<{
         sessionKey: string;
         gatewayUrl: string;
         orderId: string;
@@ -79,7 +79,7 @@ class PaymentAPI {
    */
   async verifyPayment(sessionKey: string, orderId: string): Promise<PaymentVerification> {
     try {
-      const result = await fetchJsonAuth<{ data: PaymentVerification }>('/payments/verify', {
+      const result = await fetchJson<{ data: PaymentVerification }>('/payments/verify', {
         method: 'POST',
         body: JSON.stringify({ sessionKey, orderId }),
       });
