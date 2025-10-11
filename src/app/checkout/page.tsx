@@ -22,7 +22,7 @@ interface CheckoutFormData {
   postalCode: string;
   
   // Payment Information
-  paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod';
+  paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod' | 'sslcommerz';
   
   // Special Instructions
   notes?: string;
@@ -50,6 +50,142 @@ export default function CheckoutPage() {
   const { cart, clearCart, sessionId } = useCart();
   const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
+
+  // Helper function to handle SSLCommerz payment flow
+  const handleSSLCommerzPayment = async () => {
+    try {
+      console.log('Initiating SSLCommerz payment...');
+      
+      // Import the payment API
+      const { paymentApi } = await import('../../lib/api');
+      const { orderApi } = await import('../../lib/api');
+      
+      // First create a pending order
+      const orderData = {
+        firstName: values.firstName,
+        lastName: values.lastName || undefined,
+        email: values.email || undefined,
+        phone: values.phone,
+        address: values.address,
+        city: values.city,
+        area: values.area,
+        postalCode: values.postalCode,
+        paymentMethod: values.paymentMethod,
+        notes: values.notes,
+      };
+      
+      console.log('Creating pending order...');
+      
+      // Create the order with pending status
+      const order = user 
+        ? await orderApi.createOrder({ ...orderData, status: 'pending' })
+        : await orderApi.createGuestOrder(sessionId, { ...orderData, status: 'pending' });
+      
+      console.log('Order created:', order);
+      
+      // Prepare payment data for SSLCommerz
+      const paymentData = {
+        orderId: order._id,
+        amount: total.toFixed(2),
+        currency: 'BDT',
+        customerInfo: {
+          name: `${values.firstName} ${values.lastName || ''}`.trim(),
+          email: values.email || `${values.phone}@scarlet.com`,
+          phone: values.phone,
+          address: values.address,
+          city: values.city,
+          country: 'Bangladesh',
+          postcode: values.postalCode,
+        },
+        items: cartItems.map(item => ({
+          name: item.title,
+          category: 'Beauty',
+          quantity: item.quantity,
+          price: item.price.amount.toFixed(2),
+        })),
+      };
+      
+      console.log('Creating payment session...');
+      
+      // Create SSLCommerz payment session
+      const paymentResponse = await paymentApi.createPayment(paymentData);
+      
+      if (!paymentResponse.success || !paymentResponse.data) {
+        throw new Error(paymentResponse.error || 'Failed to create payment session');
+      }
+      
+      console.log('Payment session created:', paymentResponse.data);
+      
+      // Store order ID in session storage for payment completion
+      sessionStorage.setItem('scarlet_pending_order_id', order._id);
+      
+      // Redirect to SSLCommerz payment gateway
+      window.location.href = paymentResponse.data.gatewayUrl;
+      
+    } catch (error) {
+      console.error('SSLCommerz payment error:', error);
+      throw error;
+    }
+  };
+
+  // Helper function to handle direct order placement (COD)
+  const handleDirectOrder = async () => {
+    try {
+      console.log('Creating direct order...');
+      
+      // Import the order API
+      const { orderApi } = await import('../../lib/api');
+      
+      // Create order data matching backend interface
+      const orderData = {
+        firstName: values.firstName,
+        lastName: values.lastName || undefined,
+        email: values.email || undefined,
+        phone: values.phone,
+        address: values.address,
+        city: values.city,
+        area: values.area,
+        postalCode: values.postalCode,
+        paymentMethod: values.paymentMethod,
+        notes: values.notes,
+      };
+      
+      console.log('Order data:', orderData);
+
+      // Create the order (authenticated or guest)
+      const order = user 
+        ? await orderApi.createOrder(orderData)
+        : await orderApi.createGuestOrder(sessionId, orderData);
+      
+      addToast({
+        type: 'success',
+        title: 'Order Placed Successfully!',
+        message: `Order #${order.orderNumber} has been placed. You will receive a confirmation email shortly.`
+      });
+      
+      // Set order placed flag before clearing cart
+      setOrderPlaced(true);
+      
+      // Clear verified phone from sessionStorage
+      sessionStorage.removeItem('scarlet_verified_guest_phone');
+      
+      // Clear the cart first, then redirect
+      try {
+        await clearCart();
+        console.log('Cart cleared successfully');
+      } catch (error) {
+        console.error('Error clearing cart after order:', error);
+        // Continue with redirect even if cart clearing fails
+      }
+      
+      // Redirect to order confirmation page
+      router.push(`/checkout/success?orderId=${order._id}`);
+      
+    } catch (error) {
+      console.error('Direct order error:', error);
+      throw error;
+    }
+  };
   
   // Check for verified guest phone from URL params or session
   const [verifiedGuestPhone, setVerifiedGuestPhone] = React.useState<string | null>(null);
@@ -290,53 +426,16 @@ export default function CheckoutPage() {
     try {
       console.log('Creating order...');
       
-      // Import the order API
-      const { orderApi } = await import('../../lib/api');
+      // Check if payment method requires SSLCommerz gateway
+      const sslcommerzMethods = ['card', 'bkash', 'nagad', 'rocket'];
       
-      // Create order data matching backend interface
-      const orderData = {
-        firstName: values.firstName,
-        lastName: values.lastName || undefined,
-        email: values.email || undefined,
-        phone: values.phone,
-        address: values.address,
-        city: values.city,
-        area: values.area,
-        postalCode: values.postalCode,
-        paymentMethod: values.paymentMethod,
-        notes: values.notes,
-      };
-      
-      console.log('Order data:', orderData);
-
-      // Create the order (authenticated or guest)
-      const order = user 
-        ? await orderApi.createOrder(orderData)
-        : await orderApi.createGuestOrder(sessionId, orderData);
-      
-      addToast({
-        type: 'success',
-        title: 'Order Placed Successfully!',
-        message: `Order #${order.orderNumber} has been placed. You will receive a confirmation email shortly.`
-      });
-      
-      // Set order placed flag before clearing cart
-      setOrderPlaced(true);
-      
-      // Clear verified phone from sessionStorage
-      sessionStorage.removeItem('scarlet_verified_guest_phone');
-      
-      // Clear the cart first, then redirect
-      try {
-        await clearCart();
-        console.log('Cart cleared successfully');
-      } catch (error) {
-        console.error('Error clearing cart after order:', error);
-        // Continue with redirect even if cart clearing fails
+      if (sslcommerzMethods.includes(values.paymentMethod)) {
+        // Handle SSLCommerz payment flow
+        await handleSSLCommerzPayment();
+      } else {
+        // Handle direct order placement (COD)
+        await handleDirectOrder();
       }
-      
-      // Redirect to order confirmation page
-      router.push(`/checkout/success?orderId=${order._id}`);
       
     } catch (error: unknown) {
       console.error('Error placing order:', error);
@@ -601,7 +700,7 @@ export default function CheckoutPage() {
                             <div className={`px-3 py-1 rounded text-sm font-medium bg-${method.color}-100 text-${method.color}-700 mr-3`}>
                               {method.name}
                             </div>
-                            <span className="text-sm text-gray-600">Pay securely with {method.name}</span>
+                            <span className="text-sm text-gray-600">Pay securely with {method.name} via SSLCommerz</span>
                           </label>
                         ))}
                       </div>
@@ -630,7 +729,7 @@ export default function CheckoutPage() {
                             )}
                           </div>
                           <CreditCardIcon />
-                          <span className="text-sm text-gray-900 ml-2">Debit/Credit Card</span>
+                          <span className="text-sm text-gray-900 ml-2">Debit/Credit Card (via SSLCommerz)</span>
                         </label>
 
                         <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-pink-300">

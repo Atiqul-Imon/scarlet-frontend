@@ -41,6 +41,7 @@ import {
   AdminActivityLog
 } from './admin-types';
 import { validateProduct, validateUser, validateOrder, safeApiCall } from './validation';
+export { paymentApi } from './api/payments';
 
 // OTP Types
 export interface OTPRequest {
