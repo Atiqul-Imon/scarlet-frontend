@@ -105,13 +105,25 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
+        url: '/favicon.ico',
+        sizes: '32x32',
+      },
+      {
         url: '/favicon.png',
         type: 'image/png',
         sizes: '48x48',
       },
     ],
-    shortcut: '/favicon.png',
+    shortcut: ['/favicon.ico'],
     apple: '/apple-touch-icon.png',
+    other: [
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '192x192',
+        url: '/favicon.png',
+      },
+    ],
   },
 };
 
@@ -123,6 +135,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <head>
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="48x48" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <StructuredData type="organization" />
         <StructuredData type="localBusiness" />
       </head>
