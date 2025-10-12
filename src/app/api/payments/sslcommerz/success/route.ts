@@ -107,9 +107,81 @@ export async function POST(request: Request) {
     // Add success indicator
     queryParams.append('payment_success', 'true');
 
-    // Redirect to the actual payment success page with query parameters
+    // Return HTML page with immediate redirect to improve user experience
     const baseUrl = new URL(request.url).origin;
-    return NextResponse.redirect(new URL(`/payment/success?${queryParams.toString()}`, baseUrl));
+    const redirectUrl = `/payment/success?${queryParams.toString()}`;
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Processing...</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 { margin: 0 0 1rem 0; font-size: 1.5rem; }
+        p { margin: 0; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h1>Payment Successful!</h1>
+        <p>Processing your payment confirmation...</p>
+    </div>
+    <script>
+        // Immediate redirect
+        window.location.replace('${redirectUrl}');
+        
+        // Fallback redirect after 2 seconds
+        setTimeout(() => {
+            window.location.replace('${redirectUrl}');
+        }, 2000);
+    </script>
+</body>
+</html>`;
+
+    return new NextResponse(html, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
 
   } catch (error) {
     console.error('Error handling SSLCommerz success callback:', error);
