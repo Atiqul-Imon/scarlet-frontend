@@ -95,33 +95,39 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
-    yahoo: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION,
+    google: process.env['NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION'],
+    yandex: process.env['NEXT_PUBLIC_YANDEX_VERIFICATION'],
+    yahoo: process.env['NEXT_PUBLIC_BING_SITE_VERIFICATION'],
   },
   other: {
-    'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
+    'fb:app_id': process.env['NEXT_PUBLIC_FACEBOOK_APP_ID'] || '',
   },
   icons: {
     icon: [
       {
         url: '/favicon.ico',
         sizes: '32x32',
+        type: 'image/x-icon',
       },
       {
-        url: '/favicon.png',
+        url: '/icon',
         type: 'image/png',
         sizes: '48x48',
       },
+      {
+        url: '/icon',
+        type: 'image/png',
+        sizes: '192x192',
+      },
     ],
     shortcut: ['/favicon.ico'],
-    apple: '/apple-touch-icon.png',
+    apple: '/apple-icon',
     other: [
       {
         rel: 'icon',
         type: 'image/png',
         sizes: '192x192',
-        url: '/favicon.png',
+        url: '/icon',
       },
     ],
   },
@@ -136,9 +142,10 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <head>
         <link rel="manifest" href="/site.webmanifest" />
-        <link rel="icon" href="/favicon.ico" sizes="32x32" />
-        <link rel="icon" href="/favicon.png" type="image/png" sizes="48x48" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
+        <link rel="icon" href="/icon" type="image/png" sizes="48x48" />
+        <link rel="icon" href="/icon" type="image/png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
         <StructuredData type="organization" />
         <StructuredData type="localBusiness" />
       </head>

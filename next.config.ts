@@ -151,6 +151,16 @@ const nextConfig: NextConfig = {
             },
           ],
         },
+        // Favicon specific caching
+        {
+          source: '/(favicon\\.ico|icon|apple-icon)',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
         // Semi-static API routes - Short cache (production only)
         {
           source: '/api/(products|categories)(.*)',

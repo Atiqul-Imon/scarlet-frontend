@@ -1,65 +1,12 @@
-import { MetadataRoute } from 'next';
-import { seoConfig } from '@/lib/seo';
+import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [
-      {
-        userAgent: '*',
-        allow: '/',
-        disallow: [
-          '/admin/',
-          '/api/',
-          '/_next/',
-          '/checkout/',
-          '/cart/',
-          '/account/',
-          '/wishlist/',
-          '/payment/',
-          '/order-success/',
-          '/offline/',
-          '/debug/',
-          '/test/',
-        ],
-      },
-      {
-        userAgent: 'Googlebot',
-        allow: '/',
-        disallow: [
-          '/admin/',
-          '/api/',
-          '/_next/',
-          '/checkout/',
-          '/cart/',
-          '/account/',
-          '/wishlist/',
-          '/payment/',
-          '/order-success/',
-          '/offline/',
-          '/debug/',
-          '/test/',
-        ],
-      },
-      {
-        userAgent: 'Bingbot',
-        allow: '/',
-        disallow: [
-          '/admin/',
-          '/api/',
-          '/_next/',
-          '/checkout/',
-          '/cart/',
-          '/account/',
-          '/wishlist/',
-          '/payment/',
-          '/order-success/',
-          '/offline/',
-          '/debug/',
-          '/test/',
-        ],
-      },
-    ],
-    sitemap: `${seoConfig.siteUrl}/sitemap.xml`,
-    host: seoConfig.siteUrl,
-  };
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: ['/admin/', '/api/'],
+    },
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://scarletunlimited.net'}/sitemap.xml`,
+  }
 }
