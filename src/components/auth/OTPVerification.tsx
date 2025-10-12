@@ -75,11 +75,59 @@ export default function OTPVerification({
     }
   };
 
-  // Handle backspace
+  // Enhanced keyboard handling
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      // Move to previous input
-      inputRefs.current[index - 1]?.focus();
+    const { key } = e;
+    
+    switch (key) {
+      case 'Backspace':
+        e.preventDefault();
+        const newOtp = [...otp];
+        
+        if (otp[index]) {
+          // Clear current field
+          newOtp[index] = '';
+          setOtp(newOtp);
+        } else if (index > 0) {
+          // Move to previous field and clear it
+          newOtp[index - 1] = '';
+          setOtp(newOtp);
+          inputRefs.current[index - 1]?.focus();
+        }
+        break;
+        
+      case 'Delete':
+        e.preventDefault();
+        const deleteOtp = [...otp];
+        deleteOtp[index] = '';
+        setOtp(deleteOtp);
+        break;
+        
+      case 'ArrowLeft':
+        e.preventDefault();
+        if (index > 0) {
+          inputRefs.current[index - 1]?.focus();
+        }
+        break;
+        
+      case 'ArrowRight':
+        e.preventDefault();
+        if (index < 3) {
+          inputRefs.current[index + 1]?.focus();
+        }
+        break;
+        
+      case 'ArrowUp':
+      case 'ArrowDown':
+        e.preventDefault();
+        break;
+        
+      default:
+        // Allow only digits
+        if (!/\d/.test(key) && !['Tab', 'Enter'].includes(key)) {
+          e.preventDefault();
+        }
+        break;
     }
   };
 
@@ -167,9 +215,12 @@ export default function OTPVerification({
       } else {
         // Clear OTP inputs on wrong attempt
         setOtp(['', '', '', '']);
-        if (inputRefs.current[0]) {
-          inputRefs.current[0].focus();
-        }
+        // Focus first input after a short delay to ensure DOM is updated
+        setTimeout(() => {
+          if (inputRefs.current[0]) {
+            inputRefs.current[0].focus();
+          }
+        }, 100);
       }
     } finally {
       setLoading(false);
@@ -270,29 +321,39 @@ export default function OTPVerification({
                 ref={(el) => (inputRefs.current[index] = el)}
                 type="text"
                 inputMode="numeric"
+                pattern="[0-9]"
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => e.target.select()}
                 className={`
-                  w-12 h-12 text-center text-2xl font-bold border rounded-lg
+                  w-12 h-12 text-center text-2xl font-bold border-2 rounded-lg
                   focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500
-                  transition-colors duration-200
-                  ${error ? 'border-red-500 bg-red-50 text-red-900' : 'border-gray-300'}
-                  ${digit ? 'bg-pink-50 border-pink-300 text-gray-900' : 'bg-white text-gray-900'}
+                  transition-all duration-200 ease-in-out
+                  ${error ? 'border-red-500 bg-red-50 text-red-900 animate-pulse' : 'border-gray-300'}
+                  ${digit ? 'bg-pink-50 border-pink-300 text-gray-900 shadow-sm' : 'bg-white text-gray-900 hover:border-gray-400'}
                   text-gray-900 placeholder-gray-400
+                  cursor-pointer select-all
                 `}
                 autoComplete="one-time-code"
                 autoFocus={index === 0}
+                title={`OTP digit ${index + 1}`}
               />
             ))}
           </div>
           {error && (
             <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
           )}
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            Enter the 4-digit code sent to your phone
-          </p>
+          <div className="mt-2 text-center">
+            <p className="text-xs text-gray-500 mb-1">
+              Enter the 4-digit code sent to your phone
+            </p>
+            <p className="text-xs text-gray-400">
+              💡 Tip: Use <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">←</kbd> <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">→</kbd> arrows to navigate, <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Backspace</kbd> to clear
+            </p>
+          </div>
         </div>
 
         {attemptsRemaining > 0 && (
