@@ -104,31 +104,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      {
-        url: '/favicon.ico',
-        sizes: '32x32',
-        type: 'image/x-icon',
-      },
-      {
-        url: '/icon',
-        type: 'image/png',
-        sizes: '48x48',
-      },
-      {
-        url: '/icon',
-        type: 'image/png',
-        sizes: '192x192',
-      },
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+      { url: '/favicon.png', sizes: '48x48', type: 'image/png' },
     ],
-    shortcut: ['/favicon.ico'],
-    apple: '/apple-icon',
-    other: [
-      {
-        rel: 'icon',
-        type: 'image/png',
-        sizes: '192x192',
-        url: '/icon',
-      },
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
 };
@@ -142,10 +123,7 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <head>
         <link rel="manifest" href="/site.webmanifest" />
-        <link rel="icon" href="/favicon.ico" sizes="32x32" type="image/x-icon" />
-        <link rel="icon" href="/icon" type="image/png" sizes="48x48" />
-        <link rel="icon" href="/icon" type="image/png" sizes="192x192" />
-        <link rel="apple-touch-icon" href="/apple-icon" sizes="180x180" />
+        <meta name="theme-color" content="#dc2626" />
         <StructuredData type="organization" />
         <StructuredData type="localBusiness" />
       </head>
