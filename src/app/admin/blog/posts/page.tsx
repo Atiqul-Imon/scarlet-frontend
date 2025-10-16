@@ -119,7 +119,7 @@ export default function AdminBlogPostsPage() {
         </div>
         <Link
           href="/admin/blog/posts/new"
-          className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           New Post
@@ -137,7 +137,7 @@ export default function AdminBlogPostsPage() {
               placeholder="Search posts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
@@ -145,7 +145,7 @@ export default function AdminBlogPostsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
             <option value="all">All Status</option>
             <option value="published">Published</option>
@@ -157,7 +157,7 @@ export default function AdminBlogPostsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -190,7 +190,7 @@ export default function AdminBlogPostsPage() {
           </p>
           <Link
             href="/admin/blog/posts/new"
-            className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
             Create First Post
@@ -211,7 +211,7 @@ export default function AdminBlogPostsPage() {
                         {post.status}
                       </span>
                       {post.isFeatured && (
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-pink-100 text-pink-800">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-900">
                           Featured
                         </span>
                       )}

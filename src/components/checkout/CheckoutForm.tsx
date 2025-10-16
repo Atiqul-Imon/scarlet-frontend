@@ -125,27 +125,27 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
             <div key={step} className="flex items-center">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                 step <= currentStep 
-                  ? 'bg-pink-600 text-white' 
+                  ? 'bg-red-700 text-white' 
                   : 'bg-gray-200 text-gray-600'
               }`}>
                 {step < currentStep ? <CheckIcon /> : step}
               </div>
               {step < 3 && (
                 <div className={`w-24 h-1 mx-4 ${
-                  step < currentStep ? 'bg-pink-600' : 'bg-gray-200'
+                  step < currentStep ? 'bg-red-700' : 'bg-gray-200'
                 }`} />
               )}
             </div>
           ))}
         </div>
         <div className="flex justify-between mt-2 text-sm">
-          <span className={currentStep >= 1 ? 'text-pink-600 font-medium' : 'text-gray-500'}>
+          <span className={currentStep >= 1 ? 'text-red-700 font-medium' : 'text-gray-500'}>
             Contact
           </span>
-          <span className={currentStep >= 2 ? 'text-pink-600 font-medium' : 'text-gray-500'}>
+          <span className={currentStep >= 2 ? 'text-red-700 font-medium' : 'text-gray-500'}>
             Shipping
           </span>
-          <span className={currentStep >= 3 ? 'text-pink-600 font-medium' : 'text-gray-500'}>
+          <span className={currentStep >= 3 ? 'text-red-700 font-medium' : 'text-gray-500'}>
             Payment
           </span>
         </div>
@@ -167,7 +167,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                   id="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="your@email.com"
@@ -181,7 +181,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                 <input
                   type="checkbox"
                   id="newsletter"
-                  className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                  className="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500"
                 />
                 <label htmlFor="newsletter" className="text-sm text-gray-600">
                   Email me with news and offers
@@ -207,7 +207,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                     id="firstName"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                       errors.firstName ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -225,7 +225,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                     id="lastName"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                       errors.lastName ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -244,7 +244,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                     errors.address ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="123 Main Street"
@@ -264,7 +264,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                     id="city"
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                       errors.city ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -282,7 +282,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                     id="state"
                     value={formData.state}
                     onChange={(e) => handleInputChange('state', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                       errors.state ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -300,7 +300,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                     id="zipCode"
                     value={formData.zipCode}
                     onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                       errors.zipCode ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -319,7 +319,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                     errors.phone ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="(555) 123-4567"
@@ -340,7 +340,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                       value="standard"
                       checked={formData.shippingMethod === 'standard'}
                       onChange={(e) => handleInputChange('shippingMethod', e.target.value)}
-                      className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
+                      className="w-4 h-4 text-red-700 border-gray-300 focus:ring-red-500"
                     />
                     <div className="ml-3 flex-1">
                       <div className="flex justify-between">
@@ -358,7 +358,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                       value="express"
                       checked={formData.shippingMethod === 'express'}
                       onChange={(e) => handleInputChange('shippingMethod', e.target.value)}
-                      className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
+                      className="w-4 h-4 text-red-700 border-gray-300 focus:ring-red-500"
                     />
                     <div className="ml-3 flex-1">
                       <div className="flex justify-between">
@@ -391,7 +391,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                       value="card"
                       checked={formData.paymentMethod === 'card'}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                      className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
+                      className="w-4 h-4 text-red-700 border-gray-300 focus:ring-red-500"
                     />
                     <div className="ml-3 flex-1">
                       <span className="font-medium">Credit/Debit Card</span>
@@ -410,7 +410,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                       value="paypal"
                       checked={formData.paymentMethod === 'paypal'}
                       onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                      className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
+                      className="w-4 h-4 text-red-700 border-gray-300 focus:ring-red-500"
                     />
                     <div className="ml-3">
                       <span className="font-medium">PayPal</span>
@@ -431,7 +431,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                       id="cardNumber"
                       value={formData.cardNumber}
                       onChange={(e) => handleInputChange('cardNumber', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                         errors.cardNumber ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="1234 5678 9012 3456"
@@ -451,7 +451,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                         id="expiryDate"
                         value={formData.expiryDate}
                         onChange={(e) => handleInputChange('expiryDate', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                           errors.expiryDate ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="MM/YY"
@@ -470,7 +470,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                         id="cvv"
                         value={formData.cvv}
                         onChange={(e) => handleInputChange('cvv', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                           errors.cvv ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="123"
@@ -490,7 +490,7 @@ export default function CheckoutForm({ onSubmit, isLoading = false }: CheckoutFo
                       id="cardName"
                       value={formData.cardName}
                       onChange={(e) => handleInputChange('cardName', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors ${
                         errors.cardName ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="John Doe"

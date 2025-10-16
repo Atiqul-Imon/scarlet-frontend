@@ -163,7 +163,7 @@ export default function Swipeable({
               className={cn(
                 'w-2 h-2 rounded-full transition-all duration-200',
                 index === currentIndex
-                  ? 'bg-pink-600 w-6'
+                  ? 'bg-red-700 w-6'
                   : 'bg-white/60 hover:bg-white/80'
               )}
               aria-label={`Go to slide ${index + 1}`}

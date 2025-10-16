@@ -71,13 +71,13 @@ export default function ChatBody({
                   className={`
                     max-w-xs lg:max-w-sm px-4 py-2 rounded-2xl text-sm
                     ${message.sender === 'user'
-                      ? 'bg-pink-500 text-white rounded-br-md'
+                      ? 'bg-red-500 text-white rounded-br-md'
                       : 'bg-white text-gray-800 rounded-bl-md border border-gray-100'
                     }
                   `}
                 >
                   <div className="break-words">{message.content}</div>
-                  <div className={`text-xs mt-1 ${message.sender === 'user' ? 'text-pink-100' : 'text-gray-400'}`}>
+                  <div className={`text-xs mt-1 ${message.sender === 'user' ? 'text-red-100' : 'text-gray-400'}`}>
                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -97,11 +97,11 @@ export default function ChatBody({
                 <button
                   key={action.id}
                   onClick={() => onQuickAction(action)}
-                  className="p-3 bg-white rounded-xl border border-gray-100 hover:border-pink-200 hover:bg-pink-50 transition-all duration-200 text-left group"
+                  className="p-3 bg-white rounded-xl border border-gray-100 hover:border-red-200 hover:bg-red-50 transition-all duration-200 text-left group"
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">{action.icon}</span>
-                    <span className="text-xs font-medium text-gray-700 group-hover:text-pink-700">
+                    <span className="text-xs font-medium text-gray-700 group-hover:text-red-800">
                       {action.label[currentLanguage]}
                     </span>
                   </div>

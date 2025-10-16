@@ -161,7 +161,7 @@ export default function AdminBlogCategoriesPage() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           New Category
@@ -185,7 +185,7 @@ export default function AdminBlogCategoriesPage() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Category name"
                   required
                 />
@@ -199,7 +199,7 @@ export default function AdminBlogCategoriesPage() {
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="category-slug"
                   required
                 />
@@ -213,7 +213,7 @@ export default function AdminBlogCategoriesPage() {
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Category description"
                 />
               </div>
@@ -233,7 +233,7 @@ export default function AdminBlogCategoriesPage() {
                     type="text"
                     value={formData.color}
                     onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="#3B82F6"
                   />
                 </div>
@@ -245,7 +245,7 @@ export default function AdminBlogCategoriesPage() {
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                  className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                 />
                 <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
                   Active
@@ -262,7 +262,7 @@ export default function AdminBlogCategoriesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                  className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
                   {editingCategory ? 'Update' : 'Create'}
                 </button>
@@ -284,7 +284,7 @@ export default function AdminBlogCategoriesPage() {
           <p className="text-gray-600 mb-6">Get started by creating your first blog category</p>
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
             Create First Category

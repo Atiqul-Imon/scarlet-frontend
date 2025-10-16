@@ -112,14 +112,14 @@ export default function OrderReceipt({
   return (
     <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden ${className}`}>
       {/* Receipt Header */}
-      <div className="bg-gradient-to-r from-pink-600 to-purple-600 text-white p-6" style={{background: 'linear-gradient(to right, #e91e63, #9c27b0)'}}>
+      <div className="bg-gradient-to-r from-red-700 to-purple-600 text-white p-6" style={{background: 'linear-gradient(to right, #e91e63, #9c27b0)'}}>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Scarlet Beauty</h1>
-            <p className="text-pink-100 text-sm">Your Beauty Destination</p>
+            <p className="text-red-100 text-sm">Your Beauty Destination</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-pink-100">Order Receipt</p>
+            <p className="text-sm text-red-100">Order Receipt</p>
             <p className="text-lg font-semibold">#{orderNumber}</p>
           </div>
         </div>

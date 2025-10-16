@@ -182,7 +182,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
       <div className={`fixed right-4 top-1/2 transform -translate-y-1/2 z-50 ${className}`}>
         <Link
           href="/cart"
-          className="group relative bg-pink-600 hover:bg-pink-700 text-white px-4 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center space-x-3 min-w-[120px] border border-pink-500"
+          className="group relative bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center space-x-3 min-w-[120px] border border-red-500"
         >
           <ShoppingCartIcon className="w-5 h-5" />
           <div className="flex flex-col items-start">
@@ -214,7 +214,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
       <div className="relative">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="group relative bg-pink-600 hover:bg-pink-700 text-white px-4 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center space-x-3 min-w-[120px] border border-pink-500"
+          className="group relative bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center space-x-3 min-w-[120px] border border-red-500"
         >
           <div className="relative">
             <ShoppingCartIcon className="w-5 h-5" />
@@ -246,11 +246,11 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
         {isExpanded && (
           <div className={`absolute ${isMobile ? 'right-0 top-full mt-2 w-screen max-w-sm z-50' : 'right-full top-0 mr-4 w-80'} bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden`}>
             {/* Header */}
-            <div className="bg-pink-600 text-white p-4 flex items-center justify-between">
+            <div className="bg-red-700 text-white p-4 flex items-center justify-between">
               <h3 className="font-semibold text-lg">Shopping Cart</h3>
               <button
                 onClick={() => setIsExpanded(false)}
-                className="text-white hover:text-pink-200 transition-colors"
+                className="text-white hover:text-red-200 transition-colors"
               >
                 <XMarkIcon className="w-5 h-5" />
               </button>
@@ -260,7 +260,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
             <div className="max-h-96 overflow-y-auto">
               {loadingProducts ? (
                 <div className="p-4 text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-pink-600 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700 mx-auto"></div>
                   <p className="mt-2 text-sm">Loading products...</p>
                 </div>
               ) : enrichedItems.length === 0 ? (
@@ -363,7 +363,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
               <div className="space-y-2">
                 <Link
                   href="/cart"
-                  className="block w-full bg-pink-600 hover:bg-pink-700 text-white text-center py-3 px-4 rounded-lg font-medium transition-colors"
+                  className="block w-full bg-red-700 hover:bg-red-800 text-white text-center py-3 px-4 rounded-lg font-medium transition-colors"
                   onClick={() => setIsExpanded(false)}
                 >
                   View Cart
@@ -371,7 +371,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
                 
                 <Link
                   href="/checkout"
-                  className="block w-full bg-white hover:bg-gray-50 text-pink-600 border border-pink-600 text-center py-3 px-4 rounded-lg font-medium transition-colors"
+                  className="block w-full bg-white hover:bg-gray-50 text-red-700 border border-red-700 text-center py-3 px-4 rounded-lg font-medium transition-colors"
                   onClick={() => setIsExpanded(false)}
                 >
                   Checkout

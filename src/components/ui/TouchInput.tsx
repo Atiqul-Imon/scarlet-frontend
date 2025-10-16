@@ -15,9 +15,9 @@ interface TouchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const variants = {
-  default: 'border border-gray-300 focus:border-pink-500 focus:ring-pink-500',
-  filled: 'bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-pink-500',
-  outlined: 'border-2 border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-500',
+  default: 'border border-gray-300 focus:border-red-500 focus:ring-red-500',
+  filled: 'bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-red-500',
+  outlined: 'border-2 border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-500',
 };
 
 const sizes = {

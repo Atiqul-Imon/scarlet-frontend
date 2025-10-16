@@ -67,13 +67,13 @@ export default function TopBar() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search products..."
-                className="h-10 flex-1 border-2 border-pink-500 bg-white px-4 text-sm outline-none focus:border-pink-600 focus:ring-0 rounded-l-full"
+                className="h-10 flex-1 border-2 border-red-500 bg-white px-4 text-sm outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
                 autoFocus
               />
               <button 
                 type="submit" 
                 aria-label="Search" 
-                className="h-10 px-4 bg-pink-600 text-white text-sm font-medium hover:bg-pink-700 transition-colors rounded-r-full border-2 border-pink-600 hover:border-pink-700 flex items-center justify-center min-w-[48px]"
+                className="h-10 px-4 bg-red-700 text-white text-sm font-medium hover:bg-red-800 transition-colors rounded-r-full border-2 border-red-700 hover:border-red-800 flex items-center justify-center min-w-[48px]"
               >
                 <SearchIcon />
               </button>
@@ -114,12 +114,12 @@ export default function TopBar() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search products..."
-                className="h-8 md:h-10 w-full border-2 border-pink-500 bg-white px-2 md:px-4 pr-10 md:pr-14 text-[12px] md:text-[14px] outline-none focus:border-pink-600 focus:ring-0 rounded-l-full"
+                className="h-8 md:h-10 w-full border-2 border-red-500 bg-white px-2 md:px-4 pr-10 md:pr-14 text-[12px] md:text-[14px] outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
               />
               <button 
                 type="submit" 
                 aria-label="Search" 
-                className="h-8 md:h-10 px-3 md:px-5 bg-pink-600 text-white text-xs md:text-sm font-medium hover:bg-pink-700 transition-colors rounded-r-full border-2 border-pink-600 hover:border-pink-700 flex items-center"
+                className="h-8 md:h-10 px-3 md:px-5 bg-red-700 text-white text-xs md:text-sm font-medium hover:bg-red-800 transition-colors rounded-r-full border-2 border-red-700 hover:border-red-800 flex items-center"
               >
                 <SearchIcon />
               </button>
@@ -135,7 +135,7 @@ export default function TopBar() {
                     setShowMobileSearch(true);
                   }
                 }}
-                className="hover:text-pink-600 inline-flex items-center justify-center transition-colors p-2 min-w-[32px] min-h-[32px]"
+                className="hover:text-red-700 inline-flex items-center justify-center transition-colors p-2 min-w-[32px] min-h-[32px]"
                 aria-label="Search"
               >
                 <SearchIcon />
@@ -144,13 +144,13 @@ export default function TopBar() {
               {/* User Account - Show loading state or content */}
               {!isClient || authLoading ? (
                 <div className="inline-flex items-center justify-center p-2 min-w-[32px] min-h-[32px]">
-                  <div className="w-5 h-5 border-2 border-gray-300 border-t-pink-600 rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-gray-300 border-t-red-700 rounded-full animate-spin"></div>
                 </div>
               ) : user ? (
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="hover:text-pink-600 inline-flex items-center justify-center transition-colors p-2 min-w-[32px] min-h-[32px]"
+                    className="hover:text-red-700 inline-flex items-center justify-center transition-colors p-2 min-w-[32px] min-h-[32px]"
                     aria-label="Account menu"
                   >
                     <UserIcon />
@@ -206,13 +206,13 @@ export default function TopBar() {
                 <div className="flex items-center gap-1 md:gap-3">
                   <Link
                     href="/login"
-                    className="text-sm text-gray-700 hover:text-pink-600 transition-colors px-3 py-1.5 whitespace-nowrap"
+                    className="text-sm text-gray-700 hover:text-red-700 transition-colors px-3 py-1.5 whitespace-nowrap"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/register"
-                    className="text-sm bg-pink-600 text-white px-3 py-1.5 rounded-md hover:bg-pink-700 transition-colors whitespace-nowrap"
+                    className="text-sm bg-red-700 text-white px-3 py-1.5 rounded-md hover:bg-red-800 transition-colors whitespace-nowrap"
                   >
                     Sign Up
                   </Link>
@@ -252,11 +252,11 @@ export default function TopBar() {
               )}
 
               {/* Cart */}
-              <Link href="/cart" className="hover:text-pink-600 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Cart">
+              <Link href="/cart" className="hover:text-red-700 inline-flex items-center justify-center relative transition-colors group p-2 min-w-[32px] min-h-[32px]" aria-label="Cart">
                 <div className="relative">
                   <CartIcon />
                   {isClient && !cartLoading && itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    <span className="absolute -top-2 -right-2 bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                       {itemCount > 99 ? '99+' : itemCount}
                     </span>
                   )}
@@ -268,7 +268,7 @@ export default function TopBar() {
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-medium text-gray-900">Cart ({itemCount} items)</h3>
-                        <span className="text-sm text-pink-600 font-medium">View All</span>
+                        <span className="text-sm text-red-700 font-medium">View All</span>
                       </div>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {cart?.items?.slice(0, 3).map((item, index) => (
@@ -290,7 +290,7 @@ export default function TopBar() {
                               </p>
                               <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
                               {item.product?.price && (
-                                <p className="text-xs text-pink-600 font-medium">
+                                <p className="text-xs text-red-700 font-medium">
                                   ৳{item.product.price.amount}
                                 </p>
                               )}
@@ -335,7 +335,7 @@ function SearchIcon() {
 
 function HeartIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700 hover:text-pink-600 flex-shrink-0">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700 hover:text-red-700 flex-shrink-0">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 22l7.8-8.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
     </svg>
   );
@@ -343,7 +343,7 @@ function HeartIcon() {
 
 function UserIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700 hover:text-pink-600 flex-shrink-0">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700 hover:text-red-700 flex-shrink-0">
       <path d="M20 21a8 8 0 1 0-16 0"/>
       <circle cx="12" cy="7" r="4"/>
     </svg>
@@ -352,7 +352,7 @@ function UserIcon() {
 
 function CartIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700 hover:text-pink-600 flex-shrink-0">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700 hover:text-red-700 flex-shrink-0">
       <circle cx="9" cy="21" r="1"/>
       <circle cx="20" cy="21" r="1"/>
       <path d="M1 1h4l2.68 12.39A2 2 0 0 0 9.63 15H19a2 2 0 0 0 2-1.59l1.38-7.59H6"/>

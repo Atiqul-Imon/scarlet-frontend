@@ -160,7 +160,7 @@ export default function CategoryHierarchyPage() {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => handleCategoryAdd()}
-                  className="flex items-center space-x-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
                   <PlusIcon className="w-5 h-5" />
                   <span>Add Root Category</span>
@@ -184,7 +184,7 @@ export default function CategoryHierarchyPage() {
                     onClick={() => setViewMode('tree')}
                     className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium transition-colors ${
                       viewMode === 'tree'
-                        ? 'bg-pink-600 text-white'
+                        ? 'bg-red-700 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -195,7 +195,7 @@ export default function CategoryHierarchyPage() {
                     onClick={() => setViewMode('list')}
                     className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium transition-colors ${
                       viewMode === 'list'
-                        ? 'bg-pink-600 text-white'
+                        ? 'bg-red-700 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                   >
@@ -215,7 +215,7 @@ export default function CategoryHierarchyPage() {
                     placeholder="Search categories..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -226,7 +226,7 @@ export default function CategoryHierarchyPage() {
                 <select
                   value={filterLevel}
                   onChange={(e) => setFilterLevel(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
                   <option value="all">All Levels</option>
                   {hierarchy && Array.from({ length: hierarchy.maxLevel + 1 }, (_, i) => (
@@ -312,7 +312,7 @@ export default function CategoryHierarchyPage() {
                         key={category._id}
                         className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
                           selectedCategory?._id === category._id
-                            ? 'border-pink-200 bg-pink-50'
+                            ? 'border-red-200 bg-red-50'
                             : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                         onClick={() => handleCategorySelect(category)}

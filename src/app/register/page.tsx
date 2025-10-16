@@ -112,13 +112,13 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-4 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-md">
         <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-pink-600">Scarlet</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-red-700">Scarlet</h1>
           <h2 className="mt-4 sm:mt-6 text-2xl sm:text-3xl font-extrabold text-gray-900">
             Join Scarlet Beauty 💄
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Start shopping in under 30 seconds! Already have an account?{' '}
-            <Link href="/login" className="font-medium text-pink-600 hover:text-pink-500">
+            <Link href="/login" className="font-medium text-red-700 hover:text-red-500">
               Sign in here
             </Link>
           </p>
@@ -266,17 +266,17 @@ export default function RegisterPage() {
                   type="checkbox"
                   checked={values.acceptTerms}
                   onChange={handleChange}
-                  className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                 />
               </div>
               <div className="flex-1 text-sm">
                 <label htmlFor="acceptTerms" className="text-gray-700 leading-relaxed">
                   I agree to the{' '}
-                  <Link href="/terms" className="font-medium text-pink-600 hover:text-pink-500">
+                  <Link href="/terms" className="font-medium text-red-700 hover:text-red-500">
                     Terms and Conditions
                   </Link>
                   {' '}and{' '}
-                  <Link href="/privacy" className="font-medium text-pink-600 hover:text-pink-500">
+                  <Link href="/privacy" className="font-medium text-red-700 hover:text-red-500">
                     Privacy Policy
                   </Link>
                 </label>

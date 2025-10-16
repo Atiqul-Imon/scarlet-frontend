@@ -111,7 +111,7 @@ export default function RealTimeWidget() {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-pink-50 to-rose-50">
+      <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-50 to-rose-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
@@ -160,8 +160,8 @@ export default function RealTimeWidget() {
           </div>
           
           <div className="text-center">
-            <div className="flex items-center justify-center w-12 h-12 bg-pink-100 rounded-lg mx-auto mb-2">
-              <ArrowTrendingUpIcon className="w-6 h-6 text-pink-600" />
+            <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-lg mx-auto mb-2">
+              <ArrowTrendingUpIcon className="w-6 h-6 text-red-700" />
             </div>
             <div className="text-2xl font-bold text-gray-900">{data.ordersToday}</div>
             <div className="text-sm text-gray-500">Today's Orders</div>

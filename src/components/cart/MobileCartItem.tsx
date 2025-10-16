@@ -77,7 +77,7 @@ export default function MobileCartItem({
         </h3>
         
         <div className="flex items-center space-x-2 mb-3">
-          <span className="text-lg font-bold text-pink-600">
+          <span className="text-lg font-bold text-red-700">
             {item.product.price.currency} {item.product.price.amount}
           </span>
           {item.product.discountPercentage && (

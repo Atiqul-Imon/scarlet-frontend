@@ -5,14 +5,14 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 py-20">
+      <section className="bg-gradient-to-br from-red-50 via-purple-50 to-blue-50 py-20">
         <div className="container-herlan">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ScaleIcon className="w-10 h-10 text-pink-600" />
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ScaleIcon className="w-10 h-10 text-red-700" />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              Terms of <span className="text-pink-600">Service</span>
+              Terms of <span className="text-red-700">Service</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
               Please read these terms and conditions carefully before using our website 

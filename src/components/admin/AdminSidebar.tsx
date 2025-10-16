@@ -163,16 +163,16 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     <>
       {/* Sidebar for desktop */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white shadow-xl border-r border-pink-100">
+        <div className="flex flex-col flex-grow bg-white shadow-xl border-r border-red-100">
           {/* Logo */}
-          <div className="flex items-center flex-shrink-0 px-6 py-6 bg-gradient-to-r from-pink-500 to-rose-500">
+          <div className="flex items-center flex-shrink-0 px-6 py-6 bg-gradient-to-r from-red-500 to-rose-500">
             <div className="flex items-center">
               <div className="flex-shrink-0 w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <SparklesIcon className="w-6 h-6 text-pink-500" />
+                <SparklesIcon className="w-6 h-6 text-red-500" />
               </div>
               <div className="ml-3">
                 <h1 className="text-xl font-bold text-white">Scarlet Admin</h1>
-                <p className="text-pink-100 text-sm">Beauty Dashboard</p>
+                <p className="text-red-100 text-sm">Beauty Dashboard</p>
               </div>
             </div>
           </div>
@@ -190,15 +190,15 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     className={`
                       group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
                       ${isActive 
-                        ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25' 
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 hover:text-pink-600'
+                        ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-500/25' 
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 hover:text-red-700'
                       }
                     `}
                   >
                     <item.icon 
                       className={`
                         flex-shrink-0 w-5 h-5 mr-3 transition-colors duration-200
-                        ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-pink-500'}
+                        ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-red-500'}
                       `} 
                     />
                     <span className="flex-1">{item.label}</span>
@@ -208,8 +208,8 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                       <span className={`
                         inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full
                         ${isActive 
-                          ? 'bg-white text-pink-600' 
-                          : 'bg-pink-500 text-white'
+                          ? 'bg-white text-red-700' 
+                          : 'bg-red-500 text-white'
                         }
                       `}>
                         {item.badge}
@@ -226,10 +226,10 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             </nav>
 
             {/* Bottom section */}
-            <div className="mt-auto px-3 pt-6 border-t border-pink-100">
-              <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100">
+            <div className="mt-auto px-3 pt-6 border-t border-red-100">
+              <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-4 border border-red-100">
                 <div className="flex items-center">
-                  <HeartIcon className="w-8 h-8 text-pink-500" />
+                  <HeartIcon className="w-8 h-8 text-red-500" />
                   <div className="ml-3">
                     <h3 className="text-sm font-semibold text-gray-900">Beauty Tips</h3>
                     <p className="text-xs text-gray-600">Manage your store with love</p>
@@ -248,19 +248,19 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       `}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between flex-shrink-0 px-6 py-6 bg-gradient-to-r from-pink-500 to-rose-500">
+          <div className="flex items-center justify-between flex-shrink-0 px-6 py-6 bg-gradient-to-r from-red-500 to-rose-500">
             <div className="flex items-center">
               <div className="flex-shrink-0 w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <SparklesIcon className="w-6 h-6 text-pink-500" />
+                <SparklesIcon className="w-6 h-6 text-red-500" />
               </div>
               <div className="ml-3">
                 <h1 className="text-xl font-bold text-white">Scarlet Admin</h1>
-                <p className="text-pink-100 text-sm">Beauty Dashboard</p>
+                <p className="text-red-100 text-sm">Beauty Dashboard</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-pink-100 hover:text-white transition-colors duration-200"
+              className="text-red-100 hover:text-white transition-colors duration-200"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -282,15 +282,15 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     className={`
                       group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
                       ${isActive 
-                        ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/25' 
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 hover:text-pink-600'
+                        ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-500/25' 
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 hover:text-red-700'
                       }
                     `}
                   >
                     <item.icon 
                       className={`
                         flex-shrink-0 w-5 h-5 mr-3 transition-colors duration-200
-                        ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-pink-500'}
+                        ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-red-500'}
                       `} 
                     />
                     <span className="flex-1">{item.label}</span>
@@ -300,8 +300,8 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                       <span className={`
                         inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full
                         ${isActive 
-                          ? 'bg-white text-pink-600' 
-                          : 'bg-pink-500 text-white'
+                          ? 'bg-white text-red-700' 
+                          : 'bg-red-500 text-white'
                         }
                       `}>
                         {item.badge}
@@ -313,10 +313,10 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             </nav>
 
             {/* Bottom section */}
-            <div className="mt-auto px-3 pt-6 border-t border-pink-100">
-              <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100">
+            <div className="mt-auto px-3 pt-6 border-t border-red-100">
+              <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-4 border border-red-100">
                 <div className="flex items-center">
-                  <HeartIcon className="w-8 h-8 text-pink-500" />
+                  <HeartIcon className="w-8 h-8 text-red-500" />
                   <div className="ml-3">
                     <h3 className="text-sm font-semibold text-gray-900">Beauty Tips</h3>
                     <p className="text-xs text-gray-600">Manage your store with love</p>

@@ -188,7 +188,7 @@ export function ProductQuickViewModal({
             {product.title}
           </h3>
           
-          <div className="text-2xl font-bold text-pink-600 mb-4">
+          <div className="text-2xl font-bold text-red-700 mb-4">
             {product.price.currency} {product.price.amount}
           </div>
 

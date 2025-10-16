@@ -155,7 +155,7 @@ export default function BlogPage() {
                   placeholder="Search blog posts..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
@@ -167,7 +167,7 @@ export default function BlogPage() {
                 onClick={() => handleCategoryFilter('')}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   !query.category
-                    ? 'bg-pink-600 text-white'
+                    ? 'bg-red-700 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -179,7 +179,7 @@ export default function BlogPage() {
                   onClick={() => handleCategoryFilter(category.slug)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     query.category === category.slug
-                      ? 'bg-pink-600 text-white'
+                      ? 'bg-red-700 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -202,8 +202,8 @@ export default function BlogPage() {
                   onClick={() => handleSortChange(option.value as any)}
                   className={`px-3 py-1 text-sm rounded transition-colors ${
                     query.sortBy === option.value
-                      ? 'bg-pink-100 text-pink-700'
-                      : 'text-gray-600 hover:text-pink-600'
+                      ? 'bg-red-100 text-red-800'
+                      : 'text-gray-600 hover:text-red-700'
                   }`}
                 >
                   {option.label}
@@ -251,7 +251,7 @@ export default function BlogPage() {
 
                     {/* Title */}
                     <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-                      <Link href={`/blog/${post.slug}`} className="hover:text-pink-600 transition-colors">
+                      <Link href={`/blog/${post.slug}`} className="hover:text-red-700 transition-colors">
                         {post.title}
                       </Link>
                     </h2>

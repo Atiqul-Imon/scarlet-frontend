@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-pink-600">Scarlet</h1>
+            <h1 className="text-3xl font-bold text-red-700">Scarlet</h1>
             <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
               <div className="text-center">
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
                   Didn't receive the email? Check your spam folder or{' '}
                   <button
                     onClick={() => setIsSubmitted(false)}
-                    className="font-medium text-pink-600 hover:text-pink-500"
+                    className="font-medium text-red-700 hover:text-red-500"
                   >
                     try again
                   </button>
@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-pink-600">Scarlet</h1>
+          <h1 className="text-3xl font-bold text-red-700">Scarlet</h1>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Forgot your password?
           </h2>
@@ -146,7 +146,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="text-center">
-              <Link href="/login" className="font-medium text-pink-600 hover:text-pink-500">
+              <Link href="/login" className="font-medium text-red-700 hover:text-red-500">
                 Back to Sign In
               </Link>
             </div>

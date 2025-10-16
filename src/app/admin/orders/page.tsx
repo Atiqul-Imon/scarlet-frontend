@@ -339,7 +339,7 @@ export default function OrdersPage() {
 
   const getPaymentMethodBadge = (method: string) => {
     const methodConfig = {
-      bkash: { label: 'bKash', color: 'bg-pink-100 text-pink-800' },
+      bkash: { label: 'bKash', color: 'bg-red-100 text-red-900' },
       nagad: { label: 'Nagad', color: 'bg-orange-100 text-orange-800' },
       rocket: { label: 'Rocket', color: 'bg-purple-100 text-purple-800' },
       card: { label: 'Card', color: 'bg-blue-100 text-blue-800' },
@@ -488,7 +488,7 @@ export default function OrdersPage() {
                   placeholder="Search orders, customers..."
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -499,7 +499,7 @@ export default function OrdersPage() {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`inline-flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
                   showFilters 
-                    ? 'border-pink-500 text-pink-700 bg-pink-50' 
+                    ? 'border-red-500 text-red-800 bg-red-50' 
                     : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
                 }`}
               >
@@ -510,13 +510,13 @@ export default function OrdersPage() {
               <div className="flex items-center border border-gray-300 rounded-lg">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-pink-50 text-pink-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-red-50 text-red-700' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   <ListBulletIcon className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('card')}
-                  className={`p-2 border-l border-gray-300 ${viewMode === 'card' ? 'bg-pink-50 text-pink-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`p-2 border-l border-gray-300 ${viewMode === 'card' ? 'bg-red-50 text-red-700' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   <Squares2X2Icon className="w-4 h-4" />
                 </button>
@@ -536,7 +536,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {ORDER_STATUSES.map(status => (
                     <option key={status.value} value={status.value}>
@@ -553,7 +553,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.paymentStatus}
                   onChange={(e) => setFilters(prev => ({ ...prev, paymentStatus: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {PAYMENT_STATUSES.map(status => (
                     <option key={status.value} value={status.value}>
@@ -570,7 +570,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.paymentMethod}
                   onChange={(e) => setFilters(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {PAYMENT_METHODS.map(method => (
                     <option key={method.value} value={method.value}>
@@ -587,7 +587,7 @@ export default function OrdersPage() {
                 <select
                   value={filters.sortBy}
                   onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {SORT_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
@@ -675,7 +675,7 @@ export default function OrdersPage() {
                       type="checkbox"
                       checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
                       onChange={handleSelectAll}
-                      className="w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500"
+                      className="w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500"
                     />
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -709,7 +709,7 @@ export default function OrdersPage() {
                         type="checkbox"
                         checked={selectedOrders.includes(order._id)}
                         onChange={() => handleSelectOrder(order._id)}
-                        className="w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500"
+                        className="w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500"
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -724,8 +724,8 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
-                          <UserIcon className="w-4 h-4 text-pink-600" />
+                        <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                          <UserIcon className="w-4 h-4 text-red-700" />
                         </div>
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">
@@ -756,7 +756,7 @@ export default function OrdersPage() {
                       <div className="flex items-center justify-end space-x-2">
                         <Link
                           href={`/admin/orders/${order._id}`}
-                          className="text-pink-600 hover:text-pink-900"
+                          className="text-red-700 hover:text-red-950"
                         >
                           View
                         </Link>
@@ -792,7 +792,7 @@ export default function OrdersPage() {
                       type="checkbox"
                       checked={selectedOrders.includes(order._id)}
                       onChange={() => handleSelectOrder(order._id)}
-                      className="w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500"
+                      className="w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500"
                     />
                     <h3 className="text-lg font-medium text-gray-900">
                       {order.orderNumber}
@@ -857,7 +857,7 @@ export default function OrdersPage() {
                     <div className="flex items-center space-x-2">
                       <Link
                         href={`/admin/orders/${order._id}`}
-                        className="p-2 text-pink-600 hover:text-pink-800 rounded-lg hover:bg-pink-50"
+                        className="p-2 text-red-700 hover:text-red-900 rounded-lg hover:bg-red-50"
                       >
                         <EyeIcon className="w-4 h-4" />
                       </Link>
@@ -937,7 +937,7 @@ export default function OrdersPage() {
                       onClick={() => setPagination(prev => ({ ...prev, page: pageNum }))}
                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                         pageNum === pagination.page
-                          ? 'z-10 bg-pink-50 border-pink-500 text-pink-600'
+                          ? 'z-10 bg-red-50 border-red-500 text-red-700'
                           : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                       }`}
                     >

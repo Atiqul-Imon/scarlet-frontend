@@ -66,7 +66,7 @@ export default function FloatingChatButton({
       case 'messenger':
         return 'bg-blue-500 hover:bg-blue-600';
       default:
-        return 'bg-pink-500 hover:bg-pink-600';
+        return 'bg-red-500 hover:bg-red-700';
     }
   };
 

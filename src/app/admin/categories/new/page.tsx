@@ -211,7 +211,7 @@ export default function NewCategoryPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleNameChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
                       errors.name ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Enter category name"
@@ -229,7 +229,7 @@ export default function NewCategoryPage() {
                     name="slug"
                     value={formData.slug}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder-gray-500 ${
                       errors.slug ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="category-slug"
@@ -248,7 +248,7 @@ export default function NewCategoryPage() {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
                   placeholder="Enter category description"
                 />
               </div>
@@ -304,7 +304,7 @@ export default function NewCategoryPage() {
                     <div className="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
                       {loadingHierarchy ? (
                         <div className="p-4 text-center text-gray-500">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-pink-600 mx-auto"></div>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700 mx-auto"></div>
                           <p className="mt-2 text-sm">Loading categories...</p>
                         </div>
                       ) : (
@@ -353,7 +353,7 @@ export default function NewCategoryPage() {
                       onClick={() => setFormData(prev => ({ ...prev, icon }))}
                       className={`w-10 h-10 sm:w-12 sm:h-12 text-xl sm:text-2xl rounded-lg border-2 flex items-center justify-center transition-all duration-200 hover:scale-105 ${
                         formData.icon === icon
-                          ? 'border-pink-500 bg-pink-50 shadow-md'
+                          ? 'border-red-500 bg-red-50 shadow-md'
                           : 'border-gray-300 hover:border-gray-400 bg-white'
                       }`}
                     >
@@ -382,7 +382,7 @@ export default function NewCategoryPage() {
                     value={formData.sortOrder}
                     onChange={handleInputChange}
                     min="0"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 ${
                       errors.sortOrder ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -396,7 +396,7 @@ export default function NewCategoryPage() {
                     name="isActive"
                     checked={formData.isActive}
                     onChange={handleInputChange}
-                    className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                    className="w-5 h-5 text-red-700 border-gray-300 rounded focus:ring-red-500"
                   />
                   <label className="text-sm font-medium text-gray-700">
                     Active
@@ -410,7 +410,7 @@ export default function NewCategoryPage() {
                     name="showInHomepage"
                     checked={formData.showInHomepage}
                     onChange={handleInputChange}
-                    className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                    className="w-5 h-5 text-red-700 border-gray-300 rounded focus:ring-red-500"
                   />
                   <label className="text-sm font-medium text-gray-700">
                     Show in Homepage
@@ -467,7 +467,7 @@ export default function NewCategoryPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center space-x-2"
+                className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center space-x-2"
               >
                 {loading ? (
                   <>

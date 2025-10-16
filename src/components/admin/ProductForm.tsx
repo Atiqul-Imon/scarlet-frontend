@@ -448,7 +448,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               required
               value={formData.name}
               onChange={(e) => handleTitleChange(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
@@ -462,13 +462,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                 required
                 value={formData.slug}
                 onChange={(e) => handleInputChange('slug', e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="product-slug"
               />
               <button
                 type="button"
                 onClick={() => handleInputChange('slug', generateSlug(formData.name))}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                 title="Generate slug from title"
               >
                 Generate
@@ -492,7 +492,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               step="0.01"
               value={formData.price}
               onChange={(e) => handleInputChange('price', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
@@ -506,7 +506,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               step="0.01"
               value={formData.comparePrice}
               onChange={(e) => handleInputChange('comparePrice', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
@@ -520,13 +520,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                 required
                 value={formData.sku}
                 onChange={(e) => handleInputChange('sku', e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="BRAND-TITLE-XXXX"
               />
               <button
                 type="button"
                 onClick={() => handleInputChange('sku', generateSKU(formData.name, formData.brand))}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-colors"
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
                 title="Generate SKU from title and brand"
               >
                 Generate
@@ -547,7 +547,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               value={formData.category}
               onChange={(e) => handleInputChange('category', e.target.value)}
               disabled={categoriesLoading}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">
                 {categoriesLoading ? 'Loading categories...' : 'Select Category'}
@@ -571,7 +571,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               type="text"
               value={formData.brand}
               onChange={(e) => handleBrandChange(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
@@ -582,7 +582,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <select
               value={formData.status}
               onChange={(e) => handleInputChange('status', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="draft">Draft</option>
               <option value="active">Active</option>
@@ -599,7 +599,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             rows={2}
             value={formData.shortDescription}
             onChange={(e) => handleInputChange('shortDescription', e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
           />
         </div>
 
@@ -611,7 +611,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             rows={6}
             value={formData.description}
             onChange={(e) => handleInputChange('description', e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -622,7 +622,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            isDragOver ? 'border-pink-500 bg-pink-50' : 'border-gray-300'
+            isDragOver ? 'border-red-500 bg-red-50' : 'border-gray-300'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -642,7 +642,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
           />
           <label
             htmlFor="image-upload"
-            className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700"
+            className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-700 hover:bg-red-800"
           >
             {isUploading ? 'Uploading...' : 'Upload Image'}
           </label>
@@ -687,7 +687,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               min="0"
               value={formData.stock}
               onChange={(e) => handleInputChange('stock', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
@@ -700,7 +700,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               min="0"
               value={formData.lowStockThreshold}
               onChange={(e) => handleInputChange('lowStockThreshold', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 
@@ -710,7 +710,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               id="trackInventory"
               checked={formData.trackInventory}
               onChange={(e) => handleInputChange('trackInventory', e.target.checked)}
-              className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded bg-white"
+              className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded bg-white"
             />
             <label htmlFor="trackInventory" className="ml-2 block text-sm text-gray-900">
               Track Inventory
@@ -754,7 +754,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   type="text"
                   value={variant.name}
                   onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
               
@@ -766,7 +766,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   type="text"
                   value={variant.sku}
                   onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
               
@@ -779,7 +779,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   min="0"
                   value={variant.stock}
                   onChange={(e) => updateVariant(index, 'stock', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
               
@@ -793,7 +793,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                   step="0.01"
                   value={variant.price}
                   onChange={(e) => updateVariant(index, 'price', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -812,7 +812,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
           <select
             value={formData.homepageSection}
             onChange={(e) => handleInputChange('homepageSection', e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
             <option value="">No section (default)</option>
             <option value="new-arrivals">New Arrivals</option>

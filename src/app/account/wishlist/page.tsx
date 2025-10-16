@@ -142,7 +142,7 @@ export default function WishlistPage(): JSX.Element {
                     className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
                     aria-label="Remove from wishlist"
                   >
-                    <HeartFilledIcon className="w-5 h-5 text-pink-600" />
+                    <HeartFilledIcon className="w-5 h-5 text-red-700" />
                   </button>
 
                   {/* Discount Badge */}
@@ -173,7 +173,7 @@ export default function WishlistPage(): JSX.Element {
 
                   {/* Title */}
                   <Link href={`/products/${item.product.slug}`}>
-                    <h3 className="font-medium text-gray-900 hover:text-pink-600 transition-colors line-clamp-2 mb-2">
+                    <h3 className="font-medium text-gray-900 hover:text-red-700 transition-colors line-clamp-2 mb-2">
                       {item.product.title}
                     </h3>
                   </Link>

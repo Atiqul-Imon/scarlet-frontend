@@ -114,8 +114,8 @@ export default function EnhancedProductCard({
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-100 to-purple-100">
-              <span className="text-4xl text-pink-300">💄</span>
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-100 to-purple-100">
+              <span className="text-4xl text-red-300">💄</span>
             </div>
           )}
           
@@ -156,7 +156,7 @@ export default function EnhancedProductCard({
             `}>
               <button
                 onClick={handleQuickView}
-                className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center text-gray-600 hover:text-pink-600 transition-colors duration-200 shadow-sm"
+                className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-700 transition-colors duration-200 shadow-sm"
                 title="Quick View"
               >
                 <EyeIcon />
@@ -190,7 +190,7 @@ export default function EnhancedProductCard({
                 w-full py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200
                 ${isOutOfStock 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-pink-600 hover:bg-pink-700 text-white shadow-lg'
+                  : 'bg-red-700 hover:bg-red-800 text-white shadow-lg'
                 }
               `}
             >
@@ -218,7 +218,7 @@ export default function EnhancedProductCard({
           )}
           
           {/* Title */}
-          <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors duration-200">
+          <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-red-700 transition-colors duration-200">
             {product.title}
           </h3>
           

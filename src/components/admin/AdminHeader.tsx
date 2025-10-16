@@ -60,7 +60,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
   });
 
   return (
-    <header className="bg-white shadow-sm border-b border-pink-100 sticky top-0 z-30">
+    <header className="bg-white shadow-sm border-b border-red-100 sticky top-0 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side */}
@@ -68,7 +68,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
             {/* Mobile menu button */}
             <button
               type="button"
-              className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-pink-600 hover:bg-pink-50 transition-colors duration-200"
+              className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-red-700 hover:bg-red-50 transition-colors duration-200"
               onClick={onMenuClick}
             >
               <Bars3Icon className="w-6 h-6" />
@@ -77,7 +77,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
             {/* Welcome message */}
             <div className="hidden sm:block ml-4">
               <h1 className="text-xl font-semibold text-gray-900">
-                Welcome back, <span className="text-pink-600">{user.firstName}</span>! ✨
+                Welcome back, <span className="text-red-700">{user.firstName}</span>! ✨
               </h1>
               <p className="text-sm text-gray-600">
                 {currentDate} • {currentTime}
@@ -93,7 +93,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-pink-200 rounded-full leading-5 bg-pink-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-transparent sm:text-sm transition-all duration-200"
+                className="block w-full pl-10 pr-3 py-2 border border-red-200 rounded-full leading-5 bg-red-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent sm:text-sm transition-all duration-200"
                 placeholder="Search products, orders, customers..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -105,8 +105,8 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
           <div className="flex items-center space-x-4">
             {/* Quick stats */}
             <div className="hidden md:flex items-center space-x-4 text-sm">
-              <div className="text-center px-3 py-1 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-100">
-                <div className="text-pink-600 font-semibold">৳25,750</div>
+              <div className="text-center px-3 py-1 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-100">
+                <div className="text-red-700 font-semibold">৳25,750</div>
                 <div className="text-gray-600 text-xs">Today's Sales</div>
               </div>
               <div className="text-center px-3 py-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
@@ -116,10 +116,10 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
             </div>
 
             {/* Notifications */}
-            <button className="relative p-2 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-full transition-colors duration-200">
+            <button className="relative p-2 text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-200">
               <BellIcon className="w-6 h-6" />
               {notifications > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-pink-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                   {notifications}
                 </span>
               )}
@@ -129,10 +129,10 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
             <div className="relative" ref={userMenuRef}>
               <button
                 type="button"
-                className="flex items-center space-x-3 p-2 rounded-full hover:bg-pink-50 transition-colors duration-200"
+                className="flex items-center space-x-3 p-2 rounded-full hover:bg-red-50 transition-colors duration-200"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-rose-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-medium text-sm">
                     {user.firstName?.charAt(0).toUpperCase()}
                   </span>
@@ -159,11 +159,11 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
 
               {/* Dropdown menu */}
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-pink-100 py-2 z-50">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-red-100 py-2 z-50">
                   {/* User info */}
-                  <div className="px-4 py-3 border-b border-pink-50">
+                  <div className="px-4 py-3 border-b border-red-50">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-rose-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-semibold">
                           {user.firstName?.charAt(0).toUpperCase()}
                         </span>
@@ -175,7 +175,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
                         <div className="text-sm text-gray-600">
                           {user.email || user.phone}
                         </div>
-                        <div className="text-xs text-pink-600 font-medium capitalize">
+                        <div className="text-xs text-red-700 font-medium capitalize">
                           {user.role} Access
                         </div>
                       </div>
@@ -186,21 +186,21 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
                   <div className="py-2">
                     <button
                       onClick={() => router.push('/admin/profile')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors duration-200"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
                     >
                       <UserCircleIcon className="w-5 h-5 mr-3" />
                       My Profile
                     </button>
                     <button
                       onClick={() => router.push('/admin/settings')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors duration-200"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
                     >
                       <CogIcon className="w-5 h-5 mr-3" />
                       Settings
                     </button>
                     <button
                       onClick={() => router.push('/admin/help')}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors duration-200"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
                     >
                       <SparklesIcon className="w-5 h-5 mr-3" />
                       Help & Support
@@ -208,7 +208,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
                   </div>
 
                   {/* Logout */}
-                  <div className="border-t border-pink-50 pt-2">
+                  <div className="border-t border-red-50 pt-2">
                     <button
                       onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"

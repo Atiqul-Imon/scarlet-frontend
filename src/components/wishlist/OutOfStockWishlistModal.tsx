@@ -156,7 +156,7 @@ export default function OutOfStockWishlistModal({
                 id="notifyWhenInStock"
                 checked={notifyWhenInStock}
                 onChange={(e) => setNotifyWhenInStock(e.target.checked)}
-                className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                className="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500"
               />
               <label htmlFor="notifyWhenInStock" className="flex items-center gap-2 text-sm font-medium text-gray-900">
                 <BellIcon className="w-4 h-4" />
@@ -213,7 +213,7 @@ export default function OutOfStockWishlistModal({
               value={customerNotes}
               onChange={(e) => setCustomerNotes(e.target.value)}
               placeholder="Any specific requirements or questions about this product?"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
               rows={3}
               maxLength={500}
             />
@@ -255,7 +255,7 @@ export default function OutOfStockWishlistModal({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-pink-600 hover:bg-pink-700"
+              className="flex-1 bg-red-700 hover:bg-red-800"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">

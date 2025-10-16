@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { GiftIcon, QuestionMarkCircleIcon, StarIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { GiftIcon, QuestionMarkCircleIcon, StarIcon, BookOpenIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 export default function TopStrip() {
   return (
@@ -15,6 +15,14 @@ export default function TopStrip() {
             >
               <BookOpenIcon className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
               <span className="font-semibold">Scarlet Blog</span>
+            </Link>
+            
+            <Link
+              href="/skincare-consultation"
+              className="flex items-center space-x-2 hover:text-red-100 transition-colors duration-200 group"
+            >
+              <SparklesIcon className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+              <span className="font-semibold">Skincare Consultation</span>
             </Link>
             
             <Link

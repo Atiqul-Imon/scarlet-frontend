@@ -38,13 +38,13 @@ export default function ProductFilters({
       <div className="lg:hidden mb-4">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors bg-white shadow-sm"
+          className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg hover:border-red-300 transition-colors bg-white shadow-sm"
         >
           <div className="flex items-center gap-2">
             <FilterIcon />
             <span className="font-semibold text-gray-900">Filters</span>
             {hasActiveFilters && (
-              <span className="bg-pink-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="bg-red-700 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                 {Object.values(selectedFilters).filter(v => v).length}
               </span>
             )}
@@ -111,7 +111,7 @@ export default function ProductFilters({
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
                   Apply Filters
                 </button>
@@ -129,7 +129,7 @@ export default function ProductFilters({
             {hasActiveFilters && (
               <button
                 onClick={onClearFilters}
-                className="text-sm text-pink-600 hover:text-pink-700 font-semibold"
+                className="text-sm text-red-700 hover:text-red-800 font-semibold"
               >
                 Clear All
               </button>
@@ -206,7 +206,7 @@ export default function ProductFilters({
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="flex-1 px-4 py-3 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors"
+                className="flex-1 px-4 py-3 bg-red-700 text-white rounded-lg font-medium hover:bg-red-800 transition-colors"
               >
                 Apply Filters
               </button>
@@ -260,8 +260,8 @@ function FilterSection({
               />
               <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
                 selectedValue === option.value 
-                  ? 'border-pink-500 bg-pink-500' 
-                  : 'border-gray-300 group-hover:border-pink-300'
+                  ? 'border-red-500 bg-red-500' 
+                  : 'border-gray-300 group-hover:border-red-300'
               }`}>
                 {selectedValue === option.value && (
                   <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />

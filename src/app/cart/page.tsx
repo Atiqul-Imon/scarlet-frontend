@@ -508,21 +508,21 @@ export default function CartPage() {
         {/* Trust Indicators - Hidden on mobile to save space */}
         <div className="hidden md:block mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <ShippingIcon />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Free Shipping</h3>
             <p className="text-sm text-gray-600">Free shipping on orders over {formatPrice(freeShippingThreshold)}</p>
           </div>
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <ReturnIcon />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Easy Returns</h3>
             <p className="text-sm text-gray-600">7-day hassle-free returns</p>
           </div>
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <SecurityIcon />
             </div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Secure Payment</h3>
@@ -541,7 +541,7 @@ export default function CartPage() {
       />
       
       {showOTPVerification && verifiedPhone && (
-        <div className="fixed inset-0 bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <OTPVerification
             phone={verifiedPhone}
             sessionId={sessionId}
@@ -631,7 +631,7 @@ function ErrorIcon() {
 
 function ShippingIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M16 3h5v5"/>
       <path d="M8 3H3v5"/>
       <path d="M12 22V8"/>
@@ -641,7 +641,7 @@ function ShippingIcon() {
 
 function ReturnIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"/>
     </svg>
   );
@@ -649,7 +649,7 @@ function ReturnIcon() {
 
 function SecurityIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
   );

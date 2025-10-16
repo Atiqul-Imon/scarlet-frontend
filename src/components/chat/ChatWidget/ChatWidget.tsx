@@ -153,7 +153,7 @@ export default function ChatWidget({
       {isConnecting && (
         <div className="absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
           <div className="bg-white px-4 py-2 rounded-lg flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
             <span className="text-sm font-medium">
               {currentLanguage === 'bn' ? 'সংযোগ করা হচ্ছে...' : 'Connecting...'}
             </span>

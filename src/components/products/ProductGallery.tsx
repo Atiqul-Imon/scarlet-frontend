@@ -213,8 +213,8 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                   onClick={() => setSelectedImageIndex(index)}
                   className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
                     index === selectedImageIndex 
-                      ? 'border-pink-500 shadow-md' 
-                      : 'border-gray-200 hover:border-pink-300'
+                      ? 'border-red-500 shadow-md' 
+                      : 'border-gray-200 hover:border-red-300'
                   }`}
                 >
                     <img
@@ -228,7 +228,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                       }}
                     />
                   {index === selectedImageIndex && (
-                    <div className="absolute inset-0 bg-pink-500/20" />
+                    <div className="absolute inset-0 bg-red-500/20" />
                   )}
                 </button>
               );

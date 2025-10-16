@@ -81,13 +81,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-4 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-md">
         <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-pink-600">Scarlet</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-red-700">Scarlet</h1>
           <h2 className="mt-4 sm:mt-6 text-2xl sm:text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Or{' '}
-            <Link href="/register" className="font-medium text-pink-600 hover:text-pink-500">
+            <Link href="/register" className="font-medium text-red-700 hover:text-red-500">
               create a new account
             </Link>
           </p>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                   Remember me
@@ -164,7 +164,7 @@ export default function LoginPage() {
               </div>
 
               <div className="text-sm">
-                <Link href="/forgot-password" className="font-medium text-pink-600 hover:text-pink-500">
+                <Link href="/forgot-password" className="font-medium text-red-700 hover:text-red-500">
                   Forgot your password?
                 </Link>
               </div>

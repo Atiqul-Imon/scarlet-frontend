@@ -78,16 +78,16 @@ export default function CartSummary({
 
       {/* Free Shipping Banner */}
       {!isEligibleForFreeShipping && amountForFreeShipping > 0 && (
-        <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-2 mb-2">
             <ShippingIcon />
-            <span className="text-xs sm:text-sm font-medium text-pink-800">
+            <span className="text-xs sm:text-sm font-medium text-red-900">
               Add {formatPrice(amountForFreeShipping)} more for free shipping!
             </span>
           </div>
-          <div className="w-full bg-pink-200 rounded-full h-2">
+          <div className="w-full bg-red-200 rounded-full h-2">
             <div 
-              className="bg-pink-500 h-2 rounded-full transition-all duration-300"
+              className="bg-red-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
             />
           </div>
@@ -140,7 +140,7 @@ export default function CartSummary({
       {/* Continue Shopping */}
       <Link 
         href="/products"
-        className="block text-center text-xs sm:text-sm text-pink-600 hover:text-pink-700 font-medium transition-colors"
+        className="block text-center text-xs sm:text-sm text-red-700 hover:text-red-800 font-medium transition-colors"
       >
         Continue Shopping
       </Link>
@@ -167,7 +167,7 @@ export default function CartSummary({
       <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
         <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">We accept</p>
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-pink-100 text-pink-700 rounded text-xs font-bold">
+          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-red-100 text-red-800 rounded text-xs font-bold">
             bKash
           </div>
           <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold">
@@ -190,7 +190,7 @@ export default function CartSummary({
 
 function ShippingIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M16 3h5v5"/>
       <path d="M8 3H3v5"/>
       <path d="M12 22V8"/>

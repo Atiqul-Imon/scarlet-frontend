@@ -161,7 +161,7 @@ export default function SimpleRichTextEditor({
     return (
       <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
         <div className="p-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-pink-500 border-r-transparent mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-r-transparent mb-4"></div>
           <p className="text-gray-600 font-medium">Loading rich text editor...</p>
         </div>
       </div>
@@ -180,35 +180,35 @@ export default function SimpleRichTextEditor({
             <div className="flex items-center border-r border-gray-300 pr-2 mr-2">
               <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('bold') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('bold') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Bold"
               >
                 <BoldIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('italic') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('italic') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Italic"
               >
                 <ItalicIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('underline') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('underline') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Underline"
               >
                 <UnderlineIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('strike') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('strike') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Strikethrough"
               >
                 <StrikethroughIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleCode().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('code') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('code') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Code"
               >
                 <CodeBracketIcon className="h-4 w-4" />
@@ -227,7 +227,7 @@ export default function SimpleRichTextEditor({
                   }
                 }}
                 value={editor.isActive('heading') ? editor.getAttributes('heading')['level'] : 0}
-                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value={0}>Normal</option>
                 <option value={1}>Heading 1</option>
@@ -243,14 +243,14 @@ export default function SimpleRichTextEditor({
             <div className="flex items-center border-r border-gray-300 pr-2 mr-2">
               <button
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('bulletList') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('bulletList') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Bullet List"
               >
                 <ListBulletIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('orderedList') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('orderedList') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Numbered List"
               >
                 <ListNumberedIcon className="h-4 w-4" />
@@ -261,28 +261,28 @@ export default function SimpleRichTextEditor({
             <div className="flex items-center border-r border-gray-300 pr-2 mr-2">
               <button
                 onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'left' }) ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'left' }) ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Align Left"
               >
                 <AlignLeftIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'center' }) ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'center' }) ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Align Center"
               >
                 <AlignCenterIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'right' }) ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'right' }) ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Align Right"
               >
                 <AlignRightIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'justify' }) ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'justify' }) ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Justify"
               >
                 <AlignJustifyIcon className="h-4 w-4" />
@@ -294,7 +294,7 @@ export default function SimpleRichTextEditor({
               <div className="relative">
                 <button
                   onClick={() => setShowColorPicker(showColorPicker === 'text' ? null : 'text')}
-                  className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('textStyle') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                  className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('textStyle') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                   title="Text Color"
                 >
                   <PaintBrushIcon className="h-4 w-4" />
@@ -321,7 +321,7 @@ export default function SimpleRichTextEditor({
               <div className="relative">
                 <button
                   onClick={() => setShowColorPicker(showColorPicker === 'highlight' ? null : 'highlight')}
-                  className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('highlight') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                  className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('highlight') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                   title="Highlight"
                 >
                   <HighlighterIcon className="h-4 w-4" />
@@ -359,7 +359,7 @@ export default function SimpleRichTextEditor({
               </button>
               <button
                 onClick={addLink}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('link') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('link') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Add Link"
               >
                 <LinkIcon className="h-4 w-4" />
@@ -370,14 +370,14 @@ export default function SimpleRichTextEditor({
             <div className="flex items-center border-r border-gray-300 pr-2 mr-2">
               <button
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('blockquote') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('blockquote') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Quote"
               >
                 <QuoteIcon className="h-4 w-4" />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('codeBlock') ? 'bg-pink-100 text-pink-700' : 'text-gray-700'}`}
+                className={`p-2 rounded-md hover:bg-gray-200 transition-colors ${editor.isActive('codeBlock') ? 'bg-red-100 text-red-800' : 'text-gray-700'}`}
                 title="Code Block"
               >
                 <CodeBracketIcon className="h-4 w-4" />

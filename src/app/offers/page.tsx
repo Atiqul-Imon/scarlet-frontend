@@ -20,7 +20,7 @@ export default function OffersPage() {
           </div>
 
           {/* Featured Offer */}
-          <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg shadow-lg p-8 mb-12 text-white">
+          <div className="bg-gradient-to-r from-red-500 to-rose-500 rounded-lg shadow-lg p-8 mb-12 text-white">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="md:w-2/3 mb-6 md:mb-0">
                 <h2 className="text-3xl font-bold mb-4">
@@ -40,7 +40,7 @@ export default function OffersPage() {
               </div>
               <div className="md:w-1/3 text-center md:text-right">
                 <div className="text-4xl font-bold mb-2">30% OFF</div>
-                <button className="bg-white text-pink-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                <button className="bg-white text-red-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                   Shop Now
                 </button>
               </div>
@@ -50,15 +50,15 @@ export default function OffersPage() {
           {/* Current Offers Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="bg-pink-100 p-6 text-center">
-                <div className="w-16 h-16 bg-pink-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-red-100 p-6 text-center">
+                <div className="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Buy 2 Get 1 Free</h3>
                 <p className="text-gray-600 text-sm mb-4">On all skincare products</p>
-                <button className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors">
+                <button className="bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition-colors">
                   Shop Skincare
                 </button>
               </div>
@@ -144,7 +144,7 @@ export default function OffersPage() {
           </div>
 
           {/* Newsletter Signup */}
-          <div className="mt-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg shadow-lg p-8 text-white text-center">
+          <div className="mt-12 bg-gradient-to-r from-red-500 to-rose-500 rounded-lg shadow-lg p-8 text-white text-center">
             <h2 className="text-2xl font-bold mb-4">
               Don't Miss Out on Exclusive Offers!
             </h2>
@@ -157,7 +157,7 @@ export default function OffersPage() {
                 placeholder="Enter your email"
                 className="flex-1 px-4 py-3 rounded-l-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
               />
-              <button className="bg-white text-pink-600 px-6 py-3 rounded-r-lg font-semibold hover:bg-gray-100 transition-colors">
+              <button className="bg-white text-red-700 px-6 py-3 rounded-r-lg font-semibold hover:bg-gray-100 transition-colors">
                 Subscribe
               </button>
             </div>

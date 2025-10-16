@@ -120,11 +120,11 @@ export default function AccountDashboard(): JSX.Element {
     <AccountLayout>
       <div className="space-y-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg p-6 text-white">
+        <div className="bg-gradient-to-r from-red-500 to-purple-600 rounded-lg p-6 text-white">
           <h2 className="text-2xl font-bold mb-2">
             Welcome back, {user?.firstName || 'Valued Customer'}!
           </h2>
-          <p className="text-pink-100">
+          <p className="text-red-100">
             Manage your orders, update your profile, and discover new products.
           </p>
         </div>
@@ -172,8 +172,8 @@ export default function AccountDashboard(): JSX.Element {
 
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center">
-                <div className="p-3 rounded-full bg-pink-100">
-                  <HeartIcon className="w-6 h-6 text-pink-600" />
+                <div className="p-3 rounded-full bg-red-100">
+                  <HeartIcon className="w-6 h-6 text-red-700" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Wishlist Items</p>
@@ -328,7 +328,7 @@ export default function AccountDashboard(): JSX.Element {
 
         {/* Rewards Section */}
         {stats && (
-          <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg p-6 text-white">
+          <div className="bg-gradient-to-r from-purple-500 to-red-700 rounded-lg p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Scarlet Rewards</h3>

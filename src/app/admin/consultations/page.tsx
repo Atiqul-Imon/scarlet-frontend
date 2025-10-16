@@ -402,7 +402,7 @@ export default function AdminConsultationsPage() {
                   </div>
 
                   {/* Skin Information */}
-                  <div className="bg-gradient-to-r from-orange-50 to-pink-50 rounded-lg p-4">
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4">
                     <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
                       <AlertCircle className="w-5 h-5 text-orange-600" />
                       Skin Condition & Problem

@@ -144,7 +144,7 @@ export default function ImageUpload({
         className={`relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
           preview 
             ? 'border-green-300 bg-green-50' 
-            : 'border-gray-300 hover:border-pink-400 hover:bg-gray-50'
+            : 'border-gray-300 hover:border-red-400 hover:bg-gray-50'
         } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -197,7 +197,7 @@ export default function ImageUpload({
         {isUploading && (
           <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700 mx-auto"></div>
               <p className="text-sm text-gray-600 mt-2">Uploading...</p>
             </div>
           </div>

@@ -61,13 +61,13 @@ export async function generateReceiptPDF(
           .bg-gradient-to-r {
             background: linear-gradient(to right, #e91e63, #9c27b0) !important;
           }
-          .text-pink-600 {
+          .text-red-700 {
             color: #e91e63 !important;
           }
           .text-purple-600 {
             color: #9c27b0 !important;
           }
-          .bg-pink-100 {
+          .bg-red-100 {
             background-color: #fce4ec !important;
           }
           .bg-blue-50 {

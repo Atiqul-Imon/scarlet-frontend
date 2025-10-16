@@ -101,7 +101,7 @@ function PaymentCallbackPageContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Processing your payment...</p>
         </div>
       </div>
@@ -122,7 +122,7 @@ function PaymentCallbackPageContent() {
           <div className="space-y-3">
             <button
               onClick={handleRetry}
-              className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors"
+              className="w-full bg-red-700 text-white py-2 px-4 rounded-lg hover:bg-red-800 transition-colors"
             >
               Try Again
             </button>
@@ -243,14 +243,14 @@ function PaymentCallbackPageContent() {
           {isSuccessful ? (
             <button
               onClick={handleContinue}
-              className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors"
+              className="w-full bg-red-700 text-white py-2 px-4 rounded-lg hover:bg-red-800 transition-colors"
             >
               Continue to Order Details
             </button>
           ) : isFailed || isCancelled ? (
             <button
               onClick={handleRetry}
-              className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors"
+              className="w-full bg-red-700 text-white py-2 px-4 rounded-lg hover:bg-red-800 transition-colors"
             >
               Try Again
             </button>

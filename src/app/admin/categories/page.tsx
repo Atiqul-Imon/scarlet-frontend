@@ -440,7 +440,7 @@ export default function AdminCategoriesPage() {
           {/* Action Buttons */}
           <div className="flex-shrink-0 flex items-center space-x-1">
             {isUpdating && (
-              <div className="w-4 h-4 border-2 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-red-700 border-t-transparent rounded-full animate-spin"></div>
             )}
             
             <Link
@@ -564,7 +564,7 @@ export default function AdminCategoriesPage() {
           {/* Add Category */}
           <Link
             href="/admin/categories/new"
-            className="flex items-center space-x-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             <PlusIcon className="w-5 h-5" />
             <span>Add Category</span>
@@ -715,7 +715,7 @@ export default function AdminCategoriesPage() {
                 <p className="text-gray-500 mb-4">Get started by creating your first category.</p>
                 <Link
                   href="/admin/categories/new"
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
                   <PlusIcon className="w-5 h-5" />
                   <span>Create Category</span>
@@ -770,7 +770,7 @@ export default function AdminCategoriesPage() {
                   </div>
                   {updating === category._id && (
                     <div className="mt-2">
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-pink-600"></div>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-red-700"></div>
                     </div>
                   )}
                 </div>

@@ -25,10 +25,10 @@ export default function AdminLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-pink-500 border-r-transparent"></div>
-          <p className="mt-4 text-pink-600 font-medium">Loading admin dashboard...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-r-transparent"></div>
+          <p className="mt-4 text-red-700 font-medium">Loading admin dashboard...</p>
           <p className="mt-2 text-sm text-gray-500">Please wait while we verify your access...</p>
         </div>
       </div>
@@ -37,7 +37,7 @@ export default function AdminLayout({
 
   if (!user || (user.role !== 'admin' && user.role !== 'staff')) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@ export default function AdminLayout({
           </p>
           <button
             onClick={() => window.location.href = '/login'}
-            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             Go to Login
           </button>
@@ -60,7 +60,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="section-full-vh bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div className="section-full-vh bg-gradient-to-br from-red-50 via-white to-rose-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 

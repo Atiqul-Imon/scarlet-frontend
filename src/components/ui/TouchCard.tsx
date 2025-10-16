@@ -90,7 +90,7 @@ export default function TouchCard({
     >
       {loading && (
         <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg">
-          <div className="w-6 h-6 border-2 border-pink-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-red-700 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
       
@@ -158,7 +158,7 @@ export function TouchProductCard({
         
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-lg font-bold text-pink-600">
+            <span className="text-lg font-bold text-red-700">
               {product.price.currency} {product.price.amount}
             </span>
             {product.discountPercentage && (

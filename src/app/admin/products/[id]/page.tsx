@@ -152,7 +152,7 @@ export default function ProductDetailPage() {
           <p className="text-gray-600 mt-2">{error}</p>
           <Link
             href="/admin/products"
-            className="mt-4 inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+            className="mt-4 inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
           >
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back to Products
@@ -170,7 +170,7 @@ export default function ProductDetailPage() {
           <p className="text-gray-600 mt-2">The product you're looking for doesn't exist.</p>
           <Link
             href="/admin/products"
-            className="mt-4 inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+            className="mt-4 inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
           >
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back to Products
@@ -268,7 +268,7 @@ export default function ProductDetailPage() {
                         onClick={() => setActiveImageIndex(index)}
                         className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
                           index === activeImageIndex
-                            ? 'border-pink-500'
+                            ? 'border-red-500'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
@@ -358,7 +358,7 @@ export default function ProductDetailPage() {
                   {Object.entries(product.attributes).map(([key, value]) => (
                     <span
                       key={key}
-                      className="px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full"
+                      className="px-3 py-1 bg-red-100 text-red-900 text-sm rounded-full"
                     >
                       {key}: {String(value)}
                     </span>

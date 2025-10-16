@@ -241,7 +241,7 @@ function ProductsPageContent() {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             Try Again
           </button>
@@ -260,7 +260,7 @@ function ProductsPageContent() {
             <nav className="mb-3 sm:mb-4">
               <ol className="flex items-center space-x-2 text-sm text-gray-500">
                 <li>
-                  <Link href="/" className="hover:text-pink-600 transition-colors">
+                  <Link href="/" className="hover:text-red-700 transition-colors">
                     Home
                   </Link>
                 </li>
@@ -268,7 +268,7 @@ function ProductsPageContent() {
                   <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
-                  <Link href="/products" className="hover:text-pink-600 transition-colors">
+                  <Link href="/products" className="hover:text-red-700 transition-colors">
                     Products
                   </Link>
                 </li>

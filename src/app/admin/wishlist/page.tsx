@@ -329,7 +329,7 @@ export default function AdminWishlistPage() {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={fetchData}
-            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             Try Again
           </button>
@@ -402,7 +402,7 @@ export default function AdminWishlistPage() {
                     {analytics.mostWishedProducts.slice(0, 5).map((product, index) => (
                       <div key={product.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                          <span className="w-6 h-6 bg-red-100 text-red-700 rounded-full flex items-center justify-center text-sm font-semibold">
                             {index + 1}
                           </span>
                           <span className="font-medium">{product.productName || 'Unknown Product'}</span>
@@ -433,7 +433,7 @@ export default function AdminWishlistPage() {
               placeholder="Search products, customers..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             />
           </div>
           <div>
@@ -441,7 +441,7 @@ export default function AdminWishlistPage() {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             >
               <option value="all">All Priorities</option>
               <option value="high">High Priority</option>
@@ -454,7 +454,7 @@ export default function AdminWishlistPage() {
             <select
               value={filterNotification}
               onChange={(e) => setFilterNotification(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             >
               <option value="all">All Status</option>
               <option value="notified">Notified</option>
@@ -467,7 +467,7 @@ export default function AdminWishlistPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value="addedAt">Date Added</option>
                 <option value="priority">Priority</option>
@@ -496,7 +496,7 @@ export default function AdminWishlistPage() {
               <select
                 value={bulkAction}
                 onChange={(e) => setBulkAction(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value="">Select Action</option>
                 <option value="notify">Notify Customers</option>
@@ -578,7 +578,7 @@ export default function AdminWishlistPage() {
                             setSelectedItems([]);
                           }
                         }}
-                        className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                        className="rounded border-gray-300 text-red-700 focus:ring-red-500"
                       />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -615,7 +615,7 @@ export default function AdminWishlistPage() {
                               setSelectedItems(selectedItems.filter(id => id !== item._id));
                             }
                           }}
-                          className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+                          className="rounded border-gray-300 text-red-700 focus:ring-red-500"
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -698,7 +698,7 @@ export default function AdminWishlistPage() {
                           <button
                             onClick={() => handleNotifyCustomers(item.productId)}
                             disabled={isProcessing || item.notificationSent}
-                            className="text-pink-600 hover:text-pink-900 bg-pink-50 hover:bg-pink-100 px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-red-700 hover:text-red-950 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {item.notificationSent ? 'Notified' : 'Notify'}
                           </button>
@@ -761,7 +761,7 @@ export default function AdminWishlistPage() {
                             onClick={() => setCurrentPage(page)}
                             className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                               isCurrentPage
-                                ? 'z-10 bg-pink-50 border-pink-500 text-pink-600'
+                                ? 'z-10 bg-red-50 border-red-500 text-red-700'
                                 : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                             }`}
                           >

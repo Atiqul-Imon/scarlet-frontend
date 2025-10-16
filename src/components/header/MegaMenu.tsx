@@ -27,14 +27,14 @@ export function MegaMenu({ items }: { items: MegaItem[] }) {
       {/* chevrons */}
       <button
         aria-label="Scroll menu left"
-        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-pink-600 rounded-full bg-white/90 border border-gray-200 shadow-sm hover:shadow h-8 w-8 grid place-items-center transition-colors"
+        className="absolute left-1 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-red-700 rounded-full bg-white/90 border border-gray-200 shadow-sm hover:shadow h-8 w-8 grid place-items-center transition-colors"
         onClick={() => scrollNavBy(-300)}
       >
         <Chevron dir="left" />
       </button>
       <button
         aria-label="Scroll menu right"
-        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-pink-600 rounded-full bg-white/90 border border-gray-200 shadow-sm hover:shadow h-8 w-8 grid place-items-center transition-colors"
+        className="absolute right-1 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-red-700 rounded-full bg-white/90 border border-gray-200 shadow-sm hover:shadow h-8 w-8 grid place-items-center transition-colors"
         onClick={() => scrollNavBy(300)}
       >
         <Chevron dir="right" />
@@ -63,8 +63,8 @@ export function MegaMenu({ items }: { items: MegaItem[] }) {
             >
               <Link 
                 href={m.href ?? '#'} 
-                className={`text-sm font-medium hover:text-pink-600 hover:bg-pink-50 whitespace-nowrap inline-flex items-center px-4 py-3 transition-colors border-r border-gray-100 last:border-r-0 ${
-                  openIndex === idx ? 'text-pink-600 bg-pink-50' : 'text-gray-700'
+                className={`text-sm font-medium hover:text-red-700 hover:bg-red-50 whitespace-nowrap inline-flex items-center px-4 py-3 transition-colors border-r border-gray-100 last:border-r-0 ${
+                  openIndex === idx ? 'text-red-700 bg-red-50' : 'text-gray-700'
                 }`}
               >
                 {m.label}
@@ -128,14 +128,14 @@ function MenuPanel({
           {/* chevrons */}
           <button
             aria-label="Scroll left"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-pink-600 rounded-full border border-gray-200 bg-white/90 hover:bg-white shadow-sm hover:shadow h-10 w-10 grid place-items-center transition-colors"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-red-700 rounded-full border border-gray-200 bg-white/90 hover:bg-white shadow-sm hover:shadow h-10 w-10 grid place-items-center transition-colors"
             onClick={() => scrollBy(-360)}
           >
             <Chevron dir="left" />
           </button>
           <button
             aria-label="Scroll right"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-pink-600 rounded-full border border-gray-200 bg-white/90 hover:bg-white shadow-sm hover:shadow h-10 w-10 grid place-items-center transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 text-gray-600 hover:text-red-700 rounded-full border border-gray-200 bg-white/90 hover:bg-white shadow-sm hover:shadow h-10 w-10 grid place-items-center transition-colors"
             onClick={() => scrollBy(360)}
           >
             <Chevron dir="right" />
@@ -150,7 +150,7 @@ function MenuPanel({
             {columns.map((col, cidx) => (
               <div key={cidx} className="min-w-[220px] snap-start shrink-0">
                 {col.title && (
-                  <div className="mb-3 text-sm font-semibold text-pink-600 uppercase tracking-wide border-b border-pink-100 pb-2">
+                  <div className="mb-3 text-sm font-semibold text-red-700 uppercase tracking-wide border-b border-red-100 pb-2">
                     {col.title}
                   </div>
                 )}
@@ -159,7 +159,7 @@ function MenuPanel({
                     <li key={it.label}>
                       <Link 
                         href={it.href} 
-                        className="text-sm text-gray-700 hover:text-pink-600 hover:underline transition-colors block py-1"
+                        className="text-sm text-gray-700 hover:text-red-700 hover:underline transition-colors block py-1"
                       >
                         {it.label}
                       </Link>

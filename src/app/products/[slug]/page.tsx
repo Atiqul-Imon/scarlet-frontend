@@ -230,9 +230,9 @@ export default function ProductDetailPage() {
       <div className="container-herlan py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
-          <Link href="/" className="hover:text-pink-600 transition-colors">Home</Link>
+          <Link href="/" className="hover:text-red-700 transition-colors">Home</Link>
           <ChevronRightIcon />
-          <Link href="/products" className="hover:text-pink-600 transition-colors">Products</Link>
+          <Link href="/products" className="hover:text-red-700 transition-colors">Products</Link>
           <ChevronRightIcon />
           <span className="text-gray-900 font-medium">{product.title}</span>
         </nav>
@@ -250,7 +250,7 @@ export default function ProductDetailPage() {
               {product.brand && (
                 <Link 
                   href={`/brands/${product.brand.toLowerCase()}`} 
-                  className="text-sm text-pink-600 hover:text-pink-700 font-medium transition-colors"
+                  className="text-sm text-red-700 hover:text-red-800 font-medium transition-colors"
                 >
                   {product.brand}
                 </Link>
@@ -427,7 +427,7 @@ export default function ProductDetailPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-pink-500 text-pink-600'
+                      ? 'border-red-500 text-red-700'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -594,7 +594,7 @@ function HeartIcon({ filled = false }: { filled?: boolean }) {
       fill={filled ? "currentColor" : "none"} 
       stroke="currentColor" 
       strokeWidth="2"
-      className={filled ? "text-pink-600" : "text-gray-700"}
+      className={filled ? "text-red-700" : "text-gray-700"}
     >
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 22l7.8-8.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
     </svg>

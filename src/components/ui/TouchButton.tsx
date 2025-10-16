@@ -15,10 +15,10 @@ interface TouchButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const variants = {
-  primary: 'bg-pink-600 text-white hover:bg-pink-700 active:bg-pink-800',
+  primary: 'bg-red-700 text-white hover:bg-red-800 active:bg-red-900',
   secondary: 'bg-gray-600 text-white hover:bg-gray-700 active:bg-gray-800',
-  outline: 'border-2 border-pink-600 text-pink-600 hover:bg-pink-50 active:bg-pink-100',
-  ghost: 'text-pink-600 hover:bg-pink-50 active:bg-pink-100',
+  outline: 'border-2 border-red-700 text-red-700 hover:bg-red-50 active:bg-red-100',
+  ghost: 'text-red-700 hover:bg-red-50 active:bg-red-100',
   danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
 };
 
@@ -81,7 +81,7 @@ export default function TouchButton({
     <button
       ref={buttonRef}
       className={cn(
-        'relative inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+        'relative inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
         variants[variant],
         sizes[size],
         fullWidth && 'w-full',

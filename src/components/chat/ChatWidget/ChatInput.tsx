@@ -99,7 +99,7 @@ export default function ChatInput({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           ),
-          color: 'bg-pink-500 hover:bg-pink-600'
+          color: 'bg-red-500 hover:bg-red-700'
         };
     }
   };
@@ -121,10 +121,10 @@ export default function ChatInput({
             rows={2}
             className={`
               w-full resize-none border-2 border-gray-200 rounded-2xl px-5 py-4 pr-12
-              focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-300 focus:bg-white
+              focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-300 focus:bg-white
               text-base font-semibold text-gray-900 placeholder-gray-400 transition-all duration-200
               ${disabled ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'bg-white hover:border-gray-300 hover:bg-gray-50'}
-              max-h-[120px] overflow-y-auto leading-relaxed h-14 selection:bg-pink-200
+              max-h-[120px] overflow-y-auto leading-relaxed h-14 selection:bg-red-200
             `}
           />
           

@@ -61,14 +61,14 @@ interface AnalyticsData {
 type DateRange = '7d' | '30d' | '90d' | '1y' | 'custom';
 
 const COLORS = {
-  primary: '#ec4899',
+  primary: '#dc2626',
   secondary: '#f43f5e',
   success: '#10b981',
   warning: '#f59e0b',
   info: '#3b82f6',
   purple: '#8b5cf6',
   indigo: '#6366f1',
-  pink: '#ec4899',
+  red: '#dc2626',
   rose: '#f43f5e',
 };
 
@@ -80,7 +80,7 @@ const CHART_COLORS = [
   COLORS.info,
   COLORS.purple,
   COLORS.indigo,
-  COLORS.pink,
+  COLORS.red,
 ];
 
 export default function AnalyticsPage() {
@@ -211,7 +211,7 @@ export default function AnalyticsPage() {
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as DateRange)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
           >
             <option value="7d">Last 7 days</option>
             <option value="30d">Last 30 days</option>
@@ -226,14 +226,14 @@ export default function AnalyticsPage() {
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
               <span className="text-gray-500">to</span>
               <input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
             </div>
           )}
@@ -241,7 +241,7 @@ export default function AnalyticsPage() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors duration-200 disabled:opacity-50"
+            className="px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors duration-200 disabled:opacity-50"
           >
             <ArrowPathIcon className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
                   <span className="text-sm font-semibold text-gray-900">{page.views}</span>
                   <div className="w-16 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-pink-500 h-2 rounded-full" 
+                      className="bg-red-500 h-2 rounded-full" 
                       style={{ width: `${(page.views / data.traffic.topPages[0]?.views) * 100}%` }}
                     ></div>
                   </div>

@@ -115,7 +115,7 @@ export default function BlogPostPage() {
             <p className="text-gray-600 mb-8">{error || 'The blog post you are looking for does not exist.'}</p>
             <Link
               href="/blog"
-              className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-2" />
               Back to Blog
@@ -194,7 +194,7 @@ export default function BlogPostPage() {
           {/* Back Button */}
           <Link
             href="/blog"
-            className="inline-flex items-center text-pink-600 hover:text-pink-700 mb-8 transition-colors"
+            className="inline-flex items-center text-red-700 hover:text-red-800 mb-8 transition-colors"
           >
             <ArrowLeftIcon className="h-4 w-4 mr-2" />
             Back to Blog
@@ -246,10 +246,10 @@ export default function BlogPostPage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleLike}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-pink-600 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-700 transition-colors"
                 >
                   {isLiked ? (
-                    <HeartSolid className="h-5 w-5 text-pink-600" />
+                    <HeartSolid className="h-5 w-5 text-red-700" />
                   ) : (
                     <HeartIcon className="h-5 w-5" />
                   )}
@@ -257,7 +257,7 @@ export default function BlogPostPage() {
                 </button>
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-pink-600 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-700 transition-colors"
                 >
                   <ShareIcon className="h-5 w-5" />
                   <span>Share</span>
@@ -295,7 +295,7 @@ export default function BlogPostPage() {
                 {post.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-pink-100 text-pink-700 text-sm rounded-full hover:bg-pink-200 transition-colors"
+                    className="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full hover:bg-red-200 transition-colors"
                   >
                     #{tag}
                   </span>
@@ -324,7 +324,7 @@ export default function BlogPostPage() {
                     )}
                     <div className="p-6">
                       <h4 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                        <Link href={`/blog/${relatedPost.slug}`} className="hover:text-pink-600 transition-colors">
+                        <Link href={`/blog/${relatedPost.slug}`} className="hover:text-red-700 transition-colors">
                           {relatedPost.title}
                         </Link>
                       </h4>
@@ -344,7 +344,7 @@ export default function BlogPostPage() {
           <div className="text-center">
             <Link
               href="/blog"
-              className="inline-flex items-center px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+              className="inline-flex items-center px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-2" />
               Back to All Articles

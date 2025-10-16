@@ -97,7 +97,7 @@ export default function BrandPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading brand...</p>
         </div>
       </div>
@@ -119,7 +119,7 @@ export default function BrandPage() {
           </p>
           <Link
             href="/brands"
-            className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors"
+            className="bg-red-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-800 transition-colors"
           >
             Browse All Brands
           </Link>
@@ -135,9 +135,9 @@ export default function BrandPage() {
         <div className="container-herlan py-6">
           {/* Breadcrumbs */}
           <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
-            <Link href="/" className="hover:text-pink-600 transition-colors">Home</Link>
+            <Link href="/" className="hover:text-red-700 transition-colors">Home</Link>
             <span>/</span>
-            <Link href="/brands" className="hover:text-pink-600 transition-colors">Brands</Link>
+            <Link href="/brands" className="hover:text-red-700 transition-colors">Brands</Link>
             <span>/</span>
             <span className="text-gray-900 font-medium">{brandInfo.name}</span>
           </nav>
@@ -145,7 +145,7 @@ export default function BrandPage() {
           {/* Back Button */}
           <Link
             href="/brands"
-            className="inline-flex items-center text-pink-600 hover:text-pink-700 font-medium mb-6"
+            className="inline-flex items-center text-red-700 hover:text-red-800 font-medium mb-6"
           >
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back to Brands
@@ -154,8 +154,8 @@ export default function BrandPage() {
           {/* Brand Header */}
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             {/* Brand Logo/Icon */}
-            <div className="w-24 h-24 bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <span className="text-4xl font-bold text-pink-600">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-rose-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <span className="text-4xl font-bold text-red-700">
                 {brandInfo.name.charAt(0)}
               </span>
             </div>
@@ -189,7 +189,7 @@ export default function BrandPage() {
                     {brandInfo.specialties.map((specialty, index) => (
                       <span
                         key={index}
-                        className="bg-pink-50 text-pink-700 px-2 py-1 rounded text-xs"
+                        className="bg-red-50 text-red-800 px-2 py-1 rounded text-xs"
                       >
                         {specialty}
                       </span>
@@ -245,7 +245,7 @@ export default function BrandPage() {
             </p>
             <Link
               href="/products"
-              className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors"
+              className="bg-red-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-800 transition-colors"
             >
               Browse All Products
             </Link>
@@ -280,7 +280,7 @@ export default function BrandPage() {
                 <button
                   className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
                     product.inStock
-                      ? 'bg-pink-600 text-white hover:bg-pink-700'
+                      ? 'bg-red-700 text-white hover:bg-red-800'
                       : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   }`}
                   disabled={!product.inStock}
@@ -305,7 +305,7 @@ export default function BrandPage() {
             </p>
             <Link
               href="/brands"
-              className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors"
+              className="bg-red-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-800 transition-colors"
             >
               View All Brands
             </Link>

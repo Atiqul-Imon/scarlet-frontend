@@ -292,7 +292,7 @@ function OrderSuccessPageContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-700 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your order details...</p>
         </div>
       </div>
@@ -497,40 +497,40 @@ function OrderSuccessPageContent() {
         {/* Additional Information */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div>
-            <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <SupportIcon />
             </div>
             <h3 className="font-medium text-gray-900 mb-2">Need Help?</h3>
             <p className="text-sm text-gray-600">
               Contact our customer support team
             </p>
-            <Link href="/contact" className="text-sm text-pink-600 hover:text-pink-700 font-medium">
+            <Link href="/contact" className="text-sm text-red-700 hover:text-red-800 font-medium">
               Get Support
             </Link>
           </div>
           
           <div>
-            <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <ReturnIcon />
             </div>
             <h3 className="font-medium text-gray-900 mb-2">Easy Returns</h3>
             <p className="text-sm text-gray-600">
               30-day hassle-free return policy
             </p>
-            <Link href="/returns" className="text-sm text-pink-600 hover:text-pink-700 font-medium">
+            <Link href="/returns" className="text-sm text-red-700 hover:text-red-800 font-medium">
               Return Policy
             </Link>
           </div>
           
           <div>
-            <div className="w-12 h-12 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <RewardIcon />
             </div>
             <h3 className="font-medium text-gray-900 mb-2">Earn Points</h3>
             <p className="text-sm text-gray-600">
               You earned points with this purchase
             </p>
-            <Link href="/account/rewards" className="text-sm text-pink-600 hover:text-pink-700 font-medium">
+            <Link href="/account/rewards" className="text-sm text-red-700 hover:text-red-800 font-medium">
               View Rewards
             </Link>
           </div>
@@ -563,7 +563,7 @@ function TruckIcon() {
 
 function SupportIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
     </svg>
   );
@@ -571,7 +571,7 @@ function SupportIcon() {
 
 function ReturnIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"/>
       <path d="M8 21l4-4 4 4"/>
     </svg>
@@ -580,7 +580,7 @@ function ReturnIcon() {
 
 function RewardIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
   );

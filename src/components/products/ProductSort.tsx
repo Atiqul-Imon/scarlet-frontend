@@ -50,7 +50,7 @@ export default function ProductSort({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:border-pink-300 transition-colors bg-white shadow-sm"
+          className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:border-red-300 transition-colors bg-white shadow-sm"
         >
           <span className="text-sm font-semibold text-gray-900">
             <span className="hidden sm:inline">Sort by: </span>
@@ -77,9 +77,9 @@ export default function ProductSort({
                       onSortChange(option.value);
                       setIsOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-3 text-sm hover:bg-pink-50 transition-colors ${
+                    className={`w-full text-left px-4 py-3 text-sm hover:bg-red-50 transition-colors ${
                       currentSort === option.value 
-                        ? 'text-pink-700 bg-pink-50 font-semibold' 
+                        ? 'text-red-800 bg-red-50 font-semibold' 
                         : 'text-gray-800 font-medium'
                     }`}
                   >
@@ -125,7 +125,7 @@ function CheckIcon() {
       fill="none" 
       stroke="currentColor" 
       strokeWidth="2"
-      className="inline ml-2 text-pink-600"
+      className="inline ml-2 text-red-700"
     >
       <polyline points="20 6 9 17 4 12"/>
     </svg>

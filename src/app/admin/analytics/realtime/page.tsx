@@ -329,10 +329,10 @@ export default function RealTimeAnalyticsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Live Orders</p>
-              <p className="text-3xl font-bold text-pink-600">{currentMetrics.orders}</p>
+              <p className="text-3xl font-bold text-red-700">{currentMetrics.orders}</p>
             </div>
-            <div className="p-3 bg-pink-100 rounded-lg">
-              <ShoppingCartIcon className="w-6 h-6 text-pink-600" />
+            <div className="p-3 bg-red-100 rounded-lg">
+              <ShoppingCartIcon className="w-6 h-6 text-red-700" />
             </div>
           </div>
         </div>

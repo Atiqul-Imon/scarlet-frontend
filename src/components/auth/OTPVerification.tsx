@@ -279,8 +279,8 @@ export default function OTPVerification({
   return (
     <div className={`bg-white rounded-xl border border-gray-200 p-6 shadow-2xl ${className}`}>
       <div className="text-center mb-6">
-        <div className="w-16 h-16 mx-auto mb-4 bg-pink-100 rounded-full flex items-center justify-center">
-          <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+          <svg className="w-8 h-8 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
         </div>
@@ -297,12 +297,12 @@ export default function OTPVerification({
 
       {/* Display OTP for testing purposes */}
       {receivedOTP && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg">
+        <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-purple-50 border border-red-200 rounded-lg">
           <div className="text-center">
-            <div className="text-lg font-bold text-pink-700 mb-2">
+            <div className="text-lg font-bold text-red-800 mb-2">
               🔐 Your OTP: {receivedOTP}
             </div>
-            <p className="text-sm text-pink-600">
+            <p className="text-sm text-red-700">
               This OTP is displayed for testing purposes. Once the website is ready for real use, OTPs will be sent to the provided phone number via SMS.
             </p>
           </div>
@@ -330,10 +330,10 @@ export default function OTPVerification({
                 onClick={(e) => e.target.select()}
                 className={`
                   w-12 h-12 text-center text-2xl font-bold border-2 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500
+                  focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500
                   transition-all duration-200 ease-in-out
                   ${error ? 'border-red-500 bg-red-50 text-red-900 animate-pulse' : 'border-gray-300'}
-                  ${digit ? 'bg-pink-50 border-pink-300 text-gray-900 shadow-sm' : 'bg-white text-gray-900 hover:border-gray-400'}
+                  ${digit ? 'bg-red-50 border-red-300 text-gray-900 shadow-sm' : 'bg-white text-gray-900 hover:border-gray-400'}
                   text-gray-900 placeholder-gray-400
                   cursor-pointer select-all
                 `}

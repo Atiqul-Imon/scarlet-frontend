@@ -206,7 +206,7 @@ export default function SkincareConsultationPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-purple-50 to-blue-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
           <CheckCircleIcon className="w-24 h-24 text-green-500 mx-auto mb-6" />
           <h2 className="text-4xl font-bold text-gray-800 mb-4">ধন্যবাদ! Thank You!</h2>
@@ -218,7 +218,7 @@ export default function SkincareConsultationPage() {
           </p>
           <button
             onClick={() => router.push('/')}
-            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:from-pink-700 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 mb-3"
+            className="w-full bg-gradient-to-r from-red-700 to-purple-600 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:from-red-800 hover:to-purple-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 mb-3"
           >
             হোমপেজে ফিরে যান / Return to Homepage
           </button>
@@ -253,10 +253,10 @@ export default function SkincareConsultationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-purple-50 to-blue-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 mb-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-700 to-purple-600 mb-4 text-center">
             স্কিনকেয়ার পরামর্শ নিন
           </h1>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 text-center">
@@ -550,7 +550,7 @@ export default function SkincareConsultationPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+              className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-gradient-to-r from-red-700 to-purple-600 hover:from-red-800 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
             >
               {isSubmitting ? (
                 <>

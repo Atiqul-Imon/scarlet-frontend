@@ -49,28 +49,28 @@ export default function Footer() {
               <div className="flex space-x-4">
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center hover:bg-pink-700 transition-colors"
+                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="Facebook"
                 >
                   <span className="text-white font-bold">f</span>
                 </a>
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center hover:bg-pink-700 transition-colors"
+                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="Instagram"
                 >
                   <span className="text-white font-bold">ig</span>
                 </a>
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center hover:bg-pink-700 transition-colors"
+                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="YouTube"
                 >
                   <span className="text-white font-bold">yt</span>
                 </a>
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center hover:bg-pink-700 transition-colors"
+                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="TikTok"
                 >
                   <span className="text-white font-bold">tt</span>
@@ -81,35 +81,35 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-6 text-pink-400">Quick Links</h4>
+            <h4 className="text-lg font-semibold mb-6 text-red-400">Quick Links</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/about" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/about" className="text-gray-300 hover:text-red-400 transition-colors">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/contact" className="text-gray-300 hover:text-red-400 transition-colors">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/blog" className="text-gray-300 hover:text-red-400 transition-colors">
                   Beauty Blog
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/careers" className="text-gray-300 hover:text-red-400 transition-colors">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/press" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/press" className="text-gray-300 hover:text-red-400 transition-colors">
                   Press
                 </Link>
               </li>
               <li>
-                <Link href="/affiliate" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/affiliate" className="text-gray-300 hover:text-red-400 transition-colors">
                   Affiliate Program
                 </Link>
               </li>
@@ -118,35 +118,35 @@ export default function Footer() {
 
           {/* Customer Service */}
           <div>
-            <h4 className="text-lg font-semibold mb-6 text-pink-400">Customer Service</h4>
+            <h4 className="text-lg font-semibold mb-6 text-red-400">Customer Service</h4>
             <ul className="space-y-3">
               <li>
-                <Link href="/faq" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/faq" className="text-gray-300 hover:text-red-400 transition-colors">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link href="/shipping" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/shipping" className="text-gray-300 hover:text-red-400 transition-colors">
                   Shipping Info
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/returns" className="text-gray-300 hover:text-red-400 transition-colors">
                   Returns & Exchanges
                 </Link>
               </li>
               <li>
-                <Link href="/size-guide" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/size-guide" className="text-gray-300 hover:text-red-400 transition-colors">
                   Size Guide
                 </Link>
               </li>
               <li>
-                <Link href="/track-order" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/track-order" className="text-gray-300 hover:text-red-400 transition-colors">
                   Track Your Order
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <Link href="/support" className="text-gray-300 hover:text-red-400 transition-colors">
                   Support Center
                 </Link>
               </li>
@@ -155,10 +155,10 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-lg font-semibold mb-6 text-pink-400">Get in Touch</h4>
+            <h4 className="text-lg font-semibold mb-6 text-red-400">Get in Touch</h4>
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
-                <MapPinIcon className="w-5 h-5 text-pink-400 mt-1 flex-shrink-0" />
+                <MapPinIcon className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-gray-300 text-sm">
                     123 Beauty Street<br />
@@ -168,27 +168,27 @@ export default function Footer() {
               </div>
               
               <div className="flex items-center space-x-3">
-                <PhoneIcon className="w-5 h-5 text-pink-400 flex-shrink-0" />
+                <PhoneIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <a 
                   href="tel:+8801234567890" 
-                  className="text-gray-300 hover:text-pink-400 transition-colors text-sm"
+                  className="text-gray-300 hover:text-red-400 transition-colors text-sm"
                 >
                   +880 1234 567 890
                 </a>
               </div>
               
               <div className="flex items-center space-x-3">
-                <EnvelopeIcon className="w-5 h-5 text-pink-400 flex-shrink-0" />
+                <EnvelopeIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <a 
                   href="mailto:hello@scarlet.com" 
-                  className="text-gray-300 hover:text-pink-400 transition-colors text-sm"
+                  className="text-gray-300 hover:text-red-400 transition-colors text-sm"
                 >
                   hello@scarlet.com
                 </a>
               </div>
               
               <div className="flex items-start space-x-3">
-                <ClockIcon className="w-5 h-5 text-pink-400 mt-1 flex-shrink-0" />
+                <ClockIcon className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-gray-300 text-sm">
                     Mon - Fri: 9:00 AM - 6:00 PM<br />
@@ -204,7 +204,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
                 <TruckIcon className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -214,7 +214,7 @@ export default function Footer() {
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
                 <ArrowPathIcon className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -224,7 +224,7 @@ export default function Footer() {
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
                 <ShieldCheckIcon className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -234,7 +234,7 @@ export default function Footer() {
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
                 <ChatBubbleLeftRightIcon className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -248,7 +248,7 @@ export default function Footer() {
         {/* Newsletter Signup */}
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="max-w-2xl mx-auto text-center">
-            <h4 className="text-2xl font-bold mb-4 text-pink-400">Stay Beautiful with Scarlet</h4>
+            <h4 className="text-2xl font-bold mb-4 text-red-400">Stay Beautiful with Scarlet</h4>
             <p className="text-gray-300 mb-6">
               Get the latest beauty tips, exclusive offers, and new product announcements delivered to your inbox.
             </p>
@@ -256,9 +256,9 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="Enter your email address"
-                className="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
-              <button className="px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium">
+              <button className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors font-medium">
                 Subscribe
               </button>
             </div>
@@ -278,13 +278,13 @@ export default function Footer() {
                 © {currentYear} Scarlet. All rights reserved.
               </p>
               <div className="flex space-x-6">
-                <Link href="/privacy" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
+                <Link href="/privacy" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
                   Privacy Policy
                 </Link>
-                <Link href="/terms" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
+                <Link href="/terms" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
                   Terms of Service
                 </Link>
-                <Link href="/cookies" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
+                <Link href="/cookies" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
                   Cookie Policy
                 </Link>
               </div>

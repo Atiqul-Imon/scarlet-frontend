@@ -129,7 +129,7 @@ export default function SSLCommerzPayment({
   if (!configStatus) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
         <span className="ml-2 text-gray-600">Loading payment options...</span>
       </div>
     );
@@ -177,32 +177,32 @@ export default function SSLCommerzPayment({
                 onClick={() => setSelectedMethod(method.id)}
                 className={`p-4 border rounded-lg text-left transition-all duration-200 ${
                   isSelected
-                    ? 'border-pink-500 bg-pink-50 ring-2 ring-pink-200'
+                    ? 'border-red-500 bg-red-50 ring-2 ring-red-200'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${
-                    isSelected ? 'bg-pink-100' : 'bg-gray-100'
+                    isSelected ? 'bg-red-100' : 'bg-gray-100'
                   }`}>
                     <Icon className={`h-6 w-6 ${
-                      isSelected ? 'text-pink-600' : 'text-gray-600'
+                      isSelected ? 'text-red-700' : 'text-gray-600'
                     }`} />
                   </div>
                   <div className="flex-1">
                     <div className={`font-medium ${
-                      isSelected ? 'text-pink-900' : 'text-gray-900'
+                      isSelected ? 'text-red-950' : 'text-gray-900'
                     }`}>
                       {method.name}
                     </div>
                     <div className={`text-sm ${
-                      isSelected ? 'text-pink-600' : 'text-gray-500'
+                      isSelected ? 'text-red-700' : 'text-gray-500'
                     }`}>
                       {method.description}
                     </div>
                   </div>
                   {isSelected && (
-                    <div className="w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center">
+                    <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
                       <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
@@ -223,7 +223,7 @@ export default function SSLCommerzPayment({
           className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
             loading || !selectedMethod
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-pink-600 text-white hover:bg-pink-700 focus:ring-4 focus:ring-pink-200'
+              : 'bg-red-700 text-white hover:bg-red-800 focus:ring-4 focus:ring-red-200'
           }`}
         >
           {loading ? (

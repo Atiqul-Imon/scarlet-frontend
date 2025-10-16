@@ -104,7 +104,7 @@ export default function AdminBlogPage() {
         </div>
         <Link
           href="/admin/blog/posts/new"
-          className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           New Post
@@ -171,7 +171,7 @@ export default function AdminBlogPage() {
           className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
         >
           <div className="flex items-center">
-            <DocumentTextIcon className="h-8 w-8 text-pink-600" />
+            <DocumentTextIcon className="h-8 w-8 text-red-700" />
             <div className="ml-4">
               <h3 className="text-lg font-semibold text-gray-900">All Posts</h3>
               <p className="text-gray-600">Manage all blog posts</p>
@@ -301,7 +301,7 @@ export default function AdminBlogPage() {
             <Link
               href={`/blog/${stats.mostPopularPost.slug}`}
               target="_blank"
-              className="text-pink-600 hover:text-pink-700 font-medium"
+              className="text-red-700 hover:text-red-800 font-medium"
             >
               View Post →
             </Link>

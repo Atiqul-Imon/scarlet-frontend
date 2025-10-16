@@ -119,12 +119,12 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               autoFocus
             />
             <button
               type="submit"
-              className="px-4 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+              className="px-4 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
               aria-label="Search"
             >
               <SearchIcon />
@@ -140,12 +140,12 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
               <Link
                 href="/cart"
                 onClick={onClose}
-                className="flex items-center gap-3 p-3 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors"
+                className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
               >
                 <div className="relative">
                   <CartIcon />
                   {itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    <span className="absolute -top-2 -right-2 bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                       {itemCount > 99 ? '99+' : itemCount}
                     </span>
                   )}
@@ -173,6 +173,18 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
             >
               <BlogIcon />
               <span className="text-sm font-medium text-gray-900">Scarlet Blog</span>
+            </Link>
+          </div>
+
+          {/* Skincare Consultation Section */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <Link
+              href="/skincare-consultation"
+              onClick={onClose}
+              className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              <ConsultationIcon />
+              <span className="text-sm font-medium text-gray-900">Skincare Consultation</span>
             </Link>
           </div>
 
@@ -218,7 +230,7 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
                 <Link
                   href="/register"
                   onClick={onClose}
-                  className="block w-full text-center py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                  className="block w-full text-center py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
                   Sign Up
                 </Link>
@@ -255,7 +267,7 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
                       {category.columns.map((column, colIndex) => (
                         <div key={colIndex}>
                           {column.title && (
-                            <h4 className="text-xs font-semibold text-pink-600 uppercase tracking-wide mb-2">
+                            <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2">
                               {column.title}
                             </h4>
                           )}
@@ -265,7 +277,7 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
                                 key={itemIndex}
                                 href={item.href}
                                 onClick={onClose}
-                                className="block p-2 text-sm text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded transition-colors"
+                                className="block p-2 text-sm text-gray-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
                               >
                                 {item.label}
                               </Link>
@@ -370,6 +382,14 @@ function BlogIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+  );
+}
+
+function ConsultationIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
     </svg>
   );
 }

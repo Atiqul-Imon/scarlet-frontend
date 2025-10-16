@@ -266,7 +266,7 @@ export default function EditBlogPostPage() {
           <p className="text-gray-600 mb-8">{error || 'The blog post you are looking for does not exist.'}</p>
           <Link
             href="/admin/blog/posts"
-            className="inline-flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             <ArrowLeftIcon className="h-4 w-4 mr-2" />
             Back to Posts
@@ -343,7 +343,7 @@ export default function EditBlogPostPage() {
                 type="text"
                 value={formData.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-lg bg-white text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg bg-white text-gray-900 placeholder-gray-500"
                 placeholder="Enter blog post title"
                 required
               />
@@ -358,7 +358,7 @@ export default function EditBlogPostPage() {
                 type="text"
                 value={formData.slug}
                 onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                 placeholder="blog-post-slug"
               />
             </div>
@@ -390,7 +390,7 @@ export default function EditBlogPostPage() {
                 value={formData.excerpt}
                 onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                 placeholder="Brief description of the post (auto-generated from content)"
               />
             </div>
@@ -404,7 +404,7 @@ export default function EditBlogPostPage() {
                 type="url"
                 value={formData.featuredImage}
                 onChange={(e) => setFormData(prev => ({ ...prev, featuredImage: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                 placeholder="https://example.com/image.jpg"
               />
             </div>
@@ -424,7 +424,7 @@ export default function EditBlogPostPage() {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                   >
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
@@ -438,7 +438,7 @@ export default function EditBlogPostPage() {
                     id="featured"
                     checked={formData.isFeatured}
                     onChange={(e) => setFormData(prev => ({ ...prev, isFeatured: e.target.checked }))}
-                    className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                   />
                   <label htmlFor="featured" className="ml-2 text-sm text-gray-700">
                     Featured Post
@@ -451,7 +451,7 @@ export default function EditBlogPostPage() {
                     id="pinned"
                     checked={formData.isPinned}
                     onChange={(e) => setFormData(prev => ({ ...prev, isPinned: e.target.checked }))}
-                    className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                   />
                   <label htmlFor="pinned" className="ml-2 text-sm text-gray-700">
                     Pinned Post
@@ -484,7 +484,7 @@ export default function EditBlogPostPage() {
                       ...prev, 
                       author: { ...prev.author, name: e.target.value }
                     }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                     placeholder="Author name (optional)"
                   />
                 </div>
@@ -500,7 +500,7 @@ export default function EditBlogPostPage() {
                       ...prev, 
                       author: { ...prev.author, email: e.target.value }
                     }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                     placeholder="author@example.com (optional)"
                   />
                 </div>
@@ -516,7 +516,7 @@ export default function EditBlogPostPage() {
                       author: { ...prev.author, bio: e.target.value }
                     }))}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                     placeholder="Author bio"
                   />
                 </div>
@@ -547,7 +547,7 @@ export default function EditBlogPostPage() {
                         }
                         setHasUnsavedChanges(true);
                       }}
-                      className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                     />
                     <span className="ml-2 text-sm text-gray-700">{category.name}</span>
                   </label>
@@ -566,13 +566,13 @@ export default function EditBlogPostPage() {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                     placeholder="Add a tag"
                   />
                   <button
                     type="button"
                     onClick={addTag}
-                    className="px-4 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-700 transition-colors"
+                    className="px-4 py-2 bg-red-700 text-white rounded-r-lg hover:bg-red-800 transition-colors"
                   >
                     Add
                   </button>
@@ -582,13 +582,13 @@ export default function EditBlogPostPage() {
                   {formData.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full"
+                      className="inline-flex items-center px-3 py-1 bg-red-100 text-red-900 text-sm rounded-full"
                     >
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="ml-2 text-pink-600 hover:text-pink-800"
+                        className="ml-2 text-red-700 hover:text-red-900"
                       >
                         ×
                       </button>
@@ -611,7 +611,7 @@ export default function EditBlogPostPage() {
                     type="text"
                     value={formData.seoTitle}
                     onChange={(e) => setFormData(prev => ({ ...prev, seoTitle: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                     placeholder="SEO optimized title"
                   />
                 </div>
@@ -624,7 +624,7 @@ export default function EditBlogPostPage() {
                     value={formData.seoDescription}
                     onChange={(e) => setFormData(prev => ({ ...prev, seoDescription: e.target.value }))}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                     placeholder="Meta description for search engines"
                   />
                 </div>
@@ -639,13 +639,13 @@ export default function EditBlogPostPage() {
                       value={keywordInput}
                       onChange={(e) => setKeywordInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white text-gray-900 placeholder-gray-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900 placeholder-gray-500"
                       placeholder="Add a keyword"
                     />
                     <button
                       type="button"
                       onClick={addKeyword}
-                      className="px-4 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-700 transition-colors"
+                      className="px-4 py-2 bg-red-700 text-white rounded-r-lg hover:bg-red-800 transition-colors"
                     >
                       Add
                     </button>
@@ -685,7 +685,7 @@ export default function EditBlogPostPage() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Updating...' : 'Update Post'}
           </button>

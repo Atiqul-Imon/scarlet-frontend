@@ -208,7 +208,7 @@ export default function CategorySection() {
             <p className="text-red-600 mb-4">{error}</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="text-pink-600 hover:text-pink-700 font-medium"
+              className="text-red-700 hover:text-red-800 font-medium"
             >
               Try Again
             </button>

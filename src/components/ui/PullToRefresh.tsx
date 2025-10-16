@@ -105,7 +105,7 @@ export default function PullToRefresh({
         <div className="flex flex-col items-center space-y-2">
           <div
             className={cn(
-              'w-6 h-6 border-2 border-pink-600 rounded-full transition-all duration-200',
+              'w-6 h-6 border-2 border-red-700 rounded-full transition-all duration-200',
               isRefreshing ? 'animate-spin' : 'rotate-0'
             )}
             style={{

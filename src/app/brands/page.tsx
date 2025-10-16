@@ -83,7 +83,7 @@ export default function BrandsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading brands...</p>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function BrandsPage() {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors"
+            className="bg-red-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-800 transition-colors"
           >
             Try Again
           </button>
@@ -117,7 +117,7 @@ export default function BrandsPage() {
         <div className="container-herlan py-8">
           {/* Breadcrumbs */}
           <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
-            <Link href="/" className="hover:text-pink-600 transition-colors">
+            <Link href="/" className="hover:text-red-700 transition-colors">
               Home
             </Link>
             <span>/</span>
@@ -173,7 +173,7 @@ export default function BrandsPage() {
                 placeholder="Search brands..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
             </div>
 
@@ -183,7 +183,7 @@ export default function BrandsPage() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 {categories.map(category => (
                   <option key={category} value={category}>
@@ -199,7 +199,7 @@ export default function BrandsPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value="name">Name</option>
                 <option value="products">Products</option>
@@ -232,15 +232,15 @@ export default function BrandsPage() {
               >
                 <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
                   {/* Brand Icon */}
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl flex items-center justify-center">
-                    <span className="text-2xl font-bold text-pink-600">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl font-bold text-red-700">
                       {brand.name.charAt(0)}
                     </span>
                   </div>
 
                   {/* Brand Info */}
                   <div className="text-center">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-red-700 transition-colors">
                       {brand.name}
                     </h3>
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">
@@ -261,7 +261,7 @@ export default function BrandsPage() {
                   {/* Hover Effect */}
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="text-center">
-                      <span className="inline-flex items-center text-pink-600 text-sm font-medium">
+                      <span className="inline-flex items-center text-red-700 text-sm font-medium">
                         Shop Now
                         <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -289,13 +289,13 @@ export default function BrandsPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/products"
-                className="bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 transition-colors"
+                className="bg-red-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-800 transition-colors"
               >
                 Browse All Products
               </Link>
               <Link
                 href="/contact"
-                className="border border-pink-600 text-pink-600 px-6 py-3 rounded-lg font-medium hover:bg-pink-50 transition-colors"
+                className="border border-red-700 text-red-700 px-6 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors"
               >
                 Contact Us
               </Link>

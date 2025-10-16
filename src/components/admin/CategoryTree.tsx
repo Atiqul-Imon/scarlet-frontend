@@ -88,7 +88,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
       'text-green-700',     // Level 2
       'text-purple-700',    // Level 3
       'text-orange-700',    // Level 4
-      'text-pink-700',      // Level 5+
+      'text-red-800',      // Level 5+
     ];
     return colors[Math.min(level, colors.length - 1)];
   };
@@ -106,7 +106,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
         {level === 0 && onCategoryAdd && (
           <button
             onClick={(e) => handleAdd(e)}
-            className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+            className="mt-4 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
           >
             <PlusIcon className="w-4 h-4 inline mr-2" />
             Add Root Category
@@ -130,7 +130,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
               className={`
                 flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200
                 hover:bg-gray-50 group
-                ${isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:shadow-sm'}
+                ${isSelected ? 'bg-red-50 border border-red-200' : 'hover:shadow-sm'}
                 ${getIndentClass(level)}
               `}
               onClick={() => handleCategoryClick(category)}

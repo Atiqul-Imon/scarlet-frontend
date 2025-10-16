@@ -41,7 +41,7 @@ export default function BrandShowcase() {
             </p>
           </div>
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
           </div>
         </div>
       </section>
@@ -86,14 +86,14 @@ export default function BrandShowcase() {
               <div className={`
                 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 text-center 
                 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1
-                ${brand.isFeatured ? 'ring-2 ring-pink-200 bg-gradient-to-br from-pink-50 to-rose-50' : ''}
+                ${brand.isFeatured ? 'ring-2 ring-red-200 bg-gradient-to-br from-red-50 to-rose-50' : ''}
               `}>
                 <div className="w-12 h-12 mx-auto mb-3 bg-white rounded-lg flex items-center justify-center shadow-sm">
                   <span className="text-xl font-bold text-gray-700">
                     {brand.name.charAt(0)}
                   </span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-pink-600 transition-colors duration-300">
+                <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-700 transition-colors duration-300">
                   {brand.name}
                 </h3>
                 <p className="text-xs text-gray-600">

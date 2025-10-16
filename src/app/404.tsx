@@ -7,26 +7,26 @@ import { HomeIcon, MagnifyingGlassIcon, ArrowLeftIcon } from '@heroicons/react/2
 
 export default function Custom404() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-purple-50 flex items-center justify-center px-4">
       <div className="max-w-2xl mx-auto text-center">
         {/* 404 Illustration */}
         <div className="relative mb-8">
           <div className="w-64 h-64 mx-auto relative">
             {/* Beauty-themed 404 design */}
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center">
-              <div className="text-8xl font-bold text-pink-300">4</div>
+            <div className="absolute inset-0 bg-gradient-to-br from-red-100 to-purple-100 rounded-full flex items-center justify-center">
+              <div className="text-8xl font-bold text-red-300">4</div>
             </div>
             <div className="absolute top-8 right-8 w-16 h-16 bg-purple-200 rounded-full flex items-center justify-center">
               <div className="text-2xl">💄</div>
             </div>
-            <div className="absolute bottom-8 left-8 w-12 h-12 bg-pink-200 rounded-full flex items-center justify-center">
+            <div className="absolute bottom-8 left-8 w-12 h-12 bg-red-200 rounded-full flex items-center justify-center">
               <div className="text-xl">✨</div>
             </div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
-              <div className="text-3xl font-bold text-pink-500">0</div>
+              <div className="text-3xl font-bold text-red-500">0</div>
             </div>
-            <div className="absolute top-1/2 right-8 transform -translate-y-1/2 w-16 h-16 bg-pink-200 rounded-full flex items-center justify-center">
-              <div className="text-2xl font-bold text-pink-400">4</div>
+            <div className="absolute top-1/2 right-8 transform -translate-y-1/2 w-16 h-16 bg-red-200 rounded-full flex items-center justify-center">
+              <div className="text-2xl font-bold text-red-400">4</div>
             </div>
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function Custom404() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Link 
               href="/skincare" 
-              className="p-4 rounded-lg bg-pink-50 hover:bg-pink-100 transition-colors text-center"
+              className="p-4 rounded-lg bg-red-50 hover:bg-red-100 transition-colors text-center"
             >
               <div className="text-2xl mb-2">🌿</div>
               <div className="text-sm font-medium text-gray-700">Skincare</div>
@@ -109,7 +109,7 @@ export default function Custom404() {
           </p>
           <Link 
             href="/contact" 
-            className="text-pink-600 hover:text-pink-700 font-medium underline"
+            className="text-red-700 hover:text-red-800 font-medium underline"
           >
             Contact our support team
           </Link>

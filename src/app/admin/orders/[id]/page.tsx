@@ -306,7 +306,7 @@ export default function OrderDetailPage() {
           <div className="mt-6 space-x-3">
             <button
               onClick={fetchOrderDetails}
-              className="inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+              className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
             >
               <ArrowPathIcon className="w-4 h-4 mr-2" />
               Try Again
@@ -332,7 +332,7 @@ export default function OrderDetailPage() {
           <p className="text-gray-600 mt-2">The order you're looking for doesn't exist.</p>
           <Link
             href="/admin/orders"
-            className="mt-4 inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+            className="mt-4 inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
           >
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back to Orders
@@ -396,7 +396,7 @@ export default function OrderDetailPage() {
               </button>
               <Link
                 href={`/admin/orders/${order._id}/edit`}
-                className="inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 <PencilIcon className="w-4 h-4 mr-2" />
                 Edit
@@ -664,7 +664,7 @@ export default function OrderDetailPage() {
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder:text-gray-400"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-gray-900 bg-white placeholder:text-gray-400"
                     placeholder="Add a note about this order..."
                   />
                   <div className="flex items-center justify-between mt-2">
@@ -673,14 +673,14 @@ export default function OrderDetailPage() {
                         type="checkbox"
                         checked={notePrivate}
                         onChange={(e) => setNotePrivate(e.target.checked)}
-                        className="w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500"
+                        className="w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500"
                       />
                       <span className="ml-2 text-sm text-gray-600">Private note</span>
                     </label>
                     <button
                       onClick={handleAddNote}
                       disabled={!newNote.trim()}
-                      className="inline-flex items-center px-3 py-1 bg-pink-500 text-white text-sm rounded-lg hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center px-3 py-1 bg-red-500 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <PaperAirplaneIcon className="w-3 h-3 mr-1" />
                       Add Note
@@ -749,7 +749,7 @@ export default function OrderDetailPage() {
                     onClick={() => handleStatusUpdate(status)}
                     className={`w-full text-left px-4 py-2 rounded-lg border transition-colors ${
                       order.status === status
-                        ? 'bg-pink-50 border-pink-200 text-pink-800'
+                        ? 'bg-red-50 border-red-200 text-red-900'
                         : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >

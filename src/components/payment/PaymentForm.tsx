@@ -230,7 +230,7 @@ export default function PaymentForm({
                 key={method}
                 className={`
                   flex items-center p-3 border rounded-lg cursor-pointer transition-colors
-                  ${isSelected ? 'border-pink-500 bg-pink-50' : 'border-gray-200 hover:border-gray-300'}
+                  ${isSelected ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'}
                   ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
               >
@@ -249,7 +249,7 @@ export default function PaymentForm({
                   <div className="text-sm text-gray-500">{methodInfo.description}</div>
                 </div>
                 {isSelected && (
-                  <div className="w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center">
+                  <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
                 )}
@@ -276,7 +276,7 @@ export default function PaymentForm({
               onChange={(e) => handlePhoneNumberChange(e.target.value)}
               placeholder="01XXXXXXXXX"
               disabled={disabled}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
           {errors.phoneNumber && (
@@ -301,7 +301,7 @@ export default function PaymentForm({
                 placeholder="1234 5678 9012 3456"
                 maxLength={19}
                 disabled={disabled}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
             </div>
             {errors.cardNumber && (
@@ -321,7 +321,7 @@ export default function PaymentForm({
                 placeholder="MM/YY"
                 maxLength={5}
                 disabled={disabled}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
               {errors.expiryDate && (
                 <p className="mt-1 text-sm text-red-600">{errors.expiryDate}</p>
@@ -339,7 +339,7 @@ export default function PaymentForm({
                 placeholder="123"
                 maxLength={4}
                 disabled={disabled}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
               {errors.cvv && (
                 <p className="mt-1 text-sm text-red-600">{errors.cvv}</p>
@@ -357,7 +357,7 @@ export default function PaymentForm({
               onChange={(e) => handleInputChange('cardholderName', e.target.value)}
               placeholder="John Doe"
               disabled={disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
             {errors.cardholderName && (
               <p className="mt-1 text-sm text-red-600">{errors.cardholderName}</p>
@@ -395,15 +395,15 @@ export default function PaymentForm({
             checked={formData.agreeToTerms}
             onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
             disabled={disabled}
-            className="mt-1 mr-3 w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+            className="mt-1 mr-3 w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500"
           />
           <span className="text-sm text-gray-600">
             I agree to the{' '}
-            <a href="/terms" target="_blank" className="text-pink-600 hover:underline">
+            <a href="/terms" target="_blank" className="text-red-700 hover:underline">
               Terms and Conditions
             </a>{' '}
             and{' '}
-            <a href="/privacy" target="_blank" className="text-pink-600 hover:underline">
+            <a href="/privacy" target="_blank" className="text-red-700 hover:underline">
               Privacy Policy
             </a>
           </span>
@@ -431,7 +431,7 @@ export default function PaymentForm({
           w-full py-3 px-4 rounded-lg font-medium transition-colors
           ${disabled || isLoading || !formData.agreeToTerms
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-pink-600 text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2'
+            : 'bg-red-700 text-white hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
           }
         `}
       >

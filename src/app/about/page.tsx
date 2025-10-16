@@ -12,11 +12,11 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 py-20">
+      <section className="bg-gradient-to-br from-red-50 via-purple-50 to-blue-50 py-20">
         <div className="container-herlan">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
-              About <span className="text-pink-600">Scarlet</span>
+              About <span className="text-red-700">Scarlet</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
               We're passionate about bringing you the finest beauty and skincare products 
@@ -51,7 +51,7 @@ export default function AboutPage() {
                   </p>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-pink-100 to-purple-100 rounded-2xl p-8 text-center">
+              <div className="bg-gradient-to-br from-red-100 to-purple-100 rounded-2xl p-8 text-center">
                 <div className="text-6xl mb-4">💄</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
                 <p className="text-gray-600">
@@ -76,8 +76,8 @@ export default function AboutPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
-              <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <HeartIcon className="w-8 h-8 text-pink-600" />
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <HeartIcon className="w-8 h-8 text-red-700" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Quality First</h3>
               <p className="text-gray-600">
@@ -156,11 +156,11 @@ export default function AboutPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full mx-auto mb-6 flex items-center justify-center">
+              <div className="w-32 h-32 bg-gradient-to-br from-red-200 to-purple-200 rounded-full mx-auto mb-6 flex items-center justify-center">
                 <span className="text-4xl">👩‍💼</span>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Sarah Ahmed</h3>
-              <p className="text-pink-600 font-medium mb-2">Founder & CEO</p>
+              <p className="text-red-700 font-medium mb-2">Founder & CEO</p>
               <p className="text-gray-600 text-sm">
                 Beauty industry veteran with 10+ years of experience in 
                 product development and brand partnerships.
@@ -172,7 +172,7 @@ export default function AboutPage() {
                 <span className="text-4xl">👨‍🔬</span>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Dr. Fatima Rahman</h3>
-              <p className="text-pink-600 font-medium mb-2">Chief Beauty Scientist</p>
+              <p className="text-red-700 font-medium mb-2">Chief Beauty Scientist</p>
               <p className="text-gray-600 text-sm">
                 Dermatologist and cosmetic chemist ensuring all our products 
                 are safe, effective, and scientifically backed.
@@ -184,7 +184,7 @@ export default function AboutPage() {
                 <span className="text-4xl">👩‍🎨</span>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Aisha Khan</h3>
-              <p className="text-pink-600 font-medium mb-2">Creative Director</p>
+              <p className="text-red-700 font-medium mb-2">Creative Director</p>
               <p className="text-gray-600 text-sm">
                 Makeup artist and content creator bringing fresh perspectives 
                 and trend insights to our community.
@@ -195,24 +195,24 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-pink-600 to-purple-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-red-700 to-purple-600 text-white">
         <div className="container-herlan">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold mb-2">10K+</div>
-              <div className="text-pink-200">Happy Customers</div>
+              <div className="text-red-200">Happy Customers</div>
             </div>
             <div>
               <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-pink-200">Products</div>
+              <div className="text-red-200">Products</div>
             </div>
             <div>
               <div className="text-4xl font-bold mb-2">50+</div>
-              <div className="text-pink-200">Brands</div>
+              <div className="text-red-200">Brands</div>
             </div>
             <div>
               <div className="text-4xl font-bold mb-2">24/7</div>
-              <div className="text-pink-200">Support</div>
+              <div className="text-red-200">Support</div>
             </div>
           </div>
         </div>
@@ -221,7 +221,7 @@ export default function AboutPage() {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container-herlan">
-          <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-3xl p-12 text-center">
+          <div className="bg-gradient-to-r from-red-50 to-purple-50 rounded-3xl p-12 text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
               Ready to Start Your Beauty Journey?
             </h2>
@@ -232,13 +232,13 @@ export default function AboutPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="/products" 
-                className="px-8 py-4 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium"
+                className="px-8 py-4 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors font-medium"
               >
                 Shop Now
               </a>
               <a 
                 href="/contact" 
-                className="px-8 py-4 border-2 border-pink-600 text-pink-600 rounded-lg hover:bg-pink-600 hover:text-white transition-colors font-medium"
+                className="px-8 py-4 border-2 border-red-700 text-red-700 rounded-lg hover:bg-red-700 hover:text-white transition-colors font-medium"
               >
                 Contact Us
               </a>

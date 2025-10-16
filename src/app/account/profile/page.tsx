@@ -287,7 +287,7 @@ export default function ProfilePage(): JSX.Element {
                       newsletter: e.target.checked
                     })}
                     disabled={!isEditing}
-                    className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500 disabled:opacity-50"
+                    className="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500 disabled:opacity-50"
                   />
                   <label htmlFor="newsletter" className="ml-3 text-sm text-gray-700">
                     Subscribe to newsletter and promotional emails
@@ -304,7 +304,7 @@ export default function ProfilePage(): JSX.Element {
                       smsNotifications: e.target.checked
                     })}
                     disabled={!isEditing}
-                    className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500 disabled:opacity-50"
+                    className="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500 disabled:opacity-50"
                   />
                   <label htmlFor="smsNotifications" className="ml-3 text-sm text-gray-700">
                     Receive SMS notifications for order updates
@@ -363,7 +363,7 @@ export default function ProfilePage(): JSX.Element {
                       {user?.isEmailVerified ? 'Verified' : 'Pending'}
                     </span>
                     {!user?.isEmailVerified && (
-                      <button className="text-pink-600 hover:text-pink-700 text-xs font-medium">
+                      <button className="text-red-700 hover:text-red-800 text-xs font-medium">
                         Resend Verification
                       </button>
                     )}

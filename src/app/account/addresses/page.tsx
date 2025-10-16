@@ -287,7 +287,7 @@ export default function AddressBookPage(): JSX.Element {
                 {/* Default Badge */}
                 {address.isDefault && (
                   <div className="absolute top-4 right-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-900">
                       Default
                     </span>
                   </div>
@@ -532,7 +532,7 @@ export default function AddressBookPage(): JSX.Element {
                 type="checkbox"
                 checked={form.values.isDefault}
                 onChange={(e) => form.handleChange('isDefault', e.target.checked)}
-                className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                className="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500"
               />
               <label htmlFor="isDefault" className="ml-3 text-sm text-gray-700">
                 Set as default address

@@ -206,7 +206,7 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading cart...</p>
         </div>
       </div>
@@ -221,7 +221,7 @@ export default function CheckoutPage() {
           <p className="text-gray-600 mb-6">Add some items to your cart before checking out.</p>
           <button
             onClick={() => router.push('/products')}
-            className="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 transition-colors"
+            className="bg-red-700 text-white px-6 py-2 rounded-lg hover:bg-red-800 transition-colors"
           >
             Continue Shopping
           </button>
@@ -242,8 +242,8 @@ export default function CheckoutPage() {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-8">
-            <div className={`flex items-center ${currentStep === 'shipping' ? 'text-pink-600' : currentStep === 'payment' || currentStep === 'review' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'shipping' ? 'bg-pink-600 text-white' : currentStep === 'payment' || currentStep === 'review' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+            <div className={`flex items-center ${currentStep === 'shipping' ? 'text-red-700' : currentStep === 'payment' || currentStep === 'review' ? 'text-green-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'shipping' ? 'bg-red-700 text-white' : currentStep === 'payment' || currentStep === 'review' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
                 1
               </div>
               <span className="ml-2 font-medium">Shipping</span>
@@ -251,8 +251,8 @@ export default function CheckoutPage() {
             
             <div className={`w-16 h-0.5 ${currentStep === 'payment' || currentStep === 'review' ? 'bg-green-600' : 'bg-gray-300'}`}></div>
             
-            <div className={`flex items-center ${currentStep === 'payment' ? 'text-pink-600' : currentStep === 'review' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'payment' ? 'bg-pink-600 text-white' : currentStep === 'review' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+            <div className={`flex items-center ${currentStep === 'payment' ? 'text-red-700' : currentStep === 'review' ? 'text-green-600' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'payment' ? 'bg-red-700 text-white' : currentStep === 'review' ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
                 2
               </div>
               <span className="ml-2 font-medium">Payment</span>
@@ -277,7 +277,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={formData.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="Enter your first name"
                       />
                       {errors.firstName && (
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="Last name (optional)"
                       />
                       {errors.lastName && (
@@ -311,7 +311,7 @@ export default function CheckoutPage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="Email (optional)"
                       />
                       {errors.email && (
@@ -327,7 +327,7 @@ export default function CheckoutPage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="01XXXXXXXXX"
                       />
                       {errors.phone && (
@@ -344,7 +344,7 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={(e) => handleInputChange('address', e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       placeholder="Enter your full address"
                     />
                     {errors.address && (
@@ -361,7 +361,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={formData.city}
                         onChange={(e) => handleInputChange('city', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="Dhaka"
                       />
                       {errors.city && (
@@ -377,7 +377,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={formData.area}
                         onChange={(e) => handleInputChange('area', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="Dhanmondi"
                       />
                       {errors.area && (
@@ -393,7 +393,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={formData.postalCode}
                         onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="1205"
                         maxLength={4}
                       />
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
                       value={formData.notes}
                       onChange={(e) => handleInputChange('notes', e.target.value)}
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       placeholder="Any special delivery instructions..."
                     />
                   </div>
@@ -422,15 +422,15 @@ export default function CheckoutPage() {
                         type="checkbox"
                         checked={formData.acceptTerms}
                         onChange={(e) => handleInputChange('acceptTerms', e.target.checked)}
-                        className="mt-1 mr-3 w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                        className="mt-1 mr-3 w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500"
                       />
                       <span className="text-sm text-gray-600">
                         I agree to the{' '}
-                        <a href="/terms" target="_blank" className="text-pink-600 hover:underline">
+                        <a href="/terms" target="_blank" className="text-red-700 hover:underline">
                           Terms and Conditions
                         </a>{' '}
                         and{' '}
-                        <a href="/privacy" target="_blank" className="text-pink-600 hover:underline">
+                        <a href="/privacy" target="_blank" className="text-red-700 hover:underline">
                           Privacy Policy
                         </a>
                       </span>
@@ -443,7 +443,7 @@ export default function CheckoutPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-pink-600 text-white py-3 px-4 rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full bg-red-700 text-white py-3 px-4 rounded-lg hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isLoading ? 'Creating Order...' : 'Continue to Payment'}
                   </button>

@@ -11,7 +11,7 @@ export default function MobileMenuButton({ isOpen, onClick, className = '' }: Mo
   return (
     <button
       onClick={onClick}
-      className={`p-2 text-gray-700 hover:text-pink-600 transition-colors ${className}`}
+      className={`p-2 text-gray-700 hover:text-red-700 transition-colors ${className}`}
       aria-label={isOpen ? "Close menu" : "Open menu"}
       aria-expanded={isOpen}
     >

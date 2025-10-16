@@ -102,14 +102,14 @@ export default function Error({ error, reset }: ErrorProps) {
         </div>
 
         {/* Helpful Actions */}
-        <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-8">
+        <div className="bg-gradient-to-r from-red-50 to-purple-50 rounded-2xl p-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">
             What you can do
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="w-12 h-12 mx-auto mb-3 bg-pink-100 rounded-full flex items-center justify-center">
-                <ArrowPathIcon className="w-6 h-6 text-pink-600" />
+              <div className="w-12 h-12 mx-auto mb-3 bg-red-100 rounded-full flex items-center justify-center">
+                <ArrowPathIcon className="w-6 h-6 text-red-700" />
               </div>
               <h4 className="font-medium text-gray-900 mb-2">Try Again</h4>
               <p className="text-sm text-gray-600">
@@ -144,7 +144,7 @@ export default function Error({ error, reset }: ErrorProps) {
           </p>
           <Link 
             href="/contact" 
-            className="text-pink-600 hover:text-pink-700 font-medium underline"
+            className="text-red-700 hover:text-red-800 font-medium underline"
           >
             Get Help
           </Link>

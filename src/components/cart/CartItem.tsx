@@ -98,7 +98,7 @@ export default function CartItem({
               <div className="flex-1 min-w-0 pr-2">
                 <Link 
                   href={`/products/${item.slug}`}
-                  className="block hover:text-pink-600 transition-colors"
+                  className="block hover:text-red-700 transition-colors"
                 >
                   <h3 className="text-base font-medium text-gray-900 line-clamp-2 leading-tight">
                     {item.title}
@@ -227,7 +227,7 @@ export default function CartItem({
             <div className="flex-1 min-w-0">
               <Link 
                 href={`/products/${item.slug}`}
-                className="block hover:text-pink-600 transition-colors"
+                className="block hover:text-red-700 transition-colors"
               >
                 <h3 className="text-lg font-medium text-gray-900 truncate">
                   {item.title}

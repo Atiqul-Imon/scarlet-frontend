@@ -92,7 +92,7 @@ export default function EditProductPage() {
             <p className="text-gray-600 mt-2">The product you're looking for doesn't exist.</p>
             <Link
               href="/admin/products"
-              className="mt-4 inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+              className="mt-4 inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700"
             >
               <ArrowLeftIcon className="w-4 h-4 mr-2" />
               Back to Products

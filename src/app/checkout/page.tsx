@@ -503,7 +503,7 @@ export default function CheckoutPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Checkout</h1>
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Link href="/cart" className="hover:text-pink-600">Cart</Link>
+            <Link href="/cart" className="hover:text-red-700">Cart</Link>
             <ChevronRightIcon />
             <span className="text-gray-900">Checkout</span>
           </div>
@@ -514,7 +514,7 @@ export default function CheckoutPage() {
           <div className="flex items-center justify-center">
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step === 'shipping' ? 'bg-pink-600 text-white' : 'bg-gray-200 text-gray-600'
+                step === 'shipping' ? 'bg-red-700 text-white' : 'bg-gray-200 text-gray-600'
               }`}>
                 1
               </div>
@@ -523,7 +523,7 @@ export default function CheckoutPage() {
             <div className="w-16 h-px bg-gray-300 mx-4" />
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step === 'payment' ? 'bg-pink-600 text-white' : 'bg-gray-200 text-gray-600'
+                step === 'payment' ? 'bg-red-700 text-white' : 'bg-gray-200 text-gray-600'
               }`}>
                 2
               </div>
@@ -532,7 +532,7 @@ export default function CheckoutPage() {
             <div className="w-16 h-px bg-gray-300 mx-4" />
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step === 'review' ? 'bg-pink-600 text-white' : 'bg-gray-200 text-gray-600'
+                step === 'review' ? 'bg-red-700 text-white' : 'bg-gray-200 text-gray-600'
               }`}>
                 3
               </div>
@@ -624,7 +624,7 @@ export default function CheckoutPage() {
                         name="city"
                         value={values.city}
                         onChange={(e) => handleChange({ target: { name: 'city', value: e.target.value } } as React.ChangeEvent<HTMLSelectElement>)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                         required
                       >
                         <option value="Dhaka">Dhaka</option>
@@ -679,11 +679,11 @@ export default function CheckoutPage() {
                       <h3 className="text-lg font-medium text-gray-900 mb-3">Mobile Banking</h3>
                       <div className="space-y-2">
                         {[
-                          { id: 'bkash', name: 'bKash', color: 'pink' },
+                          { id: 'bkash', name: 'bKash', color: 'red' },
                           { id: 'nagad', name: 'Nagad', color: 'orange' },
                           { id: 'rocket', name: 'Rocket', color: 'blue' }
                         ].map(method => (
-                          <label key={method.id} className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-pink-300">
+                          <label key={method.id} className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300">
                             <input
                               type="radio"
                               name="paymentMethod"
@@ -694,7 +694,7 @@ export default function CheckoutPage() {
                             />
                             <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
                               values.paymentMethod === method.id 
-                                ? 'border-pink-500 bg-pink-500' 
+                                ? 'border-red-500 bg-red-500' 
                                 : 'border-gray-300'
                             }`}>
                               {values.paymentMethod === method.id && (
@@ -714,7 +714,7 @@ export default function CheckoutPage() {
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-3">Other Methods</h3>
                       <div className="space-y-2">
-                        <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-pink-300">
+                        <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300">
                           <input
                             type="radio"
                             name="paymentMethod"
@@ -725,7 +725,7 @@ export default function CheckoutPage() {
                           />
                           <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
                             values.paymentMethod === 'card' 
-                              ? 'border-pink-500 bg-pink-500' 
+                              ? 'border-red-500 bg-red-500' 
                               : 'border-gray-300'
                           }`}>
                             {values.paymentMethod === 'card' && (
@@ -736,7 +736,7 @@ export default function CheckoutPage() {
                           <span className="text-sm text-gray-900 ml-2">Debit/Credit Card (via SSLCommerz)</span>
                         </label>
 
-                        <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-pink-300">
+                        <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300">
                           <input
                             type="radio"
                             name="paymentMethod"
@@ -747,7 +747,7 @@ export default function CheckoutPage() {
                           />
                           <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
                             values.paymentMethod === 'cod' 
-                              ? 'border-pink-500 bg-pink-500' 
+                              ? 'border-red-500 bg-red-500' 
                               : 'border-gray-300'
                           }`}>
                             {values.paymentMethod === 'cod' && (
@@ -770,7 +770,7 @@ export default function CheckoutPage() {
                       value={values.notes || ''}
                       onChange={(e) => handleChange({ target: { name: 'notes', value: e.target.value } } as React.ChangeEvent<HTMLTextAreaElement>)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                       placeholder="Any special delivery instructions..."
                     />
                   </div>
@@ -865,11 +865,11 @@ export default function CheckoutPage() {
                       />
                       <span className="text-sm text-gray-600">
                         I agree to the{' '}
-                        <Link href="/terms" className="text-pink-600 hover:text-pink-700">
+                        <Link href="/terms" className="text-red-700 hover:text-red-800">
                           Terms and Conditions
                         </Link>{' '}
                         and{' '}
-                        <Link href="/privacy" className="text-pink-600 hover:text-pink-700">
+                        <Link href="/privacy" className="text-red-700 hover:text-red-800">
                           Privacy Policy
                         </Link>
                       </span>
@@ -890,7 +890,7 @@ export default function CheckoutPage() {
                     <Button
                       type="submit"
                       disabled={submitting || !values.acceptTerms}
-                      className="bg-pink-600 hover:bg-pink-700"
+                      className="bg-red-700 hover:bg-red-800"
                     >
                       {submitting ? (
                         <div className="flex items-center gap-2">
@@ -937,16 +937,16 @@ export default function CheckoutPage() {
 
               {/* Free Shipping Banner */}
               {subtotal < freeShippingThreshold && (
-                <div className="bg-pink-50 border border-pink-200 rounded-lg p-4 mb-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                   <div className="flex items-center gap-2 mb-2">
                     <ShippingIcon />
-                    <span className="text-sm font-medium text-pink-800">
+                    <span className="text-sm font-medium text-red-900">
                       Add {formatPrice(freeShippingThreshold - subtotal)} more for free shipping!
                     </span>
                   </div>
-                  <div className="w-full bg-pink-200 rounded-full h-2">
+                  <div className="w-full bg-red-200 rounded-full h-2">
                     <div 
-                      className="bg-pink-500 h-2 rounded-full transition-all duration-300"
+                      className="bg-red-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
                     />
                   </div>
@@ -1037,7 +1037,7 @@ function CashIcon() {
 
 function ShippingIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
       <path d="M16 3h5v5"/>
       <path d="M8 3H3v5"/>
       <path d="M12 22V8"/>

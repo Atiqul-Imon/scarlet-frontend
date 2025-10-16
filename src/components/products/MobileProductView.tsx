@@ -54,7 +54,7 @@ export default function MobileProductView({
           </h1>
           
           <div className="flex items-center space-x-3">
-            <span className="text-3xl font-bold text-pink-600">
+            <span className="text-3xl font-bold text-red-700">
               {product.price.currency} {product.price.amount}
             </span>
             {product.price.discountPercentage && (
@@ -87,7 +87,7 @@ export default function MobileProductView({
             <ul className="space-y-1">
               {product.features.map((feature, index) => (
                 <li key={index} className="flex items-center text-gray-600">
-                  <span className="w-2 h-2 bg-pink-500 rounded-full mr-3 flex-shrink-0" />
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-3 flex-shrink-0" />
                   {feature}
                 </li>
               ))}

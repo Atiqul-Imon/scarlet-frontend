@@ -296,7 +296,7 @@ export default function ProductsPage() {
             </button>
             <Link
               href="/admin/products/new"
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:from-pink-600 hover:to-rose-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-700 hover:to-rose-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
               Add Product
@@ -375,7 +375,7 @@ export default function ProductsPage() {
                   placeholder="Search products..."
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -386,7 +386,7 @@ export default function ProductsPage() {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`inline-flex items-center px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
                   showFilters 
-                    ? 'border-pink-500 text-pink-700 bg-pink-50' 
+                    ? 'border-red-500 text-red-800 bg-red-50' 
                     : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
                 }`}
               >
@@ -397,13 +397,13 @@ export default function ProductsPage() {
               <div className="flex items-center border border-gray-300 rounded-lg">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-pink-50 text-pink-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`p-2 ${viewMode === 'grid' ? 'bg-red-50 text-red-700' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   <Squares2X2Icon className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 border-l border-gray-300 ${viewMode === 'list' ? 'bg-pink-50 text-pink-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`p-2 border-l border-gray-300 ${viewMode === 'list' ? 'bg-red-50 text-red-700' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   <ListBulletIcon className="w-4 h-4" />
                 </button>
@@ -423,7 +423,7 @@ export default function ProductsPage() {
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   <option value="">All Categories</option>
                   <option value="Makeup">Makeup</option>
@@ -440,7 +440,7 @@ export default function ProductsPage() {
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {STATUS_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
@@ -457,7 +457,7 @@ export default function ProductsPage() {
                 <select
                   value={filters.stockStatus}
                   onChange={(e) => setFilters(prev => ({ ...prev, stockStatus: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {STOCK_STATUS_OPTIONS.map(option => (
                     <option key={option.value} value={option.value}>
@@ -475,7 +475,7 @@ export default function ProductsPage() {
                   <select
                     value={filters.sortBy}
                     onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     {SORT_OPTIONS.map(option => (
                       <option key={option.value} value={option.value}>
@@ -549,7 +549,7 @@ export default function ProductsPage() {
                   type="checkbox"
                   checked={selectedProducts.includes(product._id!)}
                   onChange={() => handleSelectProduct(product._id!)}
-                  className="absolute top-3 left-3 w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500 z-10"
+                  className="absolute top-3 left-3 w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500 z-10"
                 />
                 <img
                   src={product.images[0] || '/api/placeholder/300/300'}
@@ -604,7 +604,7 @@ export default function ProductsPage() {
                   <div className="flex items-center space-x-1">
                     <Link
                       href={`/admin/products/${product._id}`}
-                      className="p-2 text-gray-400 hover:text-pink-600 rounded-lg hover:bg-pink-50 transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-700 rounded-lg hover:bg-red-50 transition-colors"
                       title="View"
                     >
                       <EyeIcon className="w-4 h-4" />
@@ -655,7 +655,7 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={selectedProducts.length === products.length}
                       onChange={handleSelectAll}
-                      className="w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500"
+                      className="w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500"
                     />
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -689,7 +689,7 @@ export default function ProductsPage() {
                         type="checkbox"
                         checked={selectedProducts.includes(product._id!)}
                         onChange={() => handleSelectProduct(product._id!)}
-                        className="w-4 h-4 text-pink-600 bg-white border-gray-300 rounded focus:ring-pink-500"
+                        className="w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500"
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -742,7 +742,7 @@ export default function ProductsPage() {
                       <div className="flex items-center justify-end space-x-2">
                         <Link
                           href={`/admin/products/${product._id}`}
-                          className="text-pink-600 hover:text-pink-900"
+                          className="text-red-700 hover:text-red-950"
                         >
                           View
                         </Link>
@@ -808,7 +808,7 @@ export default function ProductsPage() {
                       onClick={() => setPagination(prev => ({ ...prev, page: pageNumber }))}
                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                         pagination.page === pageNumber
-                          ? 'z-10 bg-pink-50 border-pink-500 text-pink-600'
+                          ? 'z-10 bg-red-50 border-red-500 text-red-700'
                           : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                       }`}
                     >
@@ -843,7 +843,7 @@ export default function ProductsPage() {
           <div className="mt-6">
             <Link
               href="/admin/products/new"
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:from-pink-600 hover:to-rose-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-700 hover:to-rose-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
               Add Product

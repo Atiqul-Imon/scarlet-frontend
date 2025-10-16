@@ -118,7 +118,7 @@ export default function ProductShowcase({
           </div>
           <Link
             href={viewAllLink}
-            className="hidden sm:inline-flex items-center text-pink-600 hover:text-pink-700 font-medium"
+            className="hidden sm:inline-flex items-center text-red-700 hover:text-red-800 font-medium"
           >
             View All
             <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ export default function ProductShowcase({
         <div className="text-center mt-8 sm:hidden">
           <Link
             href={viewAllLink}
-            className="inline-flex items-center text-pink-600 hover:text-pink-700 font-medium"
+            className="inline-flex items-center text-red-700 hover:text-red-800 font-medium"
           >
             View All {title}
             <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

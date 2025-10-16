@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
     const badges = {
       admin: 'bg-gradient-to-r from-purple-500 to-violet-500 text-white',
       staff: 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white',
-      customer: 'bg-gradient-to-r from-pink-500 to-rose-500 text-white'
+      customer: 'bg-gradient-to-r from-red-500 to-rose-500 text-white'
     };
     
     return (
@@ -172,7 +172,7 @@ export default function AdminUsersPage() {
       sortable: true,
       render: (_, user) => (
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-rose-500 rounded-full flex items-center justify-center">
             <span className="text-white font-medium text-sm">
               {user.firstName?.charAt(0).toUpperCase()}
             </span>
@@ -262,7 +262,7 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <UserGroupIcon className="w-8 h-8 text-pink-500 mr-3" />
+            <UserGroupIcon className="w-8 h-8 text-red-500 mr-3" />
             Customer Management
           </h1>
           <p className="text-gray-600 mt-1">
@@ -273,11 +273,11 @@ export default function AdminUsersPage() {
         <div className="flex items-center space-x-4">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors duration-200"
+            className="px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors duration-200"
           >
             Filters
           </button>
-          <button className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:from-pink-600 hover:to-rose-600 transition-all duration-200 shadow-lg">
+          <button className="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-700 hover:to-rose-600 transition-all duration-200 shadow-lg">
             Add User
           </button>
         </div>
@@ -285,13 +285,13 @@ export default function AdminUsersPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-6 border border-pink-100">
+        <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-6 border border-red-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-pink-600 text-sm font-medium">Total Customers</p>
+              <p className="text-red-700 text-sm font-medium">Total Customers</p>
               <p className="text-2xl font-bold text-gray-900">{totalItems.toLocaleString()}</p>
             </div>
-            <UserGroupIcon className="w-8 h-8 text-pink-500" />
+            <UserGroupIcon className="w-8 h-8 text-red-500" />
           </div>
         </div>
         
@@ -334,7 +334,7 @@ export default function AdminUsersPage() {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-white rounded-xl shadow-sm border border-pink-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-red-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter Users</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -342,7 +342,7 @@ export default function AdminUsersPage() {
               <select
                 value={filters.role || ''}
                 onChange={(e) => setFilters({ ...filters, role: e.target.value as any })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="">All Roles</option>
                 <option value="customer">Customer</option>
@@ -359,7 +359,7 @@ export default function AdminUsersPage() {
                   ...filters, 
                   isEmailVerified: e.target.value === '' ? undefined : e.target.value === 'true' 
                 })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
               >
                 <option value="">All</option>
                 <option value="true">Verified</option>
@@ -373,7 +373,7 @@ export default function AdminUsersPage() {
                 type="date"
                 value={filters.dateFrom || ''}
                 onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
             
@@ -383,7 +383,7 @@ export default function AdminUsersPage() {
                 type="date"
                 value={filters.dateTo || ''}
                 onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                className="w-full px-3 py-2 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
+                className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
               />
             </div>
           </div>
@@ -400,7 +400,7 @@ export default function AdminUsersPage() {
             </button>
             <button
               onClick={() => setCurrentPage(1)}
-              className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors duration-200"
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
             >
               Apply Filters
             </button>
@@ -446,7 +446,7 @@ export default function AdminUsersPage() {
             
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-rose-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-medium text-sm">
                     {selectedUser.firstName?.charAt(0).toUpperCase()}
                   </span>
@@ -522,7 +522,7 @@ export default function AdminUsersPage() {
             
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-rose-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-medium text-sm">
                     {selectedUser.firstName?.charAt(0).toUpperCase()}
                   </span>
@@ -547,7 +547,7 @@ export default function AdminUsersPage() {
                       disabled={actionLoading || role === selectedUser.role}
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         role === selectedUser.role
-                          ? 'bg-pink-100 text-pink-700 border-2 border-pink-300'
+                          ? 'bg-red-100 text-red-800 border-2 border-red-300'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
                       } ${actionLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
@@ -580,7 +580,7 @@ export default function AdminUsersPage() {
             
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-medium text-sm">
                     {selectedUser.firstName?.charAt(0).toUpperCase()}
                   </span>

@@ -21,3 +21,4 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Icon not found', { status: 404 });
   }
 }
+

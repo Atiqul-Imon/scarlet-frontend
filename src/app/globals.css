@@ -428,7 +428,7 @@ body {
 }
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.5);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.5);
   border-radius: 0.375rem;
 }
 
@@ -445,18 +445,18 @@ body {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Custom pink button for product detail page */
-.pink-add-to-cart {
-  background-color: #db2777 !important;
+/* Custom red button for product detail page */
+.red-add-to-cart {
+  background-color: #dc2626 !important;
   color: white !important;
   border: none !important;
 }
 
-.pink-add-to-cart:hover {
-  background-color: #be185d !important;
+.red-add-to-cart:hover {
+  background-color: #b91c1c !important;
 }
 
-.pink-add-to-cart:disabled {
+.red-add-to-cart:disabled {
   background-color: #f3f4f6 !important;
   color: #9ca3af !important;
 }

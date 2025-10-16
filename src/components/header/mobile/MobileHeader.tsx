@@ -52,12 +52,12 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               autoFocus
             />
             <button
               type="submit"
-              className="px-4 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+              className="px-4 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
               aria-label="Search"
             >
               <SearchIcon />
@@ -98,7 +98,7 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
           {/* Search */}
           <button
             onClick={() => setShowSearch(true)}
-            className="p-2 text-gray-700 hover:text-pink-600 transition-colors"
+            className="p-2 text-gray-700 hover:text-red-700 transition-colors"
             aria-label="Search"
           >
             <SearchIcon />
@@ -107,12 +107,12 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
           {/* User Account */}
           {!isClient || authLoading ? (
             <div className="p-2">
-              <div className="w-5 h-5 border-2 border-gray-300 border-t-pink-600 rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-gray-300 border-t-red-700 rounded-full animate-spin"></div>
             </div>
           ) : user ? (
             <Link
               href="/account"
-              className="p-2 text-gray-700 hover:text-pink-600 transition-colors"
+              className="p-2 text-gray-700 hover:text-red-700 transition-colors"
               aria-label="Account"
             >
               <UserIcon />
@@ -120,7 +120,7 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
           ) : (
             <Link
               href="/login"
-              className="p-2 text-gray-700 hover:text-pink-600 transition-colors"
+              className="p-2 text-gray-700 hover:text-red-700 transition-colors"
               aria-label="Sign in"
             >
               <UserIcon />
@@ -130,12 +130,12 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
           {/* Cart */}
           <Link
             href="/cart"
-            className="p-2 text-gray-700 hover:text-pink-600 transition-colors relative"
+            className="p-2 text-gray-700 hover:text-red-700 transition-colors relative"
             aria-label="Cart"
           >
             <CartIcon />
             {isClient && !cartLoading && itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+              <span className="absolute -top-1 -right-1 bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                 {itemCount > 99 ? '99+' : itemCount}
               </span>
             )}

@@ -50,9 +50,9 @@ export default function PaymentMethodSelector({
               className={`
                 relative border-2 rounded-lg p-4 cursor-pointer transition-all duration-200
                 ${isSelected 
-                  ? 'border-pink-500 bg-pink-50' 
+                  ? 'border-red-500 bg-red-50' 
                   : isHovered 
-                    ? 'border-pink-300 bg-pink-25' 
+                    ? 'border-red-300 bg-red-25' 
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
@@ -64,7 +64,7 @@ export default function PaymentMethodSelector({
               {/* Selection indicator */}
               {isSelected && (
                 <div className="absolute top-3 right-3">
-                  <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center">
+                  <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                     <CheckIcon className="w-4 h-4 text-white" />
                   </div>
                 </div>
@@ -147,7 +147,7 @@ export default function PaymentMethodSelector({
           <ul className="text-sm text-gray-600 space-y-1">
             {PAYMENT_METHODS.find(m => m.id === selectedMethod)?.instructions?.map((instruction, index) => (
               <li key={index} className="flex items-start">
-                <span className="text-pink-500 mr-2">{index + 1}.</span>
+                <span className="text-red-500 mr-2">{index + 1}.</span>
                 {instruction}
               </li>
             ))}

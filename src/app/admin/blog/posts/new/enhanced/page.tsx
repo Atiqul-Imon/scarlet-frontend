@@ -256,7 +256,7 @@ export default function EnhancedNewBlogPostPage() {
                 type="text"
                 value={formData.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg"
                 placeholder="Enter blog post title"
                 required
               />
@@ -271,7 +271,7 @@ export default function EnhancedNewBlogPostPage() {
                 type="text"
                 value={formData.slug}
                 onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="blog-post-slug"
               />
             </div>
@@ -303,7 +303,7 @@ export default function EnhancedNewBlogPostPage() {
                 value={formData.excerpt}
                 onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="Brief description of the post (auto-generated from content)"
               />
             </div>
@@ -317,7 +317,7 @@ export default function EnhancedNewBlogPostPage() {
                 type="url"
                 value={formData.featuredImage}
                 onChange={(e) => setFormData(prev => ({ ...prev, featuredImage: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="https://example.com/image.jpg"
               />
             </div>
@@ -337,7 +337,7 @@ export default function EnhancedNewBlogPostPage() {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   >
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
@@ -351,7 +351,7 @@ export default function EnhancedNewBlogPostPage() {
                     id="featured"
                     checked={formData.isFeatured}
                     onChange={(e) => setFormData(prev => ({ ...prev, isFeatured: e.target.checked }))}
-                    className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                   />
                   <label htmlFor="featured" className="ml-2 text-sm text-gray-700">
                     Featured Post
@@ -364,7 +364,7 @@ export default function EnhancedNewBlogPostPage() {
                     id="pinned"
                     checked={formData.isPinned}
                     onChange={(e) => setFormData(prev => ({ ...prev, isPinned: e.target.checked }))}
-                    className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                   />
                   <label htmlFor="pinned" className="ml-2 text-sm text-gray-700">
                     Pinned Post
@@ -397,7 +397,7 @@ export default function EnhancedNewBlogPostPage() {
                       ...prev, 
                       author: { ...prev.author, name: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="Author name"
                     required
                   />
@@ -414,7 +414,7 @@ export default function EnhancedNewBlogPostPage() {
                       ...prev, 
                       author: { ...prev.author, email: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="author@example.com"
                     required
                   />
@@ -431,7 +431,7 @@ export default function EnhancedNewBlogPostPage() {
                       author: { ...prev.author, bio: e.target.value }
                     }))}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="Author bio"
                   />
                 </div>
@@ -462,7 +462,7 @@ export default function EnhancedNewBlogPostPage() {
                         }
                         setHasUnsavedChanges(true);
                       }}
-                      className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-red-700 focus:ring-red-500 border-gray-300 rounded"
                     />
                     <span className="ml-2 text-sm text-gray-700">{category.name}</span>
                   </label>
@@ -481,13 +481,13 @@ export default function EnhancedNewBlogPostPage() {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="Add a tag"
                   />
                   <button
                     type="button"
                     onClick={addTag}
-                    className="px-4 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-700 transition-colors"
+                    className="px-4 py-2 bg-red-700 text-white rounded-r-lg hover:bg-red-800 transition-colors"
                   >
                     Add
                   </button>
@@ -497,13 +497,13 @@ export default function EnhancedNewBlogPostPage() {
                   {formData.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full"
+                      className="inline-flex items-center px-3 py-1 bg-red-100 text-red-900 text-sm rounded-full"
                     >
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="ml-2 text-pink-600 hover:text-pink-800"
+                        className="ml-2 text-red-700 hover:text-red-900"
                       >
                         ×
                       </button>
@@ -526,7 +526,7 @@ export default function EnhancedNewBlogPostPage() {
                     type="text"
                     value={formData.seoTitle}
                     onChange={(e) => setFormData(prev => ({ ...prev, seoTitle: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="SEO optimized title"
                   />
                 </div>
@@ -539,7 +539,7 @@ export default function EnhancedNewBlogPostPage() {
                     value={formData.seoDescription}
                     onChange={(e) => setFormData(prev => ({ ...prev, seoDescription: e.target.value }))}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="Meta description for search engines"
                   />
                 </div>
@@ -554,13 +554,13 @@ export default function EnhancedNewBlogPostPage() {
                       value={keywordInput}
                       onChange={(e) => setKeywordInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       placeholder="Add a keyword"
                     />
                     <button
                       type="button"
                       onClick={addKeyword}
-                      className="px-4 py-2 bg-pink-600 text-white rounded-r-lg hover:bg-pink-700 transition-colors"
+                      className="px-4 py-2 bg-red-700 text-white rounded-r-lg hover:bg-red-800 transition-colors"
                     >
                       Add
                     </button>
@@ -600,7 +600,7 @@ export default function EnhancedNewBlogPostPage() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating...' : 'Create Post'}
           </button>

@@ -78,7 +78,7 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
       <div className="relative">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="group relative bg-pink-600 hover:bg-pink-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+          className="group relative bg-red-700 hover:bg-red-800 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
         >
           {isExpanded ? (
             <XMarkIcon className="w-6 h-6" />

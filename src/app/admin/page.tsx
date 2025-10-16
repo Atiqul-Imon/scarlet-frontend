@@ -29,10 +29,10 @@ interface StatCardProps {
 function StatCard({ title, value, change, changeType, icon: Icon, color, subtitle }: StatCardProps) {
   const colorClasses = {
     pink: {
-      bg: 'from-pink-500 to-rose-500',
-      text: 'text-pink-600',
-      lightBg: 'from-pink-50 to-rose-50',
-      border: 'border-pink-100'
+      bg: 'from-red-500 to-rose-500',
+      text: 'text-red-700',
+      lightBg: 'from-red-50 to-rose-50',
+      border: 'border-red-100'
     },
     blue: {
       bg: 'from-blue-500 to-indigo-500',
@@ -124,13 +124,13 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-pink-200 rounded-lg w-64 mb-2"></div>
-          <div className="h-4 bg-pink-100 rounded w-96"></div>
+          <div className="h-8 bg-red-200 rounded-lg w-64 mb-2"></div>
+          <div className="h-4 bg-red-100 rounded w-96"></div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-32 bg-gradient-to-r from-pink-100 to-rose-100 rounded-2xl"></div>
+              <div className="h-32 bg-gradient-to-r from-red-100 to-rose-100 rounded-2xl"></div>
             </div>
           ))}
         </div>
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
           change="+12.5%"
           changeType="increase"
           icon={UsersIcon}
-          color="pink"
+          color="red"
           subtitle="Beauty lovers"
         />
         <StatCard
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
           change="+23.1%"
           changeType="increase"
           icon={SparklesIcon}
-          color="pink"
+          color="red"
           subtitle="Looking gorgeous!"
         />
         <StatCard
@@ -250,24 +250,24 @@ export default function AdminDashboard() {
       </div>
 
       {/* Top Products */}
-      <div className="bg-white rounded-2xl shadow-sm border border-pink-100 p-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">✨ Top Selling Products</h2>
-          <button className="text-pink-600 hover:text-pink-700 font-medium text-sm">
+          <button className="text-red-700 hover:text-red-800 font-medium text-sm">
             View All →
           </button>
         </div>
         
         <div className="space-y-4">
           {stats?.topSellingProducts.map((product, index) => (
-            <div key={product.productId} className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-100">
+            <div key={product.productId} className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-xl border border-red-100">
               <div className="flex items-center space-x-4">
                 <div className={`
                   w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm
                   ${index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 
                     index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
                     index === 2 ? 'bg-gradient-to-r from-orange-400 to-red-500' :
-                    'bg-gradient-to-r from-pink-400 to-rose-500'}
+                    'bg-gradient-to-r from-red-400 to-rose-500'}
                 `}>
                   {index + 1}
                 </div>
@@ -289,10 +289,10 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl p-6 text-white">
+        <div className="bg-gradient-to-r from-red-500 to-rose-500 rounded-2xl p-6 text-white">
           <h3 className="text-lg font-bold mb-2">Add New Product</h3>
-          <p className="text-pink-100 mb-4">Expand your beauty collection</p>
-          <button className="bg-white text-pink-600 px-4 py-2 rounded-lg font-medium hover:bg-pink-50 transition-colors duration-200">
+          <p className="text-red-100 mb-4">Expand your beauty collection</p>
+          <button className="bg-white text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-50 transition-colors duration-200">
             Add Product
           </button>
         </div>
