@@ -67,7 +67,7 @@ export default function TopBar() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search products..."
-                className="h-10 flex-1 border-2 border-red-500 bg-white px-4 text-sm outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
+                className="h-10 flex-1 border-2 border-red-500 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
                 autoFocus
               />
               <button 
@@ -114,7 +114,7 @@ export default function TopBar() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search products..."
-                className="h-8 md:h-10 w-full border-2 border-red-500 bg-white px-2 md:px-4 pr-10 md:pr-14 text-[12px] md:text-[14px] outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
+                className="h-8 md:h-10 w-full border-2 border-red-500 bg-white px-2 md:px-4 pr-10 md:pr-14 text-[12px] md:text-[14px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
               />
               <button 
                 type="submit" 
