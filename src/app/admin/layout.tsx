@@ -85,8 +85,10 @@ export default function AdminLayout({
 
         {/* Page content */}
         <main className="py-8">
-          <div className="w-full">
-            {children}
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <div className="max-w-full xl:max-w-[90%] 2xl:max-w-[75%] mx-auto">
+              {children}
+            </div>
           </div>
         </main>
       </div>
