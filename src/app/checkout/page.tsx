@@ -860,16 +860,20 @@ export default function CheckoutPage() {
                         name="acceptTerms"
                         checked={values.acceptTerms}
                         onChange={handleChange}
-                        className="mt-1"
+                        className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                         required
                       />
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-700">
                         I agree to the{' '}
-                        <Link href="/terms" className="text-red-700 hover:text-red-800">
-                          Terms and Conditions
-                        </Link>{' '}
-                        and{' '}
-                        <Link href="/privacy" className="text-red-700 hover:text-red-800">
+                        <Link href="/terms" className="text-red-700 hover:text-red-800 underline font-medium" target="_blank">
+                          Terms & Conditions
+                        </Link>
+                        ,{' '}
+                        <Link href="/return-policy" className="text-red-700 hover:text-red-800 underline font-medium" target="_blank">
+                          Return & Refund Policy
+                        </Link>
+                        , and{' '}
+                        <Link href="/privacy" className="text-red-700 hover:text-red-800 underline font-medium" target="_blank">
                           Privacy Policy
                         </Link>
                       </span>

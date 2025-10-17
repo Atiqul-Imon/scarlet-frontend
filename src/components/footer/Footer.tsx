@@ -131,8 +131,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-gray-300 hover:text-red-400 transition-colors">
-                  Returns & Exchanges
+                <Link href="/return-policy" className="text-gray-300 hover:text-red-400 transition-colors">
+                  Return & Refund Policy
                 </Link>
               </li>
               <li>
@@ -282,10 +282,10 @@ export default function Footer() {
                   Privacy Policy
                 </Link>
                 <Link href="/terms" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
-                  Terms of Service
+                  Terms & Conditions
                 </Link>
-                <Link href="/cookies" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
-                  Cookie Policy
+                <Link href="/return-policy" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
+                  Return & Refund Policy
                 </Link>
               </div>
             </div>
