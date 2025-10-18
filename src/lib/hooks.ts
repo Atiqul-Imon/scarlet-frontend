@@ -67,7 +67,19 @@ export function useForm<T extends Record<string, any>>(
     const { name, value, type, checked } = e.target;
     const fieldValue = type === 'checkbox' ? checked : value;
     
-    setValues(prev => ({ ...prev, [name]: fieldValue }));
+    if (name.includes('.')) {
+      // Handle nested fields like 'preferences.language'
+      const [parent, child] = name.split('.');
+      setValues(prev => ({
+        ...prev,
+        [parent]: {
+          ...(prev[parent] as any),
+          [child]: fieldValue
+        }
+      }));
+    } else {
+      setValues(prev => ({ ...prev, [name]: fieldValue }));
+    }
     
     if (options.validateOnChange) {
       validateField(name as keyof T);

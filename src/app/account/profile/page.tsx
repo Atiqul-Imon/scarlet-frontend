@@ -161,8 +161,9 @@ export default function ProfilePage(): JSX.Element {
                   </label>
                   <Input
                     id="firstName"
+                    name="firstName"
                     value={form.values.firstName}
-                    onChange={(e) => form.handleChange('firstName', e.target.value)}
+                    onChange={form.handleChange}
                     onBlur={() => form.handleBlur('firstName')}
                     error={form.touched.firstName ? form.errors.firstName : undefined}
                     disabled={!isEditing}
@@ -176,8 +177,9 @@ export default function ProfilePage(): JSX.Element {
                   </label>
                   <Input
                     id="lastName"
+                    name="lastName"
                     value={form.values.lastName}
-                    onChange={(e) => form.handleChange('lastName', e.target.value)}
+                    onChange={form.handleChange}
                     onBlur={() => form.handleBlur('lastName')}
                     error={form.touched.lastName ? form.errors.lastName : undefined}
                     disabled={!isEditing}
@@ -193,9 +195,10 @@ export default function ProfilePage(): JSX.Element {
                   </label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     value={form.values.email}
-                    onChange={(e) => form.handleChange('email', e.target.value)}
+                    onChange={form.handleChange}
                     onBlur={() => form.handleBlur('email')}
                     error={form.touched.email ? form.errors.email : undefined}
                     disabled={!isEditing}
@@ -209,9 +212,10 @@ export default function ProfilePage(): JSX.Element {
                   </label>
                   <Input
                     id="phone"
+                    name="phone"
                     type="tel"
                     value={form.values.phone}
-                    onChange={(e) => form.handleChange('phone', e.target.value)}
+                    onChange={form.handleChange}
                     onBlur={() => form.handleBlur('phone')}
                     error={form.touched.phone ? form.errors.phone : undefined}
                     disabled={!isEditing}
@@ -227,9 +231,10 @@ export default function ProfilePage(): JSX.Element {
                 </label>
                 <Input
                   id="dateOfBirth"
+                  name="dateOfBirth"
                   type="date"
                   value={form.values.dateOfBirth}
-                  onChange={(e) => form.handleChange('dateOfBirth', e.target.value)}
+                  onChange={form.handleChange}
                   disabled={!isEditing}
                   className="md:w-1/2"
                 />
@@ -247,12 +252,10 @@ export default function ProfilePage(): JSX.Element {
                   </label>
                   <Select
                     id="language"
+                    name="preferences.language"
                     options={languageOptions}
                     value={form.values.preferences.language}
-                    onChange={(e) => form.handleChange('preferences', {
-                      ...form.values.preferences,
-                      language: e.target.value
-                    })}
+                    onChange={form.handleChange}
                     disabled={!isEditing}
                     fullWidth
                   />
@@ -264,12 +267,10 @@ export default function ProfilePage(): JSX.Element {
                   </label>
                   <Select
                     id="currency"
+                    name="preferences.currency"
                     options={currencyOptions}
                     value={form.values.preferences.currency}
-                    onChange={(e) => form.handleChange('preferences', {
-                      ...form.values.preferences,
-                      currency: e.target.value
-                    })}
+                    onChange={form.handleChange}
                     disabled={!isEditing}
                     fullWidth
                   />
@@ -280,12 +281,10 @@ export default function ProfilePage(): JSX.Element {
                 <div className="flex items-center">
                   <input
                     id="newsletter"
+                    name="preferences.newsletter"
                     type="checkbox"
                     checked={form.values.preferences.newsletter}
-                    onChange={(e) => form.handleChange('preferences', {
-                      ...form.values.preferences,
-                      newsletter: e.target.checked
-                    })}
+                    onChange={form.handleChange}
                     disabled={!isEditing}
                     className="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500 disabled:opacity-50"
                   />
@@ -297,12 +296,10 @@ export default function ProfilePage(): JSX.Element {
                 <div className="flex items-center">
                   <input
                     id="smsNotifications"
+                    name="preferences.smsNotifications"
                     type="checkbox"
                     checked={form.values.preferences.smsNotifications}
-                    onChange={(e) => form.handleChange('preferences', {
-                      ...form.values.preferences,
-                      smsNotifications: e.target.checked
-                    })}
+                    onChange={form.handleChange}
                     disabled={!isEditing}
                     className="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-500 disabled:opacity-50"
                   />
