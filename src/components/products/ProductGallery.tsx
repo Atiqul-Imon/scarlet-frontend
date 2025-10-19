@@ -1,6 +1,7 @@
 
 "use client";
 import * as React from 'react';
+import Image from 'next/image';
 
 interface ProductGalleryProps {
   images: string[];
@@ -116,10 +117,11 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setIsZoomed(false)}
         >
-          <img
+          <Image
             src={getCurrentImage()}
             alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
-            className={`w-full h-full object-cover transition-all duration-500 ${
+            fill
+            className={`object-cover transition-all duration-500 ${
               isZoomed 
                 ? 'scale-200 cursor-zoom-out' 
                 : 'cursor-zoom-in hover:scale-105'
@@ -128,14 +130,12 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
               transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
             } : undefined}
             onClick={handleImageClick}
-            onError={(e) => {
-              console.error('Image failed to load:', images[selectedImageIndex]);
+            onError={() => {
               setImageErrors(prev => new Set([...prev, selectedImageIndex]));
-              e.currentTarget.src = getPlaceholderImage(selectedImageIndex);
             }}
-            onLoad={() => {
-              console.log('Image loaded successfully:', images[selectedImageIndex]);
-            }}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={selectedImageIndex === 0}
+            quality={85}
           />
           
           {/* Zoom Indicator */}
@@ -217,15 +217,13 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                       : 'border-gray-200 hover:border-red-300'
                   }`}
                 >
-                    <img
+                    <Image
                       src={imageErrors.has(index) ? getPlaceholderImage(index) : image}
                       alt={`${productTitle} - Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.error('Thumbnail failed to load:', image);
-                        setImageErrors(prev => new Set([...prev, index]));
-                        e.currentTarget.src = getPlaceholderImage(index);
-                      }}
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                      quality={75}
                     />
                   {index === selectedImageIndex && (
                     <div className="absolute inset-0 bg-red-500/20" />
@@ -258,10 +256,15 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
 
           {/* Main Fullscreen Image */}
           <div className="relative w-full h-full flex items-center justify-center p-8">
-            <img
+            <Image
               src={getCurrentImage()}
               alt={`${productTitle} - Fullscreen ${selectedImageIndex + 1}`}
+              width={1200}
+              height={1200}
               className="max-w-full max-h-full object-contain"
+              sizes="100vw"
+              quality={90}
+              priority
             />
           </div>
 
@@ -304,15 +307,13 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                         : 'border-white/50 hover:border-white/80'
                     }`}
                   >
-                    <img
+                    <Image
                       src={imageErrors.has(index) ? getPlaceholderImage(index) : image}
                       alt={`${productTitle} - Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.error('Fullscreen thumbnail failed to load:', image);
-                        setImageErrors(prev => new Set([...prev, index]));
-                        e.currentTarget.src = getPlaceholderImage(index);
-                      }}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                      quality={75}
                     />
                   </button>
                 );
