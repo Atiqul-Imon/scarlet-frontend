@@ -1,86 +1,125 @@
-"use client";
-import Link from 'next/link';
-import { TouchButton } from '@/components/ui';
+'use client';
+
+import React from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function OfflinePage() {
+  const router = useRouter();
+  const [isOnline, setIsOnline] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkOnline = () => {
+      setIsOnline(navigator.onLine);
+      if (navigator.onLine) {
+        router.push('/');
+      }
+    };
+
+    checkOnline();
+    window.addEventListener('online', checkOnline);
+
+    return () => {
+      window.removeEventListener('online', checkOnline);
+    };
+  }, [router]);
+
+  const handleRetry = () => {
+    if (navigator.onLine) {
+      router.push('/');
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
         {/* Offline Icon */}
-        <div className="mb-8">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
+        <div className="mb-6">
+          <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto">
+            <svg 
+              className="w-12 h-12 text-red-600" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" 
+              />
             </svg>
           </div>
         </div>
 
-        {/* Offline Message */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">
           You're Offline
         </h1>
-        
+
+        {/* Description */}
         <p className="text-gray-600 mb-8 leading-relaxed">
-          It looks like you're not connected to the internet. Don't worry, you can still browse some of our content that's been saved for offline viewing.
+          It looks like you've lost your internet connection. 
+          Please check your network settings and try again.
         </p>
 
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          <TouchButton
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={() => window.location.reload()}
+        {/* Connection Status */}
+        <div className={`inline-flex items-center px-4 py-2 rounded-full mb-8 ${
+          isOnline 
+            ? 'bg-green-100 text-green-700' 
+            : 'bg-red-100 text-red-700'
+        }`}>
+          <div className={`w-2 h-2 rounded-full mr-2 ${
+            isOnline ? 'bg-green-500' : 'bg-red-500'
+          }`} />
+          <span className="text-sm font-medium">
+            {isOnline ? 'Back Online!' : 'No Internet Connection'}
+          </span>
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-3">
+          <button
+            onClick={handleRetry}
+            className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold py-3 px-6 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 transform hover:scale-105 shadow-lg"
           >
             Try Again
-          </TouchButton>
-          
-          <Link href="/">
-            <TouchButton
-              variant="outline"
-              size="lg"
-              fullWidth
-            >
-              Go to Homepage
-            </TouchButton>
-          </Link>
+          </button>
+
+          <button
+            onClick={() => router.back()}
+            className="w-full bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-lg hover:bg-gray-200 transition-all duration-200"
+          >
+            Go Back
+          </button>
         </div>
 
-        {/* Offline Features */}
-        <div className="mt-12 text-left">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Available Offline
+        {/* Tips */}
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            Quick Tips:
           </h3>
-          
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Browse saved products</span>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">View your cart</span>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Check your wishlist</span>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Add items to cart (syncs when online)</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Connection Status */}
-        <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-600">No internet connection</span>
-          </div>
+          <ul className="text-sm text-gray-600 space-y-2 text-left">
+            <li className="flex items-start">
+              <svg className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Check your WiFi or mobile data
+            </li>
+            <li className="flex items-start">
+              <svg className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Try airplane mode on/off
+            </li>
+            <li className="flex items-start">
+              <svg className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Restart your device if needed
+            </li>
+          </ul>
         </div>
       </div>
     </div>
