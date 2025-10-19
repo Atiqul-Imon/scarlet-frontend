@@ -11,6 +11,7 @@ import { useCart, useToast, useAuth } from '../../lib/context';
 import { productApi } from '../../lib/api';
 import OTPRequestModal from '../../components/auth/OTPRequestModal';
 import OTPVerification from '../../components/auth/OTPVerification';
+import { logger } from '../../lib/logger';
 
 interface CartItemData {
   productId: string;
