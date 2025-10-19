@@ -12,6 +12,7 @@ import {
 } from './types';
 import { authApi, cartApi, apiUtils, wishlistApi } from './api';
 import { stringUtils } from './utils';
+import { logger } from './logger';
 
 // Toast Context
 interface ToastContextValue {
@@ -177,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Handle token refresh failure by logging out
   const handleTokenRefreshFailure = React.useCallback(() => {
-    console.log('🔄 Token refresh failed, logging out user');
+    logger.info('Token refresh failed, logging out user');
     setUser(null);
     apiUtils.clearTokens();
     addToast({
@@ -225,12 +226,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const currentUser = await authApi.getProfile();
       setUser(currentUser);
     } catch (error: any) {
-      console.log('Profile fetch failed, attempting token refresh...', error);
+      logger.debug('Profile fetch failed, attempting token refresh...', { error });
       
       // If we have a refresh token, try to refresh the access token
       if (refreshToken) {
         try {
-          console.log('🔄 Attempting token refresh with refresh token:', refreshToken.substring(0, 20) + '...');
+          logger.debug('Attempting token refresh with refresh token', { tokenPreview: refreshToken.substring(0, 20) + '...' });
           const response = await fetch('/api/proxy/auth/refresh', {
             method: 'POST',
             headers: {
@@ -239,11 +240,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             body: JSON.stringify({ refreshToken }),
           });
           
-          console.log('🔄 Refresh token response status:', response.status);
+          logger.debug('Refresh token response status', { status: response.status });
 
           if (response.ok) {
             const data = await response.json();
-            console.log('Refresh token response:', data);
+            logger.debug('Refresh token response', { data });
             if (data.success && data.data && data.data.tokens) {
               const { accessToken, refreshToken: newRefreshToken } = data.data.tokens;
               
@@ -256,21 +257,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Try to get user profile again with new token
               const currentUser = await authApi.getProfile();
               setUser(currentUser);
-              console.log('✅ Token refreshed and user profile loaded successfully');
+              logger.success('Token refreshed and user profile loaded successfully');
               return;
             } else {
-              console.error('Invalid refresh token response:', data);
+              logger.error('Invalid refresh token response', data);
             }
           } else {
-            console.error('Refresh token request failed:', response.status, response.statusText);
+            logger.error('Refresh token request failed', { status: response.status, statusText: response.statusText });
           }
         } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
+          logger.error('Token refresh failed', refreshError);
         }
       }
       
       // If refresh failed or no refresh token, clear everything
-      console.log('❌ Authentication failed, clearing user session');
+      logger.info('Authentication failed, clearing user session');
       setUser(null);
       apiUtils.clearTokens();
     } finally {
@@ -286,7 +287,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Listen for token refresh failures
   React.useEffect(() => {
     const handleTokenRefreshFailureEvent = () => {
-      console.log('Token refresh failed event received');
+      logger.log('Token refresh failed event received');
       handleTokenRefreshFailure();
     };
 
@@ -298,7 +299,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Add a retry mechanism for failed authentication
   const retryAuthentication = React.useCallback(async () => {
-    console.log('Retrying authentication...');
+    logger.log('Retrying authentication...');
     setLoading(true);
     await refreshUser();
   }, [refreshUser]);
@@ -342,16 +343,16 @@ const getSessionId = (): string => {
       
       try {
         localStorage.setItem(SESSION_ID_KEY, sessionId);
-        console.log('Generated new session ID for mobile:', sessionId);
+        logger.log('Generated new session ID for mobile:', sessionId);
       } catch (storageError) {
-        console.warn('Failed to store session ID in localStorage:', storageError);
+        logger.warn('Failed to store session ID in localStorage:', storageError);
         // Fallback to memory-only session ID
         sessionId = `memory_${timestamp}_${random}`;
       }
     }
     return sessionId;
   } catch (error) {
-    console.error('Error generating session ID:', error);
+    logger.error('Error generating session ID:', error);
     // Fallback session ID
     return `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   }
@@ -363,30 +364,30 @@ const getGuestCart = (): Cart => {
   }
   
   try {
-    console.log('Getting guest cart from localStorage...');
+    logger.log('Getting guest cart from localStorage...');
     const stored = localStorage.getItem(GUEST_CART_KEY);
-    console.log('Stored cart data:', stored);
+    logger.log('Stored cart data:', stored);
     
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        console.log('Parsed cart data:', parsed);
+        logger.log('Parsed cart data:', parsed);
         
         // Validate cart structure
         if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) {
           return parsed;
         } else {
-          console.warn('Invalid cart structure, creating new cart');
+          logger.warn('Invalid cart structure, creating new cart');
           localStorage.removeItem(GUEST_CART_KEY);
         }
       } catch (error) {
-        console.error('Failed to parse guest cart:', error);
+        logger.error('Failed to parse guest cart:', error);
         // Clear corrupted cart data
         localStorage.removeItem(GUEST_CART_KEY);
       }
     }
     
-    console.log('No stored cart found, creating new guest cart');
+    logger.log('No stored cart found, creating new guest cart');
     const newCart = {
       _id: 'guest',
       userId: 'guest',
@@ -396,7 +397,7 @@ const getGuestCart = (): Cart => {
     };
     return newCart;
   } catch (error) {
-    console.error('Error accessing localStorage for guest cart:', error);
+    logger.error('Error accessing localStorage for guest cart:', error);
     // Return empty cart as fallback
     return {
       _id: 'guest',
@@ -411,18 +412,18 @@ const getGuestCart = (): Cart => {
 const saveGuestCart = (cart: Cart): void => {
   if (typeof window !== 'undefined') {
     try {
-      console.log('Saving guest cart to localStorage:', cart);
+      logger.log('Saving guest cart to localStorage:', cart);
       localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
-      console.log('Cart saved successfully');
+      logger.log('Cart saved successfully');
     } catch (error) {
-      console.error('Failed to save guest cart to localStorage:', error);
+      logger.error('Failed to save guest cart to localStorage:', error);
       // Try to clear some space by removing old data
       try {
         localStorage.removeItem('old_cart_data');
         localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
-        console.log('Cart saved after clearing space');
+        logger.log('Cart saved after clearing space');
       } catch (retryError) {
-        console.error('Failed to save cart even after clearing space:', retryError);
+        logger.error('Failed to save cart even after clearing space:', retryError);
         // Store in memory as last resort (will be lost on page refresh)
         (window as any).__scarlet_guest_cart_memory = cart;
       }
@@ -474,7 +475,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load cart on mount and when authentication state changes
   React.useEffect(() => {
-    console.log('Cart provider effect triggered, isAuthenticated:', isAuthenticated, 'sessionId:', sessionId);
+    logger.log('Cart provider effect triggered, isAuthenticated:', isAuthenticated, 'sessionId:', sessionId);
     
     const loadCart = async () => {
       setLoading(true);
@@ -484,42 +485,42 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (isAuthenticated) {
           // For authenticated users, always load fresh from backend
           const userCart = await cartApi.getCart();
-          console.log('Loaded user cart from backend:', userCart);
+          logger.log('Loaded user cart from backend:', userCart);
           setCart(userCart);
         } else {
           // For guest users, try backend first, then localStorage as fallback
           try {
             const guestCart = await cartApi.getGuestCart(sessionId);
-            console.log('Loaded guest cart from backend:', guestCart);
+            logger.log('Loaded guest cart from backend:', guestCart);
             setCart(guestCart);
             // Update localStorage for offline support
             saveGuestCart(guestCart);
           } catch (error) {
-            console.error('Failed to load guest cart from backend:', error);
+            logger.error('Failed to load guest cart from backend:', error);
             // Fallback to localStorage for offline support
             const localGuestCart = getGuestCart();
-            console.log('Fallback to localStorage cart:', localGuestCart);
+            logger.log('Fallback to localStorage cart:', localGuestCart);
             setCart(localGuestCart);
             
             // If localStorage has items but backend failed, try to sync later
             if (localGuestCart.items && localGuestCart.items.length > 0) {
-              console.log('LocalStorage has items, will retry backend sync');
+              logger.log('LocalStorage has items, will retry backend sync');
               // Retry backend sync after a short delay
               setTimeout(async () => {
                 try {
                   const retryCart = await cartApi.getGuestCart(sessionId);
-                  console.log('Retry sync successful:', retryCart);
+                  logger.log('Retry sync successful:', retryCart);
                   setCart(retryCart);
                   saveGuestCart(retryCart);
                 } catch (retryError) {
-                  console.log('Retry sync failed, keeping localStorage version');
+                  logger.log('Retry sync failed, keeping localStorage version');
                 }
               }, 2000);
             }
           }
         }
       } catch (error) {
-        console.error('Failed to load cart:', error);
+        logger.error('Failed to load cart:', error);
         setError(apiUtils.handleApiError(error));
         // Set empty cart as fallback
         const emptyCart = isAuthenticated 
@@ -539,11 +540,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   React.useEffect(() => {
     if (isAuthenticated && cart?.userId === 'guest') {
       // User logged in, sync guest cart with server
-      console.log('User logged in, syncing guest cart with server');
+      logger.log('User logged in, syncing guest cart with server');
       syncGuestCartWithServer();
     } else if (!isAuthenticated && (!cart || cart.userId !== 'guest')) {
       // User logged out, load guest cart
-      console.log('User logged out, loading guest cart');
+      logger.log('User logged out, loading guest cart');
       const guestCart = getGuestCart();
       setCart(guestCart);
     }
@@ -624,19 +625,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (!response.ok) {
-        console.warn('Failed to mark cart as abandoned');
+        logger.warn('Failed to mark cart as abandoned');
       }
     } catch (error) {
-      console.warn('Error marking cart as abandoned:', error);
+      logger.warn('Error marking cart as abandoned:', error);
     }
   }, [cart, sessionId, user]);
 
   const addItem = React.useCallback(async (productId: string, quantity: number = 1): Promise<void> => {
-    console.log('Adding item to cart:', { productId, quantity, isAuthenticated, sessionId });
+    logger.log('Adding item to cart:', { productId, quantity, isAuthenticated, sessionId });
     
     // Validate inputs
     if (!productId || quantity < 1) {
-      console.error('Invalid product ID or quantity');
+      logger.error('Invalid product ID or quantity');
       addToast({
         type: 'error',
         title: 'Error',
@@ -647,12 +648,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (!isAuthenticated) {
       // Handle guest cart - sync with backend first, then localStorage
-      console.log('Adding to guest cart, sessionId:', sessionId);
+      logger.log('Adding to guest cart, sessionId:', sessionId);
       
       try {
         // Add item to backend guest cart
         const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity);
-        console.log('Guest cart updated from backend:', updatedCart);
+        logger.log('Guest cart updated from backend:', updatedCart);
         setCart(updatedCart);
         
         // Also update localStorage for offline support
@@ -664,7 +665,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           message: 'Item added to cart successfully!'
         });
       } catch (error) {
-        console.error('Error adding item to guest cart:', error);
+        logger.error('Error adding item to guest cart:', error);
         
         // Fallback to localStorage if backend fails
         try {
@@ -682,7 +683,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           guestCart!.updatedAt = new Date().toISOString();
           saveGuestCart(guestCart!);
           setCart(guestCart!);
-          console.log('Guest cart updated in localStorage:', guestCart);
+          logger.log('Guest cart updated in localStorage:', guestCart);
           
           addToast({
             type: 'success',
@@ -690,7 +691,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             message: 'Item added to cart (offline mode)'
           });
         } catch (fallbackError) {
-          console.error('Error in fallback guest cart:', fallbackError);
+          logger.error('Error in fallback guest cart:', fallbackError);
           addToast({
             type: 'error',
             title: 'Error',
@@ -708,11 +709,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         'Item added to cart'
       );
       if (updatedCart) {
-        console.log('User cart updated from backend:', updatedCart);
+        logger.log('User cart updated from backend:', updatedCart);
         setCart(updatedCart);
       }
     } catch (error) {
-      console.error('Error adding item to user cart:', error);
+      logger.error('Error adding item to user cart:', error);
       addToast({
         type: 'error',
         title: 'Error',
@@ -743,7 +744,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           message: 'Item quantity updated successfully!'
         });
       } catch (error) {
-        console.error('Error updating guest cart item:', error);
+        logger.error('Error updating guest cart item:', error);
         
         // Fallback to localStorage if backend fails
         try {
@@ -770,7 +771,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           }
         } catch (fallbackError) {
-          console.error('Error in fallback guest cart update:', fallbackError);
+          logger.error('Error in fallback guest cart update:', fallbackError);
           addToast({
             type: 'error',
             title: 'Error',
@@ -802,7 +803,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           message: 'Item removed from cart successfully!'
         });
       } catch (error) {
-        console.error('Error removing guest cart item:', error);
+        logger.error('Error removing guest cart item:', error);
         
         // Fallback to localStorage if backend fails
         try {
@@ -822,7 +823,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           }
         } catch (fallbackError) {
-          console.error('Error in fallback guest cart removal:', fallbackError);
+          logger.error('Error in fallback guest cart removal:', fallbackError);
           addToast({
             type: 'error',
             title: 'Error',
@@ -857,7 +858,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           message: 'All items removed from cart!'
         });
       } catch (error) {
-        console.error('Error clearing guest cart:', error);
+        logger.error('Error clearing guest cart:', error);
         
         // Fallback to localStorage if backend fails
         try {
@@ -878,7 +879,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             message: 'All items removed from cart (offline mode)!'
           });
         } catch (fallbackError) {
-          console.error('Error in fallback guest cart clear:', fallbackError);
+          logger.error('Error in fallback guest cart clear:', fallbackError);
           addToast({
             type: 'error',
             title: 'Error',
@@ -897,7 +898,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
 
   const refreshCart = React.useCallback(async (): Promise<void> => {
-    console.log('refreshCart called, isAuthenticated:', isAuthenticated);
+    logger.log('refreshCart called, isAuthenticated:', isAuthenticated);
     setLoading(true);
     
     try {
@@ -905,25 +906,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // For guest users, try to load from backend first, then fallback to localStorage
         try {
           const guestCart = await cartApi.getGuestCart(sessionId);
-          console.log('Refreshed guest cart from backend:', guestCart);
+          logger.log('Refreshed guest cart from backend:', guestCart);
           setCart(guestCart);
           // Also update localStorage for offline support
           saveGuestCart(guestCart);
         } catch (error) {
-          console.error('Failed to load guest cart from backend:', error);
+          logger.error('Failed to load guest cart from backend:', error);
           // Fallback to localStorage
           const localGuestCart = getGuestCart();
-          console.log('Fallback to localStorage cart:', localGuestCart);
+          logger.log('Fallback to localStorage cart:', localGuestCart);
           setCart(localGuestCart);
         }
       } else {
         // For authenticated users, load from backend
         try {
           const userCart = await cartApi.getCart();
-          console.log('Refreshed user cart from backend:', userCart);
+          logger.log('Refreshed user cart from backend:', userCart);
           setCart(userCart);
         } catch (error) {
-          console.error('Failed to refresh user cart:', error);
+          logger.error('Failed to refresh user cart:', error);
         }
       }
     } finally {
@@ -936,11 +937,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isAuthenticated || !cart || cart.userId !== 'guest') return;
     
     try {
-      console.log('Syncing guest cart items:', cart.items);
+      logger.log('Syncing guest cart items:', cart.items);
       
       // Use the merge API to sync guest cart with user cart
       const mergedCart = await cartApi.mergeGuestCart(sessionId);
-      console.log('Merged cart:', mergedCart);
+      logger.log('Merged cart:', mergedCart);
       
       // Clear guest cart after successful sync
       clearGuestCart();
@@ -954,7 +955,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         message: 'Your cart items have been synced with your account'
       });
     } catch (error) {
-      console.error('Failed to sync guest cart:', error);
+      logger.error('Failed to sync guest cart:', error);
       addToast({
         type: 'warning',
         title: 'Cart Sync Failed',
@@ -1060,7 +1061,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (err) {
       const appError = apiUtils.handleApiError(err);
       setError(appError);
-      console.error('Error fetching wishlist:', err);
+      logger.error('Error fetching wishlist:', err);
     } finally {
       setIsLoading(false);
     }

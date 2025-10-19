@@ -10,7 +10,7 @@ interface ProductGridProps {
   onAddToWishlist?: (productId: string) => void;
 }
 
-export default function ProductGrid({ 
+const ProductGrid = React.memo(function ProductGrid({ 
   products, 
   loading = false, 
   onAddToCart, 
@@ -50,7 +50,14 @@ export default function ProductGrid({
       ))}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Optimize re-renders
+  return prevProps.products.length === nextProps.products.length &&
+         prevProps.loading === nextProps.loading &&
+         prevProps.products[0]?._id === nextProps.products[0]?._id;
+});
+
+export default ProductGrid;
 
 function ProductCardSkeleton() {
   return (

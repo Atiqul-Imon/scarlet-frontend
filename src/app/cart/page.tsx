@@ -48,24 +48,24 @@ export default function CartPage() {
 
   // Debug cart state
   React.useEffect(() => {
-    console.log('Cart page mounted, cart state:', cart);
-    console.log('User state:', user);
-    console.log('LocalStorage cart:', localStorage.getItem('scarlet_guest_cart'));
-    console.log('Cart items from context:', cart?.items);
-    console.log('Cart items length:', cart?.items?.length);
+    logger.log('Cart page mounted, cart state:', cart);
+    logger.log('User state:', user);
+    logger.log('LocalStorage cart:', localStorage.getItem('scarlet_guest_cart'));
+    logger.log('Cart items from context:', cart?.items);
+    logger.log('Cart items length:', cart?.items?.length);
   }, [cart, user]);
 
   // Fetch cart data and enrich with product details - only when items are added/removed, not quantity changes
   React.useEffect(() => {
-    console.log('Cart effect triggered, cart:', cart);
-    console.log('Cart items:', cart?.items);
-    console.log('Cart items length:', cart?.items?.length);
+    logger.log('Cart effect triggered, cart:', cart);
+    logger.log('Cart items:', cart?.items);
+    logger.log('Cart items length:', cart?.items?.length);
     
     const currentItemsCount = cart?.items?.length || 0;
     
     // Only refetch if the number of items changed or it's the first load
     if (currentItemsCount === lastCartItemsCountRef.current && enrichedItems.length > 0) {
-      console.log('Skipping refetch - no changes');
+      logger.log('Skipping refetch - no changes');
       return;
     }
     
@@ -76,15 +76,15 @@ export default function CartPage() {
       setError(null);
 
       try {
-        console.log('Fetching cart data...');
-        console.log('Cart exists:', !!cart);
-        console.log('Cart items exist:', !!cart?.items);
-        console.log('Cart items is array:', Array.isArray(cart?.items));
-        console.log('Cart items length:', cart?.items?.length);
+        logger.log('Fetching cart data...');
+        logger.log('Cart exists:', !!cart);
+        logger.log('Cart items exist:', !!cart?.items);
+        logger.log('Cart items is array:', Array.isArray(cart?.items));
+        logger.log('Cart items length:', cart?.items?.length);
         
         // Check if cart has items - if not, show empty state immediately
         if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
-          console.log('No cart items found, setting empty array');
+          logger.log('No cart items found, setting empty array');
           setEnrichedItems([]);
           setLoading(false);
           return;
@@ -104,16 +104,16 @@ export default function CartPage() {
           // Fallback if API returns array directly
           products = allProducts;
         } else {
-          console.warn('Unexpected API response structure:', allProducts);
+          logger.warn('Unexpected API response structure:', allProducts);
         }
         
         // Enrich cart items with product details from real API
         const enrichedItems: CartItemData[] = [];
         
         for (const item of cart.items) {
-          console.log('Processing cart item:', item);
+          logger.log('Processing cart item:', item);
           const product = products.find(p => p._id === item.productId);
-          console.log('Found product in API:', product);
+          logger.log('Found product in API:', product);
           
           if (product) {
             // Use real product data from the API
@@ -130,7 +130,7 @@ export default function CartPage() {
           } else {
             // Product not found in API - try to fetch individual product
             try {
-              console.log('Product not found in list, fetching individual product:', item.productId);
+              logger.log('Product not found in list, fetching individual product:', item.productId);
               const productResponse = await fetch(`/api/proxy/catalog/products/${item.productId}`);
               if (productResponse.ok) {
                 const productData = await productResponse.json();
@@ -147,25 +147,25 @@ export default function CartPage() {
                     stock: individualProduct.stock
                   });
                 } else {
-                  console.warn('Failed to fetch individual product:', item.productId);
+                  logger.warn('Failed to fetch individual product:', item.productId);
                 }
               } else {
-                console.warn('Individual product fetch failed:', item.productId, productResponse.status);
+                logger.warn('Individual product fetch failed:', item.productId, productResponse.status);
               }
             } catch (err) {
-              console.warn('Error fetching individual product:', item.productId, err);
+              logger.warn('Error fetching individual product:', item.productId, err);
               // Skip this item if we can't fetch it
             }
           }
         }
 
-        console.log('Enriched items:', enrichedItems);
-        console.log('Enriched items length:', enrichedItems.length);
+        logger.log('Enriched items:', enrichedItems);
+        logger.log('Enriched items length:', enrichedItems.length);
         setEnrichedItems(enrichedItems);
 
       } catch (err) {
         setError('Failed to load cart. Please try again.');
-        console.error('Error fetching cart data:', err);
+        logger.error('Error fetching cart data:', err);
       } finally {
         setLoading(false);
       }
@@ -189,7 +189,7 @@ export default function CartPage() {
         });
       }
     } catch (error) {
-      console.error('Error updating quantity:', error);
+      logger.error('Error updating quantity:', error);
       addToast({
         type: 'error',
         title: 'Error',
@@ -213,7 +213,7 @@ export default function CartPage() {
         message: 'Item removed from cart'
       });
     } catch (error) {
-      console.error('Error removing item:', error);
+      logger.error('Error removing item:', error);
       addToast({
         type: 'error',
         title: 'Error',
@@ -237,7 +237,7 @@ export default function CartPage() {
         message: 'Cart cleared successfully'
       });
     } catch (error) {
-      console.error('Error clearing cart:', error);
+      logger.error('Error clearing cart:', error);
       addToast({
         type: 'error',
         title: 'Error',
@@ -288,14 +288,14 @@ export default function CartPage() {
       // Refresh cart when page becomes visible on mobile
       const handleVisibilityChange = () => {
         if (document.visibilityState === 'visible') {
-          console.log('Page became visible, refreshing cart...');
+          logger.log('Page became visible, refreshing cart...');
           refreshCart();
         }
       };
 
       // Refresh cart when page loads on mobile
       const handlePageLoad = () => {
-        console.log('Page loaded on mobile, refreshing cart...');
+        logger.log('Page loaded on mobile, refreshing cart...');
         refreshCart();
       };
 
@@ -383,12 +383,12 @@ export default function CartPage() {
         return parsed.items && parsed.items.length > 0;
       }
     } catch (e) {
-      console.error('Error checking localStorage:', e);
+      logger.error('Error checking localStorage:', e);
     }
     return false;
   })();
   
-  console.log('Cart check - hasItemsInContext:', hasItemsInContext, 'hasItemsInLocalStorage:', hasItemsInLocalStorage, 'enrichedItems.length:', enrichedItems.length);
+  logger.log('Cart check - hasItemsInContext:', hasItemsInContext, 'hasItemsInLocalStorage:', hasItemsInLocalStorage, 'enrichedItems.length:', enrichedItems.length);
   
   if (!loading && enrichedItems.length === 0 && !hasItemsInContext && !hasItemsInLocalStorage) {
     return (

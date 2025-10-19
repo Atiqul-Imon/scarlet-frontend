@@ -25,7 +25,7 @@ interface CartItemProps {
   isUpdating?: boolean;
 }
 
-export default function CartItem({
+const CartItem = React.memo(function CartItem({
   item,
   onUpdateQuantity,
   onRemove,
@@ -328,7 +328,15 @@ export default function CartItem({
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Optimize re-renders by comparing relevant props
+  return prevProps.item.productId === nextProps.item.productId &&
+         prevProps.item.quantity === nextProps.item.quantity &&
+         prevProps.item.price.amount === nextProps.item.price.amount &&
+         prevProps.isUpdating === nextProps.isUpdating;
+});
+
+export default CartItem;
 
 function ImagePlaceholder() {
   return (

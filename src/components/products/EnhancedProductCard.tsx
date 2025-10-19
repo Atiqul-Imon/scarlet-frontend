@@ -10,7 +10,7 @@ interface EnhancedProductCardProps {
   showQuickActions?: boolean;
 }
 
-export default function EnhancedProductCard({ 
+const EnhancedProductCard = React.memo(function EnhancedProductCard({ 
   product, 
   showQuickActions = true 
 }: EnhancedProductCardProps) {
@@ -251,7 +251,15 @@ export default function EnhancedProductCard({
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function for better performance
+  return prevProps.product._id === nextProps.product._id &&
+         prevProps.product.stock === nextProps.product.stock &&
+         prevProps.product.price.amount === nextProps.product.price.amount &&
+         prevProps.showQuickActions === nextProps.showQuickActions;
+});
+
+export default EnhancedProductCard;
 
 // Icon Components
 function EyeIcon() {
