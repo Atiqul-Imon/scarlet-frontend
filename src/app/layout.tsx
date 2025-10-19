@@ -5,6 +5,7 @@ import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
+import { SWRProvider } from "../components/providers/SWRProvider";
 import StickyCartButton from "../components/cart/StickyCartButton";
 import FloatingWhatsAppButton from "../components/chat/FloatingWhatsAppButton";
 import FloatingMessengerButton from "../components/chat/FloatingMessengerButton";
@@ -130,26 +131,28 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} ${playfairDisplay.variable} antialiased h-full`}
       >
-        <AppProvider>
-          <ChatProvider>
-            <ServiceWorkerProvider>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className="flex-1">
-                  {children}
-                </main>
-                <Footer />
-                {/* Sticky Cart Button */}
-                <StickyCartButton />
-                {/* Chat Widget */}
-                <ChatWidget />
-                {/* Separated Chat Widgets */}
-                <FloatingWhatsAppButton />
-                <FloatingMessengerButton />
-              </div>
-            </ServiceWorkerProvider>
-          </ChatProvider>
-        </AppProvider>
+        <SWRProvider>
+          <AppProvider>
+            <ChatProvider>
+              <ServiceWorkerProvider>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                  <Footer />
+                  {/* Sticky Cart Button */}
+                  <StickyCartButton />
+                  {/* Chat Widget */}
+                  <ChatWidget />
+                  {/* Separated Chat Widgets */}
+                  <FloatingWhatsAppButton />
+                  <FloatingMessengerButton />
+                </div>
+              </ServiceWorkerProvider>
+            </ChatProvider>
+          </AppProvider>
+        </SWRProvider>
       </body>
     </html>
   );
