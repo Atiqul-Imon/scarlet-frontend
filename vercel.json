@@ -1,4 +1,7 @@
 {
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
   "headers": [
     {
       "source": "/favicon.ico",
@@ -31,6 +34,11 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "app/**/*.js": {
+      "maxDuration": 10
+    }
+  }
 }
 

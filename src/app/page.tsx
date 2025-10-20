@@ -51,7 +51,7 @@ export default function Home() {
         subtitle="Discover our latest beauty essentials"
         category="new"
         viewAllLink="/products?filter=new"
-        limit={12}
+        limit={30}
       />
       
       
@@ -61,6 +61,7 @@ export default function Home() {
         subtitle="Nourish and protect your skin"
         category="skincare-essentials"
         viewAllLink="/skincare"
+        limit={30}
       />
       
       {/* Makeup Section */}
@@ -69,6 +70,7 @@ export default function Home() {
         subtitle="Enhance your natural beauty"
         category="makeup-collection"
         viewAllLink="/makeup"
+        limit={30}
       />
       
       {/* Newsletter Signup */}

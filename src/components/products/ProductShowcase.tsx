@@ -44,8 +44,11 @@ export default function ProductShowcase({
         
         // Handle special categories and filtering
         if (category === 'new' || category === 'new-arrivals') {
-          queryParams.sort = 'newest';
-          queryParams.isNewArrival = true;
+          // Use the new homepage section API
+          const response = await fetchJson<Product[]>(`/catalog/products/homepage/new-arrivals`);
+          const productsData = Array.isArray(response) ? response : [];
+          setProducts(productsData.slice(0, limit));
+          return;
         } else if (category === 'skincare-essentials') {
           // Use the new homepage section API
           const response = await fetchJson<Product[]>(`/catalog/products/homepage/skincare-essentials`);
