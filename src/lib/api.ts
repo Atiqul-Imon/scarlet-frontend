@@ -994,6 +994,22 @@ export const authApi = {
       body: JSON.stringify({ token, newPassword }),
     });
   },
+
+  // Send phone OTP
+  sendPhoneOtp: (phone: string): Promise<{ message: string; otp?: string }> => {
+    return fetchJsonAuth<{ message: string; otp?: string }>('/auth/send-phone-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  },
+
+  // Verify phone OTP
+  verifyPhoneOtp: (phone: string, otp: string): Promise<{ message: string; verified: boolean }> => {
+    return fetchJsonAuth<{ message: string; verified: boolean }>('/auth/verify-phone-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone, otp }),
+    });
+  },
 };
 
 // Utility functions for handling API responses

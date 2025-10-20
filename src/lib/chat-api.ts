@@ -1,4 +1,4 @@
-import { fetchJson } from './api';
+import { fetchJson, fetchJsonAuth } from './api';
 import type { 
   ChatConversation, 
   ChatMessage, 
@@ -36,15 +36,10 @@ export const chatApi = {
   },
 
   async getActiveConversations(): Promise<ChatConversation[]> {
-    console.log('Chat API: Getting active conversations...');
+    console.log('Chat API: Getting user conversations...');
     try {
-      // Use fetchJsonAuth for admin endpoints to include authentication token
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-      const result = await fetchJson('/chat/admin/conversations', {
-        headers: {
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-      });
+      // Use the user-specific endpoint instead of admin endpoint
+      const result = await fetchJsonAuth<ChatConversation[]>('/chat/conversations');
       console.log('Chat API: Got conversations:', result);
       return result;
     } catch (error) {
