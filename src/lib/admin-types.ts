@@ -82,7 +82,7 @@ export interface AdminOrderAddress {
 export interface AdminOrder {
   _id: string;
   orderNumber: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  status: 'pending' | 'confirmed' | 'processing' | 'delivered' | 'cancelled' | 'refunded';
   paymentStatus: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
   paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod';
   customer: AdminOrderCustomer;
@@ -96,8 +96,6 @@ export interface AdminOrder {
   shippingAddress: AdminOrderAddress;
   billingAddress: AdminOrderAddress;
   notes?: string;
-  trackingNumber?: string | null;
-  estimatedDelivery?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -125,7 +123,7 @@ export interface AdminProductFilters extends AdminFilters {
 }
 
 export interface AdminOrderFilters extends AdminFilters {
-  status?: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  status?: 'pending' | 'processing' | 'delivered' | 'cancelled' | 'refunded';
   dateFrom?: string;
   dateTo?: string;
   minAmount?: number;

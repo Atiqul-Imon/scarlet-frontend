@@ -1202,12 +1202,11 @@ export const adminApi = {
 
     updateOrderStatus: (
       orderId: string, 
-      status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded',
-      trackingNumber?: string
+      status: 'pending' | 'processing' | 'delivered' | 'cancelled' | 'refunded'
     ): Promise<{ message: string }> => {
       return fetchJsonAuth(`/admin/orders/${orderId}/status`, {
         method: 'PATCH',
-        body: JSON.stringify({ status, trackingNumber })
+        body: JSON.stringify({ status })
       });
     }
   },

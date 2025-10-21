@@ -29,8 +29,6 @@ interface OrderReceiptData {
   currency: string;
   paymentMethod: string;
   status: string;
-  estimatedDelivery?: string | undefined;
-  trackingNumber?: string | undefined;
 }
 
 export async function generateReceiptPDF(

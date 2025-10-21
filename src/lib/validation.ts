@@ -403,7 +403,7 @@ export function validateOrder(order: unknown): {
   discount: number;
   total: number;
   currency: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  status: 'pending' | 'confirmed' | 'processing' | 'delivered' | 'cancelled' | 'refunded';
   shippingAddress: {
     firstName: string;
     lastName: string;
@@ -434,8 +434,6 @@ export function validateOrder(order: unknown): {
     brand?: string;
   };
   shippingMethod: string;
-  trackingNumber?: string;
-  estimatedDelivery?: string;
   deliveredAt?: string;
   notes?: string;
   createdAt: string;
@@ -469,10 +467,10 @@ export function validateOrder(order: unknown): {
     currency: validateString(order.currency, 'currency'),
     status: (() => {
       const status = validateString(order.status, 'status');
-      if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'].includes(status)) {
-        throw new ValidationError('Invalid order status', 'status', status, 'pending | confirmed | processing | shipped | delivered | cancelled | refunded');
+      if (!['pending', 'confirmed', 'processing', 'delivered', 'cancelled', 'refunded'].includes(status)) {
+        throw new ValidationError('Invalid order status', 'status', status, 'pending | confirmed | processing | delivered | cancelled | refunded');
       }
-      return status as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+      return status as 'pending' | 'confirmed' | 'processing' | 'delivered' | 'cancelled' | 'refunded';
     })(),
     shippingAddress: validateObject(order.shippingAddress, 'shippingAddress', {
       firstName: validateString,
@@ -517,8 +515,6 @@ export function validateOrder(order: unknown): {
       brand: (value) => validateOptional(validateString, value),
     }),
     shippingMethod: validateString(order.shippingMethod, 'shippingMethod'),
-    trackingNumber: validateOptional(validateString, order.trackingNumber),
-    estimatedDelivery: validateOptional(validateString, order.estimatedDelivery),
     deliveredAt: validateOptional(validateString, order.deliveredAt),
     notes: validateOptional(validateString, order.notes),
     createdAt: validateString(order.createdAt, 'createdAt'),

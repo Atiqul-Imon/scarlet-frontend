@@ -384,7 +384,6 @@ export const formatters = {
       pending: 'Pending',
       confirmed: 'Confirmed',
       processing: 'Processing',
-      shipped: 'Shipped',
       delivered: 'Delivered',
       cancelled: 'Cancelled',
       refunded: 'Refunded',
