@@ -7,10 +7,10 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
 } from '@heroicons/react/24/outline';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/context';
 import { categoryApi } from '@/lib/api';
 import { CategoryTree as CategoryTreeType, Category } from '@/lib/types';
+import ImageSelector from '@/components/admin/ImageSelector';
 
 const categoryIcons = [
   '💇‍♀️', '🧪', '💧', '🧼', '🌊', '✨', '☀️', '💄', '🌿', 
@@ -36,7 +36,6 @@ export default function NewCategoryPage() {
     sortOrder: 0,
     parentId: null as string | null
   });
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedParent, setSelectedParent] = useState<Category | null>(null);
 
@@ -92,64 +91,8 @@ export default function NewCategoryPage() {
       .trim();
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      addToast({
-        type: 'error',
-        title: 'Invalid File',
-        message: 'Please select an image file'
-      });
-      return;
-    }
-
-    // Validate file size (max 100KB)
-    if (file.size > 100 * 1024) {
-      addToast({
-        type: 'error',
-        title: 'File Too Large',
-        message: 'Image must be less than 100KB. Please compress your image.'
-      });
-      return;
-    }
-
-    try {
-      setUploadingImage(true);
-      
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = await response.json();
-      
-      setFormData(prev => ({ ...prev, image: data.url }));
-      
-      addToast({
-        type: 'success',
-        title: 'Image Uploaded',
-        message: 'Category image uploaded successfully'
-      });
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      addToast({
-        type: 'error',
-        title: 'Upload Failed',
-        message: 'Failed to upload image. Please try again.'
-      });
-    } finally {
-      setUploadingImage(false);
-    }
+  const handleImageSelect = (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, image: imageUrl }));
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -407,63 +350,45 @@ export default function NewCategoryPage() {
                 <label className="block text-sm font-medium text-gray-700">
                   Category Image
                 </label>
-                <div className="flex items-start space-x-4">
-                  <div className="flex-1">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-500 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="category-image-upload"
-                        disabled={uploadingImage}
-                      />
-                      <label
-                        htmlFor="category-image-upload"
-                        className="cursor-pointer block"
-                      >
-                        {uploadingImage ? (
-                          <div className="py-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700 mx-auto"></div>
-                            <p className="mt-2 text-sm text-gray-600">Uploading...</p>
-                          </div>
-                        ) : formData.image ? (
-                          <div className="space-y-2">
-                            <img 
-                              src={formData.image} 
-                              alt="Category preview" 
-                              className="w-24 h-24 object-cover rounded-lg mx-auto border-2 border-gray-200"
-                            />
-                            <p className="text-sm text-gray-600">Click to change image</p>
-                          </div>
-                        ) : (
-                          <div>
-                            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            <p className="mt-2 text-sm text-gray-600">
-                              Click to upload category image
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              PNG, JPG, WEBP up to 100KB
-                            </p>
-                          </div>
-                        )}
-                      </label>
+                
+                {formData.image ? (
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="relative group">
+                        <img
+                          src={formData.image}
+                          alt="Category"
+                          className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg hover:bg-red-600 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                    {formData.image && (
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                        className="mt-2 text-sm text-red-600 hover:text-red-800"
-                      >
-                        Remove image
-                      </button>
-                    )}
+                    <div className="flex-1">
+                      <ImageSelector
+                        onImageSelect={handleImageSelect}
+                        productSlug={formData.slug || 'category'}
+                        buttonText="Change Image"
+                      />
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <ImageSelector
+                    onImageSelect={handleImageSelect}
+                    productSlug={formData.slug || 'category'}
+                    buttonText="Add Category Image"
+                  />
+                )}
+                
                 <p className="text-xs text-gray-500">
-                  Upload an image to display in the homepage category section. If no image is uploaded, the icon will be used.
+                  Select from media gallery or upload a new image. Will be displayed on the homepage category section.
                 </p>
               </div>
 
