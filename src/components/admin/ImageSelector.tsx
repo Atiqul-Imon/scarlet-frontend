@@ -73,6 +73,7 @@ export default function ImageSelector({
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
     const file = e.target.files?.[0];
     if (file) {
       const validation = validateImageFile(file);
@@ -84,7 +85,11 @@ export default function ImageSelector({
     }
   };
 
-  const handleUploadFromComputer = async () => {
+  const handleUploadFromComputer = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!selectedFile) return;
 
     try {
@@ -143,13 +148,30 @@ export default function ImageSelector({
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-200">
+        <div 
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.target === e.currentTarget) {
+              handleCloseModal();
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">Select Image</h2>
               <button
-                onClick={handleCloseModal}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleCloseModal();
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <XMarkIcon className="w-6 h-6" />
@@ -159,7 +181,12 @@ export default function ImageSelector({
             {/* Tabs */}
             <div className="flex border-b border-gray-200">
               <button
-                onClick={() => setActiveTab('media')}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setActiveTab('media');
+                }}
                 className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
                   activeTab === 'media'
                     ? 'border-b-2 border-red-600 text-red-600'
@@ -170,7 +197,12 @@ export default function ImageSelector({
                 Media Gallery
               </button>
               <button
-                onClick={() => setActiveTab('upload')}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setActiveTab('upload');
+                }}
                 className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
                   activeTab === 'upload'
                     ? 'border-b-2 border-red-600 text-red-600'
@@ -261,19 +293,30 @@ export default function ImageSelector({
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                     <CloudArrowUpIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                     <input
+                      ref={(input) => {
+                        if (input) {
+                          (window as any).fileInputRef = input;
+                        }
+                      }}
                       type="file"
                       accept="image/*"
                       onChange={handleFileSelect}
                       className="hidden"
                       id="file-upload"
                     />
-                    <label
-                      htmlFor="file-upload"
-                      onClick={(e) => e.stopPropagation()}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+                        if (fileInput) {
+                          fileInput.click();
+                        }
+                      }}
                       className="cursor-pointer inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
                     >
                       Choose File
-                    </label>
+                    </button>
                     <p className="mt-2 text-sm text-gray-500">
                       PNG, JPG, WEBP up to 5MB
                     </p>
@@ -290,7 +333,7 @@ export default function ImageSelector({
                       </p>
                       <button
                         type="button"
-                        onClick={handleUploadFromComputer}
+                        onClick={(e) => handleUploadFromComputer(e)}
                         disabled={uploading}
                         className="mt-4 w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
