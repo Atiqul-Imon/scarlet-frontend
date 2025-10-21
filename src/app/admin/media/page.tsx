@@ -369,42 +369,22 @@ export default function MediaGalleryPage() {
                       : 'border-gray-200 hover:border-red-300'
                   }`}
                 >
-                  <div className="aspect-square relative overflow-hidden rounded-t-lg bg-gray-100">
+                  <div className="aspect-square relative overflow-hidden rounded-t-lg bg-white">
                     <img
                       src={file.thumbnailUrl || file.url}
                       alt={file.alt || file.originalName}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      className="w-full h-full object-cover"
                       loading="lazy"
-                      onLoad={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.opacity = '1';
-                      }}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `data:image/svg+xml;base64,${btoa(`
-                          <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="100" height="100" fill="#f3f4f6"/>
-                            <text x="50" y="50" text-anchor="middle" dy=".3em" font-family="Arial" font-size="12" fill="#6b7280">Image</text>
+                          <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="200" height="200" fill="#f3f4f6"/>
+                            <text x="100" y="100" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14" fill="#6b7280">Image</text>
                           </svg>
                         `)}`;
                       }}
-                      style={{ opacity: 0 }}
                     />
-                    <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
-                        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50">
-                          <EyeIcon className="w-4 h-4 text-gray-600" />
-                        </button>
-                        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50">
-                          <PencilIcon className="w-4 h-4 text-gray-600" />
-                        </button>
-                      </div>
-                    </div>
                     <input
                       type="checkbox"
                       checked={selectedFiles.includes(file._id)}
@@ -501,7 +481,7 @@ function UploadModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-gray-200">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">

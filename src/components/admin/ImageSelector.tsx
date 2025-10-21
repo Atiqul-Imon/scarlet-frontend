@@ -46,6 +46,7 @@ export default function ImageSelector({
         pages: number;
         total: number;
       }>('/media?limit=50');
+      console.log('Media files fetched:', response.files);
       setMediaFiles(response.files);
     } catch (error) {
       console.error('Error fetching media files:', error);
@@ -142,8 +143,8 @@ export default function ImageSelector({
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-200">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">Select Image</h2>
@@ -204,7 +205,22 @@ export default function ImageSelector({
                   ) : filteredFiles.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <PhotoIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p>No images found</p>
+                      <p className="text-lg font-medium">No images found</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        {mediaFiles.length === 0 ? 'Media gallery is empty. Upload some images first.' : 'No images match your search'}
+                      </p>
+                      {mediaFiles.length === 0 && (
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('upload')}
+                            className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                          >
+                            <CloudArrowUpIcon className="w-4 h-4 mr-2" />
+                            Upload Your First Image
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -213,18 +229,27 @@ export default function ImageSelector({
                           key={file._id}
                           type="button"
                           onClick={() => handleSelectFromMedia(file.url)}
-                          className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden hover:ring-2 hover:ring-red-500 transition-all"
+                          className="aspect-square bg-white rounded-lg overflow-hidden hover:ring-2 hover:ring-red-500 transition-all border border-gray-200 shadow-sm hover:shadow-md"
                         >
                           <img
                             src={file.thumbnailUrl || file.url}
                             alt={file.alt || file.originalName}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onLoad={() => {
+                              console.log('Image loaded successfully:', file.thumbnailUrl || file.url);
+                            }}
+                            onError={(e) => {
+                              console.log('Image failed to load:', file.thumbnailUrl || file.url);
+                              const target = e.target as HTMLImageElement;
+                              target.src = `data:image/svg+xml;base64,${btoa(`
+                                <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+                                  <rect width="200" height="200" fill="#f3f4f6"/>
+                                  <text x="100" y="100" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14" fill="#6b7280">Image</text>
+                                </svg>
+                              `)}`;
+                            }}
                           />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
-                            <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium">
-                              Select
-                            </span>
-                          </div>
                         </button>
                       ))}
                     </div>
