@@ -2,31 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  UsersIcon,
-  ShoppingCartIcon,
-  CubeIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  ExclamationTriangleIcon,
-  SparklesIcon,
-  HeartIcon,
-  StarIcon
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { BDTIcon } from '../../components/ui/BDTIcon';
 import { adminApi } from '@/lib/api';
 import type { AdminStats } from '@/lib/admin-types';
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  change?: string;
-  changeType?: 'increase' | 'decrease';
-  icon: React.ComponentType<{ className?: string }>;
   color: 'pink' | 'blue' | 'green' | 'purple' | 'orange' | 'red';
   subtitle?: string;
 }
 
-function StatCard({ title, value, change, changeType, icon: Icon, color, subtitle }: StatCardProps) {
+function StatCard({ title, value, color, subtitle }: StatCardProps) {
   const colorClasses = {
     pink: {
       bg: 'from-red-500 to-rose-500',
@@ -69,31 +57,13 @@ function StatCard({ title, value, change, changeType, icon: Icon, color, subtitl
   const classes = colorClasses[color];
 
   return (
-    <div className={`bg-gradient-to-r ${classes.lightBg} rounded-2xl p-6 border ${classes.border} hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}>
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-gray-600 text-sm font-medium mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
-          {subtitle && (
-            <p className="text-gray-500 text-xs">{subtitle}</p>
-          )}
-          {change && (
-            <div className="flex items-center mt-2">
-              {changeType === 'increase' ? (
-                <ArrowTrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
-              ) : (
-                <ArrowTrendingDownIcon className="w-4 h-4 text-red-500 mr-1" />
-              )}
-              <span className={`text-sm font-medium ${changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
-                {change}
-              </span>
-              <span className="text-gray-500 text-sm ml-1">vs yesterday</span>
-            </div>
-          )}
-        </div>
-        <div className={`w-14 h-14 bg-gradient-to-r ${classes.bg} rounded-xl flex items-center justify-center shadow-lg`}>
-          <Icon className="w-7 h-7 text-white" />
-        </div>
+    <div className={`bg-gradient-to-r ${classes.lightBg} rounded-2xl p-6 border ${classes.border} hover:shadow-lg transition-all duration-300`}>
+      <div className="flex flex-col">
+        <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
+        <p className="text-4xl font-bold text-gray-900 mb-2">{value}</p>
+        {subtitle && (
+          <p className="text-gray-500 text-sm">{subtitle}</p>
+        )}
       </div>
     </div>
   );
@@ -165,36 +135,24 @@ export default function AdminDashboard() {
         <StatCard
           title="Total Customers"
           value={stats?.totalUsers.toLocaleString() || '0'}
-          change="+12.5%"
-          changeType="increase"
-          icon={UsersIcon}
           color="red"
           subtitle="Beauty lovers"
         />
         <StatCard
           title="Total Orders"
           value={stats?.totalOrders.toLocaleString() || '0'}
-          change="+8.2%"
-          changeType="increase"
-          icon={ShoppingCartIcon}
           color="blue"
           subtitle="Happy purchases"
         />
         <StatCard
           title="Total Revenue"
           value={`৳${stats?.totalRevenue.toLocaleString() || '0'}`}
-          change="+15.3%"
-          changeType="increase"
-          icon={BDTIcon}
           color="green"
           subtitle="Beauty sales"
         />
         <StatCard
           title="Products"
           value={stats?.totalProducts.toLocaleString() || '0'}
-          change="+2.1%"
-          changeType="increase"
-          icon={CubeIcon}
           color="purple"
           subtitle="Beauty items"
         />
@@ -205,27 +163,18 @@ export default function AdminDashboard() {
         <StatCard
           title="Today's Sales"
           value={`৳${stats?.revenueToday.toLocaleString() || '0'}`}
-          change="+23.1%"
-          changeType="increase"
-          icon={SparklesIcon}
           color="red"
           subtitle="Looking gorgeous!"
         />
         <StatCard
           title="New Customers"
           value={stats?.newUsersToday.toLocaleString() || '0'}
-          change="+5.7%"
-          changeType="increase"
-          icon={HeartIcon}
           color="orange"
           subtitle="Welcome beauties!"
         />
         <StatCard
           title="Orders Today"
           value={stats?.ordersToday.toLocaleString() || '0'}
-          change="+18.9%"
-          changeType="increase"
-          icon={StarIcon}
           color="blue"
           subtitle="Busy day!"
         />
@@ -236,14 +185,12 @@ export default function AdminDashboard() {
         <StatCard
           title="Pending Orders"
           value={stats?.pendingOrders.toLocaleString() || '0'}
-          icon={ExclamationTriangleIcon}
           color="orange"
           subtitle="Need attention"
         />
         <StatCard
           title="Low Stock Items"
           value={stats?.lowStockProducts.toLocaleString() || '0'}
-          icon={CubeIcon}
           color="red"
           subtitle="Restock needed"
         />
