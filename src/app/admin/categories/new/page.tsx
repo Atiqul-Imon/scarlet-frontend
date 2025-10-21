@@ -54,11 +54,81 @@ export default function NewCategoryPage() {
     }
   }, [parentIdFromUrl]);
 
+  const buildHierarchyFromFlatData = (categories: Category[]): CategoryTreeType[] => {
+    const categoryMap = new Map<string, CategoryTreeType>();
+    const rootCategories: CategoryTreeType[] = [];
+    
+    // Create map of all categories
+    categories.forEach(category => {
+      if (category._id) {
+        categoryMap.set(category._id, { ...category, children: [] });
+      }
+    });
+    
+    // Build tree structure
+    categories.forEach(category => {
+      if (!category._id) return;
+      const categoryTree = categoryMap.get(category._id);
+      if (!categoryTree) return;
+      
+      if (category.parentId) {
+        const parent = categoryMap.get(category.parentId);
+        if (parent) {
+          parent.children = parent.children || [];
+          parent.children.push(categoryTree);
+          parent.hasChildren = true;
+          parent.childrenCount = (parent.childrenCount || 0) + 1;
+        }
+      } else {
+        rootCategories.push(categoryTree);
+      }
+    });
+    
+    return rootCategories;
+  };
+
   const loadHierarchy = async () => {
     try {
       setLoadingHierarchy(true);
-      const hierarchyData = await categoryApi.getCategoryTree();
-      setHierarchy(hierarchyData);
+      
+      // Fetch both flat categories and tree structure
+      const [categoriesResponse, treeResponse] = await Promise.all([
+        categoryApi.getCategories(),
+        categoryApi.getCategoryTree()
+      ]);
+      
+      const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : [];
+      const hierarchyData = Array.isArray(treeResponse) ? treeResponse : [];
+      
+      console.log('Category tree data received:', hierarchyData);
+      console.log('Flat categories data:', categoriesData);
+      console.log('Number of root categories:', hierarchyData.length);
+      
+      // Check if tree data has proper hierarchy, if not build it from flat data
+      let processedTreeData = hierarchyData;
+      const hasHierarchy = hierarchyData.some(cat => cat.children && cat.children.length > 0);
+      
+      if (!hasHierarchy && categoriesData.length > 0) {
+        console.log('Tree API returned flat data, building hierarchy from flat data');
+        processedTreeData = buildHierarchyFromFlatData(categoriesData);
+      }
+      
+      // Debug: Check if Basic Care exists in the data
+      const findCategory = (categories: CategoryTreeType[], name: string): CategoryTreeType | null => {
+        for (const cat of categories) {
+          if (cat.name === name) return cat;
+          if (cat.children) {
+            const found = findCategory(cat.children, name);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      
+      const basicCare = findCategory(processedTreeData, 'Basic Care');
+      console.log('Basic Care found:', basicCare);
+      
+      setHierarchy(processedTreeData);
     } catch (error) {
       console.error('Error loading category hierarchy:', error);
       addToast({
@@ -549,7 +619,7 @@ interface CategoryTreeItemProps {
 }
 
 const CategoryTreeItem: React.FC<CategoryTreeItemProps> = ({ category, onSelect, level }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Expanded by default to show all categories
   const hasChildren = category.children && category.children.length > 0;
 
   const handleClick = () => {
