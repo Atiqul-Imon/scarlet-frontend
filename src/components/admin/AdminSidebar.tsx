@@ -20,7 +20,8 @@ import {
   DocumentTextIcon,
   BellIcon,
   ExclamationTriangleIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline';
 import type { AdminNavItem } from '@/lib/admin-types';
 
@@ -67,6 +68,12 @@ const navigationItems: AdminNavItem[] = [
     label: 'Homepage Categories',
     href: '/admin/categories',
     icon: DocumentTextIcon,
+  },
+  {
+    id: 'media',
+    label: 'Media Gallery',
+    href: '/admin/media',
+    icon: PhotoIcon,
   },
   {
     id: 'blog',
