@@ -56,11 +56,15 @@ export default function BrandShowcase() {
           (!cat.parentId || cat.parentId === '' || cat.parentId === null)
         );
         
+        // Limit to maximum 8 categories for homepage display
+        const limitedCategories = topLevelCategories.slice(0, 8);
+        
         console.log('Total categories:', categoriesData.length);
         console.log('Top-level categories:', topLevelCategories.length);
-        console.log('Top-level category names:', topLevelCategories.map(c => c.name));
+        console.log('Showing categories:', limitedCategories.length);
+        console.log('Category names:', limitedCategories.map(c => c.name));
         
-        setCategories(topLevelCategories);
+        setCategories(limitedCategories);
       } catch (err) {
         console.error('Error fetching categories:', err);
         setError('Failed to load categories');
@@ -112,43 +116,52 @@ export default function BrandShowcase() {
     );
   }
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50">
       <div className="container-herlan">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+        {/* Section Header */}
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
             Shop By Category
           </h2>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+        {/* Category Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {categories.map((category) => (
             <Link
               key={category._id}
               href={`/products?category=${category.slug}`}
-              className="group"
+              className="group block"
             >
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 text-center hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <div className="w-16 h-16 mx-auto mb-3 bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden border-2 border-gray-200 group-hover:border-red-300 transition-all duration-300">
-                  {category.image ? (
-                    <img 
-                      src={category.image} 
-                      alt={category.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-3xl">
-                      {getCategoryIcon(category.name)}
-                    </span>
-                  )}
+              <div className="bg-gradient-to-br from-red-100 via-pink-50 to-red-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-red-200 hover:border-red-400">
+                {/* Content Container */}
+                <div className="p-4 sm:p-6 flex flex-col items-center justify-center h-[240px] sm:h-[260px] md:h-[280px]">
+                  {/* Image/Icon Container - Rounded */}
+                  <div className="mb-4">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden border-2 border-red-100 hover:border-red-300 transition-colors duration-300">
+                      {category.image ? (
+                        <img 
+                          src={category.image} 
+                          alt={category.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : category.icon ? (
+                        <span className="text-4xl sm:text-5xl md:text-6xl">
+                          {category.icon}
+                        </span>
+                      ) : (
+                        <span className="text-4xl sm:text-5xl md:text-6xl">
+                          {getCategoryIcon(category.name)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Category Name */}
+                  <h3 className="font-semibold text-gray-900 text-base sm:text-lg md:text-xl text-center leading-tight px-2">
+                    {category.name}
+                  </h3>
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-700 transition-colors duration-300">
-                  {category.name}
-                </h3>
-                {category.description && (
-                  <p className="text-xs text-gray-600 line-clamp-2">
-                    {category.description}
-                  </p>
-                )}
               </div>
             </Link>
           ))}
