@@ -1,9 +1,7 @@
 import Hero from "../components/hero/Hero";
 import ProductShowcase from "../components/products/ProductShowcase";
 import BrandShowcase from "../components/brands/BrandShowcase";
-import CategorySection from "../components/categories/CategorySection";
-import { SectionContainer, ResponsiveFlex } from "../components/layout";
-import StructuredData from "../components/seo/StructuredData";
+import { ResponsiveFlex } from "../components/layout";
 
 export const metadata = {
   title: "Premium Beauty & Skincare Store in Bangladesh",
@@ -39,10 +37,7 @@ export default function Home() {
     <div className="bg-white">
       <Hero />
       
-      {/* Category Section */}
-      <CategorySection />
-      
-      {/* Brand Showcase */}
+      {/* Category Section (previously Brand Showcase) */}
       <BrandShowcase />
       
       {/* New Arrivals */}

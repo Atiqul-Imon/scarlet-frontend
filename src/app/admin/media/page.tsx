@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/lib/context';
-import { fetchJson } from '@/lib/api';
+import { fetchJsonAuth } from '@/lib/api';
 import { 
   CloudArrowUpIcon, 
   MagnifyingGlassIcon,
-  FunnelIcon,
   PhotoIcon,
   TrashIcon,
   PencilIcon,
@@ -41,6 +39,13 @@ interface MediaFilters {
   mimeType?: string;
 }
 
+interface MediaStats {
+  totalFiles: number;
+  totalSize: number;
+  byCategory: Record<string, number>;
+  byMimeType: Record<string, number>;
+}
+
 export default function MediaGalleryPage() {
   const { user } = useAuth();
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
@@ -48,11 +53,12 @@ export default function MediaGalleryPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [filters, setFilters] = useState<MediaFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<MediaStats | null>(null);
 
   // Fetch media files
   const fetchMediaFiles = async () => {
@@ -69,7 +75,11 @@ export default function MediaGalleryPage() {
         ...(filters.tags && filters.tags.length > 0 && { tags: filters.tags.join(',') })
       });
 
-      const response = await fetchJson(`/media?${queryParams}`);
+      const response = await fetchJsonAuth<{
+        files: MediaFile[];
+        pages: number;
+        total: number;
+      }>(`/media?${queryParams}`);
       setMediaFiles(response.files);
       setTotalPages(response.pages);
     } catch (err) {
@@ -83,7 +93,7 @@ export default function MediaGalleryPage() {
   // Fetch media stats
   const fetchStats = async () => {
     try {
-      const response = await fetchJson('/media/stats/overview');
+      const response = await fetchJsonAuth<MediaStats>('/media/stats/overview');
       setStats(response);
     } catch (err) {
       console.error('Error fetching media stats:', err);
@@ -111,7 +121,7 @@ export default function MediaGalleryPage() {
     try {
       await Promise.all(
         selectedFiles.map(fileId => 
-          fetchJson(`/media/${fileId}`, { method: 'DELETE' })
+          fetchJsonAuth(`/media/${fileId}`, { method: 'DELETE' })
         )
       );
       
@@ -119,6 +129,70 @@ export default function MediaGalleryPage() {
       fetchMediaFiles();
     } catch (err) {
       console.error('Error deleting files:', err);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      setUploadProgress(0);
+      
+      // Create simple form data for ImageKit upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('productSlug', 'media-gallery'); // Use a generic slug for media gallery
+      
+      // Upload to ImageKit
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+      
+      const uploadResult = await uploadResponse.json();
+      
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'Upload failed');
+      }
+      
+      // Save to media gallery database with minimal data
+      const mediaData = {
+        filename: uploadResult.data.filename,
+        originalName: file.name,
+        url: uploadResult.data.url,
+        thumbnailUrl: uploadResult.data.thumbnailUrl,
+        size: uploadResult.data.size,
+        mimeType: file.type,
+        width: uploadResult.data.width,
+        height: uploadResult.data.height,
+        alt: file.name, // Use filename as alt text
+        caption: '',
+        tags: [],
+        category: 'general'
+      };
+      
+      // Save to backend media collection
+      await fetchJsonAuth('/media', {
+        method: 'POST',
+        body: JSON.stringify(mediaData)
+      });
+      
+      // Refresh the media list
+      fetchMediaFiles();
+      fetchStats();
+      
+      setShowUploadModal(false);
+      setUploadProgress(100);
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError('Failed to upload file: ' + (error as Error).message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -198,7 +272,7 @@ export default function MediaGalleryPage() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Products</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.byCategory.product || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.byCategory['product'] || 0}</p>
                 </div>
               </div>
             </div>
@@ -209,7 +283,7 @@ export default function MediaGalleryPage() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Categories</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.byCategory.category || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.byCategory['category'] || 0}</p>
                 </div>
               </div>
             </div>
@@ -232,7 +306,10 @@ export default function MediaGalleryPage() {
               </div>
               <select
                 value={filters.category || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value || undefined }))}
+                onChange={(e) => setFilters(prev => ({ 
+                  ...prev, 
+                  category: e.target.value || 'general' 
+                }))}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
               >
                 <option value="">All Categories</option>
@@ -292,12 +369,32 @@ export default function MediaGalleryPage() {
                       : 'border-gray-200 hover:border-red-300'
                   }`}
                 >
-                  <div className="aspect-square relative overflow-hidden rounded-t-lg">
+                  <div className="aspect-square relative overflow-hidden rounded-t-lg bg-gray-100">
                     <img
                       src={file.thumbnailUrl || file.url}
                       alt={file.alt || file.originalName}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      loading="lazy"
+                      onLoad={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.opacity = '1';
+                      }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = `data:image/svg+xml;base64,${btoa(`
+                          <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="100" height="100" fill="#f3f4f6"/>
+                            <text x="50" y="50" text-anchor="middle" dy=".3em" font-family="Arial" font-size="12" fill="#6b7280">Image</text>
+                          </svg>
+                        `)}`;
+                      }}
+                      style={{ opacity: 0 }}
                     />
+                    <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
                         <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50">
@@ -368,6 +465,135 @@ export default function MediaGalleryPage() {
             )}
           </>
         )}
+
+        {/* Upload Modal */}
+        {showUploadModal && (
+          <UploadModal
+            onClose={() => setShowUploadModal(false)}
+            onUpload={handleFileUpload}
+            uploading={uploading}
+            progress={uploadProgress}
+          />
+        )}
       </div>
+  );
+}
+
+// Upload Modal Component
+function UploadModal({ 
+  onClose, 
+  onUpload, 
+  uploading, 
+  progress 
+}: { 
+  onClose: () => void; 
+  onUpload: (file: File) => void;
+  uploading: boolean;
+  progress: number;
+}) {
+  const [file, setFile] = useState<File | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return;
+
+    await onUpload(file);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-gray-200">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Upload Media File</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              disabled={uploading}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* File Input */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Select Image File
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                  required
+                />
+              </div>
+              {file && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm font-medium text-green-800">
+                    ✓ {file.name}
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Upload Progress */}
+            {uploading && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">Uploading...</span>
+                  <span className="text-sm font-bold text-red-600">{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-red-500 to-red-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 text-center">
+                  Please don't close this window during upload
+                </p>
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div className="flex space-x-3 pt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                disabled={uploading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!file || uploading}
+                className="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                {uploading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Uploading...
+                  </span>
+                ) : (
+                  'Upload File'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
