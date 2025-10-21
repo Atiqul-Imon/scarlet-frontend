@@ -31,41 +31,13 @@ export default function AdminCategoriesPage() {
     fetchCategories();
   }, []);
 
-  const categoryIcons: Record<string, string> = {
-    'hair care': '💇‍♀️',
-    'hair-care': '💇‍♀️',
-    'serum': '🧪',
-    'serums': '🧪',
-    'essences': '💧',
-    'cleansers': '🧼',
-    'toner': '🌊',
-    'moisturizers': '💧',
-    'exfoliators': '✨',
-    'sun protection': '☀️',
-    'sun-protection': '☀️',
-    'makeup': '💄',
-    'make up': '💄',
-    'skincare': '🌿',
-    'skin care': '🌿',
-    'body care': '🧴',
-    'bath & body care': '🛁',
-    'bath body': '🛁',
-    'accessories': '✨',
-    'fragrance': '🌸',
-    'tools': '🔧',
-    'foundation': '🎨',
-    'lipstick': '💋',
-    'eye makeup': '👁️',
-    'shampoo': '🧴',
-    'sunscreen': '☀️'
-  };
 
   const getCategoryIcon = (category: Category) => {
-    // Use the icon from the database if available, otherwise fall back to name-based mapping
+    // Use the icon from the database if available, otherwise show null
     if (category.icon) {
       return category.icon;
     }
-    return categoryIcons[category.name.toLowerCase()] || '🌟';
+    return null;
   };
 
   // Build hierarchy from flat category data
@@ -309,10 +281,10 @@ export default function AdminCategoriesPage() {
             )}
           </div>
 
-          {/* Category Icon */}
+          {/* Category Icon/Image */}
           <div className="flex-shrink-0">
             <div 
-              className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm border-2 ${
+              className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-sm border-2 overflow-hidden ${
                 level === 0 ? 'border-blue-200' :
                 level === 1 ? 'border-green-200' :
                 level === 2 ? 'border-purple-200' :
@@ -324,9 +296,19 @@ export default function AdminCategoriesPage() {
               }`}
               onClick={() => updateHomepageVisibility(category._id!)}
             >
-              <span className="text-xl">
-                {getCategoryIcon(category)}
-              </span>
+              {category.image ? (
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : getCategoryIcon(category) ? (
+                <span className="text-xl">
+                  {getCategoryIcon(category)}
+                </span>
+              ) : (
+                <span className="text-gray-400 text-xs">No Icon</span>
+              )}
             </div>
           </div>
 
