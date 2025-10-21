@@ -99,12 +99,6 @@ export default function AdminCategoriesPage() {
       }
     });
     
-    console.log('🏗️ Built hierarchy:', {
-      rootCategories: rootCategories.length,
-      rootNames: rootCategories.map(c => c.name),
-      firstRootChildren: rootCategories[0]?.children?.length || 0
-    });
-    
     return rootCategories;
   };
 
@@ -120,21 +114,11 @@ export default function AdminCategoriesPage() {
       const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : [];
       const treeData = Array.isArray(treeResponse) ? treeResponse : [];
       
-      console.log('📊 Categories Data:', categoriesData);
-      console.log('🌳 Tree Data:', treeData);
-      console.log('🔍 Tree Data Structure Check:', {
-        hasTreeData: treeData.length > 0,
-        firstItem: treeData[0],
-        hasChildren: treeData[0]?.children?.length ? treeData[0].children.length > 0 : false,
-        children: treeData[0]?.children
-      });
-      
       // Check if tree data has proper hierarchy, if not build it from flat data
       let processedTreeData = treeData;
       const hasHierarchy = treeData.some(cat => cat.children && cat.children.length > 0);
       
       if (!hasHierarchy && categoriesData.length > 0) {
-        console.log('🔧 Building hierarchy from flat data...');
         processedTreeData = buildHierarchyFromFlatData(categoriesData);
       }
       
@@ -196,7 +180,12 @@ export default function AdminCategoriesPage() {
       // Toggle isActive status
       const newStatus = !category.isActive;
       
-      // Update locally first for immediate feedback
+      // Call backend API to update category
+      await categoryApi.updateCategory(categoryId, {
+        isActive: newStatus
+      });
+      
+      // Update local state after successful API call
       setCategories(prev => 
         prev.map(cat => 
           cat._id === categoryId 
@@ -205,8 +194,6 @@ export default function AdminCategoriesPage() {
         )
       );
 
-      // For now, just show success message without API call
-      // TODO: Implement adminApi.categories.updateCategoryStatus when backend is ready
       setMessage({ 
         type: 'success', 
         text: `Category ${newStatus ? 'activated' : 'deactivated'} successfully` 
@@ -218,14 +205,8 @@ export default function AdminCategoriesPage() {
       console.error('Error updating category status:', error);
       setMessage({ type: 'error', text: 'Failed to update category status' });
       
-      // Revert local change on error
-      setCategories(prev => 
-        prev.map(cat => 
-          cat._id === categoryId 
-            ? { ...cat, isActive: !cat.isActive }
-            : cat
-        )
-      );
+      // Refresh categories on error to ensure consistency
+      fetchCategories();
     } finally {
       setUpdating(null);
     }
@@ -286,15 +267,6 @@ export default function AdminCategoriesPage() {
     const isUpdating = updating === category._id;
     const isDeleting = deletingCategory === category._id;
     const parentCategory = level > 0 ? findParentCategory(category._id!) : null;
-
-    // Debug logging for this category
-    console.log(`🏷️ Category: ${category.name}`, {
-      level,
-      hasChildren,
-      childrenCount: category.children?.length || 0,
-      isExpanded,
-      children: category.children?.map(c => c.name) || []
-    });
 
     return (
       <div className="relative">

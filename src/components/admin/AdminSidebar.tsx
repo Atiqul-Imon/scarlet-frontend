@@ -48,7 +48,6 @@ const navigationItems: AdminNavItem[] = [
     label: 'Live Chat',
     href: '/admin/chat',
     icon: ChatBubbleLeftRightIcon,
-    badge: 0, // Will be updated with unread count
   },
   {
     id: 'consultations',
@@ -61,11 +60,10 @@ const navigationItems: AdminNavItem[] = [
     label: 'Product Catalog',
     href: '/admin/products',
     icon: SparklesIcon,
-    badge: 3, // Low stock items
   },
   {
     id: 'categories',
-    label: 'Homepage Categories',
+    label: 'Categories',
     href: '/admin/categories',
     icon: DocumentTextIcon,
   },
@@ -99,17 +97,10 @@ const navigationItems: AdminNavItem[] = [
     ],
   },
   {
-    id: 'debug-cart',
-    label: 'Debug Cart',
-    href: '/admin/debug-cart',
-    icon: ExclamationTriangleIcon,
-  },
-  {
     id: 'orders',
     label: 'Order Management',
     href: '/admin/orders',
     icon: ShoppingCartIcon,
-    badge: 12, // Pending orders
   },
   {
     id: 'analytics',
