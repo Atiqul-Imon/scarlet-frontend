@@ -8,6 +8,7 @@ import {
 import { useToast } from '@/lib/context';
 import { adminApi } from '@/lib/api';
 import type { Category } from '@/lib/types';
+import ImageSelector from '@/components/admin/ImageSelector';
 
 const categoryIcons = [
   '💇‍♀️', '🧪', '💧', '🧼', '🌊', '✨', '☀️', '💄', '🌿', 
@@ -24,7 +25,8 @@ export default function EditCategoryPage() {
     name: '',
     slug: '',
     description: '',
-    icon: '🌟',
+    image: '',
+    icon: '',
     isActive: true,
     showInHomepage: false,
     sortOrder: 0
@@ -48,7 +50,8 @@ export default function EditCategoryPage() {
         name: categoryData.name,
         slug: categoryData.slug,
         description: categoryData.description || '',
-        icon: categoryData.icon || '🌟',
+        image: categoryData.image || '',
+        icon: categoryData.icon || '',
         isActive: categoryData.isActive !== false,
         showInHomepage: categoryData.showInHomepage || false,
         sortOrder: categoryData.sortOrder || 0
@@ -89,6 +92,10 @@ export default function EditCategoryPage() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+  };
+
+  const handleImageSelect = (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, image: imageUrl }));
   };
 
   const validateForm = () => {
@@ -244,11 +251,79 @@ export default function EditCategoryPage() {
                 Visual Settings
               </h2>
               
-              {/* Icon Selection */}
+              {/* Category Image Upload */}
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700">
-                  Category Icon
+                  Category Image
                 </label>
+                
+                {formData.image ? (
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="relative group">
+                        <img
+                          src={formData.image}
+                          alt="Category"
+                          className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg hover:bg-red-600 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <ImageSelector
+                        onImageSelect={handleImageSelect}
+                        productSlug={formData.slug || 'category'}
+                        buttonText="Change Image"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <ImageSelector
+                    onImageSelect={handleImageSelect}
+                    productSlug={formData.slug || 'category'}
+                    buttonText="Add Category Image"
+                  />
+                )}
+                
+                <p className="text-xs text-gray-500">
+                  Select from media gallery or upload a new image. Will be displayed on the homepage category section.
+                </p>
+              </div>
+
+              {/* Icon Selection (Fallback) */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Category Icon (Fallback)
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  This icon will be shown if no image is uploaded
+                </p>
+                
+                {/* No Icon Selected Option */}
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, icon: '' }))}
+                    className={`w-full px-4 py-3 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
+                      !formData.icon
+                        ? 'border-red-500 bg-red-50 shadow-md'
+                        : 'border-gray-300 hover:border-gray-400 bg-white'
+                    }`}
+                  >
+                    <span className="text-gray-500 font-medium">
+                      {formData.icon ? 'Clear Icon Selection' : 'No Icon Selected'}
+                    </span>
+                  </button>
+                </div>
+                
                 <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-11 gap-3 p-4 bg-gray-50 rounded-lg">
                   {categoryIcons.map((icon) => (
                     <button
@@ -331,8 +406,18 @@ export default function EditCategoryPage() {
               
               <div className="p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                 <div className="text-center">
-                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border">
-                    <span className="text-3xl">{formData.icon}</span>
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border overflow-hidden">
+                    {formData.image ? (
+                      <img
+                        src={formData.image}
+                        alt={formData.name || 'Category'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : formData.icon ? (
+                      <span className="text-3xl">{formData.icon}</span>
+                    ) : (
+                      <span className="text-gray-400 text-sm">No Icon</span>
+                    )}
                   </div>
                   <h3 className="text-lg font-medium text-gray-700">
                     {formData.name || 'Category Name'}
