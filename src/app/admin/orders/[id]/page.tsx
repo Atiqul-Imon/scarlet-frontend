@@ -241,7 +241,6 @@ export default function OrderDetailPage() {
       pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: ClockIcon },
       confirmed: { bg: 'bg-blue-100', text: 'text-blue-800', icon: CheckCircleIcon },
       processing: { bg: 'bg-indigo-100', text: 'text-indigo-800', icon: ArrowPathIcon },
-      shipped: { bg: 'bg-purple-100', text: 'text-purple-800', icon: TruckIcon },
       delivered: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircleIcon },
       cancelled: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircleIcon },
       refunded: { bg: 'bg-gray-100', text: 'text-gray-800', icon: BDTIcon },
@@ -743,7 +742,7 @@ export default function OrderDetailPage() {
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Update Order Status</h3>
               <div className="space-y-3">
-                {['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map((status) => (
+                {['pending', 'confirmed', 'processing', 'delivered', 'cancelled'].map((status) => (
                   <button
                     key={status}
                     onClick={() => handleStatusUpdate(status)}

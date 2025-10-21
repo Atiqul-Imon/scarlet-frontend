@@ -46,7 +46,6 @@ const ORDER_STATUSES = [
   { value: 'pending', label: 'Pending', color: 'yellow' },
   { value: 'confirmed', label: 'Confirmed', color: 'blue' },
   { value: 'processing', label: 'Processing', color: 'indigo' },
-  { value: 'shipped', label: 'Shipped', color: 'purple' },
   { value: 'delivered', label: 'Delivered', color: 'green' },
   { value: 'cancelled', label: 'Cancelled', color: 'red' },
   { value: 'refunded', label: 'Refunded', color: 'gray' },
@@ -80,6 +79,8 @@ const SORT_OPTIONS = [
 export default function OrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrderForStatus, setSelectedOrderForStatus] = useState<AdminOrder | null>(null);
+  const [showQuickStatusModal, setShowQuickStatusModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
@@ -253,6 +254,42 @@ export default function OrdersPage() {
     }
   }, [addToast]);
 
+  const handleQuickStatusChange = useCallback((order: AdminOrder) => {
+    setSelectedOrderForStatus(order);
+    setShowQuickStatusModal(true);
+  }, []);
+
+  const handleQuickStatusUpdate = useCallback(async (newStatus: string) => {
+    if (!selectedOrderForStatus) return;
+    
+    try {
+      await adminApi.orders.updateOrderStatus(selectedOrderForStatus._id, newStatus as any);
+      
+      // Update local state
+      setOrders(prev => prev.map(order => 
+        order._id === selectedOrderForStatus._id
+          ? { ...order, status: newStatus as any, updatedAt: new Date().toISOString() } 
+          : order
+      ));
+      
+      setShowQuickStatusModal(false);
+      setSelectedOrderForStatus(null);
+      
+      addToast({
+        type: 'success',
+        title: 'Status Updated',
+        message: `Order ${selectedOrderForStatus.orderNumber} updated to ${newStatus}.`
+      });
+    } catch (error: any) {
+      console.error('Failed to update order:', error);
+      addToast({
+        type: 'error',
+        title: 'Update Failed',
+        message: error.message || 'Failed to update order status. Please try again.'
+      });
+    }
+  }, [selectedOrderForStatus, addToast]);
+
   const handleBulkStatusUpdate = useCallback(async (newStatus: string) => {
     if (selectedOrders.length === 0) return;
     
@@ -304,7 +341,6 @@ export default function OrdersPage() {
         case 'pending': return <ClockIcon className="w-3 h-3 mr-1" />;
         case 'confirmed': return <CheckCircleIcon className="w-3 h-3 mr-1" />;
         case 'processing': return <ArrowPathIcon className="w-3 h-3 mr-1" />;
-        case 'shipped': return <TruckIcon className="w-3 h-3 mr-1" />;
         case 'delivered': return <CheckCircleIcon className="w-3 h-3 mr-1" />;
         case 'cancelled': return <XCircleIcon className="w-3 h-3 mr-1" />;
         case 'refunded': return <BDTIcon className="w-3 h-3 mr-1" />;
@@ -646,10 +682,10 @@ export default function OrdersPage() {
                   Process
                 </button>
                 <button
-                  onClick={() => handleBulkStatusUpdate('shipped')}
-                  className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200"
+                  onClick={() => handleBulkStatusUpdate('delivered')}
+                  className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-lg hover:bg-green-200"
                 >
-                  Ship
+                  Deliver
                 </button>
                 <button
                   onClick={() => handleBulkStatusUpdate('cancelled')}
@@ -756,21 +792,15 @@ export default function OrdersPage() {
                       <div className="flex items-center justify-end space-x-2">
                         <Link
                           href={`/admin/orders/${order._id}`}
-                          className="text-red-700 hover:text-red-950"
+                          className="text-red-700 hover:text-red-950 font-medium"
                         >
-                          View
-                        </Link>
-                        <Link
-                          href={`/admin/orders/${order._id}/edit`}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          Edit
+                          View Details
                         </Link>
                         <button
-                          onClick={() => {/* Print order */}}
-                          className="text-gray-600 hover:text-gray-900"
+                          onClick={() => handleQuickStatusChange(order)}
+                          className="text-blue-600 hover:text-blue-900 font-medium"
                         >
-                          Print
+                          Update Status
                         </button>
                       </div>
                     </td>
@@ -994,6 +1024,58 @@ export default function OrdersPage() {
               : 'Orders will appear here once customers start placing them.'
             }
           </p>
+        </div>
+      )}
+
+      {/* Quick Status Update Modal */}
+      {showQuickStatusModal && selectedOrderForStatus && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Update Order Status
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Order #{selectedOrderForStatus.orderNumber}
+              </p>
+              <p className="text-sm text-gray-700 mb-6">
+                Current status: <span className="font-semibold capitalize">{selectedOrderForStatus.status}</span>
+              </p>
+              
+              <div className="space-y-2 mb-6">
+                {ORDER_STATUSES.filter(s => s.value !== '').map((status) => (
+                  <button
+                    key={status.value}
+                    onClick={() => handleQuickStatusUpdate(status.value)}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                      selectedOrderForStatus.status === status.value
+                        ? 'border-red-700 bg-red-50'
+                        : 'border-gray-200 hover:border-red-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-900">{status.label}</span>
+                      {selectedOrderForStatus.status === status.value && (
+                        <span className="text-xs text-red-700 font-medium">Current</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowQuickStatusModal(false);
+                    setSelectedOrderForStatus(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
