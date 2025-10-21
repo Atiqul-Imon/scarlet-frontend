@@ -9,7 +9,40 @@ import ProductSort from '../../components/products/ProductSort';
 import { fetchJson } from '../../lib/api';
 import { Product, Category } from '../../lib/types';
 import { useCart, useToast, useAuth } from '../../lib/context';
-import StructuredData from '../../components/seo/StructuredData';
+
+// Category icon mapping
+const categoryIcons: Record<string, string> = {
+  'hair care': '💇‍♀️',
+  'hair-care': '💇‍♀️',
+  'serum': '🧪',
+  'serums': '🧪',
+  'essences': '💧',
+  'cleansers': '🧼',
+  'toner': '🌊',
+  'moisturizers': '💧',
+  'exfoliators': '✨',
+  'sun protection': '☀️',
+  'sun-protection': '☀️',
+  'makeup': '💄',
+  'make up': '💄',
+  'skincare': '🌿',
+  'skin care': '🌿',
+  'body care': '🧴',
+  'bath & body care': '🛁',
+  'bath body': '🛁',
+  'accessories': '✨',
+  'fragrance': '🌸',
+  'tools': '🔧',
+  'foundation': '🎨',
+  'lipstick': '💋',
+  'eye makeup': '👁️',
+  'shampoo': '🧴',
+  'sunscreen': '☀️'
+};
+
+const getCategoryIcon = (categoryName: string) => {
+  return categoryIcons[categoryName.toLowerCase()] || '🌟';
+};
 
 interface FilterState {
   category?: string;
@@ -31,6 +64,21 @@ function ProductsPageContent() {
   // Filter and sort state
   const [filters, setFilters] = React.useState<FilterState>({});
   const [sortBy, setSortBy] = React.useState('featured');
+  
+  // Get current category and its children
+  const currentCategory = React.useMemo(() => {
+    if (!filters.category) return null;
+    return categories.find(cat => 
+      cat.slug === filters.category || cat.name.toLowerCase() === filters.category.toLowerCase()
+    );
+  }, [categories, filters.category]);
+
+  const childCategories = React.useMemo(() => {
+    if (!currentCategory) return [];
+    return categories.filter(cat => 
+      cat.parentId === currentCategory._id && cat.isActive
+    );
+  }, [categories, currentCategory]);
   
   // Get initial category from URL params
   const categoryParam = searchParams.get('category');
@@ -295,6 +343,43 @@ function ProductsPageContent() {
           </p>
         </div>
 
+        {/* Child Categories Section - Only show when viewing a main category */}
+        {currentCategory && childCategories.length > 0 && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
+                Explore {currentCategory.name} Categories
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                {childCategories.map((childCategory) => (
+                  <Link
+                    key={childCategory._id}
+                    href={`/products?category=${childCategory.slug}`}
+                    className="group flex flex-col items-center text-center hover:scale-105 transition-transform duration-200"
+                  >
+                    <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-full flex items-center justify-center mb-2 sm:mb-3 overflow-hidden bg-gradient-to-br from-red-50 to-rose-50 border-2 border-gray-200 group-hover:border-red-300 transition-all duration-300 group-hover:shadow-lg">
+                      {childCategory.image ? (
+                        <img 
+                          src={childCategory.image} 
+                          alt={childCategory.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl sm:text-3xl md:text-4xl">
+                          {getCategoryIcon(childCategory.name)}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-red-700 transition-colors duration-300 leading-tight px-1">
+                      {childCategory.name}
+                    </h3>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mobile-First Layout */}
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Filters Sidebar - Hidden on mobile, shown on desktop */}
@@ -314,6 +399,14 @@ function ProductsPageContent() {
             {/* Mobile Sort and Results - Sticky on mobile */}
             <div className="sticky top-0 bg-gray-50 z-10 pb-4 mb-4 lg:pb-0 lg:mb-6">
               <ProductSort
+                sortOptions={[
+                  { value: 'featured', label: 'Featured' },
+                  { value: 'newest', label: 'Newest First' },
+                  { value: 'price-low', label: 'Price: Low to High' },
+                  { value: 'price-high', label: 'Price: High to Low' },
+                  { value: 'name-asc', label: 'Name: A to Z' },
+                  { value: 'name-desc', label: 'Name: Z to A' },
+                ]}
                 currentSort={sortBy}
                 onSortChange={setSortBy}
                 totalResults={filteredAndSortedProducts.length}
