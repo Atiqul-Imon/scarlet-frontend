@@ -55,10 +55,12 @@ export default function CategorySection() {
         const response = await categoryApi.getCategories();
         const categoriesData = Array.isArray(response) ? response : [];
         
-        // Filter only active categories
-        const activeCategories = categoriesData.filter(cat => cat.isActive);
+        // Filter only active PARENT categories (no parentId = main categories only)
+        const mainCategories = categoriesData.filter(cat => 
+          cat.isActive && !cat.parentId
+        );
         
-        setCategories(activeCategories);
+        setCategories(mainCategories);
       } catch (err) {
         console.error('Error fetching categories:', err);
         setError('Failed to load categories');
@@ -237,10 +239,18 @@ export default function CategorySection() {
                 className="group block transform transition-all duration-300 hover:-translate-y-1 hover:scale-105 flex-shrink-0"
               >
                 <div className="text-center w-20 sm:w-22 md:w-24">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 transition-colors duration-300 group-hover:shadow-lg">
-                    <span className="text-lg sm:text-xl md:text-2xl">{getCategoryIcon(category.name)}</span>
+                  <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-red-300 transition-all duration-300 group-hover:shadow-lg">
+                    {category.image ? (
+                      <img 
+                        src={category.image} 
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl sm:text-3xl md:text-4xl">{getCategoryIcon(category.name)}</span>
+                    )}
                   </div>
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-300 leading-tight px-1">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-red-700 transition-colors duration-300 leading-tight px-1">
                     {category.name}
                   </h3>
                 </div>
