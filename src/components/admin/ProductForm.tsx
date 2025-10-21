@@ -8,6 +8,7 @@ import { adminApi, categoryApi } from '@/lib/api';
 import { uploadImage, validateImageFile } from '@/lib/image-upload';
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { Category } from '@/lib/types';
+import ImageSelector from '@/components/admin/ImageSelector';
 
 interface ProductFormProps {
   productId?: string;
@@ -620,34 +621,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-6">Product Images</h2>
         
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            isDragOver ? 'border-red-500 bg-red-50' : 'border-gray-300'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                handleImageUpload(file);
-              }
+        <div className="mb-4">
+          <ImageSelector
+            onImageSelect={(url) => {
+              setImages(prev => [...prev, url]);
+              addToast({
+                type: 'success',
+                title: 'Image added',
+                message: 'Image added successfully!'
+              });
             }}
-            className="hidden"
-            id="image-upload"
+            productSlug={formData.slug || 'temp'}
+            buttonText="Add Image"
           />
-          <label
-            htmlFor="image-upload"
-            className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-700 hover:bg-red-800"
-          >
-            {isUploading ? 'Uploading...' : 'Upload Image'}
-          </label>
           <p className="mt-2 text-sm text-gray-500">
-            Drag and drop images here, or click to select
+            Select from media gallery or upload from your computer
           </p>
         </div>
 
