@@ -477,46 +477,50 @@ function OrderSuccessPageContent() {
           </div>
         </div>
 
-        {/* Account Created Message (for guests) */}
-        {orderDetails?.email && (
-          <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-lg font-medium text-green-900">
-                  🎉 Your Account is Ready!
-                </h3>
-                <div className="mt-2 text-sm text-green-700">
-                  <p className="mb-2">
-                    We've created an account for you using <strong>{orderDetails.email}</strong>
-                  </p>
-                  <p className="mb-3">
-                    You can now track your order, view order history, and enjoy faster checkouts on your next purchase!
-                  </p>
-                  <div className="bg-white border border-green-200 rounded p-4 mb-3">
-                    <p className="font-medium mb-2">To access your account:</p>
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
-                      <li>Click "Set Your Password" below</li>
-                      <li>Enter your email: <strong>{orderDetails.email}</strong></li>
-                      <li>You'll receive a password reset link</li>
-                      <li>Set your password and start shopping!</li>
-                    </ol>
-                  </div>
-                  <Link
-                    href="/forgot-password"
-                    className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    Set Your Password →
-                  </Link>
+        {/* Account Created Message (for auto-created accounts) */}
+        <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-3 flex-1">
+              <h3 className="text-lg font-medium text-green-900">
+                🎉 Your Account is Ready!
+              </h3>
+              <div className="mt-2 text-sm text-green-700">
+                <p className="mb-2">
+                  We've created an account for you using your phone number: <strong>{orderDetails?.shippingAddress?.phone || orderDetails?.customerPhone}</strong>
+                  {orderDetails?.email && (
+                    <span> and email: <strong>{orderDetails.email}</strong></span>
+                  )}
+                </p>
+                <p className="mb-3">
+                  You can now track your order, view order history, and enjoy faster checkouts on your next purchase!
+                </p>
+                <div className="bg-white border border-green-200 rounded p-4 mb-3">
+                  <p className="font-medium mb-2">To access your account:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Click "Set Your Password" below</li>
+                    <li>Enter your phone number: <strong>{orderDetails?.shippingAddress?.phone || orderDetails?.customerPhone}</strong></li>
+                    {orderDetails?.email && (
+                      <li>Or use your email: <strong>{orderDetails.email}</strong></li>
+                    )}
+                    <li>You'll receive a password reset OTP via SMS</li>
+                    <li>Set your password and start shopping!</li>
+                  </ol>
                 </div>
+                <Link
+                  href="/forgot-password"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Set Your Password →
+                </Link>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
