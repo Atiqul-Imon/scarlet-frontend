@@ -774,13 +774,13 @@ export default function OrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        {getStatusBadge(order.status)}
-                        {getPaymentStatusBadge(order.paymentStatus)}
-                      </div>
+                      {getStatusBadge(order.status)}
                     </td>
                     <td className="px-6 py-4">
-                      {getPaymentMethodBadge(order.paymentMethod)}
+                      <div className="space-y-1">
+                        {getPaymentStatusBadge(order.paymentStatus)}
+                        {getPaymentMethodBadge(order.paymentMethod)}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       ৳{order.total.toLocaleString()}
