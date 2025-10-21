@@ -525,7 +525,7 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Order Timeline */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 print-hide">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">Order Timeline</h3>
               </div>
@@ -581,7 +581,7 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 print-hide">
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -595,15 +595,43 @@ export default function OrderDetailPage() {
                   <ArrowPathIcon className="w-4 h-4 mr-3 text-gray-400" />
                   Update Status
                 </button>
-                <button className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                  <TruckIcon className="w-4 h-4 mr-3 text-gray-400" />
-                  Add Tracking
+                <button 
+                  onClick={() => {
+                    addToast({
+                      type: 'info',
+                      title: 'Tracking Feature',
+                      message: 'Tracking functionality has been removed as this store does not use courier services.'
+                    });
+                  }}
+                  className="w-full flex items-center px-4 py-2 text-left text-gray-400 cursor-not-allowed rounded-lg"
+                  disabled
+                >
+                  <TruckIcon className="w-4 h-4 mr-3 text-gray-300" />
+                  <span className="line-through">Add Tracking</span>
                 </button>
-                <button className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                <button 
+                  onClick={() => {
+                    if (order.status !== 'delivered' && order.status !== 'cancelled') {
+                      addToast({
+                        type: 'error',
+                        title: 'Cannot Refund',
+                        message: 'Only delivered or cancelled orders can be refunded.'
+                      });
+                      return;
+                    }
+                    if (confirm(`Process refund for order ${order.orderNumber}? This will change the order status to "refunded".`)) {
+                      handleStatusUpdate('refunded');
+                    }
+                  }}
+                  className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
                   <BDTIcon className="w-4 h-4 mr-3 text-gray-400" />
                   Process Refund
                 </button>
-                <button className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                <button 
+                  onClick={() => window.print()}
+                  className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
                   <PrinterIcon className="w-4 h-4 mr-3 text-gray-400" />
                   Print Invoice
                 </button>
@@ -652,7 +680,7 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Order Notes */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 print-hide">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">Order Notes</h3>
               </div>
@@ -768,6 +796,55 @@ export default function OrderDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          /* Hide navigation and action buttons */
+          nav,
+          header,
+          .no-print,
+          button,
+          [class*="sidebar"],
+          [class*="AdminSidebar"],
+          [class*="AdminHeader"] {
+            display: none !important;
+          }
+
+          /* Hide timeline and notes sections */
+          .print-hide {
+            display: none !important;
+          }
+
+          /* Page setup */
+          @page {
+            margin: 1cm;
+            size: A4;
+          }
+
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+
+          /* Make content full width */
+          .lg\\:col-span-2 {
+            grid-column: span 3 / span 3 !important;
+          }
+
+          /* Ensure proper page breaks */
+          .bg-white {
+            page-break-inside: avoid;
+          }
+
+          /* Show order header prominently */
+          .print-header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+          }
+        }
+      `}</style>
     </div>
   );
 }
