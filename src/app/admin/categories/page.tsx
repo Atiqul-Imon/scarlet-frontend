@@ -240,9 +240,11 @@ export default function AdminCategoriesPage() {
     try {
       setDeletingCategory(categoryId);
       
-      // For now, just remove from local state
-      // TODO: Implement adminApi.categories.deleteCategory when backend is ready
-      setCategories(prev => prev.filter(cat => cat._id !== categoryId));
+      // Call the backend API to delete the category
+      await categoryApi.deleteCategory(categoryId);
+      
+      // Refresh categories after successful deletion
+      await fetchCategories();
       
       setMessage({ type: 'success', text: 'Category deleted successfully' });
       setTimeout(() => setMessage(null), 3000);
