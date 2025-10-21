@@ -77,7 +77,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
             {/* Welcome message */}
             <div className="hidden sm:block ml-4">
               <h1 className="text-xl font-semibold text-gray-900">
-                Welcome back, <span className="text-red-700">{user.firstName}</span>! ✨
+                Welcome back, <span className="text-red-700">{user.firstName}</span>!
               </h1>
               <p className="text-sm text-gray-600">
                 {currentDate} • {currentTime}

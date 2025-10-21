@@ -162,7 +162,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   return (
     <>
       {/* Sidebar for desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:z-20 lg:pt-4">
         <div className="flex flex-col flex-grow bg-white shadow-xl border-r border-red-100">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0 px-6 py-6 bg-gradient-to-r from-red-500 to-rose-500">

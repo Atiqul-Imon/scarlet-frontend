@@ -12,6 +12,7 @@ import FloatingMessengerButton from "../components/chat/FloatingMessengerButton"
 import { ChatProvider } from "../lib/chat-context";
 import ChatWidget from "../components/chat/ChatWidget";
 import StructuredData from "../components/seo/StructuredData";
+import ConditionalLayout from "../components/layout/ConditionalLayout";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -156,20 +157,9 @@ export default function RootLayout({
           <AppProvider>
             <ChatProvider>
               <ServiceWorkerProvider>
-                <div className="flex flex-col min-h-screen">
-                  <Header />
-                  <main className="flex-1">
-                    {children}
-                  </main>
-                  <Footer />
-                  {/* Sticky Cart Button */}
-                  <StickyCartButton />
-                  {/* Chat Widget */}
-                  <ChatWidget />
-                  {/* Separated Chat Widgets */}
-                  <FloatingWhatsAppButton />
-                  <FloatingMessengerButton />
-                </div>
+                <ConditionalLayout>
+                  {children}
+                </ConditionalLayout>
               </ServiceWorkerProvider>
             </ChatProvider>
           </AppProvider>

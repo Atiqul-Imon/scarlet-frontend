@@ -153,7 +153,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          ✨ Beauty Dashboard ✨
+          Beauty Dashboard
         </h1>
         <p className="text-gray-600 text-lg">
           Your cosmetics empire at a glance
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
       {/* Top Products */}
       <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">✨ Top Selling Products</h2>
+          <h2 className="text-xl font-bold text-gray-900">Top Selling Products</h2>
           <button className="text-red-700 hover:text-red-800 font-medium text-sm">
             View All →
           </button>
