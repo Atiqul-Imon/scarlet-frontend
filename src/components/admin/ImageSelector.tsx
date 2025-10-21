@@ -269,6 +269,7 @@ export default function ImageSelector({
                     />
                     <label
                       htmlFor="file-upload"
+                      onClick={(e) => e.stopPropagation()}
                       className="cursor-pointer inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
                     >
                       Choose File
