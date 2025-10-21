@@ -966,6 +966,22 @@ export const authApi = {
     });
   },
 
+  // Request OTP for passwordless login
+  requestLoginOTP: (identifier: string): Promise<{ message: string }> => {
+    return fetchJson<{ message: string }>('/auth/request-login-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier }),
+    });
+  },
+
+  // Verify OTP and login
+  verifyLoginOTP: (identifier: string, otp: string): Promise<AuthUser> => {
+    return fetchJson<AuthUser>('/auth/verify-login-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, otp }),
+    });
+  },
+
   // Get current user profile
   getProfile: async (): Promise<User> => {
     return fetchJsonAuth<User>('/users/me');
