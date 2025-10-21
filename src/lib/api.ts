@@ -407,12 +407,13 @@ export async function fetchJson<T = unknown>(
   }
 }
 
-// Check if token is expired
+// Check if token is expired or will expire soon (within 5 minutes)
 function isTokenExpired(token: string): boolean {
   try {
     const payload = JSON.parse(atob(token.split('.')[1] || ''));
     const now = Math.floor(Date.now() / 1000);
-    return payload.exp < now;
+    const bufferTime = 5 * 60; // 5 minutes buffer
+    return payload.exp < (now + bufferTime);
   } catch {
     return true; // If we can't parse the token, consider it expired
   }
@@ -437,7 +438,16 @@ async function refreshAccessToken(): Promise<string | null> {
     });
 
     if (!response.ok) {
-      console.log('❌ Token refresh failed:', response.status);
+      console.log('❌ Token refresh failed:', response.status, response.statusText);
+      
+      // Try to get error details
+      try {
+        const errorData = await response.json();
+        console.log('❌ Error details:', errorData);
+      } catch (e) {
+        console.log('❌ Could not parse error response');
+      }
+      
       // Clear invalid tokens
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -1831,5 +1841,36 @@ export const brandApi = {
     });
   }
 };
+
+// Periodic token refresh to prevent authentication timeouts
+let tokenRefreshInterval: NodeJS.Timeout | null = null;
+
+export function startTokenRefreshScheduler(): void {
+  // Clear any existing interval
+  if (tokenRefreshInterval) {
+    clearInterval(tokenRefreshInterval);
+  }
+
+  // Check and refresh token every 10 minutes
+  tokenRefreshInterval = setInterval(async () => {
+    const token = localStorage.getItem('accessToken');
+    if (token && isTokenExpired(token)) {
+      console.log('🔄 Proactive token refresh triggered');
+      await refreshAccessToken();
+    }
+  }, 10 * 60 * 1000); // 10 minutes
+}
+
+export function stopTokenRefreshScheduler(): void {
+  if (tokenRefreshInterval) {
+    clearInterval(tokenRefreshInterval);
+    tokenRefreshInterval = null;
+  }
+}
+
+// Auto-start the scheduler when the module loads
+if (typeof window !== 'undefined') {
+  startTokenRefreshScheduler();
+}
 
 
