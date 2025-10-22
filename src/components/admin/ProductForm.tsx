@@ -144,7 +144,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         cost: product.attributes?.cost?.toString() || '',
         sku: product.sku || '',
         barcode: product.barcode || '',
-        category: product.attributes?.category || '',
+        category: product.categoryIds?.[0] || '',
         subcategory: product.attributes?.subcategory || '',
         brand: product.brand || '',
         tags: product.tags || [],
@@ -554,7 +554,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                 {categoriesLoading ? 'Loading categories...' : 'Select Category'}
               </option>
               {categories.map((category) => (
-                <option key={category._id} value={category.name}>
+                <option key={category._id} value={category._id}>
                   {category.name}
                 </option>
               ))}
@@ -661,9 +661,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         )}
       </div>
 
-      {/* Inventory */}
+      {/* Stock Management */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-6">Inventory</h2>
+        <h2 className="text-lg font-medium text-gray-900 mb-6">Stock Management</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>

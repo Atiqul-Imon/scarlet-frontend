@@ -5,6 +5,8 @@ import Link from 'next/link';
 export interface MegaItem {
   label: string;
   href?: string;
+  icon?: string | undefined;
+  id?: string;
   columns?: Array<{ title?: string; items: Array<{ label: string; href: string }> }>;
 }
 
@@ -44,7 +46,7 @@ export function MegaMenu({ items }: { items: MegaItem[] }) {
         <nav className="min-w-max inline-flex items-center gap-0" role="navigation" aria-label="Primary">
           {items.map((m, idx) => (
             <div
-              key={m.label}
+              key={m.id || `${m.label}-${idx}`}
               className="relative"
               onMouseEnter={() => {
                 if (closeTimer.current) clearTimeout(closeTimer.current);

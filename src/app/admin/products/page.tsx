@@ -6,21 +6,20 @@ import {
   PlusIcon, 
   FunnelIcon, 
   MagnifyingGlassIcon,
-  ViewColumnsIcon,
   Squares2X2Icon,
   ListBulletIcon,
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
-  EllipsisVerticalIcon,
   PencilIcon,
-  TrashIcon,
   EyeIcon,
   DocumentDuplicateIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { useToast } from '@/lib/context';
 import { adminApi } from '@/lib/api';
-import type { ExtendedAdminProduct, AdminProduct } from '@/lib/admin-types';
+import { useToast } from '@/lib/context';
+import type { AdminProduct } from '@/lib/admin-types';
+import AdminPageWrapper, { useAdminPageState } from '../../../components/admin/AdminPageWrapper';
+import EmptyState, { EmptyProductsState } from '../../../components/admin/EmptyState';
 
 interface ProductFilters {
   search: string;
@@ -57,8 +56,8 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductsPage() {
+  const { loading, error, executeWithErrorHandling, retry } = useAdminPageState();
   const [products, setProducts] = useState<AdminProduct[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
@@ -82,8 +81,7 @@ export default function ProductsPage() {
 
   // Fetch products from backend
   const fetchProducts = React.useCallback(async () => {
-    setLoading(true);
-    try {
+    await executeWithErrorHandling(async () => {
       const queryFilters: any = {
         page: pagination.page,
         limit: pagination.limit,
@@ -104,8 +102,10 @@ export default function ProductsPage() {
       console.log('🔍 Fetching products with filters:', queryFilters);
       const response = await adminApi.products.getProducts(queryFilters);
       
-      if (response && response.products) {
-        setProducts(response.products);
+      if (response) {
+        // Handle the actual response structure: {products: Array, total: number, page: number, totalPages: number}
+        const products = response.products || [];
+        setProducts(products);
         setPagination(prev => ({
           ...prev,
           total: response.total || 0,
@@ -114,18 +114,8 @@ export default function ProductsPage() {
       } else {
         setProducts([]);
       }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to load products. Please try again.',
-      });
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [pagination.page, pagination.limit, filters, addToast]);
+    });
+  }, [pagination.page, pagination.limit, filters, executeWithErrorHandling]);
 
   React.useEffect(() => {
     fetchProducts();
@@ -233,50 +223,24 @@ export default function ProductsPage() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Active' },
-      draft: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Draft' },
-      archived: { bg: 'bg-red-100', text: 'text-red-800', label: 'Archived' },
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        {config.label}
-      </span>
-    );
-  };
 
-  if (loading) {
-    return (
-      <div className="p-8 w-full max-w-none">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6">
-                <div className="h-48 bg-gray-200 rounded mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-8 w-full max-w-none">
+    <AdminPageWrapper
+      title="Products"
+      description="Manage your product catalog and pricing"
+      loading={loading}
+      error={error}
+      onRetry={retry}
+      className="w-full max-w-none"
+    >
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Products</h1>
             <p className="text-gray-600">
-              Manage your product catalog, inventory, and pricing
+              Manage your product catalog and pricing
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
@@ -581,11 +545,11 @@ export default function ProductsPage() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="text-lg font-bold text-gray-900">
-                      {product.price.currency} {product.price.amount.toLocaleString()}
+                      {product.price.currency} {product.price.amount?.toLocaleString() || '0'}
                     </p>
                     {product.price.originalAmount && product.price.originalAmount > product.price.amount && (
                       <p className="text-sm text-gray-500 line-through">
-                        {product.price.currency} {product.price.originalAmount.toLocaleString()}
+                        {product.price.currency} {product.price.originalAmount?.toLocaleString() || '0'}
                       </p>
                     )}
                   </div>
@@ -714,11 +678,11 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {product.price.currency} {product.price.amount.toLocaleString()}
+                        {product.price.currency} {product.price.amount?.toLocaleString() || '0'}
                       </div>
                       {product.price.originalAmount && product.price.originalAmount > product.price.amount && (
                         <div className="text-sm text-gray-500 line-through">
-                          {product.price.currency} {product.price.originalAmount.toLocaleString()}
+                          {product.price.currency} {product.price.originalAmount?.toLocaleString() || '0'}
                         </div>
                       )}
                     </td>
@@ -831,26 +795,29 @@ export default function ProductsPage() {
 
       {/* Empty State */}
       {products.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <Squares2X2Icon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {filters.search || filters.category || filters.status || filters.stockStatus 
-              ? "Try adjusting your filters to see more products."
-              : "Get started by creating your first product."
-            }
-          </p>
-          <div className="mt-6">
-            <Link
-              href="/admin/products/new"
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-700 hover:to-rose-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
-            >
-              <PlusIcon className="w-4 h-4 mr-2" />
-              Add Product
-            </Link>
-          </div>
-        </div>
+        filters.search || filters.category || filters.status || filters.stockStatus ? (
+          <EmptyState
+            icon={Squares2X2Icon}
+            title="No Products Found"
+            description="No products match your current filters. Try adjusting your search criteria to see more products."
+            action={{
+              label: "Clear Filters",
+              onClick: () => setFilters({
+                search: '',
+                category: '',
+                status: '',
+                stockStatus: '',
+                priceRange: [0, 10000],
+                sortBy: 'updatedAt',
+                sortOrder: 'desc',
+              }),
+              variant: "secondary"
+            }}
+          />
+        ) : (
+          <EmptyProductsState onCreateProduct={() => window.location.href = '/admin/products/new'} />
+        )
       )}
-    </div>
+    </AdminPageWrapper>
   );
 }

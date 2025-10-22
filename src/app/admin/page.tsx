@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
 import { adminApi } from '@/lib/api';
 import type { AdminStats } from '@/lib/admin-types';
+import ErrorDisplay, { createUserFriendlyError } from '../../components/admin/ErrorDisplay';
+import { LoadingCard } from '../../components/admin/LoadingState';
 
 interface StatCardProps {
   title: string;
@@ -72,15 +71,16 @@ function StatCard({ title, value, color, subtitle }: StatCardProps) {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<any>(null);
 
   useEffect(() => {
     async function fetchStats() {
       try {
+        setError(null);
         const data = await adminApi.dashboard.getStats();
         setStats(data);
       } catch (err) {
-        setError('Failed to load dashboard statistics');
+        setError(err);
         console.error('Error fetching admin stats:', err);
       } finally {
         setLoading(false);
@@ -93,10 +93,18 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-red-200 rounded-lg w-64 mb-2"></div>
-          <div className="h-4 bg-red-100 rounded w-96"></div>
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Beauty Dashboard
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Your cosmetics empire at a glance
+          </p>
         </div>
+        <LoadingCard 
+          title="Loading Dashboard Data"
+          message="Fetching your business statistics and analytics..."
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="animate-pulse">
@@ -110,10 +118,19 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <ExclamationTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Dashboard</h2>
-        <p className="text-gray-600">{error}</p>
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Beauty Dashboard
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Your cosmetics empire at a glance
+          </p>
+        </div>
+        <ErrorDisplay 
+          error={createUserFriendlyError(error, 'Dashboard Loading')}
+          className="max-w-4xl mx-auto"
+        />
       </div>
     );
   }

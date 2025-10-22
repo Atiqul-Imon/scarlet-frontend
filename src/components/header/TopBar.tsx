@@ -4,14 +4,18 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useAuth, useCart, useWishlist, useToast } from '@/lib/context';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import InstantSearch from '../search/InstantSearch';
+import MobileSearchOverlay from '../search/MobileSearchOverlay';
+import { useMobileSearch } from '../../hooks/useMobileSearch';
 
 export default function TopBar() {
   const router = useRouter();
   const { user, logout, loading: authLoading, isAuthenticated } = useAuth();
   const { cart, itemCount, loading: cartLoading } = useCart();
+  const { isOpen: isSearchOpen, openSearch, closeSearch } = useMobileSearch();
   const { wishlistCount } = useWishlist();
   const { addToast } = useToast();
-  const [q, setQ] = React.useState("");
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [showMobileSearch, setShowMobileSearch] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
@@ -36,16 +40,10 @@ export default function TopBar() {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
+    
+    return undefined;
   }, [showUserMenu]);
 
-  function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const query = q.trim();
-    if (query.length > 0) {
-      router.push(`/search?q=${encodeURIComponent(query)}`);
-      setShowMobileSearch(false); // Close mobile search after submission
-    }
-  }
 
   const handleLogoClick = (e: React.MouseEvent) => {
     // If user is on homepage, reload the page
@@ -59,34 +57,15 @@ export default function TopBar() {
   return (
     <div className="w-full bg-white relative">
       <div className="container-herlan">
-        {/* Mobile Search Expanded View */}
-        {showMobileSearch && (
+        {/* Mobile Search Button */}
+        {!showMobileSearch && (
           <div className="md:hidden h-[80px] flex items-center gap-2 px-2">
-            <form onSubmit={onSubmit} className="flex-1 flex">
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search products..."
-                className="h-10 flex-1 border-2 border-red-500 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
-                autoFocus
-              />
-              <button 
-                type="submit" 
-                aria-label="Search" 
-                className="h-10 px-4 bg-red-700 text-white text-sm font-medium hover:bg-red-800 transition-colors rounded-r-full border-2 border-red-700 hover:border-red-800 flex items-center justify-center min-w-[48px]"
-              >
-                <SearchIcon />
-              </button>
-            </form>
             <button
-              onClick={() => setShowMobileSearch(false)}
-              className="p-2 text-gray-500 hover:text-gray-700 min-w-[40px] min-h-[40px] flex items-center justify-center"
-              aria-label="Close search"
+              onClick={openSearch}
+              className="flex-1 flex items-center space-x-2 px-4 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
+              <MagnifyingGlassIcon className="w-5 h-5 text-gray-500" />
+              <span className="text-gray-500 text-sm">Search products...</span>
             </button>
           </div>
         )}
@@ -109,21 +88,13 @@ export default function TopBar() {
             </Link>
 
             {/* Desktop Search */}
-            <form onSubmit={onSubmit} className="relative hidden md:flex justify-self-center w-full">
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
+            <div className="hidden md:flex justify-self-center w-full">
+              <InstantSearch
                 placeholder="Search products..."
-                className="h-8 md:h-10 w-full border-2 border-red-500 bg-white px-2 md:px-4 pr-10 md:pr-14 text-[12px] md:text-[14px] text-gray-900 placeholder:text-gray-400 outline-none focus:border-red-700 focus:ring-0 rounded-l-full"
+                className="w-full"
+                onSearch={(query) => router.push(`/search?q=${encodeURIComponent(query)}`)}
               />
-              <button 
-                type="submit" 
-                aria-label="Search" 
-                className="h-8 md:h-10 px-3 md:px-5 bg-red-700 text-white text-xs md:text-sm font-medium hover:bg-red-800 transition-colors rounded-r-full border-2 border-red-700 hover:border-red-800 flex items-center"
-              >
-                <SearchIcon />
-              </button>
-            </form>
+            </div>
 
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-3 lg:gap-6 text-sm justify-end">
@@ -319,6 +290,9 @@ export default function TopBar() {
           </div>
         )}
       </div>
+      
+      {/* Mobile Search Overlay */}
+      <MobileSearchOverlay isOpen={isSearchOpen} onClose={closeSearch} />
     </div>
   );
 }
@@ -359,3 +333,4 @@ function CartIcon() {
     </svg>
   );
 }
+

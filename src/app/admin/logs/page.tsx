@@ -9,14 +9,16 @@ import {
   MagnifyingGlassIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
-import { useToast } from '@/lib/context';
 import { adminApi } from '@/lib/api';
 import type { AdminActivityLog } from '@/lib/admin-types';
+import ErrorDisplay, { createUserFriendlyError } from '../../../components/admin/ErrorDisplay';
+import { LoadingCard } from '../../../components/admin/LoadingState';
+import EmptyState, { EmptyLogsState } from '../../../components/admin/EmptyState';
 
 export default function ActivityLogsPage() {
-  const { addToast } = useToast();
   const [logs, setLogs] = useState<AdminActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,16 +31,15 @@ export default function ActivityLogsPage() {
   const fetchLogs = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await adminApi.logs.getActivityLogs(page, 50);
-      setLogs(data.data);
-      setTotalPages(Math.ceil(data.total / 50));
-    } catch (error) {
-      console.error('Error fetching logs:', error);
-      addToast({
-        type: 'error',
-        title: 'Failed to load logs',
-        message: 'Please try again later.'
-      });
+      setLogs(data?.data || []);
+      setTotalPages(Math.ceil((data?.total || 0) / 50));
+    } catch (err) {
+      console.error('Error fetching logs:', err);
+      setError(err);
+      setLogs([]); // Set empty array on error
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -92,7 +93,7 @@ export default function ActivityLogsPage() {
     });
   };
 
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = (logs || []).filter(log => {
     const matchesSearch = !searchTerm || 
       log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,17 +104,35 @@ export default function ActivityLogsPage() {
     return matchesSearch && matchesFilter;
   });
 
-  if (loading && logs.length === 0) {
+  if (loading && (!logs || logs.length === 0)) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-20 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Activity Logs</h1>
+          <p className="text-gray-600 mt-1">
+            Monitor all admin actions and system events
+          </p>
         </div>
+        <LoadingCard 
+          title="Loading Activity Logs"
+          message="Fetching recent admin activities and system events..."
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Activity Logs</h1>
+          <p className="text-gray-600 mt-1">
+            Monitor all admin actions and system events
+          </p>
+        </div>
+        <ErrorDisplay 
+          error={createUserFriendlyError(error, 'Activity Logs Loading')}
+        />
       </div>
     );
   }
@@ -173,7 +192,7 @@ export default function ActivityLogsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">Total Logs</p>
-              <p className="text-2xl font-bold text-gray-900">{logs.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{logs?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -186,7 +205,7 @@ export default function ActivityLogsPage() {
             <div>
               <p className="text-sm text-gray-600">Active Admins</p>
               <p className="text-2xl font-bold text-gray-900">
-                {new Set(logs.map(log => log.userId)).size}
+                {new Set((logs || []).map(log => log.userId)).size}
               </p>
             </div>
           </div>
@@ -200,7 +219,7 @@ export default function ActivityLogsPage() {
             <div>
               <p className="text-sm text-gray-600">Today</p>
               <p className="text-2xl font-bold text-gray-900">
-                {logs.filter(log => {
+                {(logs || []).filter(log => {
                   const logDate = new Date(log.timestamp);
                   const today = new Date();
                   return logDate.toDateString() === today.toDateString();
@@ -218,7 +237,7 @@ export default function ActivityLogsPage() {
             <div>
               <p className="text-sm text-gray-600">Unique IPs</p>
               <p className="text-2xl font-bold text-gray-900">
-                {new Set(logs.map(log => log.ip).filter(Boolean)).size}
+                {new Set((logs || []).map(log => log.ip).filter(Boolean)).size}
               </p>
             </div>
           </div>
@@ -228,15 +247,15 @@ export default function ActivityLogsPage() {
       {/* Logs List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {filteredLogs.length === 0 ? (
-          <div className="text-center py-12">
-            <DocumentTextIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Logs Found</h3>
-            <p className="text-gray-600">
-              {searchTerm || actionFilter !== 'all' 
-                ? 'No logs match your search criteria.' 
-                : 'No activity logs available yet.'}
-            </p>
-          </div>
+          searchTerm || actionFilter !== 'all' ? (
+            <EmptyState
+              icon={DocumentTextIcon}
+              title="No Logs Found"
+              description="No activity logs match your search criteria. Try adjusting your filters or search terms."
+            />
+          ) : (
+            <EmptyLogsState />
+          )
         ) : (
           <div className="divide-y divide-gray-200">
             {filteredLogs.map((log) => (

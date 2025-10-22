@@ -210,7 +210,7 @@ export default function RealTimeWidget() {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-green-600">
-                      ৳{order.amount.toLocaleString()}
+                      ৳{order.amount?.toLocaleString() || '0'}
                     </div>
                     <div className="text-xs text-gray-500">
                       {format(new Date(order.timestamp), 'HH:mm')}

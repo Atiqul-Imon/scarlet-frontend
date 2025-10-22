@@ -406,7 +406,7 @@ export default function CheckoutPage() {
   const total = subtotal + shipping;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   
-  const formatPrice = (amount: number) => `৳${amount.toLocaleString('en-US')}`;
+  const formatPrice = (amount: number | undefined) => `৳${amount?.toLocaleString('en-US') || '0'}`;
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();

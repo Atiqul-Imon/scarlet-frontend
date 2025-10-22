@@ -346,7 +346,7 @@ export default function CartPage() {
   const itemCount = enrichedItems.reduce((sum, item) => sum + item.quantity, 0);
   
   // Format currency for Bangladesh
-  const formatPrice = (amount: number) => `৳${amount.toLocaleString('en-US')}`;
+  const formatPrice = (amount: number | undefined) => `৳${amount?.toLocaleString('en-US') || '0'}`;
   
   // Check if user needs to login for checkout
   const needsAuth = !user;

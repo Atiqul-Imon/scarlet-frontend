@@ -112,14 +112,6 @@ export interface MarketingAnalytics {
   }>;
 }
 
-export interface InventoryAnalytics {
-  totalProducts: number;
-  lowStockProducts: number;
-  outOfStockProducts: number;
-  totalInventoryValue: number;
-  turnoverRate: number;
-  deadStock: Array<{
-    productId: string;
     name: string;
     daysInStock: number;
     value: number;
@@ -196,7 +188,6 @@ export interface AnalyticsData {
   salesFunnel: SalesFunnelStage[];
   paymentMethods: PaymentMethodAnalytics[];
   marketing?: MarketingAnalytics;
-  inventory?: InventoryAnalytics;
   financial?: FinancialMetrics;
   timeSeries?: TimeSeriesData[];
   competitors?: CompetitorAnalysis;

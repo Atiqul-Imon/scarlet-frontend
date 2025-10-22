@@ -243,7 +243,7 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Categories</h3>
             <div className="space-y-1">
               {categories.map((category, index) => (
-                <div key={category.label}>
+                <div key={category.id || `${category.label}-${index}`}>
                   <button
                     onClick={() => category.columns ? toggleCategory(index) : (() => {
                       router.push(category.href || '#');

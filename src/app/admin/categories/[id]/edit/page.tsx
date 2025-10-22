@@ -4,10 +4,13 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
-import { adminApi } from '@/lib/api';
-import type { Category } from '@/lib/types';
+import { adminApi, categoryApi } from '@/lib/api';
+import type { Category, CategoryTree as CategoryTreeType } from '@/lib/types';
 import ImageSelector from '@/components/admin/ImageSelector';
 
 const categoryIcons = [
@@ -20,7 +23,11 @@ export default function EditCategoryPage() {
   const params = useParams();
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [loadingHierarchy, setLoadingHierarchy] = useState(true);
   const [category, setCategory] = useState<Category | null>(null);
+  const [hierarchy, setHierarchy] = useState<CategoryTreeType[]>([]);
+  const [showParentSelector, setShowParentSelector] = useState(false);
+  const [selectedParent, setSelectedParent] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -29,7 +36,8 @@ export default function EditCategoryPage() {
     icon: '',
     isActive: true,
     showInHomepage: false,
-    sortOrder: 0
+    sortOrder: 0,
+    parentId: null as string | null
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -38,6 +46,7 @@ export default function EditCategoryPage() {
   useEffect(() => {
     if (categoryId) {
       loadCategory();
+      loadHierarchy();
     }
   }, [categoryId]);
 
@@ -46,6 +55,21 @@ export default function EditCategoryPage() {
       setLoading(true);
       const categoryData = await adminApi.categories.getCategory(categoryId);
       setCategory(categoryData);
+      
+      // Load parent category if exists
+      let parentCategory = null;
+      if (categoryData.parentId) {
+        try {
+          const parentData = await categoryApi.getCategoryAncestors(categoryData.parentId);
+          if (parentData.length > 0) {
+            parentCategory = parentData[parentData.length - 1];
+            setSelectedParent(parentCategory || null);
+          }
+        } catch (error) {
+          console.error('Error loading parent category:', error);
+        }
+      }
+      
       setFormData({
         name: categoryData.name,
         slug: categoryData.slug,
@@ -54,7 +78,8 @@ export default function EditCategoryPage() {
         icon: categoryData.icon || '',
         isActive: categoryData.isActive !== false,
         showInHomepage: categoryData.showInHomepage || false,
-        sortOrder: categoryData.sortOrder || 0
+        sortOrder: categoryData.sortOrder || 0,
+        parentId: categoryData.parentId || null
       });
     } catch (error) {
       console.error('Failed to load category:', error);
@@ -65,6 +90,74 @@ export default function EditCategoryPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const buildHierarchyFromFlatData = (categories: Category[]): CategoryTreeType[] => {
+    const categoryMap = new Map<string, CategoryTreeType>();
+    const rootCategories: CategoryTreeType[] = [];
+    
+    // Create map of all categories
+    categories.forEach(category => {
+      if (category._id) {
+        categoryMap.set(category._id, { ...category, children: [] });
+      }
+    });
+    
+    // Build tree structure
+    categories.forEach(category => {
+      if (!category._id) return;
+      const categoryTree = categoryMap.get(category._id);
+      if (!categoryTree) return;
+      
+      if (category.parentId) {
+        const parent = categoryMap.get(category.parentId);
+        if (parent) {
+          parent.children = parent.children || [];
+          parent.children.push(categoryTree);
+          parent.hasChildren = true;
+          parent.childrenCount = (parent.childrenCount || 0) + 1;
+        }
+      } else {
+        rootCategories.push(categoryTree);
+      }
+    });
+    
+    return rootCategories;
+  };
+
+  const loadHierarchy = async () => {
+    try {
+      setLoadingHierarchy(true);
+      
+      // Fetch both flat categories and tree structure
+      const [categoriesResponse, treeResponse] = await Promise.all([
+        categoryApi.getCategories(),
+        categoryApi.getCategoryTree()
+      ]);
+      
+      const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : [];
+      const hierarchyData = Array.isArray(treeResponse) ? treeResponse : [];
+      
+      // Check if tree data has proper hierarchy, if not build it from flat data
+      let processedTreeData = hierarchyData;
+      const hasHierarchy = hierarchyData.some(cat => cat.children && cat.children.length > 0);
+      
+      if (!hasHierarchy && categoriesData.length > 0) {
+        console.log('Tree API returned flat data, building hierarchy from flat data');
+        processedTreeData = buildHierarchyFromFlatData(categoriesData);
+      }
+      
+      setHierarchy(processedTreeData);
+    } catch (error) {
+      console.error('Error loading category hierarchy:', error);
+      addToast({
+        type: 'error',
+        title: 'Failed to load categories',
+        message: 'Could not load category hierarchy for parent selection.'
+      });
+    } finally {
+      setLoadingHierarchy(false);
     }
   };
 
@@ -96,6 +189,17 @@ export default function EditCategoryPage() {
 
   const handleImageSelect = (imageUrl: string) => {
     setFormData(prev => ({ ...prev, image: imageUrl }));
+  };
+
+  const handleParentSelect = (category: Category) => {
+    setSelectedParent(category);
+    setFormData(prev => ({ ...prev, parentId: category._id! }));
+    setShowParentSelector(false);
+  };
+
+  const handleRemoveParent = () => {
+    setSelectedParent(null);
+    setFormData(prev => ({ ...prev, parentId: null }));
   };
 
   const validateForm = () => {
@@ -242,6 +346,87 @@ export default function EditCategoryPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder-gray-500 resize-none"
                   placeholder="Enter category description"
                 />
+              </div>
+
+              {/* Parent Category Selection */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Parent Category
+                </label>
+                <div className="space-y-3">
+                  {selectedParent ? (
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-lg">{selectedParent.icon || '🌟'}</span>
+                        <div>
+                          <h4 className="font-medium text-green-900">{selectedParent.name}</h4>
+                          <p className="text-sm text-green-700">
+                            Level {selectedParent.level || 0} • {selectedParent.path || 'Root'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveParent}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                      <p className="text-sm">No parent category selected</p>
+                      <p className="text-xs text-gray-400 mt-1">This will be a root category</p>
+                    </div>
+                  )}
+                  
+                  <button
+                    type="button"
+                    onClick={() => setShowParentSelector(!showParentSelector)}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      {selectedParent ? 'Change Parent' : 'Select Parent Category'}
+                    </span>
+                    {showParentSelector ? (
+                      <ChevronUpIcon className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+                    )}
+                  </button>
+                  
+                  {showParentSelector && (
+                    <div className="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+                      {loadingHierarchy ? (
+                        <div className="p-4 text-center text-gray-500">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700 mx-auto"></div>
+                          <p className="mt-2 text-sm">Loading categories...</p>
+                        </div>
+                      ) : (
+                        <div className="p-2">
+                          <div className="space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => handleParentSelect({ _id: '', name: 'Root Category', slug: '', level: -1 } as Category)}
+                              className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm text-gray-700"
+                            >
+                              🌟 Root Category (No Parent)
+                            </button>
+                            {hierarchy.map((category) => (
+                              <CategoryTreeItem
+                                key={category._id}
+                                category={category}
+                                onSelect={handleParentSelect}
+                                level={0}
+                                currentCategoryId={categoryId}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -474,3 +659,79 @@ export default function EditCategoryPage() {
     </div>
   );
 }
+
+// Helper component for category tree items in parent selector
+interface CategoryTreeItemProps {
+  category: CategoryTreeType;
+  onSelect: (category: Category) => void;
+  level: number;
+  currentCategoryId?: string;
+}
+
+const CategoryTreeItem: React.FC<CategoryTreeItemProps> = ({ category, onSelect, level, currentCategoryId }) => {
+  const [expanded, setExpanded] = useState(true); // Expanded by default to show all categories
+  const hasChildren = category.children && category.children.length > 0;
+  
+  // Don't allow selecting the current category as its own parent
+  const isCurrentCategory = currentCategoryId && category._id === currentCategoryId;
+  const isDisabled = isCurrentCategory;
+
+  const handleClick = () => {
+    if (!isDisabled) {
+      onSelect(category);
+    }
+  };
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={!!isDisabled}
+        className={`w-full text-left p-2 hover:bg-gray-50 rounded text-sm text-gray-700 flex items-center space-x-2 ${
+          level > 0 ? `ml-${level * 4}` : ''
+        } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        {hasChildren && (
+          <button
+            type="button"
+            onClick={handleToggle}
+            className="p-1 hover:bg-gray-200 rounded"
+          >
+            {expanded ? (
+              <ChevronDownIcon className="w-3 h-3 text-gray-500" />
+            ) : (
+              <ChevronRightIcon className="w-3 h-3 text-gray-500" />
+            )}
+          </button>
+        )}
+        {!hasChildren && <div className="w-5 h-5" />}
+        <span className="text-sm">{category.icon || '🌟'}</span>
+        <span className="flex-1 truncate">{category.name}</span>
+        <span className="text-xs text-gray-500">L{category.level || 0}</span>
+        {isDisabled && (
+          <span className="text-xs text-red-500">(Current)</span>
+        )}
+      </button>
+      
+      {expanded && hasChildren && (
+        <div className="ml-4">
+          {category.children!.map((child) => (
+            <CategoryTreeItem
+              key={child._id}
+              category={child}
+              onSelect={onSelect}
+              level={level + 1}
+              currentCategoryId={currentCategoryId || ''}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

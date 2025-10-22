@@ -130,11 +130,11 @@ export default function OutOfStockWishlistModal({
               )}
               <div className="flex items-center gap-2">
                 <span className="text-lg font-semibold text-gray-900">
-                  ৳{product.price.amount.toLocaleString()}
+                  ৳{product.price.amount?.toLocaleString() || '0'}
                 </span>
                 {product.price.originalAmount && (
                   <span className="text-sm text-gray-500 line-through">
-                    ৳{product.price.originalAmount.toLocaleString()}
+                    ৳{product.price.originalAmount?.toLocaleString() || '0'}
                   </span>
                 )}
               </div>

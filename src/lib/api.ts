@@ -160,77 +160,6 @@ export interface RealTimeAnalytics {
   };
 }
 
-// Inventory Types
-export interface InventoryItem {
-  _id?: string;
-  productId: string;
-  sku: string;
-  currentStock: number;
-  reservedStock: number;
-  availableStock: number;
-  minStockLevel: number;
-  maxStockLevel: number;
-  reorderPoint: number;
-  costPrice: number;
-  sellingPrice: number;
-  supplier?: string;
-  location?: string;
-  lastRestocked?: string;
-  lastSold?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface StockMovement {
-  _id?: string;
-  productId: string;
-  sku: string;
-  type: 'in' | 'out' | 'adjustment' | 'reserved' | 'unreserved';
-  quantity: number;
-  previousStock: number;
-  newStock: number;
-  reason: string;
-  reference?: string;
-  userId?: string;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface LowStockAlert {
-  _id?: string;
-  productId: string;
-  sku: string;
-  currentStock: number;
-  minStockLevel: number;
-  severity: 'low' | 'critical' | 'out_of_stock';
-  isResolved: boolean;
-  resolvedAt?: string;
-  resolvedBy?: string;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface InventoryStats {
-  totalProducts: number;
-  totalValue: number;
-  lowStockItems: number;
-  outOfStockItems: number;
-  recentlyRestocked: number;
-  topSellingProducts: Array<{
-    productId: string;
-    sku: string;
-    name: string;
-    quantitySold: number;
-    revenue: number;
-  }>;
-  stockMovements: Array<{
-    date: string;
-    movements: number;
-    value: number;
-  }>;
-}
 
 export const API_BASE = process.env['NEXT_PUBLIC_API_URL'] 
   ? `${process.env['NEXT_PUBLIC_API_URL']}/api`
@@ -1515,108 +1444,6 @@ export const analyticsApi = {
   }
 };
 
-// Inventory API functions
-export const inventoryApi = {
-  // Get inventory stats
-  getStats: (): Promise<InventoryStats> => {
-    return fetchJsonAuth('/inventory/stats');
-  },
-
-  // Get all inventory items
-  getItems: (page: number = 1, limit: number = 50): Promise<{ items: InventoryItem[]; total: number }> => {
-    const params = new URLSearchParams({ 
-      page: page.toString(), 
-      limit: limit.toString() 
-    });
-    return fetchJsonAuth(`/inventory?${params.toString()}`);
-  },
-
-  // Get specific inventory item
-  getItem: (productId: string): Promise<InventoryItem> => {
-    return fetchJsonAuth(`/inventory/${productId}`);
-  },
-
-  // Create inventory item
-  createItem: (data: {
-    productId: string;
-    sku: string;
-    currentStock: number;
-    minStockLevel: number;
-    maxStockLevel: number;
-    reorderPoint: number;
-    costPrice: number;
-    sellingPrice: number;
-    supplier?: string;
-    location?: string;
-  }): Promise<InventoryItem> => {
-    return fetchJsonAuth('/inventory', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  },
-
-  // Update inventory item
-  updateItem: (productId: string, updates: Partial<InventoryItem>): Promise<InventoryItem> => {
-    return fetchJsonAuth(`/inventory/${productId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates)
-    });
-  },
-
-  // Adjust stock
-  adjustStock: (productId: string, data: {
-    quantity: number;
-    type: 'in' | 'out' | 'adjustment';
-    reason: string;
-    reference?: string;
-    notes?: string;
-  }): Promise<InventoryItem> => {
-    return fetchJsonAuth(`/inventory/${productId}/adjust`, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  },
-
-  // Reserve stock
-  reserveStock: (productId: string, quantity: number): Promise<{ success: boolean }> => {
-    return fetchJsonAuth(`/inventory/${productId}/reserve`, {
-      method: 'POST',
-      body: JSON.stringify({ quantity })
-    });
-  },
-
-  // Unreserve stock
-  unreserveStock: (productId: string, quantity: number): Promise<{ success: boolean }> => {
-    return fetchJsonAuth(`/inventory/${productId}/unreserve`, {
-      method: 'POST',
-      body: JSON.stringify({ quantity })
-    });
-  },
-
-  // Get stock movements
-  getStockMovements: (productId?: string, page: number = 1, limit: number = 50): Promise<{ movements: StockMovement[]; total: number }> => {
-    const params = new URLSearchParams({ 
-      page: page.toString(), 
-      limit: limit.toString() 
-    });
-    const url = productId ? `/inventory/${productId}/movements` : '/inventory/movements';
-    return fetchJsonAuth(`${url}?${params.toString()}`);
-  },
-
-  // Get low stock alerts
-  getLowStockAlerts: (resolved: boolean = false): Promise<LowStockAlert[]> => {
-    const params = new URLSearchParams({ resolved: resolved.toString() });
-    return fetchJsonAuth(`/inventory/alerts/low-stock?${params.toString()}`);
-  },
-
-  // Resolve low stock alert
-  resolveAlert: (alertId: string, resolvedBy: string): Promise<{ success: boolean }> => {
-    return fetchJsonAuth(`/inventory/alerts/${alertId}/resolve`, {
-      method: 'PATCH',
-      body: JSON.stringify({ resolvedBy })
-    });
-  }
-};
 
 // OTP API
 export const otpApi = {
@@ -1867,6 +1694,96 @@ export function stopTokenRefreshScheduler(): void {
     tokenRefreshInterval = null;
   }
 }
+
+// Search API functions
+export const searchApi = {
+  // Search products with filters and pagination
+  search: async (query: string, options: {
+    page?: number;
+    limit?: number;
+    sortBy?: 'relevance' | 'price_asc' | 'price_desc' | 'rating' | 'newest';
+    filters?: {
+      brand?: string[];
+      category?: string[];
+      priceMin?: number;
+      priceMax?: number;
+      inStock?: boolean;
+      rating?: number;
+    };
+  } = {}): Promise<{
+    products: Product[];
+    total: number;
+    suggestions?: string[];
+    filters?: {
+      brands: string[];
+      categories: string[];
+      priceRange: { min: number; max: number };
+    };
+  }> => {
+    const params = new URLSearchParams({
+      q: query,
+      page: (options.page || 1).toString(),
+      limit: (options.limit || 50).toString(),
+      sortBy: options.sortBy || 'relevance'
+    });
+    
+    // Add filters to params
+    if (options.filters) {
+      if (options.filters.brand && options.filters.brand.length > 0) {
+        params.append('brand', options.filters.brand.join(','));
+      }
+      if (options.filters.category && options.filters.category.length > 0) {
+        params.append('category', options.filters.category.join(','));
+      }
+      if (options.filters.priceMin !== undefined) {
+        params.append('priceMin', options.filters.priceMin.toString());
+      }
+      if (options.filters.priceMax !== undefined) {
+        params.append('priceMax', options.filters.priceMax.toString());
+      }
+      if (options.filters.inStock !== undefined) {
+        params.append('inStock', options.filters.inStock.toString());
+      }
+      if (options.filters.rating !== undefined) {
+        params.append('rating', options.filters.rating.toString());
+      }
+    }
+    
+    return fetchJson(`/catalog/search?${params.toString()}`, {
+      next: { revalidate: 300 } // 5 min cache
+    });
+  },
+  
+  // Get search suggestions for autocomplete
+  suggestions: async (query: string): Promise<{
+    products: Array<{
+      _id: string;
+      title: string;
+      slug: string;
+      brand: string;
+      price: { amount: number; currency: string };
+      images: string[];
+      rating?: { average: number; count: number };
+    }>;
+    brands: string[];
+    categories: string[];
+  }> => {
+    if (query.length < 2) {
+      return { products: [], brands: [], categories: [] };
+    }
+    
+    return fetchJson(`/catalog/search/suggestions?q=${encodeURIComponent(query)}`, {
+      next: { revalidate: 60 } // 1 min cache
+    });
+  },
+  
+  // Get popular searches
+  popularSearches: async (): Promise<string[]> => {
+    return fetchJson('/catalog/search/popular', {
+      next: { revalidate: 3600 } // 1 hour cache
+    });
+  }
+};
 
 // Auto-start the scheduler when the module loads
 if (typeof window !== 'undefined') {

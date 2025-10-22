@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
+import ClientSearchProvider from "../components/providers/ClientSearchProvider";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 import { SWRProvider } from "../components/providers/SWRProvider";
 import StickyCartButton from "../components/cart/StickyCartButton";
@@ -155,13 +156,15 @@ export default function RootLayout({
       >
         <SWRProvider>
           <AppProvider>
-            <ChatProvider>
-              <ServiceWorkerProvider>
-                <ConditionalLayout>
-                  {children}
-                </ConditionalLayout>
-              </ServiceWorkerProvider>
-            </ChatProvider>
+            <ClientSearchProvider>
+              <ChatProvider>
+                <ServiceWorkerProvider>
+                  <ConditionalLayout>
+                    {children}
+                  </ConditionalLayout>
+                </ServiceWorkerProvider>
+              </ChatProvider>
+            </ClientSearchProvider>
           </AppProvider>
         </SWRProvider>
       </body>

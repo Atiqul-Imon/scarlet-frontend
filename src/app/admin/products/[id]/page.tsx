@@ -294,7 +294,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Price</span>
                   <span className="font-medium text-gray-900">
-                    {product.price.currency} {product.price.amount.toLocaleString()}
+                    {product.price.currency} {product.price.amount?.toLocaleString() || '0'}
                   </span>
                 </div>
                 
@@ -400,7 +400,7 @@ export default function ProductDetailPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Price</span>
                   <span className="text-gray-900">
-                    {product.price.currency} {product.price.amount.toLocaleString()}
+                    {product.price.currency} {product.price.amount?.toLocaleString() || '0'}
                   </span>
                 </div>
                 {product.createdAt && (

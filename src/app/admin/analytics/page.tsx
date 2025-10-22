@@ -40,14 +40,13 @@ import {
 } from '@heroicons/react/24/outline';
 import { BDTIcon } from '../../../components/ui/BDTIcon';
 import { useToast } from '@/lib/context';
-import { analyticsApi, inventoryApi } from '@/lib/api';
-import type { SalesAnalytics, TrafficAnalytics, RealTimeAnalytics, InventoryStats } from '@/lib/api';
+import { analyticsApi } from '@/lib/api';
+import type { SalesAnalytics, TrafficAnalytics, RealTimeAnalytics } from '@/lib/api';
 
 interface AnalyticsData {
   sales: SalesAnalytics;
   traffic: TrafficAnalytics;
   realTime: RealTimeAnalytics;
-  inventory: InventoryStats;
   summary: {
     totalRevenue: number;
     totalOrders: number;
@@ -127,11 +126,10 @@ export default function AnalyticsPage() {
       setLoading(true);
       const { startDate, endDate } = getDateRange();
       
-      const [sales, traffic, realTime, inventory] = await Promise.all([
+      const [sales, traffic, realTime] = await Promise.all([
         analyticsApi.getSalesAnalytics(startDate, endDate),
         analyticsApi.getTrafficAnalytics(startDate, endDate),
-        analyticsApi.getRealTimeAnalytics(),
-        inventoryApi.getStats()
+        analyticsApi.getRealTimeAnalytics()
       ]);
 
       const summary = {
@@ -147,7 +145,6 @@ export default function AnalyticsPage() {
         sales,
         traffic,
         realTime,
-        inventory,
         summary
       });
     } catch (error) {
@@ -357,35 +354,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Status</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Total Products</span>
-              <span className="text-sm font-semibold text-gray-900">
-                {data.inventory.totalProducts}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Low Stock Items</span>
-              <span className="text-sm font-semibold text-orange-600">
-                {data.inventory.lowStockItems}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Out of Stock</span>
-              <span className="text-sm font-semibold text-red-600">
-                {data.inventory.outOfStockItems}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Total Value</span>
-              <span className="text-sm font-semibold text-gray-900">
-                ৳{data.inventory.totalValue.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Charts */}

@@ -69,7 +69,7 @@ function ProductsPageContent() {
   const currentCategory = React.useMemo(() => {
     if (!filters.category) return null;
     return categories.find(cat => 
-      cat.slug === filters.category || cat.name.toLowerCase() === filters.category.toLowerCase()
+      cat.slug === filters.category || cat.name.toLowerCase() === filters.category?.toLowerCase()
     );
   }, [categories, filters.category]);
 
@@ -114,6 +114,31 @@ function ProductsPageContent() {
     fetchData();
   }, []);
 
+  // Helper function to get all descendant category IDs (including the category itself)
+  const getAllDescendantCategoryIds = React.useCallback((categoryId: string): string[] => {
+    const allCategoryIds = new Set<string>([categoryId]);
+    const categoriesToProcess = [categoryId];
+    
+    while (categoriesToProcess.length > 0) {
+      const currentCategoryId = categoriesToProcess.shift()!;
+      
+      // Find all direct children of the current category
+      const children = categories.filter(cat => 
+        cat.parentId === currentCategoryId && cat.isActive
+      );
+      
+      // Add children to the set and queue them for processing
+      for (const child of children) {
+        if (child._id && !allCategoryIds.has(child._id)) {
+          allCategoryIds.add(child._id);
+          categoriesToProcess.push(child._id);
+        }
+      }
+    }
+    
+    return Array.from(allCategoryIds);
+  }, [categories]);
+
   // Filter and sort products
   const filteredAndSortedProducts = React.useMemo(() => {
     let filtered = [...products];
@@ -122,11 +147,13 @@ function ProductsPageContent() {
     if (filters.category) {
       // Find category by slug or name
       const category = categories.find(cat => 
-        cat.slug === filters.category || cat.name.toLowerCase() === filters.category.toLowerCase()
+        cat.slug === filters.category || cat.name.toLowerCase() === filters.category?.toLowerCase()
       );
       if (category) {
+        // Get all descendant category IDs (including the category itself)
+        const allCategoryIds = getAllDescendantCategoryIds(category._id!);
         filtered = filtered.filter(product => 
-          product.categoryIds?.includes(category._id!)
+          product.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
         );
       }
     }
@@ -141,10 +168,13 @@ function ProductsPageContent() {
       const [min, max] = filters.priceRange.split('-').map(Number);
       filtered = filtered.filter(product => {
         const price = product.price.amount;
-        if (max) {
+        if (max && min !== undefined) {
           return price >= min && price <= max;
         }
-        return price >= min;
+        if (min !== undefined) {
+          return price >= min;
+        }
+        return true;
       });
     }
 
@@ -187,12 +217,20 @@ function ProductsPageContent() {
 
   // Get categories for filter
   const categoryOptions = React.useMemo(() => {
-    return categories.map(category => ({
-      value: category.slug,
-      label: category.name,
-      count: products.filter(p => p.categoryIds?.includes(category._id!)).length
-    }));
-  }, [categories, products]);
+    return categories.map(category => {
+      // Get all descendant category IDs for this category
+      const allCategoryIds = getAllDescendantCategoryIds(category._id!);
+      const count = products.filter(p => 
+        p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
+      ).length;
+      
+      return {
+        value: category.slug,
+        label: category.name,
+        count
+      };
+    });
+  }, [categories, products, getAllDescendantCategoryIds]);
 
   // Price ranges for BDT currency
   const priceRanges = [

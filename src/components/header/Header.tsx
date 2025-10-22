@@ -14,10 +14,11 @@ const transformCategoriesToMegaItems = (categories: Category[]): MegaItem[] => {
   return categories
     .filter(category => category.isActive !== false)
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-    .map(category => ({
+    .map((category, index) => ({
       label: category.name,
       href: `/products?category=${category.slug}`,
-      icon: category.icon,
+      icon: category.icon || undefined,
+      id: category._id || `category-${index}`, // Add unique ID for React keys
     }));
 };
 

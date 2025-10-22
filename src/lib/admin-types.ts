@@ -42,6 +42,7 @@ export interface AdminProduct {
   price: {
     currency: string;
     amount: number;
+    originalAmount?: number;
   };
   stock: number;
   attributes?: Record<string, string | number | boolean | null>;
@@ -238,7 +239,7 @@ export interface AdminNavItem {
   children?: AdminNavItem[];
 }
 
-// Enhanced Product interface for inventory management
+// Enhanced Product interface
 export interface ExtendedAdminProduct extends AdminProduct {
   id: string;
   name: string;
@@ -259,10 +260,8 @@ export interface ExtendedAdminProduct extends AdminProduct {
     stock: number;
     price: number;
   }>;
-  lowStockThreshold: number;
   trackInventory: boolean;
   status: 'active' | 'draft' | 'archived';
-  stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock' | 'pre_order';
   weight?: number;
   dimensions?: {
     length: number;
@@ -276,25 +275,3 @@ export interface ExtendedAdminProduct extends AdminProduct {
   viewCount: number;
 }
 
-export interface InventoryItem extends ExtendedAdminProduct {
-  reorderPoint: number;
-  maxStock: number;
-  reservedStock: number;
-  availableStock: number;
-  lastRestockDate: string;
-  supplier: string;
-  location: string;
-  turnoverRate: number;
-}
-
-export interface StockMovement {
-  id: string;
-  productId: string;
-  productName: string;
-  type: 'in' | 'out' | 'adjustment';
-  quantity: number;
-  reason: string;
-  date: string;
-  user: string;
-  reference?: string;
-}

@@ -123,12 +123,6 @@ const navigationItems: AdminNavItem[] = [
     ],
   },
   {
-    id: 'inventory',
-    label: 'Inventory',
-    href: '/admin/inventory',
-    icon: CubeIcon,
-  },
-  {
     id: 'wishlist',
     label: 'Out-of-Stock Wishlist',
     href: '/admin/wishlist',
