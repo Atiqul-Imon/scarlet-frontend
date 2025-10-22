@@ -9,7 +9,9 @@ import {
   ChevronRightIcon, 
   ChevronDownIcon,
   FolderIcon,
-  FolderOpenIcon
+  FolderOpenIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -23,6 +25,11 @@ export default function AdminCategoriesPage() {
   // Hierarchy view state
   const [viewMode, setViewMode] = React.useState<'grid' | 'hierarchy'>('hierarchy');
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [filterStatus, setFilterStatus] = React.useState<'all' | 'active' | 'inactive'>('all');
+  const [showFilters, setShowFilters] = React.useState(false);
   
   // Delete state
   const [deletingCategory, setDeletingCategory] = React.useState<string | null>(null);
@@ -73,6 +80,34 @@ export default function AdminCategoriesPage() {
     
     return rootCategories;
   };
+
+  // Filter categories based on search query and status
+  const filterCategories = (categories: Category[]): Category[] => {
+    return categories.filter(category => {
+      // Search filter
+      const matchesSearch = !searchQuery || 
+        category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        category.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // Status filter
+      const matchesStatus = filterStatus === 'all' || 
+        (filterStatus === 'active' && category.isActive !== false) ||
+        (filterStatus === 'inactive' && category.isActive === false);
+      
+      return matchesSearch && matchesStatus;
+    });
+  };
+
+  // Get filtered categories
+  const filteredCategories = React.useMemo(() => {
+    return filterCategories(categories);
+  }, [categories, searchQuery, filterStatus]);
+
+  // Get filtered category tree
+  const filteredCategoryTree = React.useMemo(() => {
+    return buildHierarchyFromFlatData(filteredCategories);
+  }, [filteredCategories]);
 
   const fetchCategories = async () => {
     try {
@@ -513,7 +548,7 @@ export default function AdminCategoriesPage() {
           {/* Stats */}
           <div className="bg-green-50 px-4 py-2 rounded-lg">
             <span className="text-sm font-medium text-green-800">
-              {categories.filter(cat => cat.isActive).length} Active Categories
+              {filteredCategories.filter(cat => cat.isActive).length} Active Categories
             </span>
           </div>
 
@@ -527,6 +562,81 @@ export default function AdminCategoriesPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div className="p-4">
+          <div className="flex items-center space-x-4">
+            {/* Search Input */}
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                placeholder="Search categories by name, slug, or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* Filter Toggle */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors ${
+                showFilters 
+                  ? 'bg-red-50 border-red-200 text-red-700' 
+                  : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <FunnelIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">Filters</span>
+            </button>
+
+            {/* Clear Search */}
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Search Results Summary */}
+      {searchQuery && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            Found {filteredCategories.length} category{filteredCategories.length !== 1 ? 'ies' : ''} matching "{searchQuery}"
+          </p>
+        </div>
+      )}
 
       {/* Message */}
       {message && (
@@ -656,8 +766,8 @@ export default function AdminCategoriesPage() {
         {viewMode === 'hierarchy' ? (
           /* Hierarchy View */
           <div className="divide-y divide-gray-200">
-            {categoryTree.length > 0 ? (
-              categoryTree.map((category) => (
+            {filteredCategoryTree.length > 0 ? (
+              filteredCategoryTree.map((category) => (
                 <HierarchyCategoryItem
                   key={category._id}
                   category={category}
@@ -667,15 +777,44 @@ export default function AdminCategoriesPage() {
             ) : (
               <div className="p-8 text-center text-gray-500">
                 <FolderIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Found</h3>
-                <p className="text-gray-500 mb-4">Get started by creating your first category.</p>
-                <Link
-                  href="/admin/categories/new"
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
-                >
-                  <PlusIcon className="w-5 h-5" />
-                  <span>Create Category</span>
-                </Link>
+                {searchQuery || filterStatus !== 'all' ? (
+                  <>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Match Your Search</h3>
+                    <p className="text-gray-500 mb-4">
+                      No categories found matching "{searchQuery}" with the current filters.
+                    </p>
+                    <div className="flex items-center justify-center space-x-3">
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setFilterStatus('all');
+                        }}
+                        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        Clear Filters
+                      </button>
+                      <Link
+                        href="/admin/categories/new"
+                        className="inline-flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+                      >
+                        <PlusIcon className="w-5 h-5" />
+                        <span>Create Category</span>
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Found</h3>
+                    <p className="text-gray-500 mb-4">Get started by creating your first category.</p>
+                    <Link
+                      href="/admin/categories/new"
+                      className="inline-flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                      <span>Create Category</span>
+                    </Link>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -683,7 +822,7 @@ export default function AdminCategoriesPage() {
           /* Grid View - 2 Rows x 4 Categories (Max 8) */
           <div className="p-6 sm:p-8 lg:p-12 min-h-screen">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 max-w-none">
-              {categories.slice(0, 8).map((category) => (
+              {filteredCategories.slice(0, 8).map((category) => (
                 <div
                   key={category._id}
                   className="group relative bg-white rounded-3xl border border-gray-100 hover:border-gray-200 hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] w-full"
