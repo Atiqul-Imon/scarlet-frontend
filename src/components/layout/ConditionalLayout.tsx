@@ -7,6 +7,7 @@ import StickyCartButton from '../cart/StickyCartButton';
 import FloatingWhatsAppButton from '../chat/FloatingWhatsAppButton';
 import FloatingMessengerButton from '../chat/FloatingMessengerButton';
 import ChatWidget from '../chat/ChatWidget';
+import MobileBottomNav from '../navigation/MobileBottomNav';
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -34,10 +35,12 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1">
+      <main className="flex-1 pb-16 lg:pb-0">
         {children}
       </main>
       <Footer />
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
       {/* Sticky Cart Button */}
       <StickyCartButton />
       {/* Chat Widget */}

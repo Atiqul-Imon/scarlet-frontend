@@ -166,7 +166,7 @@ export default function InstantSearch({
   
   const formatPrice = (price: any) => {
     if (!price) return '৳0';
-    return `৳${price.amount?.toLocaleString('bn-BD') || 0}`;
+    return `৳${price.amount?.toLocaleString('en-US') || 0}`;
   };
   
   return (

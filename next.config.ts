@@ -9,16 +9,6 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   generateEtags: true,
   
-  // Development optimizations
-  ...(process.env.NODE_ENV === 'development' && {
-    // Disable static optimization in development
-    trailingSlash: false,
-    // Disable React StrictMode to prevent double-rendering in development
-    reactStrictMode: false,
-    // Disable SWC minification in development
-    swcMinify: false,
-  }),
-  
   
   // ESLint configuration
   eslint: {
@@ -213,31 +203,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Webpack optimizations
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    
-    // Bundle analyzer (only in development)
-    if (process.env['ANALYZE'] === 'true') {
-      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-      config.plugins.push(
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'server',
-          analyzerPort: 8888,
-          openAnalyzer: true,
-        })
-      );
-    }
-
-    return config;
-  },
 };
 
 export default nextConfig;

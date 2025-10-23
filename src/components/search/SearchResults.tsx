@@ -40,7 +40,7 @@ export default function SearchResults({
   
   const formatPrice = (price: any) => {
     if (!price) return '৳0';
-    return `৳${price.amount?.toLocaleString('bn-BD') || 0}`;
+    return `৳${price.amount?.toLocaleString('en-US') || 0}`;
   };
   
   const renderStars = (rating: number) => {
@@ -92,30 +92,30 @@ export default function SearchResults({
               <div className="relative aspect-square overflow-hidden">
                 <Link href={`/products/${product.slug}`}>
                   <ProductImage
-                    src={product.images?.[0]}
+                    src={product.images?.[0] || ''}
                     alt={product.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 </Link>
                 
-                {/* Badges */}
-                <div className="absolute top-2 left-2 flex flex-col space-y-1">
-                  {product.isBestSeller && (
-                    <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                      Best Seller
-                    </span>
-                  )}
-                  {product.isNewArrival && (
-                    <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                      New
-                    </span>
-                  )}
-                  {product.price?.discountPercentage && (
-                    <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                      -{product.price.discountPercentage}%
-                    </span>
-                  )}
-                </div>
+                    {/* Badges */}
+                    <div className="absolute top-2 left-2 flex flex-col space-y-1">
+                      {(product as any).isBestSeller && (
+                        <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          Best Seller
+                        </span>
+                      )}
+                      {(product as any).isNewArrival && (
+                        <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          New
+                        </span>
+                      )}
+                      {product.price?.discountPercentage && (
+                        <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          -{product.price.discountPercentage}%
+                        </span>
+                      )}
+                    </div>
                 
                 {/* Wishlist Button */}
                 <button
@@ -154,17 +154,17 @@ export default function SearchResults({
                   </h3>
                 </Link>
                 
-                {/* Rating */}
-                {product.rating && (
-                  <div className="flex items-center space-x-1 mb-2">
-                    <div className="flex">
-                      {renderStars(product.rating.average)}
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      ({product.rating.count})
-                    </span>
-                  </div>
-                )}
+                    {/* Rating */}
+                    {(product as any).rating && (
+                      <div className="flex items-center space-x-1 mb-2">
+                        <div className="flex">
+                          {renderStars((product as any).rating.average)}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          ({(product as any).rating.count})
+                        </span>
+                      </div>
+                    )}
                 
                 {/* Price */}
                 <div className="flex items-center space-x-2 mb-3">
@@ -172,9 +172,9 @@ export default function SearchResults({
                     {formatPrice(product.price)}
                   </span>
                   {product.price?.originalAmount && (
-                    <span className="text-sm text-gray-500 line-through">
-                      ৳{product.price.originalAmount?.toLocaleString('bn-BD') || '0'}
-                    </span>
+                      <span className="text-sm text-gray-500 line-through">
+                        ৳{product.price.originalAmount?.toLocaleString('en-US') || '0'}
+                      </span>
                   )}
                 </div>
                 

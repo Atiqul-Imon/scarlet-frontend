@@ -14,12 +14,19 @@ export default async function AppleIcon() {
     return new Response(imageBuffer, {
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=3600, must-revalidate',
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
   } catch (error) {
     console.error('Error loading apple icon:', error);
-    return new Response('Apple icon not found', { status: 404 });
+    // Return a simple 1x1 transparent PNG as fallback
+    const fallbackPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+    return new Response(fallbackPng, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      },
+    });
   }
 }
 

@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
 import { Roboto, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import Header from "../components/header/Header";
-import Footer from "../components/footer/Footer";
 import { AppProvider } from "../lib/context";
 import ClientSearchProvider from "../components/providers/ClientSearchProvider";
 import ServiceWorkerProvider from "../components/providers/ServiceWorkerProvider";
 import { SWRProvider } from "../components/providers/SWRProvider";
-import StickyCartButton from "../components/cart/StickyCartButton";
-import FloatingWhatsAppButton from "../components/chat/FloatingWhatsAppButton";
-import FloatingMessengerButton from "../components/chat/FloatingMessengerButton";
 import { ChatProvider } from "../lib/chat-context";
-import ChatWidget from "../components/chat/ChatWidget";
 import StructuredData from "../components/seo/StructuredData";
 import ConditionalLayout from "../components/layout/ConditionalLayout";
 import GoogleAnalytics from "../components/analytics/GoogleAnalytics";

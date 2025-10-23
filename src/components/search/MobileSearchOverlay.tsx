@@ -157,7 +157,7 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
   
   const formatPrice = (price: any) => {
     if (!price) return '৳0';
-    return `৳${price.amount?.toLocaleString('bn-BD') || 0}`;
+    return `৳${price.amount?.toLocaleString('en-US') || 0}`;
   };
   
   const renderStars = (rating: number) => {

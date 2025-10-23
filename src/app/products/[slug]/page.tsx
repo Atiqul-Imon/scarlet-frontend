@@ -153,7 +153,7 @@ export default function ProductDetailPage() {
 
   const formatPrice = (amount: number, currency: string = 'BDT') => {
     if (currency === 'BDT') {
-      return `৳${amount.toLocaleString('bn-BD')}`;
+      return `৳${amount.toLocaleString('en-US')}`;
     }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

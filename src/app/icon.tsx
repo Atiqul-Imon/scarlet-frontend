@@ -15,13 +15,19 @@ export default async function Icon() {
     return new Response(imageBuffer, {
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=3600, must-revalidate',
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
   } catch (error) {
     console.error('Error loading favicon:', error);
-    // Return 404 if file not found
-    return new Response('Favicon not found', { status: 404 });
+    // Return a simple 1x1 transparent PNG as fallback
+    const fallbackPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+    return new Response(fallbackPng, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      },
+    });
   }
 }
 
