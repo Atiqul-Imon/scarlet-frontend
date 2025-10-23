@@ -8,10 +8,10 @@ interface MobileSearchFiltersProps {
   filters: {
     brand?: string[];
     category?: string[];
-    priceMin?: number;
-    priceMax?: number;
-    inStock?: boolean;
-    rating?: number;
+    priceMin?: number | undefined;
+    priceMax?: number | undefined;
+    inStock?: boolean | undefined;
+    rating?: number | undefined;
   };
   availableFilters: {
     brands: string[];
@@ -100,9 +100,9 @@ export default function MobileSearchFilters({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-white">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col w-full h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white flex-shrink-0">
         <div className="flex items-center space-x-2">
           <FunnelIcon className="w-5 h-5 text-gray-600" />
           <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
@@ -116,8 +116,8 @@ export default function MobileSearchFilters({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto w-full">
+        <div className="p-4 space-y-6 w-full">
           {/* Clear All Filters */}
           {hasActiveFilters && (
             <div className="pb-4 border-b border-gray-200">
@@ -211,8 +211,8 @@ export default function MobileSearchFilters({
             </button>
             {expandedSections.has('price') && (
               <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
                     <input
                       type="number"
@@ -222,7 +222,7 @@ export default function MobileSearchFilters({
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
                     <input
                       type="number"
@@ -303,7 +303,7 @@ export default function MobileSearchFilters({
       </div>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 p-4 bg-white">
+      <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
         <button
           onClick={onClose}
           className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-base"

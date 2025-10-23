@@ -14,6 +14,7 @@ import { ChatProvider } from "../lib/chat-context";
 import ChatWidget from "../components/chat/ChatWidget";
 import StructuredData from "../components/seo/StructuredData";
 import ConditionalLayout from "../components/layout/ConditionalLayout";
+import GoogleAnalytics from "../components/analytics/GoogleAnalytics";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -154,6 +155,7 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} ${playfairDisplay.variable} antialiased h-full`}
       >
+        <GoogleAnalytics />
         <SWRProvider>
           <AppProvider>
             <ClientSearchProvider>

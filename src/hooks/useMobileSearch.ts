@@ -1,6 +1,5 @@
 "use client";
 import * as React from 'react';
-import { useSearch } from '../lib/context/SearchContext';
 
 interface UseMobileSearchReturn {
   isOpen: boolean;
@@ -11,7 +10,6 @@ interface UseMobileSearchReturn {
 
 export function useMobileSearch(): UseMobileSearchReturn {
   const [isOpen, setIsOpen] = React.useState(false);
-  const { clearRecentSearches } = useSearch();
   
   const openSearch = React.useCallback(() => {
     setIsOpen(true);

@@ -3,28 +3,24 @@ import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import ProductGrid from '../../components/products/ProductGrid';
 import SearchFilters from '../../components/search/SearchFilters';
 import MobileSearchFilters from '../../components/search/MobileSearchFilters';
 import SearchResults from '../../components/search/SearchResults';
 import { fetchJson } from '../../lib/api';
-import { Product, Category } from '../../lib/types';
-import { useCart, useToast, useAuth } from '../../lib/context';
+import { Product } from '../../lib/types';
+import { useCart, useToast } from '../../lib/context';
 import { 
   MagnifyingGlassIcon, 
-  FunnelIcon, 
-  AdjustmentsHorizontalIcon,
-  XMarkIcon,
-  ChevronDownIcon
+  FunnelIcon
 } from '@heroicons/react/24/outline';
 
 interface SearchFilters {
   brand?: string[];
   category?: string[];
-  priceMin?: number;
-  priceMax?: number;
-  inStock?: boolean;
-  rating?: number;
+  priceMin?: number | undefined;
+  priceMax?: number | undefined;
+  inStock?: boolean | undefined;
+  rating?: number | undefined;
 }
 
 interface SearchResult {
@@ -43,12 +39,11 @@ function SearchPageContent() {
   const router = useRouter();
   const { addItem } = useCart();
   const { addToast } = useToast();
-  const { user } = useAuth();
   
   const [searchResult, setSearchResult] = React.useState<SearchResult | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [showFilters, setShowFilters] = React.useState(false);
+  const [showFilters] = React.useState(false);
   const [showMobileFilters, setShowMobileFilters] = React.useState(false);
   
   // Get search query from URL
@@ -70,8 +65,8 @@ function SearchPageContent() {
     const sort = searchParams.get('sort');
     
     setFilters({
-      brand: brand ? brand.split(',') : undefined,
-      category: category ? category.split(',') : undefined,
+      brand: brand ? brand.split(',') : [],
+      category: category ? category.split(',') : [],
       priceMin: priceMin ? parseFloat(priceMin) : undefined,
       priceMax: priceMax ? parseFloat(priceMax) : undefined,
       inStock: inStock ? inStock === 'true' : undefined,
@@ -121,7 +116,7 @@ function SearchPageContent() {
         params.append('rating', filters.rating.toString());
       }
       
-      const result = await fetchJson(`/catalog/search?${params.toString()}`);
+      const result = await fetchJson<SearchResult>(`/catalog/search?${params.toString()}`);
       setSearchResult(result);
     } catch (error) {
       console.error('Search error:', error);
@@ -228,16 +223,16 @@ function SearchPageContent() {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full max-w-7xl mx-auto px-4 py-4 md:py-8">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+        <div className="mb-4 md:mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
                 Search Results for "{query}"
               </h1>
               {searchResult && (
-                <p className="text-gray-600 mt-1">
+                <p className="text-sm md:text-base text-gray-600 mt-1">
                   {searchResult.total} product{searchResult.total !== 1 ? 's' : ''} found
                 </p>
               )}
@@ -246,34 +241,38 @@ function SearchPageContent() {
             {/* Mobile Filter Toggle */}
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="md:hidden flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="md:hidden flex items-center justify-center space-x-2 px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-base font-semibold text-gray-900 flex-shrink-0"
             >
-              <FunnelIcon className="w-5 h-5" />
+              <FunnelIcon className="w-5 h-5 text-gray-700" />
               <span>Filters</span>
             </button>
           </div>
           
-          {/* Sort Options */}
-          <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium text-gray-700">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => handleSortChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            >
-              <option value="relevance">Relevance</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="rating">Rating</option>
-              <option value="newest">Newest</option>
-            </select>
+          {/* Sort Options - Mobile Optimized */}
+          <div className="w-full">
+            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
+              <span className="text-base font-semibold text-gray-900 whitespace-nowrap">Sort by:</span>
+              <div className="w-full sm:w-auto sm:min-w-[200px]">
+                <select
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-base bg-white font-medium text-gray-900"
+                >
+                  <option value="relevance">Relevance</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="rating">Rating</option>
+                  <option value="newest">Newest</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 w-full">
           {/* Filters Sidebar */}
-          <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-80 flex-shrink-0`}>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-80 flex-shrink-0`}>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
                 <button
@@ -286,30 +285,30 @@ function SearchPageContent() {
               
               <SearchFilters
                 filters={filters}
-                availableFilters={searchResult?.filters}
+                availableFilters={searchResult?.filters || { brands: [], categories: [], priceRange: { min: 0, max: 10000 } }}
                 onFilterChange={handleFilterChange}
               />
             </div>
           </div>
           
           {/* Results */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0 w-full">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {Array.from({ length: 8 }).map((_, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 animate-pulse">
-                    <div className="w-full h-48 bg-gray-200 rounded-lg mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4 animate-pulse">
+                    <div className="w-full h-40 md:h-48 bg-gray-200 rounded-lg mb-3 md:mb-4"></div>
+                    <div className="h-3 md:h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 md:h-4 bg-gray-200 rounded w-3/4"></div>
                   </div>
                 ))}
               </div>
             ) : error ? (
-              <div className="text-center py-16">
-                <div className="text-red-600 mb-4">{error}</div>
+              <div className="text-center py-8 md:py-16 px-4">
+                <div className="text-red-600 mb-4 text-base md:text-lg font-medium">{error}</div>
                 <button
                   onClick={fetchSearchResults}
-                  className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+                  className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors text-base font-medium"
                 >
                   Try Again
                 </button>
@@ -319,24 +318,24 @@ function SearchPageContent() {
                 products={searchResult.products}
                 total={searchResult.total}
                 onAddToCart={handleAddToCart}
-                suggestions={searchResult.suggestions}
+                suggestions={searchResult.suggestions || []}
               />
             ) : (
-              <div className="text-center py-16">
-                <MagnifyingGlassIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
-                <p className="text-gray-600 mb-6">
+              <div className="text-center py-8 md:py-16 px-4">
+                <MagnifyingGlassIcon className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-6">
                   Try adjusting your search terms or filters
                 </p>
                 {searchResult?.suggestions && searchResult.suggestions.length > 0 && (
                   <div className="mb-6">
-                    <p className="text-sm text-gray-600 mb-2">Did you mean:</p>
+                    <p className="text-sm text-gray-600 mb-3">Did you mean:</p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {searchResult.suggestions.map((suggestion, index) => (
                         <button
                           key={index}
                           onClick={() => router.push(`/search?q=${encodeURIComponent(suggestion)}`)}
-                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors text-sm"
+                          className="px-3 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors text-sm font-medium"
                         >
                           {suggestion}
                         </button>
@@ -346,7 +345,7 @@ function SearchPageContent() {
                 )}
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
+                  className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors text-base font-medium"
                 >
                   Clear Filters
                 </button>
@@ -360,9 +359,9 @@ function SearchPageContent() {
       {showMobileFilters && (
         <MobileSearchFilters
           filters={filters}
-          availableFilters={availableFilters}
+          availableFilters={searchResult?.filters || null}
           onFilterChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
+          onClearFilters={clearFilters}
           onClose={() => setShowMobileFilters(false)}
         />
       )}

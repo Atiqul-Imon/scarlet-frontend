@@ -2,35 +2,30 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useAuth, useCart } from '@/lib/context';
 import MobileMenuButton from './MobileMenuButton';
+import MobileSearchOverlay from '../../search/MobileSearchOverlay';
+import { useMobileSearch } from '../../../hooks/useMobileSearch';
 
 interface MobileHeaderProps {
   onMenuOpen: () => void;
 }
 
 export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
-  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { cart, itemCount, loading: cartLoading } = useCart();
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const { itemCount, loading: cartLoading } = useCart();
+  const { isOpen: isSearchOpen, openSearch, closeSearch } = useMobileSearch();
   const [isClient, setIsClient] = useState(false);
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Mobile search state:', { isSearchOpen });
+  }, [isSearchOpen]);
 
   // Ensure we're on the client side to prevent hydration issues
   React.useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.trim();
-    if (query.length > 0) {
-      router.push(`/search?q=${encodeURIComponent(query)}`);
-      setShowSearch(false);
-    }
-  };
 
   const handleLogoClick = (e: React.MouseEvent) => {
     // If user is on homepage, reload the page
@@ -42,36 +37,8 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
   };
 
   return (
-    <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-[9999]">
-      {/* Mobile Search Overlay */}
-      {showSearch && (
-        <div className="absolute inset-0 bg-white z-50 flex items-center gap-2 px-4 py-3">
-          <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="px-4 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
-              aria-label="Search"
-            >
-              <SearchIcon />
-            </button>
-          </form>
-          <button
-            onClick={() => setShowSearch(false)}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Close search"
-          >
-            <CloseIcon />
-          </button>
-        </div>
-      )}
+    <>
+      <div className="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-[9999]">
 
       {/* Main Header */}
       <div className="px-4 py-3 flex items-center justify-between">
@@ -97,7 +64,10 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
         <div className="flex items-center gap-1">
           {/* Search */}
           <button
-            onClick={() => setShowSearch(true)}
+            onClick={() => {
+              console.log('Search button clicked');
+              openSearch();
+            }}
             className="p-2 text-gray-700 hover:text-red-700 transition-colors"
             aria-label="Search"
           >
@@ -142,7 +112,11 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+      
+      {/* Mobile Search Overlay */}
+      <MobileSearchOverlay isOpen={isSearchOpen} onClose={closeSearch} />
+    </>
   );
 }
 
@@ -156,14 +130,6 @@ function SearchIcon() {
   );
 }
 
-function CloseIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
-  );
-}
 
 function UserIcon() {
   return (

@@ -10,10 +10,10 @@ interface SearchFiltersProps {
   filters: {
     brand?: string[];
     category?: string[];
-    priceMin?: number;
-    priceMax?: number;
-    inStock?: boolean;
-    rating?: number;
+    priceMin?: number | undefined;
+    priceMax?: number | undefined;
+    inStock?: boolean | undefined;
+    rating?: number | undefined;
   };
   availableFilters?: {
     brands: string[];

@@ -176,7 +176,7 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 z-50 bg-white">
+    <div className="fixed inset-0 z-[9999] bg-white">
       {/* Header */}
       <div className="flex items-center px-4 py-3 border-b border-gray-200 bg-white">
         <div className="flex-1 relative">
@@ -194,7 +194,7 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
             }}
             onKeyDown={handleKeyDown}
             placeholder="Search products, brands, categories..."
-            className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent text-base"
+            className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent text-base min-h-[48px]"
           />
         </div>
         <button
@@ -237,7 +237,7 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
                         >
                           <div className="flex items-center space-x-3">
                             <ProductImage
-                              src={product.images?.[0]}
+                              src={product.images?.[0] || ''}
                               alt={product.title}
                               width={64}
                               height={64}

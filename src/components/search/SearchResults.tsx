@@ -55,15 +55,15 @@ export default function SearchResults({
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Results Header */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="text-base font-medium text-gray-700">
           Showing {products.length} of {total} products
         </div>
         
-        {/* View Options */}
-        <div className="flex items-center space-x-2">
+        {/* View Options - Hidden on mobile for cleaner layout */}
+        <div className="hidden md:flex items-center space-x-2">
           <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
@@ -78,7 +78,7 @@ export default function SearchResults({
       </div>
       
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {products.map((product) => {
           const isOutOfStock = product.stock === 0 || product.stock === undefined;
           const isInWishlist = wishlist.has(product._id!);
@@ -141,7 +141,7 @@ export default function SearchResults({
               </div>
               
               {/* Product Info */}
-              <div className="p-4">
+              <div className="p-3 md:p-4">
                 {/* Brand */}
                 {product.brand && (
                   <div className="text-xs text-gray-500 mb-1">{product.brand}</div>
@@ -149,7 +149,7 @@ export default function SearchResults({
                 
                 {/* Title */}
                 <Link href={`/products/${product.slug}`}>
-                  <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-red-600 transition-colors">
+                  <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-red-600 transition-colors text-sm md:text-base">
                     {product.title}
                   </h3>
                 </Link>
@@ -168,7 +168,7 @@ export default function SearchResults({
                 
                 {/* Price */}
                 <div className="flex items-center space-x-2 mb-3">
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-base md:text-lg font-semibold text-gray-900">
                     {formatPrice(product.price)}
                   </span>
                   {product.price?.originalAmount && (
@@ -182,7 +182,7 @@ export default function SearchResults({
                 <button
                   onClick={() => onAddToCart(product._id!)}
                   disabled={isOutOfStock}
-                  className={`w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg font-medium transition-colors ${
+                  className={`w-full flex items-center justify-center space-x-2 py-2 px-3 md:px-4 rounded-lg font-medium transition-colors text-sm md:text-base ${
                     isOutOfStock
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-red-600 hover:bg-red-700 text-white'
@@ -201,8 +201,8 @@ export default function SearchResults({
       
       {/* Load More Button */}
       {products.length < total && (
-        <div className="text-center pt-8">
-          <button className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
+        <div className="text-center pt-6 md:pt-8">
+          <button className="px-6 md:px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors text-base">
             Load More Products
           </button>
         </div>
@@ -210,13 +210,13 @@ export default function SearchResults({
       
       {/* Suggestions */}
       {suggestions && suggestions.length > 0 && (
-        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-          <h4 className="font-medium text-blue-900 mb-3">Did you mean:</h4>
+        <div className="mt-6 md:mt-8 p-4 md:p-6 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 className="font-medium text-blue-900 mb-3 text-sm md:text-base">Did you mean:</h4>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                className="px-3 py-2 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition-colors font-medium"
               >
                 {suggestion}
               </button>
