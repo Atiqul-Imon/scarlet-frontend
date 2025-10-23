@@ -1,7 +1,6 @@
 "use client";
 import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/context';
 import { useAuth } from '@/lib/context';
 
@@ -11,6 +10,7 @@ interface BottomNavItem {
   icon: React.ReactNode;
   activeIcon?: React.ReactNode;
   badge?: number;
+  requiresAuth?: boolean;
 }
 
 const bottomNavItems: BottomNavItem[] = [
@@ -33,7 +33,7 @@ const bottomNavItems: BottomNavItem[] = [
     ),
   },
   {
-    label: 'Skincare Consultation',
+    label: 'Consultation',
     href: '/skincare-consultation',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,6 +49,7 @@ const bottomNavItems: BottomNavItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ),
+    requiresAuth: true,
   },
 ];
 
@@ -74,14 +75,25 @@ function useSafeCart() {
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { itemCount, isClient } = useSafeCart();
   const { user } = useAuth();
+
+  const handleNavClick = (item: BottomNavItem) => {
+    // If the item requires authentication and user is not logged in, redirect to login
+    if (item.requiresAuth && !user) {
+      router.push('/login');
+      return;
+    }
+    // Otherwise, navigate normally
+    router.push(item.href);
+  };
 
   // Update cart item with badge count - only show badge after client hydration
   const navItems = React.useMemo(() => {
     return bottomNavItems.map(item => ({
       ...item,
-      badge: item.label === 'Cart' && isClient && itemCount > 0 ? itemCount : undefined,
+      badge: item.label === 'Cart' && isClient && itemCount > 0 ? itemCount : 0,
     }));
   }, [isClient, itemCount]);
 
@@ -95,9 +107,9 @@ export default function MobileBottomNav() {
               (item.href !== '/' && pathname.startsWith(item.href));
             
             return (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
+                onClick={() => handleNavClick(item)}
                 className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 min-w-0 flex-1 ${
                   isActive
                     ? 'text-red-600 bg-red-50'
@@ -111,7 +123,7 @@ export default function MobileBottomNav() {
                 <span className="text-xs font-medium mt-1 truncate text-center">
                   {item.label}
                 </span>
-              </Link>
+              </button>
             );
           })}
         </div>
@@ -127,9 +139,9 @@ export default function MobileBottomNav() {
             (item.href !== '/' && pathname.startsWith(item.href));
           
           return (
-            <Link
+            <button
               key={item.href}
-              href={item.href}
+              onClick={() => handleNavClick(item)}
               className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 min-w-0 flex-1 ${
                 isActive
                   ? 'text-red-600 bg-red-50'
@@ -140,7 +152,7 @@ export default function MobileBottomNav() {
                 {isActive && item.activeIcon ? item.activeIcon : item.icon}
                 
                 {/* Badge */}
-                {item.badge && item.badge > 0 && (
+                {item.badge > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
@@ -150,7 +162,7 @@ export default function MobileBottomNav() {
               <span className="text-xs font-medium mt-1 truncate text-center">
                 {item.label}
               </span>
-            </Link>
+            </button>
           );
         })}
       </div>
