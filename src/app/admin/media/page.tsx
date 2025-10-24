@@ -8,8 +8,6 @@ import {
   MagnifyingGlassIcon,
   PhotoIcon,
   TrashIcon,
-  PencilIcon,
-  EyeIcon,
   TagIcon
 } from '@heroicons/react/24/outline';
 
@@ -116,9 +114,10 @@ export default function MediaGalleryPage() {
   const handleBulkDelete = async () => {
     if (selectedFiles.length === 0) return;
     
-    if (!confirm(`Delete ${selectedFiles.length} selected files?`)) return;
+    if (!confirm(`Delete ${selectedFiles.length} selected files? This action cannot be undone.`)) return;
     
     try {
+      setLoading(true);
       await Promise.all(
         selectedFiles.map(fileId => 
           fetchJsonAuth(`/media/${fileId}`, { method: 'DELETE' })
@@ -127,8 +126,28 @@ export default function MediaGalleryPage() {
       
       setSelectedFiles([]);
       fetchMediaFiles();
+      fetchStats();
     } catch (err) {
       console.error('Error deleting files:', err);
+      setError('Failed to delete some files. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSingleDelete = async (fileId: string, filename: string) => {
+    if (!confirm(`Delete "${filename}"? This action cannot be undone.`)) return;
+    
+    try {
+      setLoading(true);
+      await fetchJsonAuth(`/media/${fileId}`, { method: 'DELETE' });
+      fetchMediaFiles();
+      fetchStats();
+    } catch (err) {
+      console.error('Error deleting file:', err);
+      setError('Failed to delete file. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -393,9 +412,21 @@ export default function MediaGalleryPage() {
                     />
                   </div>
                   <div className="p-3">
-                    <p className="text-xs font-medium text-gray-900 truncate" title={file.originalName}>
-                      {file.originalName}
-                    </p>
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="text-xs font-medium text-gray-900 truncate flex-1" title={file.originalName}>
+                        {file.originalName}
+                      </p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSingleDelete(file._id, file.originalName);
+                        }}
+                        className="ml-2 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete this file"
+                      >
+                        <TrashIcon className="w-3 h-3" />
+                      </button>
+                    </div>
                     <div className="flex items-center justify-between mt-1">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(file.category)}`}>
                         {file.category}
