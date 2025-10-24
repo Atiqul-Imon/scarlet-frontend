@@ -32,17 +32,20 @@ export default function ProductDetailPage() {
 
 
 
-  // Fetch product data
+  // Fetch product data with optimized loading
   React.useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
       setError(null);
       
       try {
-        console.log('Fetching product from API for slug:', slug);
-        
         // Fetch product from the real API
-        const response = await fetch(`/api/proxy/catalog/products/${slug}`);
+        const response = await fetch(`/api/proxy/catalog/products/${slug}`, {
+          headers: {
+            'Cache-Control': 'max-age=300', // 5 minutes cache
+          },
+        });
+        
         if (!response.ok) {
           if (response.status === 404) {
             setError('Product not found');
@@ -58,29 +61,31 @@ export default function ProductDetailPage() {
         }
         
         const product = productData.data;
-        console.log('Product loaded from API:', product);
         setProduct(product);
+        setLoading(false);
         
-        // Fetch related products from the same category
+        // Fetch related products asynchronously after main product loads
         if (product.categoryIds && product.categoryIds.length > 0) {
-          try {
-            const categoryResponse = await fetch(`/api/proxy/catalog/products/category/${product.categoryIds[0]}`);
-            if (categoryResponse.ok) {
-              const categoryData = await categoryResponse.json();
-              if (categoryData.success && categoryData.data) {
+          // Don't await this - let it load in background
+          fetch(`/api/proxy/catalog/products/category/${product.categoryIds[0]}`)
+            .then(categoryResponse => {
+              if (categoryResponse.ok) {
+                return categoryResponse.json();
+              }
+              return null;
+            })
+            .then(categoryData => {
+              if (categoryData?.success && categoryData.data) {
                 const related: Product[] = categoryData.data
                   .filter((p: Product) => p.slug !== slug && p._id !== product._id)
                   .slice(0, 3);
                 setRelatedProducts(related);
               }
-            }
-          } catch (err) {
-            console.warn('Failed to fetch related products:', err);
-            // Continue without related products
-          }
+            })
+            .catch(() => {
+              // Silently fail for related products
+            });
         }
-        
-        setLoading(false);
         
       } catch (err) {
         console.error('Error fetching product:', err);
@@ -184,7 +189,13 @@ export default function ProductDetailPage() {
   
   // Show loading skeleton while fetching data
   if (loading) {
-    return <ProductDetailSkeleton />;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container-herlan py-8">
+          <ProductDetailSkeleton />
+        </div>
+      </div>
+    );
   }
 
   // Only show error state if we have an actual error AND we're not loading

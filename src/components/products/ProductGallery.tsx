@@ -16,16 +16,16 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   const [imageErrors, setImageErrors] = React.useState<Set<number>>(new Set());
   const imageRef = React.useRef<HTMLDivElement>(null);
 
-  // Generate placeholder images for failed loads
+  // Optimized placeholder images for failed loads
   const getPlaceholderImage = (index: number) => {
     const colors = ['FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7', 'DDA0DD', '98D8C8', 'F7DC6F'];
     const color = colors[index % colors.length];
-    return `data:image/svg+xml;base64,${btoa(`
+    // Simplified SVG for better performance
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
       <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="500" height="500" fill="#${color}20"/>
         <rect x="150" y="150" width="200" height="200" fill="#${color}40"/>
-        <rect x="200" y="200" width="100" height="100" fill="#${color}60"/>
-        <text x="250" y="350" font-family="Arial, sans-serif" font-size="16" fill="#${color}" text-anchor="middle">Product Image ${index + 1}</text>
+        <text x="250" y="300" font-family="Arial, sans-serif" font-size="16" fill="#${color}" text-anchor="middle">Image ${index + 1}</text>
       </svg>
     `)}`;
   };
@@ -38,11 +38,11 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
     return currentImage;
   };
 
-  // Debug logging
+  // Optimized image loading
   React.useEffect(() => {
-    console.log('ProductGallery received images:', images);
-    console.log('ProductGallery productTitle:', productTitle);
-  }, [images, productTitle]);
+    // Reset image errors when images change
+    setImageErrors(new Set());
+  }, [images]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageRef.current || !isZoomed) return;
