@@ -111,6 +111,16 @@ export default function InstantSearch({
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
+
+  const handleCategoryClick = (categoryName: string) => {
+    if (!categoryName.trim()) return;
+    
+    setShowSuggestions(false);
+    setQuery('');
+    
+    // Navigate to category page instead of search page
+    router.push(`/products?category=${encodeURIComponent(categoryName.toLowerCase())}`);
+  };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showSuggestions) return;
@@ -389,7 +399,7 @@ export default function InstantSearch({
               {suggestions.categories.slice(0, 3).map((category, index) => (
                 <button
                   key={index}
-                  onClick={() => handleSearch(category)}
+                  onClick={() => handleCategoryClick(category)}
                   className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                 >
                   <TagIcon className="w-4 h-4 mr-3 text-gray-400" />

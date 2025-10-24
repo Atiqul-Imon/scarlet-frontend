@@ -90,6 +90,14 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
     onClose();
     router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
   };
+
+  const handleCategoryClick = (categoryName: string) => {
+    if (!categoryName.trim()) return;
+    
+    onClose();
+    // Navigate to category page instead of search page
+    router.push(`/products?category=${encodeURIComponent(categoryName.toLowerCase())}`);
+  };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showSuggestions) return;
@@ -393,7 +401,7 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
                       {suggestions.categories.slice(0, 5).map((category, index) => (
                         <button
                           key={index}
-                          onClick={() => handleSearch(category)}
+                          onClick={() => handleCategoryClick(category)}
                           className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                         >
                           <div className="flex items-center space-x-3">
