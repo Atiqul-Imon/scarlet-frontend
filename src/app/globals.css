@@ -9,6 +9,7 @@
   /* Font families */
   --font-roboto: 'Roboto', sans-serif;
   --font-playfair: 'Playfair Display', serif;
+  --font-belleza: 'Belleza', sans-serif;
   
   /* Tailwind v4 CSS variables */
   --color-background: 0 0% 100%;
@@ -75,13 +76,22 @@ body {
   overflow-x: hidden;
 }
 
+/* Main headings use Belleza font */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-belleza);
+}
+
 /* Font utility classes */
 .font-display {
-  font-family: var(--font-playfair);
+  font-family: var(--font-belleza);
 }
 
 .font-body {
   font-family: var(--font-roboto);
+}
+
+.font-belleza {
+  font-family: var(--font-belleza);
 }
 
 /* Container utility class with responsive design that adapts to screen size */
@@ -242,6 +252,7 @@ body {
   font-size: 1.5rem;
   line-height: 2rem;
   font-weight: 700;
+  font-family: var(--font-belleza);
 }
 
 @media (min-width: 640px) {

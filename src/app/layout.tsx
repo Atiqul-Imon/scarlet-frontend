@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Roboto, Playfair_Display } from "next/font/google";
+import { Roboto, Playfair_Display, Belleza } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "../lib/context";
 import ClientSearchProvider from "../components/providers/ClientSearchProvider";
@@ -21,6 +21,13 @@ const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
+  display: 'swap',
+});
+
+const belleza = Belleza({
+  variable: "--font-belleza",
+  subsets: ["latin"],
+  weight: ["400"],
   display: 'swap',
 });
 
@@ -147,7 +154,7 @@ export default function RootLayout({
         <StructuredData type="localBusiness" />
       </head>
       <body
-        className={`${roboto.variable} ${playfairDisplay.variable} antialiased h-full`}
+        className={`${roboto.variable} ${playfairDisplay.variable} ${belleza.variable} antialiased h-full`}
       >
         <GoogleAnalytics />
         <SWRProvider>

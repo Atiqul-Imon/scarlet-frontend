@@ -10,8 +10,10 @@ module.exports = {
       fontFamily: {
         'roboto': ['var(--font-roboto)', 'sans-serif'],
         'playfair': ['var(--font-playfair)', 'serif'],
+        'belleza': ['var(--font-belleza)', 'sans-serif'],
         'sans': ['var(--font-roboto)', 'sans-serif'],
         'serif': ['var(--font-playfair)', 'serif'],
+        'display': ['var(--font-belleza)', 'sans-serif'],
       },
       colors: {
         border: 'hsl(214.3 31.8% 91.4%)',

@@ -28,6 +28,7 @@ export default function AdminCategoriesPage() {
   
   // Search and filter state
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState('');
   const [filterStatus, setFilterStatus] = React.useState<'all' | 'active' | 'inactive'>('all');
   const [showFilters, setShowFilters] = React.useState(false);
   
@@ -37,6 +38,15 @@ export default function AdminCategoriesPage() {
   React.useEffect(() => {
     fetchCategories();
   }, []);
+
+  // Debounce search query
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
 
   const getCategoryIcon = (category: Category) => {
@@ -83,12 +93,33 @@ export default function AdminCategoriesPage() {
 
   // Filter categories based on search query and status
   const filterCategories = (categories: Category[]): Category[] => {
+    if (!debouncedSearchQuery && filterStatus === 'all') {
+      return categories;
+    }
+
     return categories.filter(category => {
-      // Search filter
-      const matchesSearch = !searchQuery || 
-        category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        category.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      // Enhanced search filter with better matching
+      let matchesSearch = true;
+      if (debouncedSearchQuery) {
+        const query = debouncedSearchQuery.toLowerCase().trim();
+        const name = (category.name || '').toLowerCase();
+        const slug = (category.slug || '').toLowerCase();
+        const description = (category.description || '').toLowerCase();
+        
+        // Multiple search strategies for better results
+        matchesSearch = 
+          name.includes(query) ||
+          slug.includes(query) ||
+          description.includes(query) ||
+          // Partial word matching
+          name.split(' ').some(word => word.startsWith(query)) ||
+          slug.split('-').some(word => word.startsWith(query)) ||
+          // Fuzzy matching for common typos
+          (query.length > 2 && (
+            name.includes(query.substring(0, query.length - 1)) ||
+            name.includes(query.substring(1))
+          ));
+      }
       
       // Status filter
       const matchesStatus = filterStatus === 'all' || 
@@ -102,7 +133,7 @@ export default function AdminCategoriesPage() {
   // Get filtered categories
   const filteredCategories = React.useMemo(() => {
     return filterCategories(categories);
-  }, [categories, searchQuery, filterStatus]);
+  }, [categories, debouncedSearchQuery, filterStatus]);
 
   // Get filtered category tree
   const filteredCategoryTree = React.useMemo(() => {
@@ -574,10 +605,12 @@ export default function AdminCategoriesPage() {
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm transition-all duration-200"
                 placeholder="Search categories by name, slug, or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                autoComplete="off"
+                spellCheck="false"
               />
             </div>
 
@@ -630,11 +663,28 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Search Results Summary */}
-      {searchQuery && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            Found {filteredCategories.length} category{filteredCategories.length !== 1 ? 'ies' : ''} matching "{searchQuery}"
-          </p>
+      {debouncedSearchQuery && (
+        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                <MagnifyingGlassIcon className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-blue-900">
+                  Search Results
+                </p>
+                <p className="text-sm text-blue-700">
+                  Found {filteredCategories.length} category{filteredCategories.length !== 1 ? 'ies' : ''} matching "{debouncedSearchQuery}"
+                </p>
+              </div>
+            </div>
+            {filteredCategories.length > 0 && (
+              <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                {Math.round((filteredCategories.length / categories.length) * 100)}% of total
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -777,11 +827,11 @@ export default function AdminCategoriesPage() {
             ) : (
               <div className="p-8 text-center text-gray-500">
                 <FolderIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                {searchQuery || filterStatus !== 'all' ? (
+                {debouncedSearchQuery || filterStatus !== 'all' ? (
                   <>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Categories Match Your Search</h3>
                     <p className="text-gray-500 mb-4">
-                      No categories found matching "{searchQuery}" with the current filters.
+                      No categories found matching "{debouncedSearchQuery}" with the current filters.
                     </p>
                     <div className="flex items-center justify-center space-x-3">
                       <button
