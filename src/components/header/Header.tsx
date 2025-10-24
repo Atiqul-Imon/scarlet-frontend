@@ -28,50 +28,82 @@ export default function Header() {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
-  // Fetch categories from API with retry logic
+  // Check for cached categories first
   useEffect(() => {
-    const fetchCategories = async (retryCount = 0) => {
-      const maxRetries = 2;
-      
+    const cachedCategories = sessionStorage.getItem('cachedHeaderCategories');
+    if (cachedCategories) {
       try {
-        setIsLoadingCategories(true);
-        setCategoriesError(null);
-        
-        console.log(`🔄 Fetching categories from API... (attempt ${retryCount + 1})`);
-        const categories = await categoryApi.getCategories();
-        console.log('✅ Categories fetched successfully:', categories);
-        
-        const transformedCategories = transformCategoriesToMegaItems(categories);
-        setCategoryItems(transformedCategories);
-      } catch (error) {
-        console.error(`❌ Failed to fetch categories (attempt ${retryCount + 1}):`, error);
-        
-        // Retry logic for network errors
-        if (retryCount < maxRetries && error instanceof Error && error.message.includes('Network error')) {
-          console.log(`🔄 Retrying in 1 second... (${retryCount + 1}/${maxRetries})`);
-          setTimeout(() => fetchCategories(retryCount + 1), 1000);
-          return;
-        }
-        
-        setCategoriesError('Failed to load categories');
-        
-        // Fallback to mock categories for development
-        const mockCategories = [
-          { label: 'Skincare', href: '/products?category=skincare', icon: '🧴' },
-          { label: 'Makeup', href: '/products?category=makeup', icon: '💄' },
-          { label: 'Hair Care', href: '/products?category=hair', icon: '💇‍♀️' },
-          { label: 'Body Care', href: '/products?category=body-care', icon: '🧴' },
-        ];
-        
-        console.log('🔄 Using mock categories as fallback:', mockCategories);
-        setCategoryItems(mockCategories);
-      } finally {
+        const parsedCategories = JSON.parse(cachedCategories);
+        setCategoryItems(parsedCategories);
         setIsLoadingCategories(false);
+        // Fetch fresh data in background
+        fetchCategoriesInBackground();
+        return;
+      } catch (error) {
+        // Invalid cached data, continue with normal fetch
+        sessionStorage.removeItem('cachedHeaderCategories');
       }
-    };
-
+    }
+    
     fetchCategories();
   }, []);
+
+  const fetchCategoriesInBackground = async () => {
+    try {
+      const categories = await categoryApi.getCategories();
+      const transformedCategories = transformCategoriesToMegaItems(categories);
+      
+      // Update cache and state
+      sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
+      setCategoryItems(transformedCategories);
+    } catch (error) {
+      console.error('Background category fetch failed:', error);
+    }
+  };
+
+  // Fetch categories from API with retry logic
+  const fetchCategories = async (retryCount = 0) => {
+    const maxRetries = 2;
+    
+    try {
+      setIsLoadingCategories(true);
+      setCategoriesError(null);
+      
+      console.log(`🔄 Fetching categories from API... (attempt ${retryCount + 1})`);
+      const categories = await categoryApi.getCategories();
+      console.log('✅ Categories fetched successfully:', categories);
+      
+      const transformedCategories = transformCategoriesToMegaItems(categories);
+      
+      // Cache the results
+      sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
+      setCategoryItems(transformedCategories);
+    } catch (error) {
+      console.error(`❌ Failed to fetch categories (attempt ${retryCount + 1}):`, error);
+      
+      // Retry logic for network errors
+      if (retryCount < maxRetries && error instanceof Error && error.message.includes('Network error')) {
+        console.log(`🔄 Retrying in 1 second... (${retryCount + 1}/${maxRetries})`);
+        setTimeout(() => fetchCategories(retryCount + 1), 1000);
+        return;
+      }
+      
+      setCategoriesError('Failed to load categories');
+      
+      // Fallback to mock categories for development
+      const mockCategories = [
+        { label: 'Skincare', href: '/products?category=skincare', icon: '🧴' },
+        { label: 'Makeup', href: '/products?category=makeup', icon: '💄' },
+        { label: 'Hair Care', href: '/products?category=hair', icon: '💇‍♀️' },
+        { label: 'Body Care', href: '/products?category=body-care', icon: '🧴' },
+      ];
+      
+      console.log('🔄 Using mock categories as fallback:', mockCategories);
+      setCategoryItems(mockCategories);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
 
   const handleMobileMenuOpen = () => {
     setIsMobileMenuOpen(true);

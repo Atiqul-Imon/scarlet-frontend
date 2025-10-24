@@ -89,30 +89,58 @@ function ProductsPageContent() {
     }
   }, [categoryParam]);
 
-  // Fetch products and categories
+  // Check for cached categories first
   React.useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      
+    const cachedCategories = sessionStorage.getItem('cachedCategories');
+    if (cachedCategories) {
       try {
-        const [productsData, categoriesData] = await Promise.all([
-          fetchJson<Product[]>('/catalog/products'),
-          fetchJson<Category[]>('/catalog/categories')
-        ]);
-        
-        setProducts(productsData);
-        setCategories(categoriesData);
-      } catch (err) {
-        setError('Failed to load products. Please try again.');
-        console.error('Error fetching data:', err);
-      } finally {
-        setLoading(false);
+        const parsedCategories = JSON.parse(cachedCategories);
+        setCategories(parsedCategories);
+        // Fetch fresh categories in background
+        fetchCategoriesInBackground();
+      } catch (error) {
+        // Invalid cached data, continue with normal fetch
+        sessionStorage.removeItem('cachedCategories');
       }
-    };
-
+    }
+    
     fetchData();
   }, []);
+
+  const fetchCategoriesInBackground = async () => {
+    try {
+      const categoriesData = await fetchJson<Category[]>('/catalog/categories');
+      
+      // Update cache and state
+      sessionStorage.setItem('cachedCategories', JSON.stringify(categoriesData));
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error('Background category fetch failed:', error);
+    }
+  };
+
+  // Fetch products and categories
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const [productsData, categoriesData] = await Promise.all([
+        fetchJson<Product[]>('/catalog/products'),
+        fetchJson<Category[]>('/catalog/categories')
+      ]);
+      
+      // Cache categories
+      sessionStorage.setItem('cachedCategories', JSON.stringify(categoriesData));
+      setProducts(productsData);
+      setCategories(categoriesData);
+    } catch (err) {
+      setError('Failed to load products. Please try again.');
+      console.error('Error fetching data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Helper function to get all descendant category IDs (including the category itself)
   const getAllDescendantCategoryIds = React.useCallback((categoryId: string): string[] => {

@@ -74,6 +74,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  isRefreshing: boolean;
   isAuthenticated: boolean;
   login: (credentials: LoginFormData) => Promise<void>;
   register: (userData: RegisterFormData) => Promise<void>;
@@ -95,6 +96,7 @@ export const useAuth = (): AuthContextValue => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
   const { addToast } = useToast();
 
   const isAuthenticated = React.useMemo(() => user !== null, [user]);
@@ -155,6 +157,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await authApi.logout();
       setUser(null);
       apiUtils.clearTokens();
+      // Clear cached user data
+      sessionStorage.removeItem('cachedUser');
       
       addToast({
         type: 'success',
@@ -165,6 +169,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Even if logout fails on server, clear local state
       setUser(null);
       apiUtils.clearTokens();
+      // Clear cached user data
+      sessionStorage.removeItem('cachedUser');
       
       addToast({
         type: 'warning',
@@ -211,6 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, addToast]);
 
+  // Optimized refreshUser with non-blocking token refresh
   const refreshUser = React.useCallback(async (): Promise<void> => {
     const token = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
@@ -221,15 +228,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    // Check if we have cached user data
+    const cachedUser = sessionStorage.getItem('cachedUser');
+    if (cachedUser && token) {
+      try {
+        const userData = JSON.parse(cachedUser);
+        // Check if token is still valid (not expired)
+        if (!apiUtils.isTokenExpired(token)) {
+          setUser(userData);
+          setLoading(false);
+          // Refresh user data in background
+          refreshUserInBackground();
+          return;
+        }
+      } catch (error) {
+        // Invalid cached data, continue with normal flow
+        sessionStorage.removeItem('cachedUser');
+      }
+    }
+
     try {
       // First try to get user profile with current token
       const currentUser = await authApi.getProfile();
       setUser(currentUser);
+      // Cache user data for faster subsequent loads
+      sessionStorage.setItem('cachedUser', JSON.stringify(currentUser));
     } catch (error: any) {
       logger.debug('Profile fetch failed, attempting token refresh...', { error });
       
       // If we have a refresh token, try to refresh the access token
       if (refreshToken) {
+        setIsRefreshing(true);
         try {
           logger.debug('Attempting token refresh with refresh token', { tokenPreview: refreshToken.substring(0, 20) + '...' });
           const response = await fetch('/api/proxy/auth/refresh', {
@@ -257,6 +286,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Try to get user profile again with new token
               const currentUser = await authApi.getProfile();
               setUser(currentUser);
+              // Cache user data
+              sessionStorage.setItem('cachedUser', JSON.stringify(currentUser));
               logger.success('Token refreshed and user profile loaded successfully');
               return;
             } else {
@@ -267,6 +298,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         } catch (refreshError) {
           logger.error('Token refresh failed', refreshError);
+        } finally {
+          setIsRefreshing(false);
         }
       }
       
@@ -274,8 +307,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logger.info('Authentication failed, clearing user session');
       setUser(null);
       apiUtils.clearTokens();
+      sessionStorage.removeItem('cachedUser');
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  // Background user refresh without blocking UI
+  const refreshUserInBackground = React.useCallback(async (): Promise<void> => {
+    try {
+      const currentUser = await authApi.getProfile();
+      setUser(currentUser);
+      sessionStorage.setItem('cachedUser', JSON.stringify(currentUser));
+    } catch (error) {
+      // Silently fail for background refresh
+      logger.debug('Background user refresh failed', error);
     }
   }, []);
 
@@ -307,13 +353,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = React.useMemo(() => ({
     user,
     loading,
+    isRefreshing,
     isAuthenticated,
     login,
     register,
     logout,
     updateProfile,
     refreshUser,
-  }), [user, loading, isAuthenticated, login, register, logout, updateProfile, refreshUser]);
+  }), [user, loading, isRefreshing, isAuthenticated, login, register, logout, updateProfile, refreshUser]);
 
   return (
     <AuthContext.Provider value={value}>

@@ -42,39 +42,80 @@ export default function BrandShowcase() {
     return categoryIcons[categoryName.toLowerCase()] || '🌟';
   };
 
+  // Check for cached categories first
   React.useEffect(() => {
-    const fetchCategories = async () => {
+    const cachedCategories = sessionStorage.getItem('cachedCategories');
+    if (cachedCategories) {
       try {
-        setLoading(true);
-        const response = await categoryApi.getCategories();
-        const categoriesData = Array.isArray(response) ? response : [];
-        
-        // Filter only TOP-LEVEL (root/mother) categories
-        // These are categories with NO parent (parentId is null, undefined, or empty string)
-        const topLevelCategories = categoriesData.filter(cat => 
-          cat.isActive && 
-          (!cat.parentId || cat.parentId === '' || cat.parentId === null)
-        );
-        
-        // Limit to maximum 8 categories for homepage display
-        const limitedCategories = topLevelCategories.slice(0, 8);
-        
-        console.log('Total categories:', categoriesData.length);
-        console.log('Top-level categories:', topLevelCategories.length);
-        console.log('Showing categories:', limitedCategories.length);
-        console.log('Category names:', limitedCategories.map(c => c.name));
-        
-        setCategories(limitedCategories);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-        setError('Failed to load categories');
-      } finally {
+        const parsedCategories = JSON.parse(cachedCategories);
+        setCategories(parsedCategories);
         setLoading(false);
+        // Fetch fresh data in background
+        fetchCategoriesInBackground();
+        return;
+      } catch (error) {
+        // Invalid cached data, continue with normal fetch
+        sessionStorage.removeItem('cachedCategories');
       }
-    };
-
+    }
+    
     fetchCategories();
   }, []);
+
+  const fetchCategoriesInBackground = async () => {
+    try {
+      const response = await categoryApi.getCategories();
+      const categoriesData = Array.isArray(response) ? response : [];
+      
+      // Filter only TOP-LEVEL (root/mother) categories
+      const topLevelCategories = categoriesData.filter(cat => 
+        cat.isActive && 
+        (!cat.parentId || cat.parentId === '' || cat.parentId === null)
+      );
+      
+      // Limit to maximum 8 categories for homepage display
+      const limitedCategories = topLevelCategories.slice(0, 8);
+      
+      // Update cache and state
+      sessionStorage.setItem('cachedCategories', JSON.stringify(limitedCategories));
+      setCategories(limitedCategories);
+    } catch (error) {
+      console.error('Background category fetch failed:', error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await categoryApi.getCategories();
+      const categoriesData = Array.isArray(response) ? response : [];
+      
+      // Filter only TOP-LEVEL (root/mother) categories
+      // These are categories with NO parent (parentId is null, undefined, or empty string)
+      const topLevelCategories = categoriesData.filter(cat => 
+        cat.isActive && 
+        (!cat.parentId || cat.parentId === '' || cat.parentId === null)
+      );
+      
+      // Limit to maximum 8 categories for homepage display
+      const limitedCategories = topLevelCategories.slice(0, 8);
+      
+      console.log('Total categories:', categoriesData.length);
+      console.log('Top-level categories:', topLevelCategories.length);
+      console.log('Showing categories:', limitedCategories.length);
+      console.log('Category names:', limitedCategories.map(c => c.name));
+      
+      // Cache the results
+      sessionStorage.setItem('cachedCategories', JSON.stringify(limitedCategories));
+      setCategories(limitedCategories);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setError('Failed to load categories');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -132,6 +173,7 @@ export default function BrandShowcase() {
               key={category._id}
               href={`/products?category=${category.slug}`}
               className="group block"
+              prefetch={true}
             >
               <div className="bg-gradient-to-br from-red-100 via-pink-50 to-red-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-red-200 hover:border-red-400">
                 {/* Content Container */}

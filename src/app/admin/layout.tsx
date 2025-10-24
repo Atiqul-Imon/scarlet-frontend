@@ -11,7 +11,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isRefreshing } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -30,6 +30,54 @@ export default function AdminLayout({
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-r-transparent"></div>
           <p className="mt-4 text-red-700 font-medium">Loading admin dashboard...</p>
           <p className="mt-2 text-sm text-gray-500">Please wait while we verify your access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show refreshing indicator if token is being refreshed in background
+  if (isRefreshing && user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50">
+        {/* Show a subtle refreshing indicator */}
+        <div className="fixed top-4 right-4 z-50 bg-white rounded-lg shadow-lg px-4 py-2 flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-500 border-r-transparent"></div>
+          <span className="text-sm text-gray-600">Refreshing session...</span>
+        </div>
+        
+        {/* Render the admin layout normally */}
+        <div className="section-full-vh bg-gradient-to-br from-red-50 via-white to-rose-50">
+          {/* Mobile sidebar backdrop */}
+          {sidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
+          {/* Sidebar */}
+          <AdminSidebar 
+            isOpen={sidebarOpen} 
+            onClose={() => setSidebarOpen(false)} 
+          />
+
+          {/* Main content */}
+          <div className="lg:pl-64">
+            {/* Header */}
+            <AdminHeader 
+              onMenuClick={() => setSidebarOpen(true)}
+              user={user}
+            />
+
+            {/* Page content */}
+            <main className="py-8">
+              <div className="w-full px-4 sm:px-6 lg:px-8">
+                <div className="max-w-full xl:max-w-[90%] 2xl:max-w-[75%] mx-auto">
+                  {children}
+                </div>
+              </div>
+            </main>
+          </div>
         </div>
       </div>
     );

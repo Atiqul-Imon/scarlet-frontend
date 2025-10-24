@@ -35,12 +35,11 @@ import {
   AdminProductFilters,
   AdminOrderFilters,
   AdminPaginatedResponse,
-  SalesAnalytics,
   UserAnalytics,
   SystemSettings,
   AdminActivityLog
 } from './admin-types';
-import { validateProduct, validateUser, validateOrder, safeApiCall } from './validation';
+// import { validateProduct, validateUser, validateOrder, safeApiCall } from './validation';
 export { paymentApi } from './api/payments';
 
 // OTP Types
@@ -265,7 +264,7 @@ export async function fetchJson<T = unknown>(
       url,
       API_BASE,
       method: init?.method || 'GET',
-      hasAuth: !!init?.headers?.['Authorization']
+      hasAuth: !!(init?.headers as any)?.['Authorization']
     });
   }
   
@@ -426,7 +425,7 @@ export async function fetchJsonAuth<T = unknown>(
   });
   
   // Check if token is expired and refresh proactively
-  if (token && isTokenExpired(token)) {
+  if (token && apiUtils.isTokenExpired(token)) {
     console.log('⏰ Token is expired, refreshing proactively...');
     const newToken = await refreshAccessToken();
     if (newToken) {
@@ -445,8 +444,8 @@ export async function fetchJsonAuth<T = unknown>(
       ...init,
       headers: {
         ...init?.headers,
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      } as HeadersInit,
     });
   } catch (error: unknown) {
     // If we get a 401 and have a refresh token, try to refresh
@@ -461,8 +460,8 @@ export async function fetchJsonAuth<T = unknown>(
           ...init,
           headers: {
             ...init?.headers,
-            Authorization: `Bearer ${newToken}`,
-          },
+            'Authorization': `Bearer ${newToken}`,
+          } as HeadersInit,
         });
       }
     }
@@ -1018,6 +1017,18 @@ export const apiUtils = {
     }
   },
 
+  // Check if token is expired
+  isTokenExpired: (token: string): boolean => {
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1] || ''));
+      return payload.exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
+  },
+
   // Get user from token
   getUserFromToken: (): Partial<User> | null => {
     const token = localStorage.getItem('accessToken');
@@ -1194,7 +1205,7 @@ export const adminApi = {
 
   // Category Management
   categories: {
-    getCategories: (filters: AdminFilters = {}): Promise<AdminPaginatedResponse<Category>> => {
+    getCategories: (filters: AdminUserFilters = {}): Promise<AdminPaginatedResponse<Category>> => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
