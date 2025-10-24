@@ -100,7 +100,7 @@ export default function MobileBottomNav() {
   // If not on client yet, render without any cart-related logic
   if (!isClient) {
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-[10001] bg-white border-t border-gray-200 lg:hidden">
         <div className="flex items-center justify-around h-16 px-2">
           {bottomNavItems.map((item) => {
             const isActive = pathname === item.href || 
@@ -132,7 +132,7 @@ export default function MobileBottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-[10001] bg-white border-t border-gray-200 lg:hidden">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href || 

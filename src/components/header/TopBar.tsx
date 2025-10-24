@@ -6,18 +6,14 @@ import * as React from 'react';
 import { useAuth, useCart, useWishlist, useToast } from '@/lib/context';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import InstantSearch from '../search/InstantSearch';
-import MobileSearchOverlay from '../search/MobileSearchOverlay';
-import { useMobileSearch } from '../../hooks/useMobileSearch';
 
 export default function TopBar() {
   const router = useRouter();
   const { user, logout, loading: authLoading, isAuthenticated } = useAuth();
   const { cart, itemCount, loading: cartLoading } = useCart();
-  const { isOpen: isSearchOpen, openSearch, closeSearch } = useMobileSearch();
   const { wishlistCount } = useWishlist();
   const { addToast } = useToast();
   const [showUserMenu, setShowUserMenu] = React.useState(false);
-  const [showMobileSearch, setShowMobileSearch] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
 
   // Ensure we're on the client side to prevent hydration issues
@@ -57,22 +53,9 @@ export default function TopBar() {
   return (
     <div className="w-full bg-white relative">
       <div className="container-herlan">
-        {/* Mobile Search Button */}
-        {!showMobileSearch && (
-          <div className="md:hidden h-[80px] flex items-center gap-2 px-2">
-            <button
-              onClick={openSearch}
-              className="flex-1 flex items-center space-x-2 px-4 py-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <MagnifyingGlassIcon className="w-5 h-5 text-gray-500" />
-              <span className="text-gray-500 text-sm">Search products...</span>
-            </button>
-          </div>
-        )}
 
         {/* Normal View */}
-        {!showMobileSearch && (
-          <div className="h-[80px] grid grid-cols-[1fr_1fr] md:grid-cols-[200px_1fr_200px] lg:grid-cols-[250px_1fr_250px] items-center gap-2 md:gap-4 lg:gap-6">
+        <div className="h-[80px] grid grid-cols-[1fr_1fr] md:grid-cols-[200px_1fr_200px] lg:grid-cols-[250px_1fr_250px] items-center gap-2 md:gap-4 lg:gap-6">
             {/* Logo */}
             <Link href="/" className="block select-none" onClick={handleLogoClick}>
               <div className="flex items-center">
@@ -288,11 +271,8 @@ export default function TopBar() {
               </Link>
             </div>
           </div>
-        )}
       </div>
       
-      {/* Mobile Search Overlay */}
-      <MobileSearchOverlay isOpen={isSearchOpen} onClose={closeSearch} />
     </div>
   );
 }

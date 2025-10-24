@@ -11,6 +11,7 @@ import {
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import { searchApi } from '../../lib/api';
+import { useCart, useToast } from '../../lib/context';
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -25,7 +26,10 @@ interface SearchSuggestion {
     brand: string;
     price: { amount: number; currency: string };
     images: string[];
+    stock?: number;
     rating?: { average: number; count: number };
+    isBestSeller?: boolean;
+    isNewArrival?: boolean;
   }>;
   brands: string[];
   categories: string[];
@@ -33,12 +37,15 @@ interface SearchSuggestion {
 
 export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOverlayProps) {
   const router = useRouter();
+  const { addItem } = useCart();
+  const { addToast } = useToast();
   
   const [query, setQuery] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<SearchSuggestion | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [addingToCart, setAddingToCart] = React.useState<Set<string>>(new Set());
   
   const inputRef = React.useRef<HTMLInputElement>(null);
   
@@ -159,6 +166,44 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
     if (!price) return '৳0';
     return `৳${price.amount?.toLocaleString('en-US') || 0}`;
   };
+
+  const handleAddToCart = async (product: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (addingToCart.has(product._id)) return;
+    
+    try {
+      setAddingToCart(prev => new Set(prev).add(product._id));
+      
+      await addItem(product._id, 1);
+      
+      addToast({
+        type: 'success',
+        title: 'Added to Cart',
+        message: `${product.title} added to cart`,
+        duration: 3000
+      });
+      
+      // Keep the overlay open and search results visible
+      // Don't call onClose() here
+      
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to add item to cart',
+        duration: 3000
+      });
+    } finally {
+      setAddingToCart(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(product._id);
+        return newSet;
+      });
+    }
+  };
   
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
@@ -176,33 +221,44 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 z-[9999] bg-white">
+    <div className="fixed top-0 left-0 right-0 z-[10000] bg-white" style={{ height: '100vh', paddingBottom: '64px' }}>
       {/* Header */}
-      <div className="flex items-center px-4 py-3 border-b border-gray-200 bg-white">
-        <div className="flex-1 relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+      <div className="p-4 bg-white border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setShowSuggestions(true);
+                setSelectedIndex(-1);
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Search products, brands, categories..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-base"
+              style={{ 
+                display: 'block', 
+                visibility: 'visible',
+                opacity: 1,
+                width: '100%',
+                height: '48px',
+                backgroundColor: 'white',
+                border: '2px solid #d1d5db',
+                borderRadius: '8px',
+                color: 'black',
+                fontSize: '16px'
+              }}
+            />
           </div>
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setShowSuggestions(true);
-              setSelectedIndex(-1);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="Search products, brands, categories..."
-            className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent text-base min-h-[48px]"
-          />
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="ml-3 p-2 text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          <XMarkIcon className="w-6 h-6" />
-        </button>
       </div>
       
       {/* Content */}
@@ -226,47 +282,83 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Products</h3>
                     <div className="space-y-3">
-                      {suggestions.products.slice(0, 4).map((product) => (
-                        <Link
-                          key={product._id}
-                          href={`/products/${product.slug}`}
-                          onClick={() => {
-                            onClose();
-                          }}
-                          className="block p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <ProductImage
-                              src={product.images?.[0] || ''}
-                              alt={product.title}
-                              width={64}
-                              height={64}
-                              className="w-16 h-16 rounded-lg flex-shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-gray-900 truncate">
-                                {product.title}
-                              </h4>
-                              <p className="text-sm text-gray-500">{product.brand}</p>
-                              <div className="flex items-center space-x-2 mt-1">
-                                <span className="text-sm font-semibold text-gray-900">
-                                  {formatPrice(product.price)}
-                                </span>
-                                {product.rating && (
-                                  <div className="flex items-center space-x-1">
-                                    <div className="flex">
-                                      {renderStars(product.rating.average)}
-                                    </div>
-                                    <span className="text-xs text-gray-500">
-                                      ({product.rating.count})
+                      {suggestions.products.slice(0, 4).map((product) => {
+                        const isAddingToCart = addingToCart.has(product._id);
+                        const isOutOfStock = product.stock === 0 || product.stock === undefined;
+                        
+                        return (
+                          <div
+                            key={product._id}
+                            className="p-3 bg-white border border-gray-200 rounded-lg"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <Link
+                                href={`/products/${product.slug}`}
+                                onClick={() => onClose()}
+                                className="flex-shrink-0"
+                              >
+                                <ProductImage
+                                  src={product.images?.[0] || ''}
+                                  alt={product.title}
+                                  width={64}
+                                  height={64}
+                                  className="w-16 h-16 rounded-lg"
+                                />
+                              </Link>
+                              
+                              <div className="flex-1 min-w-0">
+                                <Link
+                                  href={`/products/${product.slug}`}
+                                  onClick={() => onClose()}
+                                  className="block"
+                                >
+                                  <h4 className="font-medium text-gray-900 truncate hover:text-red-600 transition-colors">
+                                    {product.title}
+                                  </h4>
+                                  <p className="text-sm text-gray-500">{product.brand}</p>
+                                </Link>
+                                
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-semibold text-red-600">
+                                      {formatPrice(product.price)}
                                     </span>
+                                    {product.rating && (
+                                      <div className="flex items-center space-x-1">
+                                        <div className="flex">
+                                          {renderStars(product.rating.average)}
+                                        </div>
+                                        <span className="text-xs text-gray-500">
+                                          ({product.rating.count})
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                  
+                                  <button
+                                    onClick={(e) => handleAddToCart(product, e)}
+                                    disabled={isOutOfStock || isAddingToCart}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                      isOutOfStock || isAddingToCart
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'bg-red-600 hover:bg-red-700 text-white'
+                                    }`}
+                                  >
+                                    {isAddingToCart ? (
+                                      <>
+                                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mx-auto"></div>
+                                        <span className="ml-1">Adding...</span>
+                                      </>
+                                    ) : (
+                                      <span>{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+                                    )}
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </Link>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

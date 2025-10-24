@@ -13,14 +13,14 @@ export function useMobileSearch(): UseMobileSearchReturn {
   
   const openSearch = React.useCallback(() => {
     setIsOpen(true);
-    // Prevent body scroll when search is open
-    document.body.style.overflow = 'hidden';
+    // Don't prevent body scroll to allow bottom navigation to remain visible
+    // document.body.style.overflow = 'hidden';
   }, []);
   
   const closeSearch = React.useCallback(() => {
     setIsOpen(false);
-    // Restore body scroll
-    document.body.style.overflow = 'unset';
+    // No need to restore body scroll since we're not setting it
+    // document.body.style.overflow = 'unset';
   }, []);
   
   const toggleSearch = React.useCallback(() => {
@@ -48,7 +48,8 @@ export function useMobileSearch(): UseMobileSearchReturn {
   // Cleanup on unmount
   React.useEffect(() => {
     return () => {
-      document.body.style.overflow = 'unset';
+      // No need to restore body scroll since we're not setting it
+      // document.body.style.overflow = 'unset';
     };
   }, []);
   
