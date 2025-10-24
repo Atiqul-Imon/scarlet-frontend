@@ -11,9 +11,13 @@ import {
   FolderIcon,
   FolderOpenIcon,
   MagnifyingGlassIcon,
-  FunnelIcon
+  FunnelIcon,
+  ArrowsUpDownIcon,
+  CheckIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import SortableCategoryList from '../../../components/admin/SortableCategoryList';
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = React.useState<Category[]>([]);
@@ -34,6 +38,11 @@ export default function AdminCategoriesPage() {
   
   // Delete state
   const [deletingCategory, setDeletingCategory] = React.useState<string | null>(null);
+  
+  // Reordering state
+  const [isReordering, setIsReordering] = React.useState(false);
+  const [reorderedCategories, setReorderedCategories] = React.useState<Category[]>([]);
+  const [savingOrder, setSavingOrder] = React.useState(false);
 
   React.useEffect(() => {
     fetchCategories();
@@ -248,6 +257,55 @@ export default function AdminCategoriesPage() {
     } finally {
       setUpdating(null);
     }
+  };
+
+  // Reordering functions
+  const handleStartReordering = () => {
+    setIsReordering(true);
+    // Filter only root categories (no parentId) for reordering
+    const rootCategories = categories.filter(cat => 
+      !cat.parentId || cat.parentId === '' || cat.parentId === null
+    );
+    setReorderedCategories([...rootCategories]);
+  };
+
+  const handleSaveReordering = async () => {
+    try {
+      setSavingOrder(true);
+      
+      // Update sortOrder for each category based on new position
+      const updates = reorderedCategories.map((category, index) => ({
+        id: category._id!,
+        sortOrder: index + 1
+      }));
+      
+      await categoryApi.updateCategorySortOrder(updates);
+      
+      // Refresh the categories list
+      await fetchCategories();
+      
+      setIsReordering(false);
+      setReorderedCategories([]);
+      setMessage({ type: 'success', text: 'Category order updated successfully!' });
+      
+      // Clear session storage cache to force refresh
+      sessionStorage.removeItem('cachedCategories');
+      sessionStorage.removeItem('cachedHeaderCategories');
+    } catch (error) {
+      console.error('Error updating category order:', error);
+      setMessage({ type: 'error', text: 'Failed to update category order' });
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
+  const handleCancelReordering = () => {
+    setIsReordering(false);
+    setReorderedCategories([]);
+  };
+
+  const handleReorder = (newCategories: Category[]) => {
+    setReorderedCategories(newCategories);
   };
 
 
@@ -591,6 +649,36 @@ export default function AdminCategoriesPage() {
             <PlusIcon className="w-5 h-5" />
             <span>Add Category</span>
           </Link>
+
+          {/* Reorder Controls */}
+          {!isReordering ? (
+            <button
+              onClick={handleStartReordering}
+              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-white text-gray-900 font-medium"
+            >
+              <ArrowsUpDownIcon className="w-5 h-5 text-gray-700" />
+              <span className="text-gray-900 font-medium">Reorder Homepage Categories</span>
+            </button>
+          ) : (
+            <div className="flex space-x-2">
+              <button
+                onClick={handleSaveReordering}
+                disabled={savingOrder}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                <CheckIcon className="w-5 h-5" />
+                <span className="font-medium">{savingOrder ? 'Saving...' : 'Save Order'}</span>
+              </button>
+              <button
+                onClick={handleCancelReordering}
+                disabled={savingOrder}
+                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white text-gray-900 font-medium"
+              >
+                <XMarkIcon className="w-5 h-5 text-gray-700" />
+                <span className="text-gray-900 font-medium">Cancel</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -813,7 +901,40 @@ export default function AdminCategoriesPage() {
 
       {/* Content */}
       <div className="bg-white rounded-lg shadow">
-        {viewMode === 'hierarchy' ? (
+        {isReordering ? (
+          /* Reordering Mode */
+          <div className="p-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Reorder Root Categories
+              </h3>
+              <p className="text-sm text-gray-600">
+                Drag and drop root categories to reorder them. Only root categories (no parent) are shown here as they appear on the homepage "Shop by Category" section.
+              </p>
+              <div className="mt-2 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+                <strong>Note:</strong> Sub-categories are not shown here as they don't appear on the homepage. Only root categories affect the homepage display order.
+              </div>
+              <div className="mt-2 text-sm text-gray-700">
+                <strong>Reordering {reorderedCategories.length} root categories</strong>
+              </div>
+            </div>
+            
+            <SortableCategoryList
+              categories={reorderedCategories}
+              onReorder={handleReorder}
+              disabled={savingOrder}
+            />
+            
+            {savingOrder && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <span className="text-sm text-blue-800">Saving category order...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : viewMode === 'hierarchy' ? (
           /* Hierarchy View */
           <div className="divide-y divide-gray-200">
             {filteredCategoryTree.length > 0 ? (

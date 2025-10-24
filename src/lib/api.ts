@@ -573,6 +573,17 @@ export const categoryApi = {
     });
   },
 
+  // Update category sort order (bulk)
+  updateCategorySortOrder: (categoryUpdates: Array<{id: string, sortOrder: number}>): Promise<{message: string}> => {
+    return fetchJsonAuth<{message: string}>('/admin/categories/sort-order', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ categoryUpdates }),
+    });
+  },
+
   // Delete category
   deleteCategory: (categoryId: string): Promise<void> => {
     return fetchJsonAuth<void>(`/catalog/categories/${categoryId}`, {
