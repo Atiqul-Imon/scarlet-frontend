@@ -29,25 +29,6 @@ export default function ProductDetailPage() {
   const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('description');
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
-  const [categoryNames, setCategoryNames] = React.useState<string[]>([]);
-
-  // Fetch category names for the given category IDs
-  const fetchCategoryNames = async (categoryIds: string[]) => {
-    try {
-      const response = await fetch(`/api/catalog/categories?ids=${categoryIds.join(',')}`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.success && data.data) {
-          const names = data.data.map((cat: any) => cat.name).filter(Boolean);
-          setCategoryNames(names);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching category names:', error);
-    }
-  };
 
   // Fetch product data with optimized loading
   React.useEffect(() => {
@@ -78,15 +59,8 @@ export default function ProductDetailPage() {
         }
         
         const product = productData.data;
-        console.log('Product object keys:', Object.keys(product));
-        console.log('Product attributes:', product.attributes);
         setProduct(product);
         setLoading(false);
-        
-        // Fetch category names if categoryIds exist
-        if (product.categoryIds && product.categoryIds.length > 0) {
-          fetchCategoryNames(product.categoryIds);
-        }
         
         // Fetch related products asynchronously after main product loads
         if (product.categoryIds && product.categoryIds.length > 0) {
@@ -479,14 +453,6 @@ export default function ProductDetailPage() {
                 <div className="mt-6">
                   <h4 className="font-semibold text-gray-900 mb-3">Product Specifications</h4>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Category */}
-                    {categoryNames.length > 0 && (
-                      <div className="border-b border-gray-100 pb-2">
-                        <dt className="text-sm font-medium text-gray-500">Category</dt>
-                        <dd className="text-sm text-gray-900 mt-1">{categoryNames.join(', ')}</dd>
-                      </div>
-                    )}
-                    
                     {/* Brand */}
                     {product.brand && (
                       <div className="border-b border-gray-100 pb-2">
@@ -514,8 +480,7 @@ export default function ProductDetailPage() {
                     {/* Other attributes (excluding cost and categoryIds) */}
                     {product.attributes && Object.entries(product.attributes)
                       .filter(([key, value]) => {
-                        console.log('Attribute:', key, '=', value);
-                        return key !== 'cost' && key !== 'categoryIds' && value !== undefined && value !== null && value !== '';
+                        return key !== 'cost' && key !== 'categoryIds' && key !== 'category' && key !== 'subcategory' && value !== undefined && value !== null && value !== '';
                       })
                       .map(([key, value]) => (
                         <div key={key} className="border-b border-gray-100 pb-2">
