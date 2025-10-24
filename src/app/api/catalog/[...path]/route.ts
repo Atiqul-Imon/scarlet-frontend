@@ -4,11 +4,12 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
     const { searchParams } = new URL(request.url);
-    const path = params.path.join('/');
+    const resolvedParams = await params;
+    const path = resolvedParams.path.join('/');
     const queryString = searchParams.toString();
     
     const backendUrl = `${BACKEND_URL}/api/catalog/${path}${queryString ? `?${queryString}` : ''}`;
@@ -38,11 +39,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
     const body = await request.json();
-    const path = params.path.join('/');
+    const resolvedParams = await params;
+    const path = resolvedParams.path.join('/');
     
     const backendUrl = `${BACKEND_URL}/api/catalog/${path}`;
     
