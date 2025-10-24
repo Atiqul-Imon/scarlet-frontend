@@ -9,6 +9,7 @@ import { uploadImage, validateImageFile } from '@/lib/image-upload';
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { Category } from '@/lib/types';
 import ImageSelector from '@/components/admin/ImageSelector';
+import SearchableCategoryDropdown from '@/components/admin/SearchableCategoryDropdown';
 
 interface ProductFormProps {
   productId?: string;
@@ -544,24 +545,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Category
             </label>
-            <select
+            <SearchableCategoryDropdown
+              categories={categories}
               value={formData.category}
-              onChange={(e) => handleInputChange('category', e.target.value)}
+              onChange={(categoryId) => handleInputChange('category', categoryId)}
+              loading={categoriesLoading}
               disabled={categoriesLoading}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-              <option value="">
-                {categoriesLoading ? 'Loading categories...' : 'Select Category'}
-              </option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {categoriesLoading && (
-              <p className="text-xs text-gray-500 mt-1">Loading categories from database...</p>
-            )}
+              placeholder="Select Category"
+            />
           </div>
 
           <div>
