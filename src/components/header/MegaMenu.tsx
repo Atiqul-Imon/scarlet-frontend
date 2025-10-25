@@ -21,7 +21,7 @@ export function MegaMenu({ items }: { items: MegaItem[] }) {
   const scrollNavBy = (delta: number) => navRef.current?.scrollBy({ left: delta, behavior: 'smooth' });
 
   return (
-    <div className="relative hidden lg:block w-full">
+    <div className="relative hidden lg:block w-full max-w-full">
       {/* edge fades */}
       <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-white to-transparent z-10" />
       <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white to-transparent z-10" />
@@ -42,7 +42,7 @@ export function MegaMenu({ items }: { items: MegaItem[] }) {
         <Chevron dir="right" />
       </button>
 
-      <div ref={navRef} className="overflow-x-auto no-scrollbar w-full">
+      <div ref={navRef} className="overflow-x-auto no-scrollbar w-full max-w-full">
         <nav className="min-w-max inline-flex items-center gap-0" role="navigation" aria-label="Primary">
           {items.map((m, idx) => (
             <div

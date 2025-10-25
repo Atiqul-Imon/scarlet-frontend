@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useAuth, useCart, useWishlist, useToast } from '@/lib/context';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import InstantSearch from '../search/InstantSearch';
 
 export default function TopBar() {
@@ -81,13 +80,21 @@ export default function TopBar() {
 
             {/* Actions */}
             <div className="flex items-center gap-1 md:gap-3 lg:gap-6 text-sm justify-end">
+              {/* Blog Link */}
+              <Link
+                href="/blog"
+                className="hover:text-red-700 inline-flex items-center justify-center transition-colors p-2 min-w-[32px] min-h-[32px]"
+                aria-label="Blog"
+                title="Blog"
+              >
+                <BlogIcon />
+              </Link>
+
               {/* Search Icon */}
               <button
                 onClick={() => {
-                  // Only trigger mobile search on mobile screens
-                  if (typeof window !== 'undefined' && window.innerWidth < 768) {
-                    setShowMobileSearch(true);
-                  }
+                  // Mobile search functionality can be added here if needed
+                  console.log('Mobile search clicked');
                 }}
                 className="hover:text-red-700 inline-flex items-center justify-center transition-colors p-2 min-w-[32px] min-h-[32px]"
                 aria-label="Search"
@@ -310,6 +317,14 @@ function CartIcon() {
       <circle cx="9" cy="21" r="1"/>
       <circle cx="20" cy="21" r="1"/>
       <path d="M1 1h4l2.68 12.39A2 2 0 0 0 9.63 15H19a2 2 0 0 0 2-1.59l1.38-7.59H6"/>
+    </svg>
+  );
+}
+
+function BlogIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-700 hover:text-red-700 flex-shrink-0">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
     </svg>
   );
 }

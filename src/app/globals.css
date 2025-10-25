@@ -255,6 +255,16 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-belleza);
 }
 
+/* Hide scrollbar but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
 @media (min-width: 640px) {
   .responsive-heading {
     font-size: 2rem;
