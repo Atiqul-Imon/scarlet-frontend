@@ -341,8 +341,7 @@ export default function CartPage() {
   const freeShippingThreshold = 2000; // ৳2000 for free shipping
   const shippingCost = 100; // ৳100 standard shipping
   const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
-  const tax = 0; // No VAT on cosmetics in Bangladesh for small amounts
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping;
   const itemCount = enrichedItems.reduce((sum, item) => sum + item.quantity, 0);
   
   // Format currency for Bangladesh
@@ -492,7 +491,6 @@ export default function CartPage() {
               <CartSummary
                 subtotal={subtotal}
                 shipping={shipping}
-                tax={tax}
                 total={total}
                 currency="BDT"
                 itemCount={itemCount}
@@ -506,30 +504,6 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* Trust Indicators - Hidden on mobile to save space */}
-        <div className="hidden md:block mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-              <ShippingIcon />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Free Shipping</h3>
-            <p className="text-sm text-gray-600">Free shipping on orders over {formatPrice(freeShippingThreshold)}</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-              <ReturnIcon />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Easy Returns</h3>
-            <p className="text-sm text-gray-600">7-day hassle-free returns</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-              <SecurityIcon />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Secure Payment</h3>
-            <p className="text-sm text-gray-600">bKash, Nagad & Card accepted</p>
-          </div>
-        </div>
       </div>
       
       {/* OTP Verification Modals */}
@@ -630,28 +604,4 @@ function ErrorIcon() {
   );
 }
 
-function ShippingIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
-      <path d="M16 3h5v5"/>
-      <path d="M8 3H3v5"/>
-      <path d="M12 22V8"/>
-    </svg>
-  );
-}
 
-function ReturnIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
-      <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"/>
-    </svg>
-  );
-}
-
-function SecurityIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-    </svg>
-  );
-}

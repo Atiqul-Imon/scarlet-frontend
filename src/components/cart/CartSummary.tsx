@@ -6,7 +6,6 @@ import { Button } from '../ui/button';
 interface CartSummaryProps {
   subtotal: number;
   shipping: number;
-  tax: number;
   total: number;
   currency: string;
   itemCount: number;
@@ -20,7 +19,6 @@ interface CartSummaryProps {
 export default function CartSummary({
   subtotal,
   shipping,
-  tax,
   total,
   currency,
   itemCount,
@@ -63,10 +61,6 @@ export default function CartSummary({
           </span>
         </div>
         
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Tax</span>
-          <span className="font-medium text-gray-900 text-right">{formatPrice(tax)}</span>
-        </div>
         
         <div className="border-t pt-3 sm:pt-4">
           <div className="flex justify-between">
@@ -127,15 +121,6 @@ export default function CartSummary({
       </Button>
       
       {/* Guest checkout info */}
-      {needsAuth && (
-        <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs sm:text-sm text-blue-800 text-center">
-            <strong>Guest Checkout Available!</strong><br />
-            <span className="hidden sm:inline">You can complete your purchase without creating an account.</span>
-            <span className="sm:hidden">No account needed!</span>
-          </p>
-        </div>
-      )}
 
       {/* Continue Shopping */}
       <Link 

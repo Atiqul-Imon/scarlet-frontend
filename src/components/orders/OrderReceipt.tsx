@@ -29,7 +29,6 @@ interface OrderReceiptProps {
   items: OrderItem[];
   subtotal: number;
   shipping: number;
-  tax: number;
   total: number;
   currency: string;
   paymentMethod: string;
@@ -52,7 +51,6 @@ export default function OrderReceipt({
   items,
   subtotal,
   shipping,
-  tax,
   total,
   currency,
   paymentMethod,
@@ -246,12 +244,6 @@ export default function OrderReceipt({
                 <span style={{color: '#6b7280'}}>Shipping:</span>
                 <span className="font-medium" style={{color: '#000000'}}>{formatPrice(shipping)}</span>
               </div>
-              {tax > 0 && (
-                <div className="flex justify-between">
-                  <span style={{color: '#6b7280'}}>Tax:</span>
-                  <span className="font-medium" style={{color: '#000000'}}>{formatPrice(tax)}</span>
-                </div>
-              )}
               <div className="pt-2 mt-3" style={{borderTop: '1px solid #d1d5db'}}>
                 <div className="flex justify-between text-lg font-bold">
                   <span style={{color: '#000000'}}>Total:</span>

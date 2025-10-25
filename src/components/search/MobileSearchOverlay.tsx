@@ -48,6 +48,7 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
   const [addingToCart, setAddingToCart] = React.useState<Set<string>>(new Set());
   
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   
   // Focus input when overlay opens
   React.useEffect(() => {
@@ -55,6 +56,22 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Click outside to close overlay
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+    
+    return undefined;
+  }, [isOpen, onClose]);
   
   // Fetch suggestions with debouncing
   React.useEffect(() => {
@@ -229,7 +246,7 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
   if (!isOpen) return null;
   
   return (
-    <div className="fixed top-0 left-0 right-0 z-[10000] bg-white" style={{ height: '100vh', paddingBottom: '64px' }}>
+    <div ref={containerRef} className="fixed top-0 left-0 right-0 z-[10000] bg-white" style={{ height: '100vh', paddingBottom: '64px' }}>
       {/* Header */}
       <div className="p-4 bg-white border-b border-gray-200">
         <div className="flex items-center gap-3">

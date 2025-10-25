@@ -34,7 +34,6 @@ interface OrderDetails {
   };
   subtotal?: number;
   shipping?: number;
-  tax?: number;
   paymentMethod?: string;
   status?: string;
   trackingNumber?: string;
@@ -107,7 +106,6 @@ function OrderSuccessPageContent() {
           },
           subtotal: order.subtotal || order.total || 0,
           shipping: order.shipping || 0,
-          tax: order.tax || 0,
           paymentMethod: order.paymentMethod || 'Unknown',
           status: order.status || 'confirmed',
           trackingNumber: order.trackingNumber
@@ -172,7 +170,6 @@ function OrderSuccessPageContent() {
         items: orderDetails.items,
         subtotal: orderDetails.subtotal || orderDetails.total,
         shipping: orderDetails.shipping || 0,
-        tax: orderDetails.tax || 0,
         total: orderDetails.total,
         currency: orderDetails.currency,
         paymentMethod: orderDetails.paymentMethod || 'Unknown',
@@ -218,7 +215,6 @@ function OrderSuccessPageContent() {
         items: orderDetails.items,
         subtotal: orderDetails.subtotal || orderDetails.total,
         shipping: orderDetails.shipping || 0,
-        tax: orderDetails.tax || 0,
         total: orderDetails.total,
         currency: orderDetails.currency,
         paymentMethod: orderDetails.paymentMethod || 'Unknown',
@@ -264,7 +260,6 @@ function OrderSuccessPageContent() {
         items: orderDetails.items,
         subtotal: orderDetails.subtotal || orderDetails.total,
         shipping: orderDetails.shipping || 0,
-        tax: orderDetails.tax || 0,
         total: orderDetails.total,
         currency: orderDetails.currency,
         paymentMethod: orderDetails.paymentMethod || 'Unknown',
@@ -464,7 +459,6 @@ function OrderSuccessPageContent() {
                 items={orderDetails.items}
                 subtotal={orderDetails.subtotal || orderDetails.total}
                 shipping={orderDetails.shipping || 0}
-                tax={orderDetails.tax || 0}
                 total={orderDetails.total}
                 currency={orderDetails.currency}
                 paymentMethod={orderDetails.paymentMethod || 'Unknown'}
