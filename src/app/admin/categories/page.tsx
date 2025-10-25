@@ -549,7 +549,6 @@ export default function AdminCategoriesPage() {
         {/* Children */}
         {hasChildren && isExpanded && (
           <div className="relative">
-            {/* Debug: Rendering children for ${category.name} */}
             {category.children!.map((child) => (
               <HierarchyCategoryItem
                 key={child._id}
@@ -558,13 +557,6 @@ export default function AdminCategoriesPage() {
                 parentPath={[...parentPath, category.name]}
               />
             ))}
-          </div>
-        )}
-        
-        {/* Debug info for categories with children but not expanded */}
-        {hasChildren && !isExpanded && (
-          <div className="text-xs text-gray-400 ml-4">
-            (Has {category.children!.length} children - click to expand)
           </div>
         )}
       </div>
@@ -816,21 +808,6 @@ export default function AdminCategoriesPage() {
             </div>
           </div>
 
-          {/* Debug Info */}
-          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-            <h3 className="text-sm font-semibold text-yellow-800 mb-2">Debug Info</h3>
-            <div className="text-xs text-yellow-700 space-y-1">
-              <p>Categories with children: {categoryTree.filter(cat => cat.children && cat.children.length > 0).length}</p>
-              <p>Total categories: {categories.length}</p>
-              <p>Root categories: {categoryTree.length}</p>
-              {categoryTree.slice(0, 3).map(cat => (
-                <p key={cat._id}>
-                  {cat.name}: {cat.children?.length || 0} children
-                  {cat.children && cat.children.length > 0 && ` (${cat.children.map(c => c.name).join(', ')})`}
-                </p>
-              ))}
-            </div>
-          </div>
 
           {/* Hierarchy Legend */}
           <div className="bg-gray-50 p-4 rounded-lg">
