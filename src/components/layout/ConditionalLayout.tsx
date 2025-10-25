@@ -16,12 +16,11 @@ interface ConditionalLayoutProps {
 export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
   
-  // Check if current path is admin or account pages
+  // Check if current path is admin pages
   const isAdminPage = pathname.startsWith('/admin');
-  const isAccountPage = pathname.startsWith('/account');
   
-  // For admin and account pages, don't show main website header/footer
-  if (isAdminPage || isAccountPage) {
+  // For admin pages, don't show main website header/footer
+  if (isAdminPage) {
     return (
       <div className="flex flex-col min-h-screen">
         <main className="flex-1">
