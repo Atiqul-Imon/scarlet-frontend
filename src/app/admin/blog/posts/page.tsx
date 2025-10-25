@@ -11,7 +11,7 @@ import {
   TrashIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
-  ArrowUpDownIcon
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
 export default function AdminBlogPostsPage() {
