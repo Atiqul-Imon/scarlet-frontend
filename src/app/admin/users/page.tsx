@@ -53,9 +53,18 @@ export default function AdminUsersPage() {
         limit: itemsPerPage
       });
       
-      setUsers(response.data || []);
-      setTotalPages(response.totalPages || 1);
-      setTotalItems(response.total || 0);
+      console.log('🔍 Users API Response:', response);
+      
+      // Handle different response structures
+      const usersData = response.data || (response as any).users || (response as any) || [];
+      const totalPages = response.totalPages || (response as any).pages || 1;
+      const totalItems = response.total || (response as any).count || usersData.length;
+      
+      console.log('📊 Processed Data:', { usersData, totalPages, totalItems });
+      
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      setTotalPages(totalPages);
+      setTotalItems(totalItems);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       addToast({
@@ -544,23 +553,43 @@ export default function AdminUsersPage() {
         )}
 
       {/* Users Table */}
-      <AdminDataTable
-        data={users}
-        columns={columns}
-        loading={loading}
-        searchable={true}
-        onSearch={handleSearch}
-        onRefresh={fetchUsers}
-        pagination={{
-          currentPage,
-          totalPages,
-          totalItems,
-          itemsPerPage,
-          onPageChange: setCurrentPage
-        }}
-        actions={actions}
-        emptyMessage="No users found. Start by adding your first customer!"
-      />
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Users Table</h3>
+            <div className="text-sm text-gray-500">
+              {loading ? 'Loading...' : `${users.length} users loaded`}
+            </div>
+          </div>
+        </div>
+        
+        {/* Debug Info */}
+        <div className="p-4 bg-gray-50 text-xs text-gray-600">
+          <div>Users Array Length: {users.length}</div>
+          <div>Loading State: {loading.toString()}</div>
+          <div>Total Items: {totalItems}</div>
+          <div>Current Page: {currentPage}</div>
+          <div>Total Pages: {totalPages}</div>
+        </div>
+        
+        <AdminDataTable
+          data={users}
+          columns={columns}
+          loading={loading}
+          searchable={true}
+          onSearch={handleSearch}
+          onRefresh={fetchUsers}
+          pagination={{
+            currentPage,
+            totalPages,
+            totalItems,
+            itemsPerPage,
+            onPageChange: setCurrentPage
+          }}
+          actions={actions}
+          emptyMessage="No users found. Start by adding your first customer!"
+        />
+      </div>
 
         {/* Enhanced User Details Modal */}
         {showUserModal && selectedUser && (
@@ -792,12 +821,12 @@ export default function AdminUsersPage() {
                         <button
                           key={roleOption.role}
                           onClick={() => handleRoleUpdate(selectedUser._id, roleOption.role as 'admin' | 'staff' | 'customer')}
-                          disabled={actionLoading || roleOption.role === selectedUser.role || (selectedUser.role === 'admin' && roleOption.role !== 'admin' && adminDowngradeConfirmation !== 'Yes I am sure')}
+                          disabled={actionLoading || roleOption.role === selectedUser.role}
                           className={`w-full p-6 rounded-2xl border-2 transition-all duration-200 text-left ${
                             roleOption.role === selectedUser.role
                               ? `${roleOption.bgColor} ${roleOption.borderColor} border-2 shadow-lg`
                               : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
-                          } ${actionLoading || (selectedUser.role === 'admin' && roleOption.role !== 'admin' && adminDowngradeConfirmation !== 'Yes I am sure') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          } ${actionLoading || roleOption.role === selectedUser.role ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <div className="flex items-center space-x-4">
                             <div className={`w-12 h-12 bg-gradient-to-r ${roleOption.color} rounded-xl flex items-center justify-center shadow-lg`}>
@@ -809,6 +838,11 @@ export default function AdminUsersPage() {
                                 {roleOption.role === selectedUser.role && (
                                   <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
                                     Current
+                                  </span>
+                                )}
+                                {selectedUser.role === 'admin' && roleOption.role !== 'admin' && adminDowngradeConfirmation === 'Yes I am sure' && (
+                                  <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                                    Ready to Change
                                   </span>
                                 )}
                               </div>
@@ -860,11 +894,22 @@ export default function AdminUsersPage() {
                               value={adminDowngradeConfirmation}
                               onChange={(e) => setAdminDowngradeConfirmation(e.target.value)}
                               placeholder="Yes I am sure"
-                              className="w-full px-4 py-3 border-2 border-red-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-all duration-200"
+                              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-red-500 text-gray-900 bg-white transition-all duration-200 ${
+                                adminDowngradeConfirmation === 'Yes I am sure' 
+                                  ? 'border-green-500 focus:border-green-500' 
+                                  : 'border-red-300 focus:border-red-500'
+                              }`}
                             />
-                            <p className="text-xs text-red-600">
-                              This action cannot be undone. The user will lose all admin privileges immediately.
-                            </p>
+                            {adminDowngradeConfirmation === 'Yes I am sure' ? (
+                              <div className="flex items-center space-x-2 text-green-600">
+                                <CheckBadgeIcon className="w-4 h-4" />
+                                <span className="text-sm font-medium">Confirmation accepted. You can now proceed with the role change.</span>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-red-600">
+                                This action cannot be undone. The user will lose all admin privileges immediately.
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
