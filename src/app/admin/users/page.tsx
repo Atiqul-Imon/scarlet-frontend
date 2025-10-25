@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { 
   UserGroupIcon,
-  PencilIcon,
   TrashIcon,
   EyeIcon,
   ShieldCheckIcon,
@@ -23,7 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
 import { adminApi } from '@/lib/api';
-import type { AdminUser, AdminUserFilters, AdminPaginatedResponse } from '@/lib/admin-types';
+import type { AdminUser, AdminUserFilters } from '@/lib/admin-types';
 import { useToast } from '@/lib/context';
 
 export default function AdminUsersPage() {
@@ -39,6 +38,8 @@ export default function AdminUsersPage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [adminDowngradeConfirmation, setAdminDowngradeConfirmation] = useState('');
   const { addToast } = useToast();
 
   const itemsPerPage = 20;
@@ -52,7 +53,7 @@ export default function AdminUsersPage() {
         limit: itemsPerPage
       });
       
-      setUsers(response.users || []);
+      setUsers(response.data || []);
       setTotalPages(response.totalPages || 1);
       setTotalItems(response.total || 0);
     } catch (error) {
@@ -92,6 +93,18 @@ export default function AdminUsersPage() {
   };
 
   const handleRoleUpdate = async (userId: string, newRole: 'admin' | 'staff' | 'customer') => {
+    // Check if we're downgrading an admin user
+    const isDowngradingAdmin = selectedUser?.role === 'admin' && newRole !== 'admin';
+    
+    if (isDowngradingAdmin && adminDowngradeConfirmation !== 'Yes I am sure') {
+      addToast({
+        type: 'error',
+        title: 'Confirmation Required',
+        message: 'Please type "Yes I am sure" to downgrade an admin user'
+      });
+      return;
+    }
+
     try {
       setActionLoading(true);
       await adminApi.users.updateUserRole(userId, newRole);
@@ -102,6 +115,7 @@ export default function AdminUsersPage() {
       });
       setShowRoleModal(false);
       setSelectedUser(null);
+      setAdminDowngradeConfirmation('');
       fetchUsers();
     } catch (error) {
       console.error('Failed to update user role:', error);
@@ -118,6 +132,16 @@ export default function AdminUsersPage() {
   const confirmDeleteUser = async () => {
     if (!selectedUser) return;
 
+    // Check if user typed "DELETE" correctly
+    if (deleteConfirmation !== 'DELETE') {
+      addToast({
+        type: 'error',
+        title: 'Confirmation Required',
+        message: 'Please type "DELETE" to confirm user deletion'
+      });
+      return;
+    }
+
     try {
       setActionLoading(true);
       await adminApi.users.deleteUser(selectedUser._id);
@@ -128,6 +152,7 @@ export default function AdminUsersPage() {
       });
       setShowDeleteModal(false);
       setSelectedUser(null);
+      setDeleteConfirmation('');
       fetchUsers();
     } catch (error) {
       console.error('Failed to delete user:', error);
@@ -456,10 +481,10 @@ export default function AdminUsersPage() {
                   <label className="block text-sm font-semibold text-gray-700">Verification Status</label>
                   <select
                     value={filters.isEmailVerified?.toString() || ''}
-                    onChange={(e) => setFilters({ 
-                      ...filters, 
-                      isEmailVerified: e.target.value === '' ? undefined : e.target.value === 'true' 
-                    })}
+                onChange={(e) => setFilters({ 
+                  ...filters, 
+                  isEmailVerified: e.target.value === '' ? undefined : e.target.value === 'true' 
+                } as AdminUserFilters)}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-all duration-200"
                   >
                     <option value="">All Users</option>
@@ -767,12 +792,12 @@ export default function AdminUsersPage() {
                         <button
                           key={roleOption.role}
                           onClick={() => handleRoleUpdate(selectedUser._id, roleOption.role as 'admin' | 'staff' | 'customer')}
-                          disabled={actionLoading || roleOption.role === selectedUser.role}
+                          disabled={actionLoading || roleOption.role === selectedUser.role || (selectedUser.role === 'admin' && roleOption.role !== 'admin' && adminDowngradeConfirmation !== 'Yes I am sure')}
                           className={`w-full p-6 rounded-2xl border-2 transition-all duration-200 text-left ${
                             roleOption.role === selectedUser.role
                               ? `${roleOption.bgColor} ${roleOption.borderColor} border-2 shadow-lg`
                               : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
-                          } ${actionLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          } ${actionLoading || (selectedUser.role === 'admin' && roleOption.role !== 'admin' && adminDowngradeConfirmation !== 'Yes I am sure') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                           <div className="flex items-center space-x-4">
                             <div className={`w-12 h-12 bg-gradient-to-r ${roleOption.color} rounded-xl flex items-center justify-center shadow-lg`}>
@@ -809,6 +834,38 @@ export default function AdminUsersPage() {
                             Changing user roles will immediately affect the user's access permissions. 
                             Please ensure this change is authorized and necessary.
                           </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Admin Downgrade Confirmation */}
+                  {selectedUser.role === 'admin' && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-red-800 mb-2">⚠️ Admin Role Downgrade Warning</h4>
+                          <p className="text-sm text-red-700 mb-4">
+                            You are about to downgrade an administrator. This will immediately remove their admin privileges and access to the admin panel.
+                          </p>
+                          <div className="space-y-3">
+                            <label className="block text-sm font-semibold text-red-800">
+                              Type "Yes I am sure" to confirm this action:
+                            </label>
+                            <input
+                              type="text"
+                              value={adminDowngradeConfirmation}
+                              onChange={(e) => setAdminDowngradeConfirmation(e.target.value)}
+                              placeholder="Yes I am sure"
+                              className="w-full px-4 py-3 border-2 border-red-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-all duration-200"
+                            />
+                            <p className="text-xs text-red-600">
+                              This action cannot be undone. The user will lose all admin privileges immediately.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -899,18 +956,33 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
                 
-                {/* Confirmation Checkbox */}
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-8">
-                  <div className="flex items-start space-x-3">
-                    <input
-                      type="checkbox"
-                      id="confirm-delete"
-                      className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                    />
-                    <label htmlFor="confirm-delete" className="text-sm text-amber-800">
-                      I understand that this action is permanent and cannot be undone. 
-                      I confirm that I want to delete this user account.
-                    </label>
+                {/* Confirmation Input */}
+                <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 mb-8">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-red-800 mb-2">⚠️ Final Confirmation Required</h4>
+                      <p className="text-sm text-red-700 mb-4">
+                        This action will permanently delete the user account and all associated data. This cannot be undone.
+                      </p>
+                      <div className="space-y-3">
+                        <label className="block text-sm font-semibold text-red-800">
+                          Type "DELETE" to confirm this action:
+                        </label>
+                        <input
+                          type="text"
+                          value={deleteConfirmation}
+                          onChange={(e) => setDeleteConfirmation(e.target.value)}
+                          placeholder="DELETE"
+                          className="w-full px-4 py-3 border-2 border-red-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-all duration-200"
+                        />
+                        <p className="text-xs text-red-600">
+                          This action is irreversible. All user data, orders, and history will be permanently removed.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
@@ -927,7 +999,7 @@ export default function AdminUsersPage() {
                   </button>
                   <button
                     onClick={confirmDeleteUser}
-                    disabled={actionLoading}
+                    disabled={actionLoading || deleteConfirmation !== 'DELETE'}
                     className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
                     {actionLoading ? (
