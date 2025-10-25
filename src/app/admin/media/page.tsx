@@ -7,8 +7,7 @@ import {
   CloudArrowUpIcon, 
   MagnifyingGlassIcon,
   PhotoIcon,
-  TrashIcon,
-  TagIcon
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 interface MediaFile {
@@ -31,18 +30,9 @@ interface MediaFile {
 }
 
 interface MediaFilters {
-  category?: string;
-  tags?: string[];
   search?: string;
-  mimeType?: string;
 }
 
-interface MediaStats {
-  totalFiles: number;
-  totalSize: number;
-  byCategory: Record<string, number>;
-  byMimeType: Record<string, number>;
-}
 
 export default function MediaGalleryPage() {
   const { user } = useAuth();
@@ -56,7 +46,6 @@ export default function MediaGalleryPage() {
   const [filters, setFilters] = useState<MediaFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [stats, setStats] = useState<MediaStats | null>(null);
 
   // Fetch media files
   const fetchMediaFiles = async () => {
@@ -67,10 +56,7 @@ export default function MediaGalleryPage() {
       const queryParams = new URLSearchParams({
         page: currentPage.toString(),
         limit: '20',
-        ...(filters.category && { category: filters.category }),
-        ...(filters.search && { search: filters.search }),
-        ...(filters.mimeType && { mimeType: filters.mimeType }),
-        ...(filters.tags && filters.tags.length > 0 && { tags: filters.tags.join(',') })
+        ...(filters.search && { search: filters.search })
       });
 
       const response = await fetchJsonAuth<{
@@ -88,19 +74,9 @@ export default function MediaGalleryPage() {
     }
   };
 
-  // Fetch media stats
-  const fetchStats = async () => {
-    try {
-      const response = await fetchJsonAuth<MediaStats>('/media/stats/overview');
-      setStats(response);
-    } catch (err) {
-      console.error('Error fetching media stats:', err);
-    }
-  };
 
   useEffect(() => {
     fetchMediaFiles();
-    fetchStats();
   }, [currentPage, filters]);
 
   const handleFileSelect = (fileId: string) => {
@@ -127,7 +103,6 @@ export default function MediaGalleryPage() {
       
       setSelectedFiles([]);
       fetchMediaFiles();
-      fetchStats();
     } catch (err) {
       console.error('Error deleting files:', err);
       setError('Failed to delete some files. Please try again.');
@@ -144,7 +119,6 @@ export default function MediaGalleryPage() {
       // Use the backend media API which has proper authentication
       await fetchJsonAuth(`/media/${fileId}`, { method: 'DELETE' });
       fetchMediaFiles();
-      fetchStats();
     } catch (err) {
       console.error('Error deleting file:', err);
       setError('Failed to delete file. Please try again.');
@@ -204,7 +178,6 @@ export default function MediaGalleryPage() {
       
       // Refresh the media list
       fetchMediaFiles();
-      fetchStats();
       
       setShowUploadModal(false);
       setUploadProgress(100);
@@ -265,88 +238,27 @@ export default function MediaGalleryPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <div className="flex items-center">
-                <PhotoIcon className="w-8 h-8 text-blue-600" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Total Files</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalFiles}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <div className="flex items-center">
-                <TagIcon className="w-8 h-8 text-green-600" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Total Size</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatFileSize(stats.totalSize)}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-bold">P</span>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Products</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.byCategory['product'] || 0}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold">C</span>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Categories</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.byCategory['category'] || 0}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* Filters */}
+        {/* Search and Actions */}
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center space-x-2">
-                <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search files..."
-                  value={filters.search || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-              </div>
-              <select
-                value={filters.category || ''}
-                onChange={(e) => setFilters(prev => ({ 
-                  ...prev, 
-                  category: e.target.value || 'general' 
-                }))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              >
-                <option value="">All Categories</option>
-                <option value="product">Products</option>
-                <option value="category">Categories</option>
-                <option value="blog">Blog</option>
-                <option value="general">General</option>
-              </select>
+            <div className="flex items-center space-x-2">
+              <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search files by name..."
+                value={filters.search || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                className="border-2 border-gray-300 rounded-lg px-4 py-3 text-base font-medium text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 w-full sm:w-80"
+              />
             </div>
             <div className="mt-4 sm:mt-0 flex items-center space-x-2">
               {selectedFiles.length > 0 && (
                 <button
                   onClick={handleBulkDelete}
-                  className="inline-flex items-center px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm hover:shadow-md"
                 >
-                  <TrashIcon className="w-4 h-4 mr-1" />
+                  <TrashIcon className="w-4 h-4 mr-2" />
                   Delete ({selectedFiles.length})
                 </button>
               )}
