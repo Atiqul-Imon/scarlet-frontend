@@ -175,12 +175,12 @@ export default function BrandShowcase() {
               className="group block"
               prefetch={true}
             >
-              <div className="bg-gradient-to-br from-red-100 via-pink-50 to-red-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-red-200 hover:border-red-400">
+              <div className="bg-gradient-to-br from-red-100 via-pink-50 to-red-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out border border-red-200 hover:border-red-400 hover:from-red-200 hover:via-pink-100 hover:to-red-100">
                 {/* Content Container */}
-                <div className="p-4 sm:p-6 flex flex-col items-center justify-center h-[240px] sm:h-[260px] md:h-[280px]">
+                <div className="p-4 sm:p-6 flex flex-col items-center justify-center h-[180px] sm:h-[200px] md:h-[220px]">
                   {/* Image/Icon Container - Rounded */}
                   <div className="mb-4">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden border-2 border-red-100 hover:border-red-300 transition-colors duration-300">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg overflow-hidden border-2 border-red-100 hover:border-red-300 hover:scale-105 transition-all duration-300 ease-out group-hover:rotate-3">
                       {category.image ? (
                         <img 
                           src={category.image} 
@@ -188,11 +188,11 @@ export default function BrandShowcase() {
                           className="w-full h-full object-cover"
                         />
                       ) : category.icon ? (
-                        <span className="text-4xl sm:text-5xl md:text-6xl">
+                        <span className="text-3xl sm:text-4xl md:text-5xl group-hover:animate-pulse">
                           {category.icon}
                         </span>
                       ) : (
-                        <span className="text-4xl sm:text-5xl md:text-6xl">
+                        <span className="text-3xl sm:text-4xl md:text-5xl group-hover:animate-pulse">
                           {getCategoryIcon(category.name)}
                         </span>
                       )}
@@ -200,7 +200,7 @@ export default function BrandShowcase() {
                   </div>
                   
                   {/* Category Name */}
-                  <h3 className="font-semibold text-gray-900 text-base sm:text-lg md:text-xl text-center leading-tight px-2">
+                  <h3 className="font-semibold text-gray-900 group-hover:text-red-700 text-base sm:text-lg md:text-xl text-center leading-tight px-2 transition-colors duration-300 ease-out">
                     {category.name}
                   </h3>
                 </div>

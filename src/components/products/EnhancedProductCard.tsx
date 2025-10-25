@@ -2,27 +2,21 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCart, useToast, useWishlist, useAuth } from '../../lib/context';
+import { useCart, useToast } from '../../lib/context';
 import type { Product } from '../../lib/types';
-import OutOfStockWishlistModal from '../wishlist/OutOfStockWishlistModal';
 
 interface EnhancedProductCardProps {
   product: Product;
-  showQuickActions?: boolean;
 }
 
 const EnhancedProductCard = React.memo(function EnhancedProductCard({ 
-  product, 
-  showQuickActions = true 
+  product
 }: EnhancedProductCardProps) {
   const { addItem } = useCart();
   const { addToast } = useToast();
-  const { isInWishlist, isLoading: wishlistLoading } = useWishlist();
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
   const [isNavigating, setIsNavigating] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
-  const [showWishlistModal, setShowWishlistModal] = React.useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -49,41 +43,7 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
     }
   };
 
-  const handleQuickView = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // TODO: Implement quick view modal
-    console.log('Quick view:', product.title);
-  };
 
-  const handleWishlistToggle = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Check if user is authenticated
-    if (!user) {
-      addToast({
-        type: 'error',
-        title: 'Login Required',
-        message: 'Please login or register to add items to your wishlist'
-      });
-      // Redirect to login page
-      window.location.href = '/login';
-      return;
-    }
-    
-    if (isOutOfStock) {
-      // For out-of-stock products, show the wishlist modal
-      setShowWishlistModal(true);
-    } else {
-      // For in-stock products, show message that wishlist is only for out-of-stock items
-      addToast({
-        type: 'info',
-        title: 'Wishlist Information',
-        message: 'Wishlist is only available for out-of-stock products'
-      });
-    }
-  };
 
   const handleNavigation = () => {
     setIsNavigating(true);
@@ -100,7 +60,7 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
 
   return (
     <div
-      className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+      className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out transform hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -112,7 +72,7 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
               src={product.images[0] || '/images/placeholder.jpg'}
               alt={product.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               quality={80}
               loading="lazy"
@@ -154,35 +114,6 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
             )}
           </div>
 
-          {/* Quick Actions */}
-          {showQuickActions && (
-            <div className={`
-              absolute top-3 right-3 flex flex-col gap-2 transition-all duration-300
-              ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'}
-            `}>
-              <button
-                onClick={handleQuickView}
-                className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center text-gray-600 hover:text-red-700 transition-colors duration-200 shadow-sm"
-                title="Quick View"
-              >
-                <EyeIcon />
-              </button>
-              <button
-                onClick={handleWishlistToggle}
-                disabled={wishlistLoading}
-                className={`w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center transition-colors duration-200 shadow-sm ${
-                  isOutOfStock 
-                    ? (isInWishlist(product._id!) 
-                        ? 'text-red-500 hover:text-red-600' 
-                        : 'text-gray-600 hover:text-red-500')
-                    : 'text-gray-400 cursor-not-allowed'
-                }`}
-                title={isOutOfStock ? (isInWishlist(product._id!) ? 'In Wishlist' : 'Add to Wishlist') : 'Wishlist only for out-of-stock items'}
-              >
-                <HeartIcon filled={isOutOfStock && isInWishlist(product._id!)} />
-              </button>
-            </div>
-          )}
 
           {/* Add to Cart Button */}
           <div className={`
@@ -224,7 +155,7 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
           )}
           
           {/* Title */}
-          <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-red-700 transition-colors duration-200">
+          <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-red-700 transition-colors duration-300 ease-out">
             {product.title}
           </h3>
           
@@ -243,47 +174,16 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
         </div>
       </Link>
 
-      {/* Out of Stock Wishlist Modal */}
-      {showWishlistModal && (
-        <OutOfStockWishlistModal
-          product={product}
-          isOpen={showWishlistModal}
-          onClose={() => setShowWishlistModal(false)}
-          onSuccess={() => {
-            setShowWishlistModal(false);
-            // The wishlist context will automatically update
-          }}
-        />
-      )}
     </div>
   );
 }, (prevProps, nextProps) => {
   // Custom comparison function for better performance
   return prevProps.product._id === nextProps.product._id &&
          prevProps.product.stock === nextProps.product.stock &&
-         prevProps.product.price.amount === nextProps.product.price.amount &&
-         prevProps.showQuickActions === nextProps.showQuickActions;
+         prevProps.product.price.amount === nextProps.product.price.amount;
 });
 
 export default EnhancedProductCard;
-
-// Icon Components
-function EyeIcon() {
-  return (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    </svg>
-  );
-}
-
-function HeartIcon({ filled = false }: { filled?: boolean }) {
-  return (
-    <svg className="w-4 h-4" fill={filled ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>
-  );
-}
 
 
 function LoadingSpinner() {
