@@ -3,6 +3,15 @@ import { getImageKitInstance, validateServerImageKitConfig } from '@/lib/imageki
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Check for authentication header
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     // Validate ImageKit configuration
     if (!validateServerImageKitConfig()) {
       return NextResponse.json(

@@ -118,6 +118,7 @@ export default function MediaGalleryPage() {
     
     try {
       setLoading(true);
+      // Use the backend media API which has proper authentication
       await Promise.all(
         selectedFiles.map(fileId => 
           fetchJsonAuth(`/media/${fileId}`, { method: 'DELETE' })
@@ -140,6 +141,7 @@ export default function MediaGalleryPage() {
     
     try {
       setLoading(true);
+      // Use the backend media API which has proper authentication
       await fetchJsonAuth(`/media/${fileId}`, { method: 'DELETE' });
       fetchMediaFiles();
       fetchStats();
