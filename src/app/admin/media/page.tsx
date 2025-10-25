@@ -22,7 +22,6 @@ interface MediaFile {
   height?: number;
   alt?: string;
   caption?: string;
-  tags: string[];
   category: 'product' | 'category' | 'blog' | 'general';
   uploadedBy: string;
   createdAt: string;
@@ -166,7 +165,6 @@ export default function MediaGalleryPage() {
         height: uploadResult.data.height,
         alt: file.name, // Use filename as alt text
         caption: '',
-        tags: [],
         category: 'general'
       };
       
@@ -349,18 +347,6 @@ export default function MediaGalleryPage() {
                         {formatFileSize(file.size)}
                       </span>
                     </div>
-                    {file.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {file.tags.slice(0, 2).map((tag, index) => (
-                          <span key={index} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600">
-                            {tag}
-                          </span>
-                        ))}
-                        {file.tags.length > 2 && (
-                          <span className="text-xs text-gray-400">+{file.tags.length - 2}</span>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
