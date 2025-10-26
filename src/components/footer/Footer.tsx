@@ -161,8 +161,9 @@ export default function Footer() {
                 <MapPinIcon className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-gray-300 text-sm">
-                    123 Beauty Street<br />
-                    Dhaka 1205, Bangladesh
+                    3 No. West Tejturi Bazar<br />
+                    Lt.-3, Block-B, Do.-55<br />
+                    Bashundhara City, Dhaka
                   </p>
                 </div>
               </div>
@@ -170,20 +171,20 @@ export default function Footer() {
               <div className="flex items-center space-x-3">
                 <PhoneIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <a 
-                  href="tel:+8801234567890" 
+                  href="tel:+8801407000543" 
                   className="text-gray-300 hover:text-red-400 transition-colors text-sm"
                 >
-                  +880 1234 567 890
+                  +880 1407 000543
                 </a>
               </div>
               
               <div className="flex items-center space-x-3">
                 <EnvelopeIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <a 
-                  href="mailto:hello@scarlet.com" 
+                  href="mailto:nabilasultana0000@gmail.com" 
                   className="text-gray-300 hover:text-red-400 transition-colors text-sm"
                 >
-                  hello@scarlet.com
+                  nabilasultana0000@gmail.com
                 </a>
               </div>
               
@@ -196,13 +197,26 @@ export default function Footer() {
                   </p>
                 </div>
               </div>
+
+              {/* Legal Information */}
+              <div className="pt-4 border-t border-gray-800">
+                <p className="text-gray-400 text-xs mb-2">
+                  <strong>Trade License:</strong> TRAD/DNCC/050622/2023
+                </p>
+                <p className="text-gray-400 text-xs mb-2">
+                  <strong>Business Owner:</strong> Nabila Sultana
+                </p>
+                <p className="text-gray-400 text-xs">
+                  <strong>License Valid Until:</strong> June 30, 2026
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Features Section */}
         <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
                 <TruckIcon className="w-6 h-6 text-white" />
@@ -219,7 +233,7 @@ export default function Footer() {
               </div>
               <div>
                 <h5 className="font-semibold text-white">Easy Returns</h5>
-                <p className="text-gray-400 text-sm">30-day return policy</p>
+                <p className="text-gray-400 text-sm">7-10 working days refund</p>
               </div>
             </div>
             
@@ -229,7 +243,17 @@ export default function Footer() {
               </div>
               <div>
                 <h5 className="font-semibold text-white">Secure Payment</h5>
-                <p className="text-gray-400 text-sm">100% secure checkout</p>
+                <p className="text-gray-400 text-sm">SSL Commerce certified</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
+                <ClockIcon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h5 className="font-semibold text-white">Fast Delivery</h5>
+                <p className="text-gray-400 text-sm">Dhaka: 5 days, Outside: 10 days</p>
               </div>
             </div>
             
@@ -267,6 +291,32 @@ export default function Footer() {
             </p>
           </div>
         </div>
+
+        {/* Payment Methods Banner */}
+        <div className="border-t border-gray-800 mt-12 pt-8">
+          <div className="text-center mb-6">
+            <h4 className="text-lg font-semibold text-red-400 mb-2">Secure Payment Methods</h4>
+            <p className="text-gray-400 text-sm">SSL Commerce Certified - Your payments are 100% secure</p>
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-4">
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
+              <CreditCardIcon className="w-6 h-6 text-gray-600" />
+              <span className="text-gray-700 text-sm font-medium">Credit/Debit Cards</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
+              <span className="text-green-600 text-sm font-bold">bKash</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
+              <span className="text-blue-600 text-sm font-bold">Nagad</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
+              <span className="text-purple-600 text-sm font-bold">Rocket</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
+              <span className="text-gray-600 text-sm font-medium">Cash on Delivery</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Bottom Footer */}
@@ -275,18 +325,23 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
               <p className="text-gray-400 text-sm">
-                © {currentYear} Scarlet. All rights reserved.
+                © {currentYear} Scarlet Unlimited. All rights reserved.
               </p>
-              <div className="flex space-x-6">
-                <Link href="/privacy" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
+              <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
+                <Link href="/about" className="hover:text-red-400 transition-colors">
+                  About Us
+                </Link>
+                <Link href="/privacy" className="hover:text-red-400 transition-colors">
                   Privacy Policy
                 </Link>
-                <Link href="/terms" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
+                <Link href="/terms" className="hover:text-red-400 transition-colors">
                   Terms & Conditions
                 </Link>
-                <Link href="/return-policy" className="text-gray-400 hover:text-red-400 transition-colors text-sm">
+                <Link href="/return-policy" className="hover:text-red-400 transition-colors">
                   Return & Refund Policy
                 </Link>
+                <span>Trade License: TRAD/DNCC/050622/2023</span>
+                <span>Owner: Nabila Sultana</span>
               </div>
             </div>
             

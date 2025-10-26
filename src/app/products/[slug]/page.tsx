@@ -303,6 +303,28 @@ export default function ProductDetailPage() {
 
 
 
+            {/* Stock Information */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${stockStatus ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className={`text-sm font-medium ${stockStatus ? 'text-green-600' : 'text-red-600'}`}>
+                    {stockStatus ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Stock Quantity:</span> {product.stock || 0} units available
+                </div>
+              </div>
+              {product.stock && product.stock <= 10 && product.stock > 0 && (
+                <div className="mt-2">
+                  <span className="text-sm text-orange-700 font-semibold bg-orange-100 px-3 py-1 rounded-full">
+                    Only {product.stock} left in stock!
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Quantity Selector */}
             {stockStatus && (
               <div className="flex items-center gap-4">
@@ -336,11 +358,6 @@ export default function ProductDetailPage() {
                     <PlusIcon />
                   </button>
                 </div>
-                {product.stock && product.stock <= 10 && (
-                  <span className="text-sm text-orange-700 font-semibold bg-orange-100 px-3 py-1 rounded-full">
-                    Only {product.stock} left!
-                  </span>
-                )}
               </div>
             )}
 
@@ -480,7 +497,7 @@ export default function ProductDetailPage() {
                     {/* Other attributes (excluding cost and categoryIds) */}
                     {product.attributes && Object.entries(product.attributes)
                       .filter(([key, value]) => {
-                        return key !== 'cost' && key !== 'categoryIds' && key !== 'category' && key !== 'subcategory' && value !== undefined && value !== null && value !== '';
+                        return key !== 'cost' && key !== 'categoryIds' && key !== 'category' && key !== 'subcategory' && value !== undefined && value !== null && String(value) !== '';
                       })
                       .map(([key, value]) => (
                         <div key={key} className="border-b border-gray-100 pb-2">
