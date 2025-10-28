@@ -14,7 +14,6 @@ interface OTPVerificationProps {
   onVerified: (phone: string) => void;
   onCancel: () => void;
   className?: string;
-  initialOTP?: string; // OTP received from the initial request
 }
 
 export default function OTPVerification({
@@ -23,8 +22,7 @@ export default function OTPVerification({
   purpose,
   onVerified,
   onCancel,
-  className = '',
-  initialOTP
+  className = ''
 }: OTPVerificationProps) {
   const { addToast } = useToast();
   const [otp, setOtp] = React.useState(['', '', '', '']);
@@ -33,7 +31,6 @@ export default function OTPVerification({
   const [timeLeft, setTimeLeft] = React.useState(0);
   const [attemptsRemaining, setAttemptsRemaining] = React.useState(5);
   const [error, setError] = React.useState<string | null>(null);
-  const [receivedOTP, setReceivedOTP] = React.useState<string | null>(initialOTP || null);
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
   // Format phone number for display
@@ -250,10 +247,6 @@ export default function OTPVerification({
         setAttemptsRemaining(result.attemptsRemaining || 5);
         setOtp(['', '', '', '']);
         setError(null);
-        // Store the received OTP for display
-        if (result.otp) {
-          setReceivedOTP(result.otp);
-        }
       }
     } catch (error: any) {
       console.error('Resend OTP error:', error);
@@ -294,20 +287,6 @@ export default function OTPVerification({
           {formatPhone(phone)}
         </p>
       </div>
-
-      {/* Display OTP for testing purposes */}
-      {receivedOTP && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-red-50 to-purple-50 border border-red-200 rounded-lg">
-          <div className="text-center">
-            <div className="text-lg font-bold text-red-800 mb-2">
-              🔐 Your OTP: {receivedOTP}
-            </div>
-            <p className="text-sm text-red-700">
-              This OTP is displayed for testing purposes. Once the website is ready for real use, OTPs will be sent to the provided phone number via SMS.
-            </p>
-          </div>
-        </div>
-      )}
 
       <form onSubmit={handleVerifyOTP} className="space-y-4">
         <div>
@@ -397,10 +376,10 @@ export default function OTPVerification({
         </div>
       </form>
 
-      {/* Development notice */}
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-        <p className="text-xs text-blue-800 text-center">
-          💡 Testing Mode: OTP is displayed above for convenience. In production, it will be sent via SMS.
+      {/* Production notice */}
+      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+        <p className="text-xs text-green-800 text-center">
+          📱 OTP has been sent to your phone via SMS
         </p>
       </div>
     </div>

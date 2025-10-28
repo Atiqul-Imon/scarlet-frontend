@@ -10,7 +10,7 @@ import type { OTPRequest } from '../../lib/api';
 interface OTPRequestModalProps {
   sessionId: string;
   purpose: 'guest_checkout' | 'phone_verification' | 'password_reset';
-  onOTPSent: (phone: string, otp?: string) => void;
+  onOTPSent: (phone: string) => void;
   onCancel: () => void;
   isOpen: boolean;
 }
@@ -103,7 +103,7 @@ export default function OTPRequestModal({
           title: 'OTP Sent',
           message: `A verification code has been sent to ${phone}`
         });
-        onOTPSent(normalizedPhone, result.otp);
+        onOTPSent(normalizedPhone);
       }
     } catch (error: any) {
       console.error('OTP generation error:', error);
@@ -188,14 +188,12 @@ export default function OTPRequestModal({
           </div>
         </form>
 
-        {/* Development notice */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-            <p className="text-xs text-yellow-800 text-center">
-              🔧 Development Mode: OTP will be logged to backend console
-            </p>
-          </div>
-        )}
+        {/* Production notice */}
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+          <p className="text-xs text-green-800 text-center">
+            📱 OTP will be sent to your phone via SMS
+          </p>
+        </div>
       </div>
     </div>
   );

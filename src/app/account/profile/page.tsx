@@ -27,7 +27,6 @@ export default function ProfilePage(): React.JSX.Element {
   const [sendingOtp, setSendingOtp] = React.useState(false);
   const [verifyingOtp, setVerifyingOtp] = React.useState(false);
   const [otpError, setOtpError] = React.useState('');
-  const [generatedOtp, setGeneratedOtp] = React.useState(''); // Store generated OTP for display
 
   const initialValues: ProfileFormData = {
     firstName: user?.firstName || '',
@@ -124,10 +123,6 @@ export default function ProfilePage(): React.JSX.Element {
       const data = await authApi.sendPhoneOtp(phoneNumber);
       setOtpSent(true);
       setOtpError('');
-      // Store generated OTP for display in development mode
-      if (data.otp) {
-        setGeneratedOtp(data.otp);
-      }
     } catch (error) {
       console.error('Error sending OTP:', error);
       setOtpError(error instanceof Error ? error.message : 'Failed to send OTP. Please try again.');
@@ -291,21 +286,6 @@ export default function ProfilePage(): React.JSX.Element {
                       </Button>
                     )}
                   </div>
-                  
-                  {/* Development Mode: Show Generated OTP */}
-                  {isEditing && otpSent && !otpVerified && generatedOtp && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                      <p className="text-sm font-medium text-yellow-800 mb-1">
-                        🔧 Development Mode - Generated OTP:
-                      </p>
-                      <p className="text-2xl font-bold text-yellow-900 tracking-widest">
-                        {generatedOtp}
-                      </p>
-                      <p className="text-xs text-yellow-700 mt-1">
-                        In production, this will be sent via SMS
-                      </p>
-                    </div>
-                  )}
                   
                   {/* OTP Input Field */}
                   {isEditing && otpSent && !otpVerified && (
