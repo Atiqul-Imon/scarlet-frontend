@@ -49,25 +49,28 @@ export default function OTPVerification({
     }
   }, [timeLeft]);
 
-  // Handle OTP input change
+  // Handle OTP input change (supports digit entry and clearing)
   const handleOtpChange = (index: number, value: string) => {
-    // Only allow single digit
-    const digit = value.replace(/\D/g, '').slice(-1);
-    
+    const trimmed = value.replace(/\D/g, '');
+    const digit = trimmed.slice(-1);
+
+    const newOtp = [...otp];
+    if (value === '' || trimmed === '') {
+      // Clear current digit when input becomes empty (mobile backspace)
+      newOtp[index] = '';
+      setOtp(newOtp);
+      return;
+    }
+
     if (digit) {
-      const newOtp = [...otp];
       newOtp[index] = digit;
       setOtp(newOtp);
-      
+
       // Clear error when user starts typing
-      if (error) {
-        setError(null);
-      }
-      
+      if (error) setError(null);
+
       // Move to next input
-      if (index < 3 && inputRefs.current[index + 1]) {
-        inputRefs.current[index + 1]?.focus();
-      }
+      if (index < 3) inputRefs.current[index + 1]?.focus();
     }
   };
 
