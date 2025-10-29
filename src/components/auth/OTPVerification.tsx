@@ -33,7 +33,7 @@ export default function OTPVerification({
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
   // Format phone number for display
-  const formatPhone = (phone: string) => {
+  const formatPhone = (phone: string): string => {
     // Convert +8801XXXXXXXXX to 01XXXXXXXXX for display
     if (phone.startsWith('+8801')) {
       return '0' + phone.slice(4);
@@ -50,7 +50,7 @@ export default function OTPVerification({
   }, [timeLeft]);
 
   // Handle OTP input change (supports digit entry and clearing)
-  const handleOtpChange = (index: number, value: string) => {
+  const handleOtpChange = (index: number, value: string): void => {
     const trimmed = value.replace(/\D/g, '');
     const digit = trimmed.slice(-1);
 
@@ -75,7 +75,7 @@ export default function OTPVerification({
   };
 
   // Enhanced keyboard handling
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>): void => {
     const { key } = e;
     
     switch (key) {
@@ -131,7 +131,7 @@ export default function OTPVerification({
   };
 
   // Mobile-friendly input handler to catch virtual keyboard deletions
-  const handleInput = (index: number, e: React.FormEvent<HTMLInputElement>) => {
+  const handleInput = (index: number, e: React.FormEvent<HTMLInputElement>): void => {
     const target = e.currentTarget;
     const native = e.nativeEvent as InputEvent;
     const inputType = native && 'inputType' in native ? native.inputType : undefined;
@@ -167,7 +167,7 @@ export default function OTPVerification({
   };
 
   // Handle paste
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = (e: React.ClipboardEvent): void => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
     
@@ -183,7 +183,7 @@ export default function OTPVerification({
   };
 
   // Handle OTP verification
-  const handleVerifyOTP = async (e: React.FormEvent) => {
+  const handleVerifyOTP = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     
     const otpString = otp.join('');
@@ -263,7 +263,7 @@ export default function OTPVerification({
   };
 
   // Handle resend OTP
-  const handleResendOTP = async () => {
+  const handleResendOTP = async (): Promise<void> => {
     if (timeLeft > 0) return;
     
     setSending(true);

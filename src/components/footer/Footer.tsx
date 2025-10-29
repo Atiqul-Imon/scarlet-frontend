@@ -292,13 +292,34 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Payment Methods Banner */}
+        {/* Payment Methods Banner - SSLCommerz */}
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="text-center mb-6">
             <h4 className="text-lg font-semibold text-red-400 mb-2">Secure Payment Methods</h4>
             <p className="text-gray-400 text-sm">SSL Commerce Certified - Your payments are 100% secure</p>
           </div>
-          <div className="flex flex-wrap justify-center items-center gap-4">
+          
+          {/* SSLCommerz Payment Banner */}
+          <div className="flex justify-center mb-6">
+            <a
+              href="https://www.sslcommerz.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block"
+            >
+              <Image
+                src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-05.png"
+                alt="SSLCommerz Payment Methods - Visa, Mastercard, bKash, Nagad, Rocket and more"
+                width={600}
+                height={200}
+                className="h-auto max-w-full"
+                style={{ width: 'auto', height: 'auto', maxWidth: '600px' }}
+              />
+            </a>
+          </div>
+          
+          {/* Additional Payment Info */}
+          <div className="flex flex-wrap justify-center items-center gap-4 mt-4">
             <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
               <CreditCardIcon className="w-6 h-6 text-gray-600" />
               <span className="text-gray-700 text-sm font-medium">Credit/Debit Cards</span>
