@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { useToast } from '../../lib/context';
 import { otpApi } from '../../lib/api';
 import type { OTPRequest, OTPVerification } from '../../lib/api';
@@ -125,6 +124,42 @@ export default function OTPVerification({
           e.preventDefault();
         }
         break;
+    }
+  };
+
+  // Mobile-friendly input handler to catch virtual keyboard deletions
+  const handleInput = (index: number, e: React.FormEvent<HTMLInputElement>) => {
+    const target = e.currentTarget;
+    const native = e.nativeEvent as InputEvent;
+    const inputType = native && 'inputType' in native ? native.inputType : undefined;
+
+    // If user pressed backspace on mobile virtual keyboard
+    if (inputType === 'deleteContentBackward') {
+      const newOtp = [...otp];
+      if (newOtp[index]) {
+        // Clear current if it has a value
+        newOtp[index] = '';
+        setOtp(newOtp);
+      } else if (index > 0) {
+        // Move left and clear previous
+        newOtp[index - 1] = '';
+        setOtp(newOtp);
+        inputRefs.current[index - 1]?.focus();
+      }
+      return;
+    }
+
+    // Guard: if user pasted or typed multiple chars, trim to last digit
+    if (target.value.length > 1) {
+      const digit = target.value.replace(/\D/g, '').slice(-1);
+      if (digit) {
+        const newOtp = [...otp];
+        newOtp[index] = digit;
+        setOtp(newOtp);
+        if (index < 3) inputRefs.current[index + 1]?.focus();
+      } else {
+        target.value = '';
+      }
     }
   };
 
@@ -305,6 +340,7 @@ export default function OTPVerification({
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
+                onInput={(e) => handleInput(index, e)}
                 onFocus={(e) => e.target.select()}
                 onClick={(e) => e.target.select()}
                 className={`
