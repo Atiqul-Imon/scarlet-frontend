@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { Button } from '../../../components/ui/button';
 import { useToast } from '../../../lib/context';
+import { useCart } from '../../../lib/context';
 import OrderReceipt from '../../../components/orders/OrderReceipt';
 import { generateReceiptPDF, generateDetailedReceiptPDF, generateSimpleReceiptPDF } from '../../../lib/receipt-generator';
 
@@ -43,11 +44,34 @@ function OrderSuccessPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { addToast } = useToast();
+  const { clearCart } = useCart();
   const [orderDetails, setOrderDetails] = React.useState<OrderDetails | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [cartCleared, setCartCleared] = React.useState(false);
   const receiptRef = React.useRef<HTMLDivElement>(null);
 
   const orderId = searchParams.get('orderId');
+
+  // Clear cart when order success page loads (backup for COD orders)
+  React.useEffect(() => {
+    if (!cartCleared && orderId) {
+      const clearCartOnOrderSuccess = async () => {
+        try {
+          await clearCart();
+          console.log('✅ Cart cleared on order success page');
+          setCartCleared(true);
+          
+          // Clear any pending order data
+          sessionStorage.removeItem('scarlet_pending_order_id');
+          sessionStorage.removeItem('scarlet_verified_guest_phone');
+        } catch (error) {
+          console.error('❌ Error clearing cart on success page:', error);
+        }
+      };
+      
+      clearCartOnOrderSuccess();
+    }
+  }, [orderId, clearCart, cartCleared]);
 
   React.useEffect(() => {
     if (!orderId) {

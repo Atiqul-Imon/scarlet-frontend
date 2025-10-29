@@ -176,9 +176,18 @@ export default function CheckoutPage() {
       // Clear the cart first, then redirect
       try {
         await clearCart();
-        console.log('Cart cleared successfully');
+        console.log('✅ Cart cleared successfully after COD order');
+        
+        // Clear session storage
+        sessionStorage.removeItem('scarlet_verified_guest_phone');
+        sessionStorage.removeItem('scarlet_pending_order_id');
       } catch (error) {
-        console.error('Error clearing cart after order:', error);
+        console.error('❌ Error clearing cart after order:', error);
+        addToast({
+          type: 'warning',
+          title: 'Notice',
+          message: 'Order placed successfully, but cart clearing encountered an issue. Your cart will be cleared on the next page.'
+        });
         // Continue with redirect even if cart clearing fails
       }
       

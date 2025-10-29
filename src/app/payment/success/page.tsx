@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { useCart } from '../../../lib/context';
 
 interface PaymentSuccessData {
   tran_id?: string;
@@ -31,8 +32,35 @@ interface PaymentSuccessData {
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
+  const { clearCart } = useCart();
   const [paymentData, setPaymentData] = useState<PaymentSuccessData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cartCleared, setCartCleared] = useState(false);
+
+  // Clear cart on successful payment (only once)
+  useEffect(() => {
+    const paymentSuccess = searchParams.get('payment_success');
+    const status = searchParams.get('status');
+    
+    // Clear cart if payment is successful and cart hasn't been cleared yet
+    if ((paymentSuccess === 'true' || status === 'VALID') && !cartCleared) {
+      const clearCartOnSuccess = async () => {
+        try {
+          await clearCart();
+          console.log('✅ Cart cleared after successful payment');
+          setCartCleared(true);
+          
+          // Also clear any pending order ID from session storage
+          sessionStorage.removeItem('scarlet_pending_order_id');
+        } catch (error) {
+          console.error('❌ Error clearing cart after payment:', error);
+          // Continue anyway - payment was successful
+        }
+      };
+      
+      clearCartOnSuccess();
+    }
+  }, [searchParams, clearCart, cartCleared]);
 
   useEffect(() => {
     // Extract payment data from URL parameters
