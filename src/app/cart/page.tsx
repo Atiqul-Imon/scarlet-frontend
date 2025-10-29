@@ -339,7 +339,7 @@ export default function CartPage() {
   // Calculate totals for Bangladesh market
   const subtotal = enrichedItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
   const freeShippingThreshold = 2000; // ৳2000 for free shipping
-  const shippingCost = 100; // ৳100 standard shipping
+  const shippingCost = 0; // Free shipping
   const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
   const total = subtotal + shipping;
   const itemCount = enrichedItems.reduce((sum, item) => sum + item.quantity, 0);

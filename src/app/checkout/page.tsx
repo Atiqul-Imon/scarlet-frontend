@@ -410,7 +410,7 @@ export default function CheckoutPage() {
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
   const freeShippingThreshold = 2000;
-  const shippingCost = 100;
+  const shippingCost = 0;
   const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
   const total = subtotal + shipping;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
