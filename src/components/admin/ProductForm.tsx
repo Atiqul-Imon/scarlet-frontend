@@ -8,6 +8,7 @@ import { adminApi, categoryApi } from '@/lib/api';
 import { uploadImage, validateImageFile } from '@/lib/image-upload';
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { Category } from '@/lib/types';
+import { ExtendedAdminProduct } from '@/lib/admin-types';
 import ImageSelector from '@/components/admin/ImageSelector';
 import SearchableCategoryDropdown from '@/components/admin/SearchableCategoryDropdown';
 
@@ -132,7 +133,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
 
   const loadProductData = async () => {
     try {
-      const product = await adminApi.products.getProduct(productId!);
+      const product = (await adminApi.products.getProduct(productId!)) as ExtendedAdminProduct;
       
       // Transform backend data to frontend format
       const transformedData: ProductFormData = {
@@ -142,27 +143,34 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         shortDescription: product.shortDescription || '',
         price: product.price?.amount?.toString() || '',
         comparePrice: product.price?.originalAmount?.toString() || '',
-        cost: product.attributes?.cost?.toString() || '',
+        cost: (product.attributes?.['cost'] as number | string | boolean | null | undefined)?.toString() || '',
         sku: product.sku || '',
         barcode: product.barcode || '',
         category: product.categoryIds?.[0] || '',
-        subcategory: product.attributes?.subcategory || '',
+        subcategory: (product.attributes?.['subcategory'] as string | undefined) || '',
         brand: product.brand || '',
-        tags: product.tags || [],
+        tags: (product as any).tags || [],
         stock: product.stock?.toString() || '',
-        lowStockThreshold: product.lowStockThreshold?.toString() || '10',
-        trackInventory: product.trackInventory !== false,
-        status: product.status || 'draft',
-        weight: product.weight?.toString() || '',
+        lowStockThreshold: '10',
+        trackInventory: ((product as any).trackInventory !== false),
+        status: ((product as any).status as string) || 'draft',
+        weight: ((product as any).weight as number | undefined)?.toString() || '',
         dimensions: {
-          length: product.dimensions?.length?.toString() || '',
-          width: product.dimensions?.width?.toString() || '',
-          height: product.dimensions?.height?.toString() || ''
+          length: ((product as any).dimensions?.length as number | undefined)?.toString() || '',
+          width: ((product as any).dimensions?.width as number | undefined)?.toString() || '',
+          height: ((product as any).dimensions?.height as number | undefined)?.toString() || ''
         },
-        seoTitle: product.seoTitle || '',
-        seoDescription: product.seoDescription || '',
-        seoKeywords: product.seoKeywords || [],
-        variants: product.variants || []
+        seoTitle: ((product as any).seoTitle as string) || '',
+        seoDescription: ((product as any).seoDescription as string) || '',
+        seoKeywords: ((product as any).seoKeywords as string[]) || [],
+        homepageSection: product.homepageSection || '',
+        variants: (((product as any).variants as Array<{ id?: string; name: string; sku: string; stock: number; price: number; }>) || []).map(v => ({
+          id: (v.id ?? Date.now().toString()) as string,
+          name: v.name,
+          sku: v.sku,
+          stock: v.stock?.toString() || '',
+          price: v.price?.toString() || ''
+        }))
       };
 
       setFormData(transformedData);
@@ -390,7 +398,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
       };
 
       if (mode === 'create') {
-        await adminApi.products.createProduct(productData);
+        await adminApi.products.createProduct(productData as any);
         addToast({
           type: 'success',
           title: 'Product created',
@@ -398,7 +406,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         });
         router.push('/admin/products');
       } else {
-        await adminApi.products.updateProduct(productId!, productData);
+        await adminApi.products.updateProduct(productId!, productData as any);
         addToast({
           type: 'success',
           title: 'Product updated',

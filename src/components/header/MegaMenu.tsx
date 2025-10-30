@@ -12,7 +12,6 @@ export interface MegaItem {
 
 export function MegaMenu({ items }: { items: MegaItem[] }) {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
-  const [isHovering, setIsHovering] = React.useState(false);
   const openTimer = React.useRef<NodeJS.Timeout | null>(null);
   const closeTimer = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -52,13 +51,11 @@ export function MegaMenu({ items }: { items: MegaItem[] }) {
                 if (closeTimer.current) clearTimeout(closeTimer.current);
                 openTimer.current = setTimeout(() => {
                   setOpenIndex(idx);
-                  setIsHovering(true);
                 }, 120);
               }}
               onMouseLeave={() => {
                 if (openTimer.current) clearTimeout(openTimer.current);
                 closeTimer.current = setTimeout(() => {
-                  setIsHovering(false);
                   setOpenIndex(null);
                 }, 180);
               }}
