@@ -1,11 +1,13 @@
 "use client";
 import * as React from 'react';
 import { useAuth } from '../../../lib/context';
+import { useToast } from '../../../lib/context';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { useForm } from '../../../lib/hooks';
 import { validators, formatters } from '../../../lib/utils';
+import { authApi, SecuritySession } from '../../../lib/api';
 
 interface PasswordChangeFormData {
   currentPassword: string;
@@ -13,18 +15,8 @@ interface PasswordChangeFormData {
   confirmPassword: string;
 }
 
-interface SecuritySession {
-  id: string;
-  device: string;
-  browser: string;
-  location: string;
-  ipAddress: string;
-  lastActive: string;
-  isCurrent: boolean;
-}
-
-export default function SecurityPage(): JSX.Element {
-  const { user } = useAuth();
+export default function SecurityPage(): React.JSX.Element {
+  const { addToast } = useToast();
   const [sessions, setSessions] = React.useState<SecuritySession[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = React.useState(false);
@@ -33,50 +25,23 @@ export default function SecurityPage(): JSX.Element {
     const fetchSecurityData = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API calls
-        const mockSessions: SecuritySession[] = [
-          {
-            id: '1',
-            device: 'MacBook Pro',
-            browser: 'Chrome 120.0',
-            location: 'New York, NY',
-            ipAddress: '192.168.1.100',
-            lastActive: '2024-01-16T10:30:00Z',
-            isCurrent: true,
-          },
-          {
-            id: '2',
-            device: 'iPhone 15',
-            browser: 'Safari 17.0',
-            location: 'New York, NY',
-            ipAddress: '192.168.1.101',
-            lastActive: '2024-01-15T18:45:00Z',
-            isCurrent: false,
-          },
-          {
-            id: '3',
-            device: 'Windows PC',
-            browser: 'Firefox 121.0',
-            location: 'Brooklyn, NY',
-            ipAddress: '192.168.2.50',
-            lastActive: '2024-01-14T14:20:00Z',
-            isCurrent: false,
-          },
-        ];
-
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setSessions(mockSessions);
-        setTwoFactorEnabled(false); // Mock 2FA status
+        const fetchedSessions = await authApi.getSessions();
+        setSessions(fetchedSessions);
+        setTwoFactorEnabled(false); // TODO: Implement 2FA status check when backend supports it
       } catch (error) {
         console.error('Error fetching security data:', error);
+        addToast({
+          type: 'error',
+          title: 'Failed to load sessions',
+          message: 'Could not fetch your active sessions. Please try again.'
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchSecurityData();
-  }, []);
+  }, [addToast]);
 
   const initialPasswordData: PasswordChangeFormData = {
     currentPassword: '',
@@ -88,29 +53,29 @@ export default function SecurityPage(): JSX.Element {
     const errors: Record<string, string> = {};
 
     // Current password validation
-    const currentPasswordError = validators.required(values.currentPassword, 'currentPassword');
-    if (currentPasswordError) errors.currentPassword = currentPasswordError.message;
+    const currentPasswordError = validators.required(values['currentPassword'], 'currentPassword');
+    if (currentPasswordError) errors['currentPassword'] = currentPasswordError.message;
 
     // New password validation
-    const newPasswordRequiredError = validators.required(values.newPassword, 'newPassword');
+    const newPasswordRequiredError = validators.required(values['newPassword'], 'newPassword');
     if (newPasswordRequiredError) {
-      errors.newPassword = newPasswordRequiredError.message;
+      errors['newPassword'] = newPasswordRequiredError.message;
     } else {
-      const passwordError = validators.password(values.newPassword);
-      if (passwordError) errors.newPassword = passwordError.message;
+      const passwordError = validators.password(values['newPassword']);
+      if (passwordError) errors['newPassword'] = passwordError.message;
     }
 
     // Confirm password validation
-    const confirmPasswordError = validators.required(values.confirmPassword, 'confirmPassword');
+    const confirmPasswordError = validators.required(values['confirmPassword'], 'confirmPassword');
     if (confirmPasswordError) {
-      errors.confirmPassword = confirmPasswordError.message;
-    } else if (values.newPassword !== values.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors['confirmPassword'] = confirmPasswordError.message;
+    } else if (values['newPassword'] !== values['confirmPassword']) {
+      errors['confirmPassword'] = 'Passwords do not match';
     }
 
     // Check if new password is different from current
-    if (values.currentPassword && values.newPassword && values.currentPassword === values.newPassword) {
-      errors.newPassword = 'New password must be different from current password';
+    if (values['currentPassword'] && values['newPassword'] && values['currentPassword'] === values['newPassword']) {
+      errors['newPassword'] = 'New password must be different from current password';
     }
 
     return errors;
@@ -142,10 +107,20 @@ export default function SecurityPage(): JSX.Element {
   const handleTerminateSession = async (sessionId: string) => {
     if (window.confirm('Are you sure you want to terminate this session?')) {
       try {
-        // TODO: Implement actual session termination API call
-        setSessions(prev => prev.filter(session => session.id !== sessionId));
+        await authApi.terminateSession(sessionId);
+        setSessions(prev => prev.filter(session => session._id !== sessionId));
+        addToast({
+          type: 'success',
+          title: 'Session terminated',
+          message: 'The session has been terminated successfully.'
+        });
       } catch (error) {
         console.error('Error terminating session:', error);
+        addToast({
+          type: 'error',
+          title: 'Failed to terminate session',
+          message: 'Could not terminate the session. Please try again.'
+        });
       }
     }
   };
@@ -153,10 +128,20 @@ export default function SecurityPage(): JSX.Element {
   const handleTerminateAllSessions = async () => {
     if (window.confirm('This will sign you out of all devices except this one. Continue?')) {
       try {
-        // TODO: Implement actual API call
+        const result = await authApi.terminateAllSessions();
         setSessions(prev => prev.filter(session => session.isCurrent));
+        addToast({
+          type: 'success',
+          title: 'Sessions terminated',
+          message: `Terminated ${result.deletedCount || 0} session(s) successfully.`
+        });
       } catch (error) {
         console.error('Error terminating sessions:', error);
+        addToast({
+          type: 'error',
+          title: 'Failed to terminate sessions',
+          message: 'Could not terminate sessions. Please try again.'
+        });
       }
     }
   };
@@ -215,7 +200,7 @@ export default function SecurityPage(): JSX.Element {
                 value={passwordForm.values.currentPassword}
                 onChange={(e) => passwordForm.handleChange('currentPassword', e.target.value)}
                 onBlur={() => passwordForm.handleBlur('currentPassword')}
-                error={passwordForm.touched.currentPassword ? passwordForm.errors.currentPassword : undefined}
+                error={passwordForm.touched['currentPassword'] && passwordForm.errors['currentPassword'] ? passwordForm.errors['currentPassword'] : ''}
                 fullWidth
               />
             </div>
@@ -230,7 +215,7 @@ export default function SecurityPage(): JSX.Element {
                 value={passwordForm.values.newPassword}
                 onChange={(e) => passwordForm.handleChange('newPassword', e.target.value)}
                 onBlur={() => passwordForm.handleBlur('newPassword')}
-                error={passwordForm.touched.newPassword ? passwordForm.errors.newPassword : undefined}
+                error={passwordForm.touched['newPassword'] && passwordForm.errors['newPassword'] ? passwordForm.errors['newPassword'] : ''}
                 helperText="Must be at least 8 characters with uppercase, lowercase, and number"
                 fullWidth
               />
@@ -246,7 +231,7 @@ export default function SecurityPage(): JSX.Element {
                 value={passwordForm.values.confirmPassword}
                 onChange={(e) => passwordForm.handleChange('confirmPassword', e.target.value)}
                 onBlur={() => passwordForm.handleBlur('confirmPassword')}
-                error={passwordForm.touched.confirmPassword ? passwordForm.errors.confirmPassword : undefined}
+                error={passwordForm.touched['confirmPassword'] && passwordForm.errors['confirmPassword'] ? passwordForm.errors['confirmPassword'] : ''}
                 fullWidth
               />
             </div>
@@ -326,8 +311,11 @@ export default function SecurityPage(): JSX.Element {
           </div>
 
           <div className="space-y-4">
-            {sessions.map((session) => (
-              <div key={session.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
+            {sessions.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No active sessions found.</p>
+            ) : (
+              sessions.map((session) => (
+                <div key={session._id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
                     <DeviceIcon className="w-6 h-6 text-gray-600" />
@@ -352,14 +340,15 @@ export default function SecurityPage(): JSX.Element {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleTerminateSession(session.id)}
+                    onClick={() => handleTerminateSession(session._id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     Sign Out
                   </Button>
                 )}
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -410,7 +399,7 @@ export default function SecurityPage(): JSX.Element {
   );
 }
 
-function SecurityPageSkeleton(): JSX.Element {
+function SecurityPageSkeleton(): React.JSX.Element {
   return (
     <div className="space-y-8 animate-pulse">
       {/* Header Skeleton */}
@@ -441,7 +430,7 @@ function SecurityPageSkeleton(): JSX.Element {
 }
 
 // Icon Components
-function ShieldIcon({ className }: { className?: string }): JSX.Element {
+function ShieldIcon({ className }: { className?: string }): React.JSX.Element {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -449,7 +438,7 @@ function ShieldIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function CheckIcon({ className }: { className?: string }): JSX.Element {
+function CheckIcon({ className }: { className?: string }): React.JSX.Element {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="20 6 9 17 4 12" />
@@ -457,7 +446,7 @@ function CheckIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function DeviceIcon({ className }: { className?: string }): JSX.Element {
+function DeviceIcon({ className }: { className?: string }): React.JSX.Element {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
@@ -467,7 +456,7 @@ function DeviceIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function InfoIcon({ className }: { className?: string }): JSX.Element {
+function InfoIcon({ className }: { className?: string }): React.JSX.Element {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
@@ -477,7 +466,7 @@ function InfoIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function AlertTriangleIcon({ className }: { className?: string }): JSX.Element {
+function AlertTriangleIcon({ className }: { className?: string }): React.JSX.Element {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />

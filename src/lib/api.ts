@@ -882,6 +882,28 @@ export const wishlistApi = {
   },
 };
 
+// Session types
+export interface SecuritySession {
+  _id: string;
+  device?: string;
+  browser?: string;
+  os?: string;
+  location?: string;
+  country?: string;
+  city?: string;
+  ipAddress: string;
+  lastActive: string;
+  isCurrent?: boolean;
+  createdAt: string;
+}
+
+export interface SessionsResponse {
+  success: boolean;
+  data: {
+    sessions: SecuritySession[];
+  };
+}
+
 // Authentication API functions
 export const authApi = {
   // Login user
@@ -973,6 +995,26 @@ export const authApi = {
     return fetchJsonAuth<{ message: string; verified: boolean }>('/auth/verify-phone-otp', {
       method: 'POST',
       body: JSON.stringify({ phone, otp }),
+    });
+  },
+
+  // Get active sessions
+  getSessions: async (): Promise<SecuritySession[]> => {
+    const response = await fetchJsonAuth<SessionsResponse>('/auth/sessions');
+    return response.data?.sessions || [];
+  },
+
+  // Terminate a specific session
+  terminateSession: (sessionId: string): Promise<{ success: boolean; message?: string }> => {
+    return fetchJsonAuth<{ success: boolean; message?: string }>(`/auth/sessions/${sessionId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Terminate all other sessions
+  terminateAllSessions: (): Promise<{ success: boolean; message?: string; deletedCount?: number }> => {
+    return fetchJsonAuth<{ success: boolean; message?: string; deletedCount?: number }>('/auth/sessions', {
+      method: 'DELETE',
     });
   },
 };
