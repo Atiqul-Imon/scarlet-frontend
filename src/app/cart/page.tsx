@@ -35,7 +35,8 @@ export default function CartPage() {
   const { user } = useAuth();
   const { addToast } = useToast();
   const [enrichedItems, setEnrichedItems] = React.useState<CartItemData[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  // Initialize loading as false - only set to true when we actually need to fetch
+  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [removingItems, setRemovingItems] = React.useState<Set<string>>(new Set());
@@ -91,10 +92,33 @@ export default function CartPage() {
           return;
         }
 
-        // Add a small delay to ensure cart context is fully loaded
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Check if cart items already have product data populated
+        const hasProductData = cart.items.every(item => item.product);
+        if (hasProductData && cart.items.length > 0) {
+          logger.log('Cart items already have product data, enriching from cart');
+          const enrichedFromCart: CartItemData[] = cart.items.map(item => {
+            const enrichedItem: CartItemData = {
+              productId: item.productId,
+              title: item.product?.title || 'Unknown Product',
+              slug: item.product?.slug || item.productId,
+              image: item.product?.images?.[0] || '/placeholder-product.jpg',
+              price: item.product?.price || { currency: 'BDT', amount: 0 },
+              quantity: item.quantity
+            };
+            if (item.product?.brand) {
+              enrichedItem.brand = item.product.brand;
+            }
+            if (item.product?.stock !== undefined) {
+              enrichedItem.stock = item.product.stock;
+            }
+            return enrichedItem;
+          });
+          setEnrichedItems(enrichedFromCart);
+          setLoading(false);
+          return;
+        }
 
-        // Fetch all products to enrich cart items
+        // Fetch all products to enrich cart items (only if not already populated)
         const allProducts = await productApi.getProducts();
         
         // Ensure we have the products data - handle different response structures

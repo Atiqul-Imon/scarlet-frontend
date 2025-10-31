@@ -527,7 +527,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logger.log('Cart provider effect triggered, isAuthenticated:', isAuthenticated, 'sessionId:', sessionId);
     
     const loadCart = async () => {
-      setLoading(true);
+      // Only set loading if we don't have a cart yet, to avoid flicker
+      if (!cart) {
+        setLoading(true);
+      }
       setError(null);
       
       try {
