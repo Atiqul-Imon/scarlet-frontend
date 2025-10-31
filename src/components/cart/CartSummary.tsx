@@ -18,14 +18,14 @@ interface CartSummaryProps {
 
 export default function CartSummary({
   subtotal,
-  shipping,
+  shipping: _shipping, // Keep for interface compatibility but not used
   total,
   currency,
   itemCount,
   onCheckout,
   isLoading = false,
-  freeShippingThreshold = 2000,
-  needsAuth = false,
+  freeShippingThreshold: _freeShippingThreshold, // Keep for interface compatibility but not used
+  needsAuth: _needsAuth, // Keep for interface compatibility but not used
   formatPrice: customFormatPrice
 }: CartSummaryProps) {
   const formatPrice = customFormatPrice || ((amount: number) => {
@@ -37,9 +37,6 @@ export default function CartSummary({
       currency: currency,
     }).format(amount);
   });
-
-  const isEligibleForFreeShipping = subtotal >= freeShippingThreshold;
-  const amountForFreeShipping = freeShippingThreshold - subtotal;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
@@ -54,14 +51,6 @@ export default function CartSummary({
           <span className="font-medium text-gray-900 text-right">{formatPrice(subtotal)}</span>
         </div>
         
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Shipping</span>
-          <span className="font-medium text-gray-900 text-right">
-            {shipping === 0 ? 'Free' : formatPrice(shipping)}
-          </span>
-        </div>
-        
-        
         <div className="border-t pt-3 sm:pt-4">
           <div className="flex justify-between">
             <span className="text-base sm:text-lg font-semibold text-gray-900">Total</span>
@@ -69,35 +58,6 @@ export default function CartSummary({
           </div>
         </div>
       </div>
-
-      {/* Free Shipping Banner */}
-      {!isEligibleForFreeShipping && amountForFreeShipping > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <ShippingIcon />
-            <span className="text-xs sm:text-sm font-medium text-red-900">
-              Add {formatPrice(amountForFreeShipping)} more for free shipping!
-            </span>
-          </div>
-          <div className="w-full bg-red-200 rounded-full h-2">
-            <div 
-              className="bg-red-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {isEligibleForFreeShipping && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-          <div className="flex items-center gap-2">
-            <CheckIcon />
-            <span className="text-xs sm:text-sm font-medium text-green-800">
-              You qualify for free shipping!
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* Checkout Button */}
       <Button
@@ -170,25 +130,6 @@ export default function CartSummary({
         </div>
       </div>
     </div>
-  );
-}
-
-function ShippingIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
-      <path d="M16 3h5v5"/>
-      <path d="M8 3H3v5"/>
-      <path d="M12 22V8"/>
-      <path d="M8 18h8"/>
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
-      <polyline points="20 6 9 17 4 12"/>
-    </svg>
   );
 }
 

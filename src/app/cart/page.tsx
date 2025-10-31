@@ -338,10 +338,7 @@ export default function CartPage() {
 
   // Calculate totals for Bangladesh market
   const subtotal = enrichedItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
-  const freeShippingThreshold = 2000; // ৳2000 for free shipping
-  const shippingCost = 0; // Free shipping
-  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
-  const total = subtotal + shipping;
+  const total = subtotal; // Shipping will be calculated at checkout based on location
   const itemCount = enrichedItems.reduce((sum, item) => sum + item.quantity, 0);
   
   // Format currency for Bangladesh
@@ -490,13 +487,12 @@ export default function CartPage() {
             <div className="lg:sticky lg:top-24">
               <CartSummary
                 subtotal={subtotal}
-                shipping={shipping}
+                shipping={0}
                 total={total}
                 currency="BDT"
                 itemCount={itemCount}
                 onCheckout={handleCheckout}
                 isLoading={isUpdating}
-                freeShippingThreshold={freeShippingThreshold}
                 needsAuth={needsAuth}
                 formatPrice={formatPrice}
               />

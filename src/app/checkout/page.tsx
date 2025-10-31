@@ -240,7 +240,7 @@ export default function CheckoutPage() {
   const [cartItems, setCartItems] = React.useState<CartItemData[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
-  const [step, setStep] = React.useState<'shipping' | 'payment' | 'review'>('shipping');
+  const [step, setStep] = React.useState<'shipping' | 'payment'>('shipping');
   
   // Location state for dropdowns
   const [selectedDivision, setSelectedDivision] = React.useState<Division | null>(null);
@@ -668,15 +668,6 @@ export default function CheckoutPage() {
               </div>
               <span className="ml-2 text-sm font-medium text-gray-900">Payment</span>
             </div>
-            <div className="w-16 h-px bg-gray-300 mx-4" />
-            <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step === 'review' ? 'bg-red-700 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
-                3
-              </div>
-              <span className="ml-2 text-sm font-medium text-gray-900">Review</span>
-            </div>
           </div>
         </div>
 
@@ -806,18 +797,6 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <div className="mb-4">
-                    <Input
-                      label="Full Address *"
-                      name="address"
-                      value={values.address}
-                      onChange={handleChange}
-                      error={errors.address || undefined}
-                      placeholder="House/Flat, Road, Block, Sector"
-                      required
-                    />
-                  </div>
-
                   {/* Conditional Location Fields */}
                   {values.deliveryArea === 'inside_dhaka' && (
                     <div className="mb-4">
@@ -842,6 +821,19 @@ export default function CheckoutPage() {
                         {errors.dhakaArea && (
                           <p className="text-red-500 text-sm mt-1">{errors.dhakaArea}</p>
                         )}
+                      </div>
+                      
+                      {/* Address field below Thana/Area for Inside Dhaka */}
+                      <div className="mt-4">
+                        <Input
+                          label="Address *"
+                          name="address"
+                          value={values.address}
+                          onChange={handleChange}
+                          error={errors.address || undefined}
+                          placeholder="House/Flat, Road, Block, Sector"
+                          required
+                        />
                       </div>
                     </div>
                   )}
@@ -926,17 +918,32 @@ export default function CheckoutPage() {
                   )}
 
                   {values.deliveryArea === 'outside_dhaka' && (
-                    <div className="mb-6">
-                      <Input
-                        label="Postal Code *"
-                        name="postalCode"
-                        value={values.postalCode}
-                        onChange={handleChange}
-                        error={errors.postalCode || undefined}
-                        placeholder="1000"
-                        required
-                      />
-                    </div>
+                    <>
+                      <div className="mb-4">
+                        <Input
+                          label="Postal Code *"
+                          name="postalCode"
+                          value={values.postalCode}
+                          onChange={handleChange}
+                          error={errors.postalCode || undefined}
+                          placeholder="1000"
+                          required
+                        />
+                      </div>
+                      
+                      {/* Address field below Postal Code for Outside Dhaka */}
+                      <div className="mb-6">
+                        <Input
+                          label="Address *"
+                          name="address"
+                          value={values.address}
+                          onChange={handleChange}
+                          error={errors.address || undefined}
+                          placeholder="House/Flat, Road, Block, Sector"
+                          required
+                        />
+                      </div>
+                    </>
                   )}
 
                   <div className="flex justify-end">
@@ -1064,95 +1071,6 @@ export default function CheckoutPage() {
                     />
                   </div>
 
-                  <div className="flex justify-between">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setStep('shipping')}
-                    >
-                      Back to Shipping
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => setStep('review')}
-                    >
-                      Review Order
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Order Review */}
-              {step === 'review' && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Review Your Order</h2>
-                  
-                  {/* Order Items */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
-                    <div className="space-y-4">
-                      {cartItems.map((item) => (
-                        <div key={item.productId} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{item.title}</h4>
-                            {item.brand && (
-                              <p className="text-sm text-gray-600">{item.brand}</p>
-                            )}
-                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">
-                              {formatPrice(item.price.amount * item.quantity)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Shipping Details */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Shipping Address</h3>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="font-medium text-gray-900">
-                        {values.firstName} {values.lastName ? values.lastName : ''}
-                      </p>
-                      <p className="text-gray-600">{values.phone}</p>
-                      {values.email && <p className="text-gray-600">{values.email}</p>}
-                      <p className="text-gray-600 mt-2">
-                        {values.address}<br />
-                        {values.deliveryArea === 'inside_dhaka' && values.dhakaArea && (
-                          <>
-                            {dhakaAreas.find(a => a.id === values.dhakaArea)?.name}, Dhaka
-                          </>
-                        )}
-                        {values.deliveryArea === 'outside_dhaka' && (
-                          <>
-                            {selectedUpazilla?.name && `${selectedUpazilla.name}, `}
-                            {selectedDistrict?.name && `${selectedDistrict.name}, `}
-                            {selectedDivision?.name && `${selectedDivision.name} `}
-                            {values.postalCode}
-                          </>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Payment Method */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h3>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="font-medium text-gray-900 capitalize">
-                        {values.paymentMethod === 'cod' ? 'Cash on Delivery' : values.paymentMethod}
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Terms and Conditions */}
                   <div className="mb-6">
                     <label className="flex items-start gap-3 cursor-pointer">
@@ -1188,9 +1106,9 @@ export default function CheckoutPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() => setStep('payment')}
+                      onClick={() => setStep('shipping')}
                     >
-                      Back to Payment
+                      Back to Shipping
                     </Button>
                     <Button
                       type="submit"
