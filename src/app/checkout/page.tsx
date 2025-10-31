@@ -83,9 +83,13 @@ export default function CheckoutPage() {
       
       console.log('Order created:', order);
       
+      // CRITICAL: Use orderNumber (not _id) for SSLCommerz tran_id
+      // The IPN handler looks up orders by orderNumber, so they must match
+      const orderNumber = order.orderNumber || order._id;
+      
       // Prepare payment data for SSLCommerz
       const paymentData = {
-        orderId: order._id,
+        orderId: orderNumber,
         amount: total.toFixed(2),
         currency: 'BDT',
         customerInfo: {
