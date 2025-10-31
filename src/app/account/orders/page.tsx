@@ -61,25 +61,18 @@ export default function OrderHistoryPage(): JSX.Element {
       setLoading(true);
       try {
         // Fetch user's orders from API
+        // Backend returns: { orders: Order[], total: number } wrapped in { success: true, data: {...} }
+        // fetchJson extracts body.data, so we receive: { orders: Order[], total: number }
         const ordersResponse = await orderApi.getOrders(1, 50);
         
-        // Handle response structure: backend returns { orders: Order[], total: number } wrapped in { success: true, data: {...} }
-        // fetchJson extracts data, so we get { orders: Order[], total: number }
-        let orders: Order[] = [];
-        if (ordersResponse && typeof ordersResponse === 'object') {
-          // Check if it's PaginatedResponse structure with data array
-          if ('data' in ordersResponse && Array.isArray(ordersResponse.data)) {
-            orders = ordersResponse.data;
-          } 
-          // Check if it's direct response with orders array
-          else if ('orders' in ordersResponse && Array.isArray((ordersResponse as any).orders)) {
-            orders = (ordersResponse as any).orders;
-          } 
-          // Check if response is directly an array
-          else if (Array.isArray(ordersResponse)) {
-            orders = ordersResponse;
-          }
-        }
+        // Extract orders array from response
+        // Response structure confirmed by test: { orders: Order[], total: number }
+        let orders: Order[] = 
+          (ordersResponse && typeof ordersResponse === 'object' && 'orders' in ordersResponse && Array.isArray((ordersResponse as any).orders))
+            ? (ordersResponse as any).orders
+            : Array.isArray(ordersResponse) 
+              ? ordersResponse 
+              : [];
         
         // Apply client-side filtering
         if (filters.search) {

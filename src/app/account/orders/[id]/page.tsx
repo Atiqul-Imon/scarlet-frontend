@@ -9,6 +9,7 @@ import OrderReceipt from '../../../../components/orders/OrderReceipt';
 import { generateReceiptPDF, generateDetailedReceiptPDF, generateSimpleReceiptPDF } from '../../../../lib/receipt-generator';
 import { useAuth, useToast } from '../../../../lib/context';
 import { formatters } from '../../../../lib/utils';
+import { orderApi } from '../../../../lib/api';
 
 interface OrderDetails {
   _id: string;
@@ -74,20 +75,9 @@ export default function OrderDetailsPage(): JSX.Element {
       setError(null);
       
       try {
-        // Fetch order details from API
-        const response = await fetch(`/api/proxy/orders/${orderId}`);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch order: ${response.status}`);
-        }
-        
-        const orderData = await response.json();
-        
-        if (!orderData.success) {
-          throw new Error(orderData.error?.message || 'Failed to load order');
-        }
-        
-        const order = orderData.data;
+        // Fetch order details from API using orderApi.getOrder()
+        // This ensures we use the authenticated API client and proper error handling
+        const order = await orderApi.getOrder(orderId);
         
         // Transform API data to match component interface
         const orderDetails: OrderDetails = {
@@ -97,15 +87,15 @@ export default function OrderDetailsPage(): JSX.Element {
           status: order.status || 'pending',
           total: order.total || 0,
           currency: order.currency || 'BDT',
-          paymentMethod: order.paymentInfo?.method || order.paymentMethod || 'unknown',
+          paymentMethod: order.paymentInfo?.method || 'unknown',
           paymentStatus: order.paymentInfo?.status || 'pending',
-          shippingAddress: order.shippingAddress || {
-            name: 'N/A',
-            address: 'N/A',
-            city: 'N/A',
-            area: 'N/A',
-            postalCode: 'N/A',
-            phone: 'N/A'
+          shippingAddress: {
+            name: `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim() || 'N/A',
+            address: order.shippingAddress?.address || 'N/A',
+            city: order.shippingAddress?.city || order.shippingAddress?.division || 'N/A',
+            area: order.shippingAddress?.area || order.shippingAddress?.dhakaArea || order.shippingAddress?.district || 'N/A',
+            postalCode: order.shippingAddress?.postalCode || 'N/A',
+            phone: order.shippingAddress?.phone || 'N/A'
           },
           items: (order.items || []).map((item: any) => ({
             productId: item.productId || 'N/A',
@@ -119,7 +109,7 @@ export default function OrderDetailsPage(): JSX.Element {
           tax: order.tax || 0,
           estimatedDelivery: order.estimatedDelivery,
           trackingNumber: order.trackingNumber,
-          customerName: order.shippingAddress?.name || 'N/A',
+          customerName: `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim() || 'N/A',
           customerEmail: order.shippingAddress?.email,
           customerPhone: order.shippingAddress?.phone
         };
