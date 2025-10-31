@@ -1157,35 +1157,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Free Shipping Banner */}
-              {subtotal < freeShippingThreshold && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ShippingIcon />
-                    <span className="text-sm font-medium text-red-900">
-                      Add {formatPrice(freeShippingThreshold - subtotal)} more for free shipping!
-                    </span>
-                  </div>
-                  <div className="w-full bg-red-200 rounded-full h-2">
-                    <div 
-                      className="bg-red-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {subtotal >= freeShippingThreshold && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-center gap-2">
-                    <CheckIcon />
-                    <span className="text-sm font-medium text-green-800">
-                      You qualify for free shipping!
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1254,24 +1225,6 @@ function CashIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-600">
       <line x1="12" y1="1" x2="12" y2="23"/>
       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-    </svg>
-  );
-}
-
-function ShippingIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-700">
-      <path d="M16 3h5v5"/>
-      <path d="M8 3H3v5"/>
-      <path d="M12 22V8"/>
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-600">
-      <polyline points="20 6 9 17 4 12"/>
     </svg>
   );
 }
