@@ -1,6 +1,7 @@
 "use client";
 import * as React from 'react';
-import { useToast } from '../../../lib/context';
+import { useRouter } from 'next/navigation';
+import { useAuth, useToast } from '../../../lib/context';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
@@ -15,12 +16,25 @@ interface PasswordChangeFormData {
 }
 
 export default function SecurityPage(): React.JSX.Element {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
   const [sessions, setSessions] = React.useState<SecuritySession[]>([]);
   const [loading, setLoading] = React.useState(true);
 
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/account/security');
+    }
+  }, [user, authLoading, router]);
+
   React.useEffect(() => {
     const fetchSecurityData = async () => {
+      // Don't fetch if user is not authenticated
+      if (!user) {
+        return;
+      }
       setLoading(true);
       try {
         const fetchedSessions = await authApi.getSessions();
@@ -37,8 +51,10 @@ export default function SecurityPage(): React.JSX.Element {
       }
     };
 
-    fetchSecurityData();
-  }, [addToast]);
+    if (user) {
+      fetchSecurityData();
+    }
+  }, [addToast, user]);
 
   const initialPasswordData: PasswordChangeFormData = {
     currentPassword: '',
@@ -143,7 +159,8 @@ export default function SecurityPage(): React.JSX.Element {
     }
   };
 
-  if (loading) {
+  // Show loading state while checking authentication or fetching data
+  if (authLoading || loading || !user) {
     return (
       <AccountLayout>
         <SecurityPageSkeleton />
