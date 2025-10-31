@@ -81,19 +81,40 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
 
   if (!isOpen) return null;
 
+  // Handle backdrop click - close menu
+  const handleBackdropClick = (e: React.MouseEvent | React.TouchEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Handle any link/button click inside menu - close menu
+  const handleLinkClick = () => {
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 cursor-pointer"
-        onClick={onClose}
+        onClick={handleBackdropClick}
+        onTouchStart={handleBackdropClick}
         aria-label="Close menu"
       />
       
       {/* Mobile Menu */}
       <div 
         className="fixed inset-0 z-50 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          // Only stop propagation for clicks inside the menu panel
+          // Allow backdrop clicks to bubble up and close the menu
+          const target = e.target as HTMLElement;
+          const menuPanel = target.closest('.mobile-menu-panel');
+          if (menuPanel) {
+            e.stopPropagation();
+          }
+        }}
       >
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
@@ -146,13 +167,13 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
         </div>
 
         {/* Navigation Content */}
-        <div className="flex-1 overflow-y-auto bg-white">
+        <div className="flex-1 overflow-y-auto bg-white mobile-menu-panel">
           {/* Quick Actions */}
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="grid grid-cols-2 gap-3">
               <Link
                 href="/cart"
-                onClick={onClose}
+                onClick={handleLinkClick}
                 className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
               >
                 <div className="relative">
@@ -168,7 +189,7 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
               
               <Link
                 href="/wishlist"
-                onClick={onClose}
+                onClick={handleLinkClick}
                 className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <HeartIcon />
@@ -181,7 +202,7 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
           <div className="px-4 py-3 border-b border-gray-200">
             <Link
               href="/blog"
-              onClick={onClose}
+              onClick={handleLinkClick}
               className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
             >
               <BlogIcon />
@@ -193,7 +214,7 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
           <div className="px-4 py-3 border-b border-gray-200">
             <Link
               href="/skincare-consultation"
-              onClick={onClose}
+              onClick={handleLinkClick}
               className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
             >
               <ConsultationIcon />
@@ -207,7 +228,7 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
               <div className="space-y-2">
                 <Link
                   href="/account"
-                  onClick={onClose}
+                  onClick={handleLinkClick}
                   className="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <UserIcon />
@@ -215,7 +236,7 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
                 </Link>
                 <Link
                   href="/account/orders"
-                  onClick={onClose}
+                  onClick={handleLinkClick}
                   className="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <OrderIcon />
@@ -235,14 +256,14 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
               <div className="space-y-2">
                 <Link
                   href="/login"
-                  onClick={onClose}
+                  onClick={handleLinkClick}
                   className="block w-full text-center py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
-                  onClick={onClose}
+                  onClick={handleLinkClick}
                   className="block w-full text-center py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
                 >
                   Sign Up
@@ -276,13 +297,13 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
                           />
                         </button>
                       ) : (
-                        <Link
-                          href={`/products?category=${category.slug}`}
-                          onClick={onClose}
-                          className="flex-1 p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                        >
-                          <span className="text-sm font-medium">{category.name}</span>
-                        </Link>
+                                <Link
+                                  href={`/products?category=${category.slug}`}
+                                  onClick={handleLinkClick}
+                                  className="flex-1 p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                >
+                                  <span className="text-sm font-medium">{category.name}</span>
+                                </Link>
                       )}
                     </div>
                     
@@ -317,7 +338,7 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
                                         <Link
                                           key={grandchild._id || grandchild.slug}
                                           href={`/products?category=${grandchild.slug}`}
-                                          onClick={onClose}
+                                          onClick={handleLinkClick}
                                           className="block p-2 text-xs text-gray-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
                                         >
                                           {grandchild.name}
@@ -329,7 +350,7 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
                               ) : (
                                 <Link
                                   href={`/products?category=${child.slug}`}
-                                  onClick={onClose}
+                                  onClick={handleLinkClick}
                                   className="block p-2 text-sm text-gray-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
                                 >
                                   {child.name}
