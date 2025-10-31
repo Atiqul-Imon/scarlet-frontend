@@ -8,10 +8,11 @@ import MobileSearchOverlay from '../../search/MobileSearchOverlay';
 import { useMobileSearch } from '../../../hooks/useMobileSearch';
 
 interface MobileHeaderProps {
-  onMenuOpen: () => void;
+  isMenuOpen: boolean;
+  onMenuToggle: () => void;
 }
 
-export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
+export default function MobileHeader({ isMenuOpen, onMenuToggle }: MobileHeaderProps) {
   const { user, loading: authLoading } = useAuth();
   const { itemCount, loading: cartLoading } = useCart();
   const { isOpen: isSearchOpen, openSearch, closeSearch } = useMobileSearch();
@@ -44,8 +45,8 @@ export default function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
       <div className="px-4 py-3 flex items-center justify-between">
         {/* Left: Menu Button */}
         <MobileMenuButton
-          isOpen={false}
-          onClick={onMenuOpen}
+          isOpen={isMenuOpen}
+          onClick={onMenuToggle}
         />
 
         {/* Center: Logo */}

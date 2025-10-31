@@ -139,10 +139,6 @@ export default function Header() {
     }
   };
 
-  const handleMobileMenuOpen = () => {
-    setIsMobileMenuOpen(true);
-  };
-
   const handleMobileMenuClose = () => {
     setIsMobileMenuOpen(false);
   };
@@ -150,7 +146,10 @@ export default function Header() {
   return (
     <>
       {/* Mobile Header */}
-      <MobileHeader onMenuOpen={handleMobileMenuOpen} />
+      <MobileHeader 
+        isMenuOpen={isMobileMenuOpen}
+        onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+      />
       
       {/* Desktop Header */}
       <div className="hidden lg:block sticky top-0 z-[9999] bg-white border-b border-gray-200 w-full">
