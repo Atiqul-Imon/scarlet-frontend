@@ -1,5 +1,6 @@
 "use client";
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
@@ -9,6 +10,7 @@ import { useDebounce } from '../../../lib/hooks';
 import { formatters } from '../../../lib/utils';
 import { Order, OrderStatus, SelectOption } from '../../../lib/types';
 import { orderApi } from '../../../lib/api';
+import { useAuth } from '../../../lib/context';
 
 interface OrderFilters {
   search: string;
@@ -35,8 +37,17 @@ const dateRangeOptions: SelectOption[] = [
 ];
 
 export default function OrderHistoryPage(): JSX.Element {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/account/orders');
+    }
+  }, [user, authLoading, router]);
   const [filters, setFilters] = React.useState<OrderFilters>({
     search: '',
     status: 'all',
@@ -87,8 +98,10 @@ export default function OrderHistoryPage(): JSX.Element {
       }
     };
 
-    fetchOrders();
-  }, [debouncedSearch, filters.status, filters.dateRange]);
+    if (user) {
+      fetchOrders();
+    }
+  }, [debouncedSearch, filters.status, filters.dateRange, user]);
 
   const getStatusColor = (status: OrderStatus): string => {
     const colors = {
@@ -107,7 +120,11 @@ export default function OrderHistoryPage(): JSX.Element {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  if (loading) {
+  // Show loading or redirect - don't show skeleton if not authenticated
+  if (authLoading || loading || !user) {
+    if (!authLoading && !user) {
+      return <></>; // Will redirect
+    }
     return (
       <AccountLayout>
         <OrderHistorySkeleton />

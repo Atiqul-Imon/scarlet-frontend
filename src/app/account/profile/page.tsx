@@ -1,5 +1,6 @@
 "use client";
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/context';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
@@ -19,7 +20,15 @@ interface ProfileFormData {
 
 
 export default function ProfilePage(): React.JSX.Element {
-  const { user, updateProfile } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading, updateProfile } = useAuth();
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/account/profile');
+    }
+  }, [user, authLoading, router]);
   const [isEditing, setIsEditing] = React.useState(false);
   const [otpSent, setOtpSent] = React.useState(false);
   const [otp, setOtp] = React.useState('');
@@ -169,6 +178,27 @@ export default function ProfilePage(): React.JSX.Element {
       setOtpVerified(true);
     }
   };
+
+  // Show loading or redirect - don't render if not authenticated
+  if (authLoading || !user) {
+    if (!authLoading && !user) {
+      return <></>; // Will redirect
+    }
+    return (
+      <AccountLayout>
+        <div className="max-w-2xl animate-pulse">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="h-6 bg-gray-200 rounded w-48 mb-4"></div>
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AccountLayout>
+    );
+  }
 
   return (
     <AccountLayout>

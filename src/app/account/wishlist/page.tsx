@@ -1,17 +1,27 @@
 "use client";
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCart, useWishlist } from '../../../lib/context';
+import { useAuth, useCart, useWishlist } from '../../../lib/context';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
 import { formatters } from '../../../lib/utils';
 import { WishlistItem } from '../../../lib/types';
 
 export default function WishlistPage(): JSX.Element {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { addItem } = useCart();
   const { wishlistItems, isLoading: wishlistLoading, removeFromWishlist, error: wishlistError } = useWishlist();
   const [addingToCart, setAddingToCart] = React.useState<string | null>(null);
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/account/wishlist');
+    }
+  }, [user, authLoading, router]);
 
   const handleRemoveFromWishlist = async (item: WishlistItem) => {
     try {

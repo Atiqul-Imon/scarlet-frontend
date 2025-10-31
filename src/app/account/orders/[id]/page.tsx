@@ -7,7 +7,7 @@ import AccountLayout from '../../../../components/account/AccountLayout';
 import { Button } from '../../../../components/ui/button';
 import OrderReceipt from '../../../../components/orders/OrderReceipt';
 import { generateReceiptPDF, generateDetailedReceiptPDF, generateSimpleReceiptPDF } from '../../../../lib/receipt-generator';
-import { useToast } from '../../../../lib/context';
+import { useAuth, useToast } from '../../../../lib/context';
 import { formatters } from '../../../../lib/utils';
 
 interface OrderDetails {
@@ -46,8 +46,16 @@ interface OrderDetails {
 export default function OrderDetailsPage(): JSX.Element {
   const params = useParams();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { addToast } = useToast();
   const [orderDetails, setOrderDetails] = React.useState<OrderDetails | null>(null);
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push(`/login?redirect=/account/orders/${params.id}`);
+    }
+  }, [user, authLoading, router, params.id]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const receiptRef = React.useRef<HTMLDivElement>(null);
@@ -274,7 +282,11 @@ export default function OrderDetailsPage(): JSX.Element {
     return statusMap[status as keyof typeof statusMap] || status;
   };
 
-  if (loading) {
+  // Show loading or redirect - don't show skeleton if not authenticated
+  if (authLoading || loading || !user) {
+    if (!authLoading && !user) {
+      return <></>; // Will redirect
+    }
     return (
       <AccountLayout>
         <OrderDetailsSkeleton />

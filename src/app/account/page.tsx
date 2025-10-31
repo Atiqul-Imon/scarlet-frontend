@@ -1,5 +1,6 @@
 "use client";
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, useCart } from '../../lib/context';
 import AccountLayout from '../../components/account/AccountLayout';
@@ -27,11 +28,19 @@ interface RecentOrder {
 }
 
 export default function AccountDashboard(): JSX.Element {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { itemCount, totalPrice } = useCart();
   const [stats, setStats] = React.useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = React.useState<RecentOrder[]>([]);
   const [loading, setLoading] = React.useState(true);
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/account');
+    }
+  }, [user, authLoading, router]);
 
   React.useEffect(() => {
     const fetchDashboardData = async () => {
@@ -108,7 +117,11 @@ export default function AccountDashboard(): JSX.Element {
     return colors[status] || colors.pending;
   };
 
-  if (loading) {
+  // Show loading or redirect - don't show skeleton if not authenticated
+  if (authLoading || loading || !user) {
+    if (!authLoading && !user) {
+      return <></>; // Will redirect
+    }
     return (
       <AccountLayout>
         <DashboardSkeleton />

@@ -1,5 +1,6 @@
 "use client";
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
@@ -9,6 +10,7 @@ import { useForm } from '../../../lib/hooks';
 import { validators } from '../../../lib/utils';
 import { Address, CreateAddressData, SelectOption } from '../../../lib/types';
 import { addressApi } from '../../../lib/api';
+import { useAuth } from '../../../lib/context';
 
 interface AddressFormData extends CreateAddressData {}
 
@@ -84,11 +86,20 @@ const stateOptions: SelectOption[] = [
 ];
 
 export default function AddressBookPage(): JSX.Element {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [addresses, setAddresses] = React.useState<Address[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingAddress, setEditingAddress] = React.useState<Address | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/account/addresses');
+    }
+  }, [user, authLoading, router]);
 
   React.useEffect(() => {
     const fetchAddresses = async () => {
@@ -106,8 +117,10 @@ export default function AddressBookPage(): JSX.Element {
       }
     };
 
-    fetchAddresses();
-  }, []);
+    if (user) {
+      fetchAddresses();
+    }
+  }, [user]);
 
   const initialFormData: AddressFormData = {
     label: '',
@@ -236,7 +249,11 @@ export default function AddressBookPage(): JSX.Element {
     form.resetForm();
   };
 
-  if (loading) {
+  // Show loading or redirect - don't show skeleton if not authenticated
+  if (authLoading || loading || !user) {
+    if (!authLoading && !user) {
+      return <></>; // Will redirect
+    }
     return (
       <AccountLayout>
         <AddressBookSkeleton />
