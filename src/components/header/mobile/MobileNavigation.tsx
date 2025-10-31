@@ -5,20 +5,22 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth, useCart } from '@/lib/context';
 import type { MegaItem } from '../MegaMenu';
+import type { CategoryTree } from '@/lib/types';
 
 interface MobileNavigationProps {
   isOpen: boolean;
   onClose: () => void;
   categories: MegaItem[];
+  categoryTree: CategoryTree[];
 }
 
-export default function MobileNavigation({ isOpen, onClose, categories }: MobileNavigationProps) {
+export default function MobileNavigation({ isOpen, onClose, categoryTree }: MobileNavigationProps) {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { cart, itemCount } = useCart();
+  const { itemCount } = useCart();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
-  const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [expandedSubCategory, setExpandedSubCategory] = useState<string | null>(null);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -44,8 +46,19 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
   };
 
   // Handle category toggle
-  const toggleCategory = (index: number) => {
-    setExpandedCategory(expandedCategory === index ? null : index);
+  const toggleCategory = (categoryId: string) => {
+    if (expandedCategory === categoryId) {
+      setExpandedCategory(null);
+      setExpandedSubCategory(null);
+    } else {
+      setExpandedCategory(categoryId);
+      setExpandedSubCategory(null); // Reset subcategory when parent changes
+    }
+  };
+
+  // Handle subcategory toggle
+  const toggleSubCategory = (subCategoryId: string) => {
+    setExpandedSubCategory(expandedSubCategory === subCategoryId ? null : subCategoryId);
   };
 
   // Handle logout
@@ -238,57 +251,98 @@ export default function MobileNavigation({ isOpen, onClose, categories }: Mobile
             </div>
           )}
 
-          {/* Categories */}
+          {/* Categories - Show only top-level with nested children */}
           <div className="px-4 py-3">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Categories</h3>
             <div className="space-y-1">
-              {categories.map((category, index) => (
-                <div key={category.id || `${category.label}-${index}`}>
-                  <button
-                    onClick={() => category.columns ? toggleCategory(index) : (() => {
-                      router.push(category.href || '#');
-                      onClose();
-                    })()}
-                    className="w-full flex items-center justify-between p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    <span className="text-sm font-medium">{category.label}</span>
-                    {category.columns && (
-                      <ChevronIcon 
-                        className={`w-4 h-4 transition-transform ${
-                          expandedCategory === index ? 'rotate-180' : ''
-                        }`} 
-                      />
-                    )}
-                  </button>
-                  
-                  {/* Subcategories */}
-                  {category.columns && expandedCategory === index && (
-                    <div className="ml-4 mt-2 space-y-1">
-                      {category.columns.map((column, colIndex) => (
-                        <div key={colIndex}>
-                          {column.title && (
-                            <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-2">
-                              {column.title}
-                            </h4>
-                          )}
-                          <div className="space-y-1">
-                            {column.items.map((item, itemIndex) => (
-                              <Link
-                                key={itemIndex}
-                                href={item.href}
-                                onClick={onClose}
-                                className="block p-2 text-sm text-gray-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
-                              >
-                                {item.label}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+              {categoryTree.map((category) => {
+                const hasChildren = category.children && category.children.length > 0;
+                const isExpanded = expandedCategory === category._id;
+                
+                return (
+                  <div key={category._id || category.slug}>
+                    {/* Top-level Category */}
+                    <div className="flex items-center">
+                      {hasChildren ? (
+                        <button
+                          onClick={() => toggleCategory(category._id || '')}
+                          className="flex-1 flex items-center justify-between p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                        >
+                          <span className="text-sm font-medium">{category.name}</span>
+                          <ChevronIcon 
+                            className={`w-4 h-4 transition-transform ${
+                              isExpanded ? 'rotate-180' : ''
+                            }`} 
+                          />
+                        </button>
+                      ) : (
+                        <Link
+                          href={`/products?category=${category.slug}`}
+                          onClick={onClose}
+                          className="flex-1 p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                        >
+                          <span className="text-sm font-medium">{category.name}</span>
+                        </Link>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                    
+                    {/* Children (Subcategories) */}
+                    {hasChildren && isExpanded && (
+                      <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+                        {category.children!.map((child) => {
+                          const hasGrandchildren = child.children && child.children.length > 0;
+                          const isChildExpanded = expandedSubCategory === child._id;
+                          
+                          return (
+                            <div key={child._id || child.slug} className="py-1">
+                              {/* Child Category */}
+                              {hasGrandchildren ? (
+                                <>
+                                  <button
+                                    onClick={() => toggleSubCategory(child._id || '')}
+                                    className="w-full flex items-center justify-between p-2 text-left text-gray-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                  >
+                                    <span className="text-sm">{child.name}</span>
+                                    <ChevronIcon 
+                                      className={`w-3 h-3 transition-transform ${
+                                        isChildExpanded ? 'rotate-180' : ''
+                                      }`} 
+                                    />
+                                  </button>
+                                  
+                                  {/* Grandchildren */}
+                                  {isChildExpanded && (
+                                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+                                      {child.children!.map((grandchild) => (
+                                        <Link
+                                          key={grandchild._id || grandchild.slug}
+                                          href={`/products?category=${grandchild.slug}`}
+                                          onClick={onClose}
+                                          className="block p-2 text-xs text-gray-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                        >
+                                          {grandchild.name}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <Link
+                                  href={`/products?category=${child.slug}`}
+                                  onClick={onClose}
+                                  className="block p-2 text-sm text-gray-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                >
+                                  {child.name}
+                                </Link>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

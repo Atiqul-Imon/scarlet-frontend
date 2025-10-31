@@ -7,7 +7,7 @@ import MobileHeader from './mobile/MobileHeader';
 import MobileNavigation from './mobile/MobileNavigation';
 import type { MegaItem } from './MegaMenu';
 import { categoryApi } from '../../lib/api';
-import type { Category } from '../../lib/types';
+import type { Category, CategoryTree } from '../../lib/types';
 
 // Transform API categories to MegaMenu format
 const transformCategoriesToMegaItems = (categories: Category[]): MegaItem[] => {
@@ -22,9 +22,39 @@ const transformCategoriesToMegaItems = (categories: Category[]): MegaItem[] => {
     }));
 };
 
+// Build category tree - only top-level categories (parentId is null)
+const buildCategoryTree = (categories: Category[]): CategoryTree[] => {
+  // Filter only active categories
+  const activeCategories = categories.filter(cat => cat.isActive !== false);
+  
+  // Get top-level categories (parentId is null or undefined)
+  const topLevelCategories = activeCategories
+    .filter(cat => !cat.parentId)
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+    .map(cat => ({ ...cat } as CategoryTree));
+  
+  // Build children recursively
+  const buildChildren = (parentId: string | null): CategoryTree[] => {
+    return activeCategories
+      .filter(cat => cat.parentId === parentId)
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      .map(cat => ({
+        ...cat,
+        children: buildChildren(cat._id || '') // Recursively build grandchildren
+      } as CategoryTree));
+  };
+  
+  // Attach children to top-level categories
+  return topLevelCategories.map(cat => ({
+    ...cat,
+    children: buildChildren(cat._id || null)
+  }));
+};
+
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [categoryItems, setCategoryItems] = useState<MegaItem[]>([]);
+  const [categoryTree, setCategoryTree] = useState<CategoryTree[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
@@ -52,10 +82,12 @@ export default function Header() {
     try {
       const categories = await categoryApi.getCategories();
       const transformedCategories = transformCategoriesToMegaItems(categories);
+      const tree = buildCategoryTree(categories);
       
       // Update cache and state
       sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
       setCategoryItems(transformedCategories);
+      setCategoryTree(tree);
     } catch (error) {
       console.error('Background category fetch failed:', error);
     }
@@ -74,10 +106,12 @@ export default function Header() {
       console.log('✅ Categories fetched successfully:', categories);
       
       const transformedCategories = transformCategoriesToMegaItems(categories);
+      const tree = buildCategoryTree(categories);
       
       // Cache the results
       sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
       setCategoryItems(transformedCategories);
+      setCategoryTree(tree);
     } catch (error) {
       console.error(`❌ Failed to fetch categories (attempt ${retryCount + 1}):`, error);
       
@@ -163,6 +197,7 @@ export default function Header() {
         isOpen={isMobileMenuOpen}
         onClose={handleMobileMenuClose}
         categories={categoryItems}
+        categoryTree={categoryTree}
       />
     </>
   );
