@@ -337,8 +337,11 @@ export default function CheckoutPage() {
         errors.area = 'Area/Thana is required';
       }
       
-      if (!values.postalCode || !/^\d{4}$/.test(values.postalCode)) {
-        errors.postalCode = 'Postal code must be 4 digits';
+      // Postal code is only required for outside Dhaka
+      if (values.deliveryArea === 'outside_dhaka') {
+        if (!values.postalCode || !/^\d{4}$/.test(values.postalCode)) {
+          errors.postalCode = 'Postal code must be 4 digits';
+        }
       }
       
       if (!values.paymentMethod) {
@@ -817,7 +820,7 @@ export default function CheckoutPage() {
 
                   {/* Conditional Location Fields */}
                   {values.deliveryArea === 'inside_dhaka' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Thana/Area in Dhaka *
@@ -840,15 +843,6 @@ export default function CheckoutPage() {
                           <p className="text-red-500 text-sm mt-1">{errors.dhakaArea}</p>
                         )}
                       </div>
-                      <Input
-                        label="Postal Code *"
-                        name="postalCode"
-                        value={values.postalCode}
-                        onChange={handleChange}
-                        error={errors.postalCode || undefined}
-                        placeholder="1000"
-                        required
-                      />
                     </div>
                   )}
 
@@ -953,9 +947,8 @@ export default function CheckoutPage() {
                         !values.firstName || 
                         !values.phone || 
                         !values.address || 
-                        !values.postalCode ||
                         (values.deliveryArea === 'inside_dhaka' && !values.dhakaArea) ||
-                        (values.deliveryArea === 'outside_dhaka' && (!values.division || !values.district || !values.upazilla))
+                        (values.deliveryArea === 'outside_dhaka' && (!values.division || !values.district || !values.upazilla || !values.postalCode))
                       }
                     >
                       Continue to Payment
@@ -1135,7 +1128,7 @@ export default function CheckoutPage() {
                         {values.address}<br />
                         {values.deliveryArea === 'inside_dhaka' && values.dhakaArea && (
                           <>
-                            {dhakaAreas.find(a => a.id === values.dhakaArea)?.name}, Dhaka {values.postalCode}
+                            {dhakaAreas.find(a => a.id === values.dhakaArea)?.name}, Dhaka
                           </>
                         )}
                         {values.deliveryArea === 'outside_dhaka' && (
