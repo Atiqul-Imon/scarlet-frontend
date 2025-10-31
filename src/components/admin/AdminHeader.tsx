@@ -185,7 +185,7 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
                   {/* Menu items */}
                   <div className="py-2">
                     <button
-                      onClick={() => router.push('/admin/profile')}
+                      onClick={() => router.push('/account/profile')}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
                     >
                       <UserCircleIcon className="w-5 h-5 mr-3" />
