@@ -982,6 +982,46 @@ export const authApi = {
     });
   },
 
+  // Password reset with OTP flow
+  sendPasswordResetOTP: (identifier: string, sessionId: string): Promise<{ success: boolean; message: string; sessionId: string }> => {
+    return fetchJson<{ success: boolean; message: string; sessionId: string }>('/auth/password-reset/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, sessionId }),
+    });
+  },
+
+  verifyPasswordResetOTP: (identifier: string, code: string, sessionId: string): Promise<{
+    success: boolean;
+    resetToken: string;
+    expiresAt: string;
+    user: { _id: string; email?: string; phone?: string; firstName: string };
+  }> => {
+    return fetchJson<{
+      success: boolean;
+      resetToken: string;
+      expiresAt: string;
+      user: { _id: string; email?: string; phone?: string; firstName: string };
+    }>('/auth/password-reset/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ identifier, code, sessionId }),
+    });
+  },
+
+  setNewPassword: (resetToken: string, newPassword: string): Promise<{
+    success: boolean;
+    user: { _id: string; email?: string; phone?: string; firstName: string };
+    tokens: { accessToken: string; refreshToken: string; expiresIn: number };
+  }> => {
+    return fetchJson<{
+      success: boolean;
+      user: { _id: string; email?: string; phone?: string; firstName: string };
+      tokens: { accessToken: string; refreshToken: string; expiresIn: number };
+    }>('/auth/password-reset/set-password', {
+      method: 'POST',
+      body: JSON.stringify({ resetToken, newPassword }),
+    });
+  },
+
   // Send phone OTP
   sendPhoneOtp: (phone: string): Promise<{ message: string; otp?: string }> => {
     return fetchJsonAuth<{ message: string; otp?: string }>('/auth/send-phone-otp', {

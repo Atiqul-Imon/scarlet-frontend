@@ -81,6 +81,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
@@ -360,7 +361,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     updateProfile,
     refreshUser,
-  }), [user, loading, isRefreshing, isAuthenticated, login, register, logout, updateProfile, refreshUser]);
+    setUser,
+  }), [user, loading, isRefreshing, isAuthenticated, login, register, logout, updateProfile, refreshUser, setUser]);
 
   return (
     <AuthContext.Provider value={value}>

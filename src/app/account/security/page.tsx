@@ -1,6 +1,5 @@
 "use client";
 import * as React from 'react';
-import { useAuth } from '../../../lib/context';
 import { useToast } from '../../../lib/context';
 import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
@@ -19,7 +18,6 @@ export default function SecurityPage(): React.JSX.Element {
   const { addToast } = useToast();
   const [sessions, setSessions] = React.useState<SecuritySession[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [twoFactorEnabled, setTwoFactorEnabled] = React.useState(false);
 
   React.useEffect(() => {
     const fetchSecurityData = async () => {
@@ -27,7 +25,6 @@ export default function SecurityPage(): React.JSX.Element {
       try {
         const fetchedSessions = await authApi.getSessions();
         setSessions(fetchedSessions);
-        setTwoFactorEnabled(false); // TODO: Implement 2FA status check when backend supports it
       } catch (error) {
         console.error('Error fetching security data:', error);
         addToast({
@@ -146,15 +143,6 @@ export default function SecurityPage(): React.JSX.Element {
     }
   };
 
-  const handleToggle2FA = async () => {
-    try {
-      // TODO: Implement 2FA toggle API call
-      setTwoFactorEnabled(!twoFactorEnabled);
-    } catch (error) {
-      console.error('Error toggling 2FA:', error);
-    }
-  };
-
   if (loading) {
     return (
       <AccountLayout>
@@ -196,9 +184,10 @@ export default function SecurityPage(): React.JSX.Element {
               </label>
               <Input
                 id="currentPassword"
+                name="currentPassword"
                 type="password"
                 value={passwordForm.values.currentPassword}
-                onChange={(e) => passwordForm.handleChange('currentPassword', e.target.value)}
+                onChange={passwordForm.handleChange}
                 onBlur={() => passwordForm.handleBlur('currentPassword')}
                 error={passwordForm.touched['currentPassword'] && passwordForm.errors['currentPassword'] ? passwordForm.errors['currentPassword'] : ''}
                 fullWidth
@@ -211,9 +200,10 @@ export default function SecurityPage(): React.JSX.Element {
               </label>
               <Input
                 id="newPassword"
+                name="newPassword"
                 type="password"
                 value={passwordForm.values.newPassword}
-                onChange={(e) => passwordForm.handleChange('newPassword', e.target.value)}
+                onChange={passwordForm.handleChange}
                 onBlur={() => passwordForm.handleBlur('newPassword')}
                 error={passwordForm.touched['newPassword'] && passwordForm.errors['newPassword'] ? passwordForm.errors['newPassword'] : ''}
                 helperText="Must be at least 8 characters with uppercase, lowercase, and number"
@@ -227,9 +217,10 @@ export default function SecurityPage(): React.JSX.Element {
               </label>
               <Input
                 id="confirmPassword"
+                name="confirmPassword"
                 type="password"
                 value={passwordForm.values.confirmPassword}
-                onChange={(e) => passwordForm.handleChange('confirmPassword', e.target.value)}
+                onChange={passwordForm.handleChange}
                 onBlur={() => passwordForm.handleBlur('confirmPassword')}
                 error={passwordForm.touched['confirmPassword'] && passwordForm.errors['confirmPassword'] ? passwordForm.errors['confirmPassword'] : ''}
                 fullWidth
@@ -246,48 +237,6 @@ export default function SecurityPage(): React.JSX.Element {
               </Button>
             </div>
           </form>
-        </div>
-
-        {/* Two-Factor Authentication */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Two-Factor Authentication</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Add an extra layer of security to your account
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                twoFactorEnabled
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                {twoFactorEnabled ? 'Enabled' : 'Disabled'}
-              </span>
-              <Button
-                variant={twoFactorEnabled ? 'danger' : 'primary'}
-                size="sm"
-                onClick={handleToggle2FA}
-              >
-                {twoFactorEnabled ? 'Disable' : 'Enable'} 2FA
-              </Button>
-            </div>
-          </div>
-
-          {twoFactorEnabled && (
-            <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckIcon className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-green-800">
-                  Two-factor authentication is active
-                </span>
-              </div>
-              <p className="text-sm text-green-700">
-                Your account is protected with SMS-based two-factor authentication.
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Active Sessions */}
@@ -360,7 +309,6 @@ export default function SecurityPage(): React.JSX.Element {
               <h3 className="text-lg font-semibold text-blue-900 mb-2">Security Tips</h3>
               <ul className="text-sm text-blue-800 space-y-2">
                 <li>• Use a unique, strong password that you don't use elsewhere</li>
-                <li>• Enable two-factor authentication for extra security</li>
                 <li>• Regularly review your active sessions and sign out unused devices</li>
                 <li>• Never share your login credentials with anyone</li>
                 <li>• Keep your browser and devices up to date</li>
@@ -434,14 +382,6 @@ function ShieldIcon({ className }: { className?: string }): React.JSX.Element {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }): React.JSX.Element {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="20 6 9 17 4 12" />
     </svg>
   );
 }
