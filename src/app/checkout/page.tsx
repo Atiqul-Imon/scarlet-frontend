@@ -9,6 +9,16 @@ import { Input } from '../../components/ui/input';
 import { useCart, useToast, useAuth } from '../../lib/context';
 import { useForm } from '../../lib/hooks';
 import { productApi } from '../../lib/api';
+import { 
+  bangladeshDivisions, 
+  dhakaAreas, 
+  getDivisionById, 
+  getDistrictById,
+  type Division,
+  type District,
+  type Upazilla,
+  type DhakaArea
+} from '../../lib/data/bangladesh-locations';
 
 interface CheckoutFormData {
   // Shipping Information
@@ -17,6 +27,14 @@ interface CheckoutFormData {
   email?: string; // Made optional
   phone: string;
   address: string;
+  deliveryArea: 'inside_dhaka' | 'outside_dhaka'; // Location selection
+  // Inside Dhaka fields
+  dhakaArea?: string; // Thana/Area in Dhaka
+  // Outside Dhaka fields
+  division?: string; // Division/City
+  district?: string; // District/Zilla
+  upazilla?: string; // Upazilla
+  // Legacy fields (keep for backward compatibility)
   city: string;
   area: string;
   postalCode: string;
@@ -48,7 +66,7 @@ interface CartItemData {
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart, sessionId } = useCart();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { addToast } = useToast();
 
   // Helper function to handle SSLCommerz payment flow
@@ -60,13 +78,18 @@ export default function CheckoutPage() {
       const { paymentApi } = await import('../../lib/api');
       const { orderApi } = await import('../../lib/api');
       
-      // First create a pending order
+      // First create a pending order with location-based fields
       const orderData = {
         firstName: values.firstName,
         lastName: values.lastName || undefined,
         email: values.email || undefined,
         phone: values.phone,
         address: values.address,
+        deliveryArea: values.deliveryArea,
+        dhakaArea: values.dhakaArea || undefined,
+        division: values.division || undefined,
+        district: values.district || undefined,
+        upazilla: values.upazilla || undefined,
         city: values.city,
         area: values.area,
         postalCode: values.postalCode,
@@ -78,8 +101,8 @@ export default function CheckoutPage() {
       
       // Create the order with pending status
       const order = user 
-        ? await orderApi.createOrder({ ...orderData, status: 'pending' })
-        : await orderApi.createGuestOrder(sessionId, { ...orderData, status: 'pending' });
+        ? await orderApi.createOrder(orderData)
+        : await orderApi.createGuestOrder(sessionId, orderData);
       
       console.log('Order created:', order);
       
@@ -144,13 +167,18 @@ export default function CheckoutPage() {
       // Import the order API
       const { orderApi } = await import('../../lib/api');
       
-      // Create order data matching backend interface
+      // Create order data matching backend interface with location-based fields
       const orderData = {
         firstName: values.firstName,
         lastName: values.lastName || undefined,
         email: values.email || undefined,
         phone: values.phone,
         address: values.address,
+        deliveryArea: values.deliveryArea,
+        dhakaArea: values.dhakaArea || undefined,
+        division: values.division || undefined,
+        district: values.district || undefined,
+        upazilla: values.upazilla || undefined,
         city: values.city,
         area: values.area,
         postalCode: values.postalCode,
@@ -213,6 +241,11 @@ export default function CheckoutPage() {
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
   const [step, setStep] = React.useState<'shipping' | 'payment' | 'review'>('shipping');
+  
+  // Location state for dropdowns
+  const [selectedDivision, setSelectedDivision] = React.useState<Division | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = React.useState<District | null>(null);
+  const [selectedUpazilla, setSelectedUpazilla] = React.useState<Upazilla | null>(null);
 
   // Check for verified guest phone on mount
   React.useEffect(() => {
@@ -244,6 +277,11 @@ export default function CheckoutPage() {
       email: user?.email || '',
       phone: user?.phone || verifiedGuestPhone || '',
       address: '',
+      deliveryArea: 'inside_dhaka', // Default to Inside Dhaka
+      dhakaArea: '',
+      division: '',
+      district: '',
+      upazilla: '',
       city: 'Dhaka',
       area: '',
       postalCode: '',
@@ -277,7 +315,25 @@ export default function CheckoutPage() {
         errors.city = 'City is required';
       }
       
-      if (!values.area) {
+      // Validate location fields based on delivery area
+      if (values.deliveryArea === 'inside_dhaka') {
+        if (!values.dhakaArea) {
+          errors.dhakaArea = 'Please select a Thana/Area in Dhaka';
+        }
+      } else if (values.deliveryArea === 'outside_dhaka') {
+        if (!values.division) {
+          errors.division = 'Please select a Division/City';
+        }
+        if (!values.district) {
+          errors.district = 'Please select a District (Zilla)';
+        }
+        if (!values.upazilla) {
+          errors.upazilla = 'Please select an Upazilla';
+        }
+      }
+      
+      // Keep area for backward compatibility (will be set from dhakaArea or upazilla)
+      if (!values.area && values.deliveryArea === 'inside_dhaka' && !values.dhakaArea) {
         errors.area = 'Area/Thana is required';
       }
       
@@ -359,7 +415,7 @@ export default function CheckoutPage() {
         
         // Enrich cart items with product details
         const enrichedItems: CartItemData[] = cart.items.map(item => {
-          const product = products.find(p => p._id === item.productId);
+          const product = products.find((p: any) => p._id === item.productId) as any;
           console.log(`Product for ${item.productId}:`, product);
           
           // Handle test products that don't exist in database
@@ -411,13 +467,80 @@ export default function CheckoutPage() {
 
   // No longer redirect to login - allow guest checkout
 
-  // Calculate totals
+  // Calculate totals with location-based delivery charges
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
   const freeShippingThreshold = 2000;
-  const shippingCost = 0;
+  
+  // Location-based delivery charges
+  const deliveryChargeInsideDhaka = 80;
+  const deliveryChargeOutsideDhaka = 150;
+  
+  // Calculate shipping cost based on delivery area
+  let shippingCost = 0;
+  if (values.deliveryArea === 'inside_dhaka') {
+    shippingCost = deliveryChargeInsideDhaka;
+  } else if (values.deliveryArea === 'outside_dhaka') {
+    shippingCost = deliveryChargeOutsideDhaka;
+  }
+  
+  // Apply free shipping threshold
   const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
   const total = subtotal + shipping;
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  
+  // Handle delivery area change - reset location fields
+  const handleDeliveryAreaChange = (area: 'inside_dhaka' | 'outside_dhaka') => {
+    setFieldValue('deliveryArea', area);
+    if (area === 'inside_dhaka') {
+      setFieldValue('division', '');
+      setFieldValue('district', '');
+      setFieldValue('upazilla', '');
+      setFieldValue('city', 'Dhaka');
+      setSelectedDivision(null);
+      setSelectedDistrict(null);
+      setSelectedUpazilla(null);
+      } else {
+        setFieldValue('dhakaArea', '');
+      }
+  };
+  
+  // Handle division change
+  const handleDivisionChange = (divisionId: string) => {
+    const division = getDivisionById(divisionId);
+    setSelectedDivision(division || null);
+    setFieldValue('division', divisionId);
+    setFieldValue('district', '');
+    setFieldValue('upazilla', '');
+    setFieldValue('city', division?.name || '');
+    setSelectedDistrict(null);
+    setSelectedUpazilla(null);
+  };
+  
+  // Handle district change
+  const handleDistrictChange = (districtId: string) => {
+    if (!selectedDivision) return;
+    const district = getDistrictById(selectedDivision.id, districtId);
+    setSelectedDistrict(district || null);
+    setFieldValue('district', districtId);
+    setFieldValue('upazilla', '');
+    setSelectedUpazilla(null);
+  };
+  
+  // Handle upazilla change
+  const handleUpazillaChange = (upazillaId: string) => {
+    if (!selectedDistrict) return;
+    const upazilla = selectedDistrict.upazillas.find(u => u.id === upazillaId);
+    setSelectedUpazilla(upazilla || null);
+    setFieldValue('upazilla', upazillaId);
+    setFieldValue('area', upazilla?.name || '');
+  };
+  
+  // Handle Dhaka area change
+  const handleDhakaAreaChange = (areaId: string) => {
+    const area = dhakaAreas.find(a => a.id === areaId);
+    setFieldValue('dhakaArea', areaId);
+    setFieldValue('area', area?.name || '');
+  };
   
   const formatPrice = (amount: number | undefined) => `৳${amount?.toLocaleString('en-US') || '0'}`;
 
@@ -569,7 +692,7 @@ export default function CheckoutPage() {
                       name="firstName"
                       value={values.firstName}
                       onChange={handleChange}
-                      error={errors.firstName}
+                      error={errors.firstName || undefined}
                       required
                     />
                     <Input
@@ -577,7 +700,7 @@ export default function CheckoutPage() {
                       name="lastName"
                       value={values.lastName}
                       onChange={handleChange}
-                      error={errors.lastName}
+                      error={errors.lastName || undefined}
                       placeholder="Last name (optional)"
                     />
                   </div>
@@ -589,7 +712,7 @@ export default function CheckoutPage() {
                       type="email"
                       value={values.email}
                       onChange={handleChange}
-                      error={errors.email}
+                      error={errors.email || undefined}
                       placeholder="Email (optional)"
                     />
                     <div>
@@ -599,7 +722,7 @@ export default function CheckoutPage() {
                         type="tel"
                         value={values.phone}
                         onChange={handleChange}
-                        error={errors.phone}
+                        error={errors.phone || undefined}
                         placeholder="01XXXXXXXXX"
                         required
                         readOnly={!user && isGuestPhoneVerified}
@@ -616,64 +739,224 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
+                  {/* Delivery Area Selection */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Delivery Location *
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        values.deliveryArea === 'inside_dhaka'
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="deliveryArea"
+                          value="inside_dhaka"
+                          checked={values.deliveryArea === 'inside_dhaka'}
+                          onChange={(e) => handleDeliveryAreaChange(e.target.value as 'inside_dhaka' | 'outside_dhaka')}
+                          className="sr-only"
+                        />
+                        <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
+                          values.deliveryArea === 'inside_dhaka'
+                            ? 'border-red-500 bg-red-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {values.deliveryArea === 'inside_dhaka' && (
+                            <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">Inside Dhaka</div>
+                          <div className="text-sm text-gray-600">Delivery: ৳80</div>
+                        </div>
+                      </label>
+                      
+                      <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        values.deliveryArea === 'outside_dhaka'
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="deliveryArea"
+                          value="outside_dhaka"
+                          checked={values.deliveryArea === 'outside_dhaka'}
+                          onChange={(e) => handleDeliveryAreaChange(e.target.value as 'inside_dhaka' | 'outside_dhaka')}
+                          className="sr-only"
+                        />
+                        <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
+                          values.deliveryArea === 'outside_dhaka'
+                            ? 'border-red-500 bg-red-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {values.deliveryArea === 'outside_dhaka' && (
+                            <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">Outside Dhaka</div>
+                          <div className="text-sm text-gray-600">Delivery: ৳150</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
                   <div className="mb-4">
                     <Input
                       label="Full Address *"
                       name="address"
                       value={values.address}
                       onChange={handleChange}
-                      error={errors.address}
+                      error={errors.address || undefined}
                       placeholder="House/Flat, Road, Block, Sector"
                       required
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        City *
-                      </label>
-                      <select
-                        name="city"
-                        value={values.city}
-                        onChange={(e) => handleChange({ target: { name: 'city', value: e.target.value } } as React.ChangeEvent<HTMLSelectElement>)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                  {/* Conditional Location Fields */}
+                  {values.deliveryArea === 'inside_dhaka' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Thana/Area in Dhaka *
+                        </label>
+                        <select
+                          name="dhakaArea"
+                          value={values.dhakaArea || ''}
+                          onChange={(e) => handleDhakaAreaChange(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                          required
+                        >
+                          <option value="">Select Thana/Area</option>
+                          {dhakaAreas.map((area) => (
+                            <option key={area.id} value={area.id}>
+                              {area.name}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.dhakaArea && (
+                          <p className="text-red-500 text-sm mt-1">{errors.dhakaArea}</p>
+                        )}
+                      </div>
+                      <Input
+                        label="Postal Code *"
+                        name="postalCode"
+                        value={values.postalCode}
+                        onChange={handleChange}
+                        error={errors.postalCode || undefined}
+                        placeholder="1000"
                         required
-                      >
-                        <option value="Dhaka">Dhaka</option>
-                        <option value="Chittagong">Chittagong</option>
-                        <option value="Sylhet">Sylhet</option>
-                        <option value="Rajshahi">Rajshahi</option>
-                        <option value="Khulna">Khulna</option>
-                        <option value="Barisal">Barisal</option>
-                        <option value="Rangpur">Rangpur</option>
-                        <option value="Mymensingh">Mymensingh</option>
-                      </select>
+                      />
                     </div>
-                    <Input
-                      label="Area/Thana *"
-                      name="area"
-                      value={values.area}
-                      onChange={handleChange}
-                      error={errors.area}
-                      required
-                    />
-                    <Input
-                      label="Postal Code *"
-                      name="postalCode"
-                      value={values.postalCode}
-                      onChange={handleChange}
-                      error={errors.postalCode}
-                      placeholder="1000"
-                      required
-                    />
-                  </div>
+                  )}
+
+                  {values.deliveryArea === 'outside_dhaka' && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Division/City *
+                        </label>
+                        <select
+                          name="division"
+                          value={values.division || ''}
+                          onChange={(e) => handleDivisionChange(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                          required
+                        >
+                          <option value="">Select Division</option>
+                          {bangladeshDivisions.map((div) => (
+                            <option key={div.id} value={div.id}>
+                              {div.name}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.division && (
+                          <p className="text-red-500 text-sm mt-1">{errors.division}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          District (Zilla) *
+                        </label>
+                        <select
+                          name="district"
+                          value={values.district || ''}
+                          onChange={(e) => handleDistrictChange(e.target.value)}
+                          disabled={!selectedDivision}
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white ${
+                            !selectedDivision ? 'bg-gray-100 cursor-not-allowed' : ''
+                          }`}
+                          required
+                        >
+                          <option value="">Select District</option>
+                          {selectedDivision?.districts.map((dist) => (
+                            <option key={dist.id} value={dist.id}>
+                              {dist.name}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.district && (
+                          <p className="text-red-500 text-sm mt-1">{errors.district}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Upazilla *
+                        </label>
+                        <select
+                          name="upazilla"
+                          value={values.upazilla || ''}
+                          onChange={(e) => handleUpazillaChange(e.target.value)}
+                          disabled={!selectedDistrict}
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white ${
+                            !selectedDistrict ? 'bg-gray-100 cursor-not-allowed' : ''
+                          }`}
+                          required
+                        >
+                          <option value="">Select Upazilla</option>
+                          {selectedDistrict?.upazillas.map((upaz) => (
+                            <option key={upaz.id} value={upaz.id}>
+                              {upaz.name}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.upazilla && (
+                          <p className="text-red-500 text-sm mt-1">{errors.upazilla}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {values.deliveryArea === 'outside_dhaka' && (
+                    <div className="mb-6">
+                      <Input
+                        label="Postal Code *"
+                        name="postalCode"
+                        value={values.postalCode}
+                        onChange={handleChange}
+                        error={errors.postalCode || undefined}
+                        placeholder="1000"
+                        required
+                      />
+                    </div>
+                  )}
 
                   <div className="flex justify-end">
                     <Button
                       type="button"
                       onClick={() => setStep('payment')}
-                      disabled={!values.firstName || !values.phone || !values.address || !values.area || !values.postalCode}
+                      disabled={
+                        !values.firstName || 
+                        !values.phone || 
+                        !values.address || 
+                        !values.postalCode ||
+                        (values.deliveryArea === 'inside_dhaka' && !values.dhakaArea) ||
+                        (values.deliveryArea === 'outside_dhaka' && (!values.division || !values.district || !values.upazilla))
+                      }
                     >
                       Continue to Payment
                     </Button>
@@ -850,7 +1133,19 @@ export default function CheckoutPage() {
                       {values.email && <p className="text-gray-600">{values.email}</p>}
                       <p className="text-gray-600 mt-2">
                         {values.address}<br />
-                        {values.area}, {values.city} {values.postalCode}
+                        {values.deliveryArea === 'inside_dhaka' && values.dhakaArea && (
+                          <>
+                            {dhakaAreas.find(a => a.id === values.dhakaArea)?.name}, Dhaka {values.postalCode}
+                          </>
+                        )}
+                        {values.deliveryArea === 'outside_dhaka' && (
+                          <>
+                            {selectedUpazilla?.name && `${selectedUpazilla.name}, `}
+                            {selectedDistrict?.name && `${selectedDistrict.name}, `}
+                            {selectedDivision?.name && `${selectedDivision.name} `}
+                            {values.postalCode}
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
