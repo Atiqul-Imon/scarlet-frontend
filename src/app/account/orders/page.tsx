@@ -62,7 +62,24 @@ export default function OrderHistoryPage(): JSX.Element {
       try {
         // Fetch user's orders from API
         const ordersResponse = await orderApi.getOrders(1, 50);
-        let orders = ordersResponse.data || ordersResponse;
+        
+        // Handle response structure: backend returns { orders: Order[], total: number } wrapped in { success: true, data: {...} }
+        // fetchJson extracts data, so we get { orders: Order[], total: number }
+        let orders: Order[] = [];
+        if (ordersResponse && typeof ordersResponse === 'object') {
+          // Check if it's PaginatedResponse structure with data array
+          if ('data' in ordersResponse && Array.isArray(ordersResponse.data)) {
+            orders = ordersResponse.data;
+          } 
+          // Check if it's direct response with orders array
+          else if ('orders' in ordersResponse && Array.isArray((ordersResponse as any).orders)) {
+            orders = (ordersResponse as any).orders;
+          } 
+          // Check if response is directly an array
+          else if (Array.isArray(ordersResponse)) {
+            orders = ordersResponse;
+          }
+        }
         
         // Apply client-side filtering
         if (filters.search) {
@@ -206,6 +223,25 @@ export default function OrderHistoryPage(): JSX.Element {
                       <p className="text-sm text-gray-600">
                         Placed on {formatters.formatDate(order.createdAt)}
                       </p>
+                      {/* Payment Status */}
+                      {order.paymentInfo && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-gray-500">
+                            Payment: 
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            order.paymentInfo.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            order.paymentInfo.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            order.paymentInfo.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {order.paymentInfo.status || 'pending'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            via {order.paymentInfo.method ? order.paymentInfo.method.toUpperCase() : 'N/A'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                       {formatters.formatOrderStatus(order.status)}

@@ -18,6 +18,7 @@ interface OrderDetails {
   total: number;
   currency: string;
   paymentMethod: string;
+  paymentStatus?: string;
   shippingAddress: {
     name: string;
     address: string;
@@ -96,7 +97,8 @@ export default function OrderDetailsPage(): JSX.Element {
           status: order.status || 'pending',
           total: order.total || 0,
           currency: order.currency || 'BDT',
-          paymentMethod: order.paymentMethod || 'unknown',
+          paymentMethod: order.paymentInfo?.method || order.paymentMethod || 'unknown',
+          paymentStatus: order.paymentInfo?.status || 'pending',
           shippingAddress: order.shippingAddress || {
             name: 'N/A',
             address: 'N/A',
@@ -352,6 +354,22 @@ export default function OrderDetailsPage(): JSX.Element {
                   <span className="text-gray-600">Status:</span>
                   <span className={`font-medium ${getStatusColor(orderDetails.status)}`}>
                     {getStatusText(orderDetails.status)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Method:</span>
+                  <span className="font-medium capitalize">{orderDetails.paymentMethod}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Status:</span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                    orderDetails.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                    orderDetails.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    orderDetails.paymentStatus === 'failed' ? 'bg-red-100 text-red-800' :
+                    orderDetails.paymentStatus === 'processing' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {orderDetails.paymentStatus || 'pending'}
                   </span>
                 </div>
                 {orderDetails.trackingNumber && (

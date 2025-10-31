@@ -238,7 +238,7 @@ export interface Cart extends BaseEntity {
 // Order Related Types
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'delivered' | 'cancelled' | 'refunded';
 export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
-export type PaymentMethod = 'card' | 'paypal' | 'apple_pay' | 'google_pay';
+export type PaymentMethod = 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod' | 'sslcommerz' | 'paypal' | 'apple_pay' | 'google_pay';
 
 export interface OrderItem {
   productId: string;
@@ -365,6 +365,8 @@ export interface Order extends BaseEntity {
   shippingMethod: string;
   deliveredAt?: string;
   notes?: string;
+  trackingNumber?: string;
+  estimatedDelivery?: string;
 }
 
 // API Response Types
