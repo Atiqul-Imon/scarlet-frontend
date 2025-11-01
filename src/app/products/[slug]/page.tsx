@@ -60,12 +60,6 @@ export default function ProductDetailPage() {
         }
         
         const product = productData.data;
-        console.log('Product data received:', product);
-        console.log('Product sizes:', product.sizes);
-        console.log('All product keys:', Object.keys(product));
-        console.log('Sizes is array?', Array.isArray(product.sizes));
-        console.log('Sizes length:', product.sizes?.length);
-        console.log('Full product object:', JSON.stringify(product, null, 2));
         
         // Ensure sizes is always an array if it exists
         if (product.sizes && !Array.isArray(product.sizes)) {
@@ -379,20 +373,6 @@ export default function ProductDetailPage() {
               ) : null;
             })()}
             
-            {/* Debug info - always show to troubleshoot */}
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-              <p className="font-semibold mb-1">Debug Info:</p>
-              <p>Product ID: {product._id}</p>
-              <p>Product Slug: {product.slug}</p>
-              <p>sizes field = {JSON.stringify(product.sizes)}</p>
-              <p>sizes type = {typeof product.sizes}</p>
-              <p>isArray = {Array.isArray(product.sizes) ? 'yes' : 'no'}</p>
-              <p>length = {product.sizes?.length ?? 'undefined'}</p>
-              <p>has sizes = {product.sizes ? 'yes' : 'no'}</p>
-              <p className="font-semibold text-red-600 mt-2">
-                ⚠️ If sizes is undefined, please edit this product in admin panel and add sizes, then save again.
-              </p>
-            </div>
 
             {/* Out of Stock Notice - Only show when out of stock */}
             {!stockStatus && (

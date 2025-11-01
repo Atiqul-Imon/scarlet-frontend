@@ -16,6 +16,7 @@ interface CartItemData {
   quantity: number;
   brand?: string;
   stock?: number;
+  selectedSize?: string;
 }
 
 interface CartItemProps {
@@ -104,9 +105,14 @@ const CartItem = React.memo(function CartItem({
                     {item.title}
                   </h3>
                 </Link>
-                {item.brand && (
-                  <p className="text-xs text-gray-500 mt-1">{item.brand}</p>
-                )}
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {item.brand && (
+                    <p className="text-xs text-gray-500">{item.brand}</p>
+                  )}
+                  {item.selectedSize && (
+                    <span className="text-xs font-medium text-gray-700">Size: {item.selectedSize}</span>
+                  )}
+                </div>
               </div>
               
               {/* Remove Button */}
@@ -233,9 +239,14 @@ const CartItem = React.memo(function CartItem({
                   {item.title}
                 </h3>
               </Link>
-              {item.brand && (
-                <p className="text-sm text-gray-500 mt-1">{item.brand}</p>
-              )}
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {item.brand && (
+                  <p className="text-sm text-gray-500">{item.brand}</p>
+                )}
+                {item.selectedSize && (
+                  <span className="text-sm font-medium text-gray-700">Size: {item.selectedSize}</span>
+                )}
+              </div>
             </div>
             
             {/* Remove Button */}

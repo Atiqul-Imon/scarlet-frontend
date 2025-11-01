@@ -85,6 +85,7 @@ export default function OrderDetailPage() {
           productImage: item.image || '/api/placeholder/80/80',
           sku: item.sku || 'N/A',
           variant: item.variant || null,
+          size: item.size || undefined,
           quantity: item.quantity,
           price: item.price,
           total: item.price * item.quantity,
@@ -425,6 +426,7 @@ export default function OrderDetailPage() {
                         <h4 className="font-medium text-gray-900">{item.productName}</h4>
                         <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                           <span>SKU: {item.sku}</span>
+                          {item.size && <span className="font-medium text-gray-700">Size: {item.size}</span>}
                           {item.variant && <span>Variant: {item.variant}</span>}
                           <span>Qty: {item.quantity}</span>
                         </div>

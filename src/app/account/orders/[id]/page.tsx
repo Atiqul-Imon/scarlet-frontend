@@ -102,7 +102,8 @@ export default function OrderDetailsPage(): JSX.Element {
             title: item.title || 'Unknown Product',
             quantity: item.quantity || 1,
             price: item.price || 0,
-            image: item.image
+            image: item.image,
+            size: item.size
           })),
           subtotal: order.subtotal || 0,
           shipping: order.shipping || 0,
@@ -436,7 +437,12 @@ export default function OrderDetailsPage(): JSX.Element {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">{item.title}</h4>
-                  <p className="text-sm text-gray-600">SKU: {item.productId}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm text-gray-600">SKU: {item.productId}</p>
+                    {item.size && (
+                      <span className="text-sm font-medium text-gray-700">Size: {item.size}</span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-gray-900">

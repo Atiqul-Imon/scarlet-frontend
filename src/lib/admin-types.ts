@@ -59,6 +59,7 @@ export interface AdminOrderItem {
   productImage: string;
   sku: string;
   variant: string | null;
+  size?: string;
   quantity: number;
   price: number;
   total: number;

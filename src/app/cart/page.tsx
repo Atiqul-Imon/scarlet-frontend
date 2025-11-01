@@ -25,6 +25,7 @@ interface CartItemData {
   quantity: number;
   brand?: string;
   stock?: number;
+  selectedSize?: string;
 }
 
 // Removed unused Cart interface
@@ -103,7 +104,8 @@ export default function CartPage() {
               slug: item.product?.slug || item.productId,
               image: item.product?.images?.[0] || '/placeholder-product.jpg',
               price: item.product?.price || { currency: 'BDT', amount: 0 },
-              quantity: item.quantity
+              quantity: item.quantity,
+              selectedSize: item.selectedSize
             };
             if (item.product?.brand) {
               enrichedItem.brand = item.product.brand;
@@ -150,7 +152,8 @@ export default function CartPage() {
               price: product.price || { currency: 'BDT', amount: 0 },
               quantity: item.quantity,
               brand: product.brand,
-              stock: product.stock
+              stock: product.stock,
+              selectedSize: item.selectedSize
             });
           } else {
             // Product not found in API - try to fetch individual product
@@ -169,7 +172,8 @@ export default function CartPage() {
                     price: individualProduct.price || { currency: 'BDT', amount: 0 },
                     quantity: item.quantity,
                     brand: individualProduct.brand,
-                    stock: individualProduct.stock
+                    stock: individualProduct.stock,
+                    selectedSize: item.selectedSize
                   });
                 } else {
                   logger.warn('Failed to fetch individual product:', item.productId);

@@ -61,6 +61,7 @@ interface CartItemData {
   quantity: number;
   brand?: string;
   stock?: number;
+  selectedSize?: string;
 }
 
 export default function CheckoutPage() {
@@ -432,7 +433,8 @@ export default function CheckoutPage() {
               price: { currency: 'BDT', amount: 1000 + (parseInt(testProductNumber) * 100) },
               quantity: item.quantity,
               brand: 'Test Brand',
-              stock: 10
+              stock: 10,
+              selectedSize: item.selectedSize
             };
           }
           
@@ -444,7 +446,8 @@ export default function CheckoutPage() {
             price: product?.price || { currency: 'BDT', amount: 0 },
             quantity: item.quantity,
             brand: product?.brand,
-            stock: product?.stock
+            stock: product?.stock,
+            selectedSize: item.selectedSize
           };
         }).filter(item => item.title !== 'Product not found');
 

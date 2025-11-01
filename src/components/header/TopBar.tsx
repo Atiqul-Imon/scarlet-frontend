@@ -249,7 +249,12 @@ export default function TopBar() {
                               <p className="text-sm font-medium text-gray-900 truncate">
                                 {item.product?.title || `Product ${item.productId}`}
                               </p>
-                              <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                                {item.selectedSize && (
+                                  <span className="text-xs font-medium text-gray-700">Size: {item.selectedSize}</span>
+                                )}
+                              </div>
                               {item.product?.price && (
                                 <p className="text-xs text-red-700 font-medium">
                                   ৳{item.product.price.amount}
