@@ -66,8 +66,14 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
     setMousePosition({ x, y });
   };
 
-  const handleImageClick = () => {
-    // On mobile, always allow tap to zoom
+  const handleImageClick = (e?: React.MouseEvent | React.TouchEvent) => {
+    // Prevent default to avoid conflicts
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Toggle zoom
     if (isZoomed) {
       setIsZoomed(false);
     } else {
@@ -77,8 +83,8 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
 
   // Handle touch events for mobile zoom
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    // Only handle single touch for tap
     if (e.touches.length === 1) {
-      // Single touch - prepare for tap to zoom
       const touch = e.touches[0];
       if (touch) {
         touchStartRef.current = {
@@ -91,29 +97,49 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!touchStartRef.current || e.touches.length > 0) return;
+    // Check if we have a valid touch start
+    if (!touchStartRef.current) return;
+    
+    // Check if touch ended (no active touches)
+    if (e.touches.length > 0) {
+      touchStartRef.current = null;
+      return;
+    }
     
     const touch = e.changedTouches[0];
-    if (!touch || !touchStartRef.current) return;
+    if (!touch) {
+      touchStartRef.current = null;
+      return;
+    }
     
     const deltaX = Math.abs(touch.clientX - touchStartRef.current.x);
     const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
     const deltaTime = Date.now() - touchStartRef.current.time;
     
     // If it's a quick tap (not a swipe), toggle zoom
-    if (deltaTime < 300 && deltaX < 10 && deltaY < 10) {
-      handleImageClick();
+    if (deltaTime < 300 && deltaX < 15 && deltaY < 15) {
+      handleImageClick(e);
     }
     
     touchStartRef.current = null;
   };
 
-  // Handle pinch zoom on mobile
+  // Handle touch move - allow swiping when zoomed
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && imageRef.current) {
-      // Pinch zoom - exit zoom mode to allow native pinch
-      if (isZoomed) {
-        setIsZoomed(false);
+    // If two fingers, allow native pinch zoom
+    if (e.touches.length === 2) {
+      // Don't prevent default - allow native pinch
+      return;
+    }
+    
+    // If swiping while zoomed, update mouse position for zoom center
+    if (isZoomed && e.touches.length === 1 && imageRef.current) {
+      const touch = e.touches[0];
+      if (touch && imageRef.current) {
+        const rect = imageRef.current.getBoundingClientRect();
+        const x = ((touch.clientX - rect.left) / rect.width) * 100;
+        const y = ((touch.clientY - rect.top) / rect.height) * 100;
+        setMousePosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
       }
     }
   };
@@ -175,20 +201,24 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           onTouchMove={handleTouchMove}
+          onClick={isMobile ? handleImageClick : undefined}
+          style={isMobile ? { touchAction: isZoomed ? 'pan-x pan-y pinch-zoom' : 'manipulation' } : undefined}
         >
           <Image
             src={getCurrentImage() || '/placeholder-product.jpg'}
             alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
             fill
-            className={`object-cover transition-all duration-500 ${
+            className={`object-cover transition-all duration-300 ${
               isZoomed 
                 ? `${isMobile ? 'scale-150' : 'scale-200'} cursor-zoom-out` 
                 : 'cursor-zoom-in hover:scale-105'
             }`}
             style={isZoomed ? {
-              transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`
+              transformOrigin: isMobile 
+                ? 'center center' 
+                : `${mousePosition.x}% ${mousePosition.y}%`
             } : undefined}
-            onClick={handleImageClick}
+            onClick={!isMobile ? handleImageClick : undefined}
             onError={() => {
               setImageErrors(prev => new Set([...prev, selectedImageIndex]));
             }}
@@ -218,39 +248,6 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
             <ExpandIcon />
           </button>
           
-          {/* Navigation Arrows */}
-          {images.length > 1 && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedImageIndex(prev => 
-                    prev === 0 ? images.length - 1 : prev - 1
-                  );
-                }}
-                className={`absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 ${
-                  isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                }`}
-                aria-label="Previous image"
-              >
-                <ChevronLeftIcon />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedImageIndex(prev => 
-                    prev === images.length - 1 ? 0 : prev + 1
-                  );
-                }}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 ${
-                  isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                }`}
-                aria-label="Next image"
-              >
-                <ChevronRightIcon />
-              </button>
-            </>
-          )}
 
           {/* Image Counter */}
           {images.length > 1 && (
