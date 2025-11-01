@@ -60,6 +60,10 @@ export default function ProductDetailPage() {
         }
         
         const product = productData.data;
+        console.log('Product data received:', product);
+        console.log('Product sizes:', product.sizes);
+        console.log('Sizes is array?', Array.isArray(product.sizes));
+        console.log('Sizes length:', product.sizes?.length);
         setProduct(product);
         setSelectedSize(''); // Reset size selection when product changes
         setLoading(false);
@@ -266,23 +270,27 @@ export default function ProductDetailPage() {
 
           {/* Product Information */}
           <div className="space-y-6">
-            {/* Brand & Availability */}
-            <div className="flex items-center justify-between">
-              {product.brand && (
+            {/* Brand */}
+            {product.brand && (
+              <div>
                 <Link 
                   href={`/brands/${product.brand.toLowerCase()}`} 
                   className="text-sm text-red-700 hover:text-red-800 font-medium transition-colors"
                 >
                   {product.brand}
                 </Link>
-              )}
+              </div>
+            )}
+
+            {/* Out of Stock Badge - Only show when out of stock */}
+            {!stockStatus && (
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${stockStatus ? 'bg-green-500' : 'bg-red-500'}`} />
-                <span className={`text-sm font-medium ${stockStatus ? 'text-green-600' : 'text-red-600'}`}>
-                  {stockStatus ? 'In Stock' : 'Out of Stock'}
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="text-sm font-medium text-red-600">
+                  Out of Stock
                 </span>
               </div>
-            </div>
+            )}
 
             {/* Title */}
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">{product.title}</h1>
@@ -314,15 +322,15 @@ export default function ProductDetailPage() {
             )}
 
             {/* Size Selection */}
-            {product.sizes && product.sizes.length > 0 && (
+            {product.sizes && Array.isArray(product.sizes) && product.sizes.length > 0 && (
               <div className="space-y-2">
                 <label className="text-base font-semibold text-gray-900">
                   Size <span className="text-red-600">*</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
+                  {product.sizes.map((size: string, index: number) => (
                     <button
-                      key={size}
+                      key={`${size}-${index}`}
                       type="button"
                       onClick={() => setSelectedSize(size)}
                       className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
@@ -340,28 +348,30 @@ export default function ProductDetailPage() {
                 )}
               </div>
             )}
-
-            {/* Stock Information */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${stockStatus ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className={`text-sm font-medium ${stockStatus ? 'text-green-600' : 'text-red-600'}`}>
-                    {stockStatus ? 'In Stock' : 'Out of Stock'}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">Stock Quantity:</span> {product.stock || 0} units available
-                </div>
+            
+            {/* Debug info - remove after testing */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                <p>Debug: sizes = {JSON.stringify(product.sizes)}</p>
+                <p>isArray: {Array.isArray(product.sizes) ? 'yes' : 'no'}</p>
+                <p>length: {product.sizes?.length || 0}</p>
               </div>
-              {product.stock && product.stock <= 10 && product.stock > 0 && (
-                <div className="mt-2">
-                  <span className="text-sm text-orange-700 font-semibold bg-orange-100 px-3 py-1 rounded-full">
-                    Only {product.stock} left in stock!
+            )}
+
+            {/* Out of Stock Notice - Only show when out of stock */}
+            {!stockStatus && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <span className="text-sm font-medium text-red-600">
+                    Out of Stock
                   </span>
                 </div>
-              )}
-            </div>
+                <p className="text-sm text-red-600 mt-2">
+                  This product is currently unavailable. Please check back later or add it to your wishlist to be notified when it's back in stock.
+                </p>
+              </div>
+            )}
 
             {/* Quantity Selector */}
             {stockStatus && (
@@ -529,14 +539,6 @@ export default function ProductDetailPage() {
                       <div className="border-b border-gray-100 pb-2">
                         <dt className="text-sm font-medium text-gray-500">SKU</dt>
                         <dd className="text-sm text-gray-900 mt-1">{product.sku}</dd>
-                      </div>
-                    )}
-                    
-                    {/* Stock */}
-                    {product.stock !== undefined && (
-                      <div className="border-b border-gray-100 pb-2">
-                        <dt className="text-sm font-medium text-gray-500">Stock</dt>
-                        <dd className="text-sm text-gray-900 mt-1">{product.stock} units</dd>
                       </div>
                     )}
                     
