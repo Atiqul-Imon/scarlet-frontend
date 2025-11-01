@@ -99,6 +99,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
   const [loading, setLoading] = useState(mode === 'edit');
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [newSizeInput, setNewSizeInput] = useState('');
 
   // Load categories
   const loadCategories = async () => {
@@ -583,45 +584,91 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Sizes
             </label>
-            <div className="space-y-2">
-              {formData.sizes.map((size, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={size}
-                    onChange={(e) => {
-                      const newSizes = [...formData.sizes];
-                      newSizes[index] = e.target.value;
-                      handleInputChange('sizes', newSizes);
-                    }}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="e.g., S, M, L, XL, 34, 35, 36"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newSizes = formData.sizes.filter((_, i) => i !== index);
-                      handleInputChange('sizes', newSizes);
-                    }}
-                    className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
+            
+            {/* Display existing sizes as tags */}
+            {formData.sizes.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {formData.sizes.map((size, index) => (
+                  size.trim() && (
+                    <div
+                      key={index}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 font-medium"
+                    >
+                      <span>{size}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSizes = formData.sizes.filter((_, i) => i !== index);
+                          handleInputChange('sizes', newSizes);
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                        aria-label={`Remove size ${size}`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
+
+            {/* Add new size input */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newSizeInput}
+                onChange={(e) => setNewSizeInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newSizeInput.trim()) {
+                    e.preventDefault();
+                    const newSize = newSizeInput.trim();
+                    if (!formData.sizes.includes(newSize)) {
+                      handleInputChange('sizes', [...formData.sizes, newSize]);
+                      setNewSizeInput('');
+                    } else {
+                      // Size already exists
+                      setNewSizeInput('');
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value.trim()) {
+                    const newSize = e.target.value.trim();
+                    if (!formData.sizes.includes(newSize)) {
+                      handleInputChange('sizes', [...formData.sizes, newSize]);
+                      setNewSizeInput('');
+                    }
+                  }
+                }}
+                placeholder="Enter size (e.g., S, M, L, XL, 34, 35, 36)"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
               <button
                 type="button"
                 onClick={() => {
-                  handleInputChange('sizes', [...formData.sizes, '']);
+                  const newSize = newSizeInput.trim();
+                  if (newSize && !formData.sizes.includes(newSize)) {
+                    handleInputChange('sizes', [...formData.sizes, newSize]);
+                    setNewSizeInput('');
+                  }
                 }}
-                className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex-shrink-0"
               >
-                + Add Size
+                Add
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Optional: Add sizes for products like shoes, pants, shirts, etc. (e.g., 34, 35, 36, 37 or S, M, L, XL)
-            </p>
+
+            {/* Helper text */}
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-gray-500">
+                Optional: Add sizes for products like shoes, pants, shirts, etc.
+              </p>
+              <p className="text-xs text-gray-400">
+                Press Enter or click Add to add a size. Duplicate sizes are not allowed.
+              </p>
+            </div>
           </div>
 
           <div>
