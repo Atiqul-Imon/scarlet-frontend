@@ -58,6 +58,9 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
   const isOutOfStock = product.stock !== undefined && product.stock <= 0;
   const isLowStock = product.stock !== undefined && product.stock <= 5 && product.stock > 0;
 
+  // Determine if product has multiple images for hover effect
+  const hasMultipleImages = product.images && product.images.length > 1;
+
   return (
     <div
       className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out transform hover:-translate-y-1"
@@ -68,17 +71,38 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
         {/* Product Image */}
         <div className="aspect-square relative overflow-hidden bg-gray-50">
           {product.images && product.images.length > 0 ? (
-            <Image
-              src={product.images[0] || '/images/placeholder.jpg'}
-              alt={product.title}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-300 ease-out"
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-              quality={80}
-              loading="lazy"
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-            />
+            <>
+              {/* First Image - Always visible */}
+              <Image
+                src={product.images[0] || '/images/placeholder.jpg'}
+                alt={product.title}
+                fill
+                className={`object-cover group-hover:scale-110 transition-all duration-300 ease-out ${
+                  isHovered && hasMultipleImages ? 'opacity-0' : 'opacity-100'
+                }`}
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                quality={80}
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+              />
+              {/* Second Image - Only shown on hover if available */}
+              {hasMultipleImages && product.images[1] && (
+                <Image
+                  src={product.images[1]}
+                  alt={`${product.title} - Alternative view`}
+                  fill
+                  className={`object-cover group-hover:scale-110 transition-all duration-300 ease-out absolute inset-0 ${
+                    isHovered ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  quality={80}
+                  loading="lazy"
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                />
+              )}
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-100 to-purple-100">
               <span className="text-4xl text-red-300">💄</span>
