@@ -64,6 +64,18 @@ export default function ProductDetailPage() {
         console.log('Product sizes:', product.sizes);
         console.log('Sizes is array?', Array.isArray(product.sizes));
         console.log('Sizes length:', product.sizes?.length);
+        
+        // Ensure sizes is always an array if it exists
+        if (product.sizes && !Array.isArray(product.sizes)) {
+          console.warn('Sizes is not an array, converting...', product.sizes);
+          // If sizes is a string, try to parse it or split by comma
+          if (typeof product.sizes === 'string') {
+            product.sizes = product.sizes.split(',').map((s: string) => s.trim()).filter((s: string) => s);
+          } else {
+            product.sizes = [String(product.sizes)];
+          }
+        }
+        
         setProduct(product);
         setSelectedSize(''); // Reset size selection when product changes
         setLoading(false);
@@ -322,41 +334,59 @@ export default function ProductDetailPage() {
             )}
 
             {/* Size Selection */}
-            {product.sizes && Array.isArray(product.sizes) && product.sizes.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-base font-semibold text-gray-900">
-                  Size <span className="text-red-600">*</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size: string, index: number) => (
-                    <button
-                      key={`${size}-${index}`}
-                      type="button"
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
-                        selectedSize === size
-                          ? 'border-red-600 bg-red-50 text-red-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+            {(() => {
+              // Normalize sizes to ensure it's an array
+              let normalizedSizes: string[] = [];
+              const sizes: any = product.sizes;
+              if (sizes) {
+                if (Array.isArray(sizes)) {
+                  normalizedSizes = sizes.filter((s: any) => s && String(s).trim());
+                } else if (typeof sizes === 'string') {
+                  normalizedSizes = sizes.split(',').map((s: string) => s.trim()).filter((s: string) => s);
+                } else {
+                  // Fallback: try to convert to string array
+                  normalizedSizes = [String(sizes)].filter((s: string) => s.trim());
+                }
+              }
+              
+              return normalizedSizes.length > 0 ? (
+                <div className="space-y-2">
+                  <label className="text-base font-semibold text-gray-900">
+                    Size <span className="text-red-600">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {normalizedSizes.map((size: string, index: number) => (
+                      <button
+                        key={`${size}-${index}`}
+                        type="button"
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
+                          selectedSize === size
+                            ? 'border-red-600 bg-red-50 text-red-700'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                  {!selectedSize && (
+                    <p className="text-sm text-red-600">Please select a size</p>
+                  )}
                 </div>
-                {!selectedSize && (
-                  <p className="text-sm text-red-600">Please select a size</p>
-                )}
-              </div>
-            )}
+              ) : null;
+            })()}
             
-            {/* Debug info - remove after testing */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
-                <p>Debug: sizes = {JSON.stringify(product.sizes)}</p>
-                <p>isArray: {Array.isArray(product.sizes) ? 'yes' : 'no'}</p>
-                <p>length: {product.sizes?.length || 0}</p>
-              </div>
-            )}
+            {/* Debug info - always show to troubleshoot */}
+            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+              <p className="font-semibold mb-1">Debug Info:</p>
+              <p>sizes = {JSON.stringify(product.sizes)}</p>
+              <p>sizes type = {typeof product.sizes}</p>
+              <p>isArray = {Array.isArray(product.sizes) ? 'yes' : 'no'}</p>
+              <p>length = {product.sizes?.length ?? 'undefined'}</p>
+              <p>has sizes = {product.sizes ? 'yes' : 'no'}</p>
+              <p>condition check = {product.sizes && Array.isArray(product.sizes) && product.sizes.length > 0 ? 'SHOULD SHOW' : 'WILL NOT SHOW'}</p>
+            </div>
 
             {/* Out of Stock Notice - Only show when out of stock */}
             {!stockStatus && (
