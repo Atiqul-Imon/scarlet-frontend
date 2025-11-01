@@ -14,7 +14,9 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
   const [imageErrors, setImageErrors] = React.useState<Set<number>>(new Set());
+  const [isMobile, setIsMobile] = React.useState(false);
   const imageRef = React.useRef<HTMLDivElement>(null);
+  const touchStartRef = React.useRef<{ x: number; y: number; time: number } | null>(null);
 
   // Optimized placeholder images for failed loads
   const getPlaceholderImage = (index: number) => {
@@ -38,6 +40,16 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
     return currentImage;
   };
 
+  // Detect mobile device
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Optimized image loading
   React.useEffect(() => {
     // Reset image errors when images change
@@ -55,10 +67,54 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   };
 
   const handleImageClick = () => {
+    // On mobile, always allow tap to zoom
     if (isZoomed) {
       setIsZoomed(false);
     } else {
       setIsZoomed(true);
+    }
+  };
+
+  // Handle touch events for mobile zoom
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 1) {
+      // Single touch - prepare for tap to zoom
+      const touch = e.touches[0];
+      if (touch) {
+        touchStartRef.current = {
+          x: touch.clientX,
+          y: touch.clientY,
+          time: Date.now()
+        };
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current || e.touches.length > 0) return;
+    
+    const touch = e.changedTouches[0];
+    if (!touch || !touchStartRef.current) return;
+    
+    const deltaX = Math.abs(touch.clientX - touchStartRef.current.x);
+    const deltaY = Math.abs(touch.clientY - touchStartRef.current.y);
+    const deltaTime = Date.now() - touchStartRef.current.time;
+    
+    // If it's a quick tap (not a swipe), toggle zoom
+    if (deltaTime < 300 && deltaX < 10 && deltaY < 10) {
+      handleImageClick();
+    }
+    
+    touchStartRef.current = null;
+  };
+
+  // Handle pinch zoom on mobile
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2 && imageRef.current) {
+      // Pinch zoom - exit zoom mode to allow native pinch
+      if (isZoomed) {
+        setIsZoomed(false);
+      }
     }
   };
 
@@ -115,15 +171,18 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           ref={imageRef}
           className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-zoom-in"
           onMouseMove={handleMouseMove}
-          onMouseLeave={() => setIsZoomed(false)}
+          onMouseLeave={() => !isMobile && setIsZoomed(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchMove}
         >
           <Image
-            src={getCurrentImage()}
+            src={getCurrentImage() || '/placeholder-product.jpg'}
             alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
             fill
             className={`object-cover transition-all duration-500 ${
               isZoomed 
-                ? 'scale-200 cursor-zoom-out' 
+                ? `${isMobile ? 'scale-150' : 'scale-200'} cursor-zoom-out` 
                 : 'cursor-zoom-in hover:scale-105'
             }`}
             style={isZoomed ? {
@@ -151,7 +210,9 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
               e.stopPropagation();
               handleFullscreenToggle();
             }}
-            className="absolute top-4 left-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className={`absolute top-4 left-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-opacity ${
+              isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`}
             aria-label="View fullscreen"
           >
             <ExpandIcon />
@@ -167,7 +228,9 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                     prev === 0 ? images.length - 1 : prev - 1
                   );
                 }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 ${
+                  isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`}
                 aria-label="Previous image"
               >
                 <ChevronLeftIcon />
@@ -179,7 +242,9 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                     prev === images.length - 1 ? 0 : prev + 1
                   );
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                className={`absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 ${
+                  isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`}
                 aria-label="Next image"
               >
                 <ChevronRightIcon />
@@ -197,7 +262,12 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           {/* Zoom Instruction */}
           {isZoomed && (
             <div className="absolute bottom-3 left-3 bg-black/70 text-white text-sm px-3 py-1 rounded-full">
-              Move mouse to zoom • Click to exit
+              {isMobile ? 'Tap to exit zoom • Pinch to zoom' : 'Move mouse to zoom • Click to exit'}
+            </div>
+          )}
+          {!isZoomed && isMobile && (
+            <div className="absolute bottom-3 left-3 bg-black/70 text-white text-sm px-3 py-1 rounded-full opacity-75">
+              Tap image to zoom
             </div>
           )}
         </div>
@@ -257,7 +327,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           {/* Main Fullscreen Image */}
           <div className="relative w-full h-full flex items-center justify-center p-8">
             <Image
-              src={getCurrentImage()}
+              src={getCurrentImage() || '/placeholder-product.jpg'}
               alt={`${productTitle} - Fullscreen ${selectedImageIndex + 1}`}
               width={1200}
               height={1200}
