@@ -494,7 +494,7 @@ interface CartContextValue {
   itemCount: number;
   totalPrice: number;
   sessionId: string;
-  addItem: (productId: string, quantity?: number) => Promise<void>;
+  addItem: (productId: string, quantity?: number, selectedSize?: string) => Promise<void>;
   updateItem: (productId: string, quantity: number) => Promise<void>;
   removeItem: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -684,8 +684,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart, sessionId, user]);
 
-  const addItem = React.useCallback(async (productId: string, quantity: number = 1): Promise<void> => {
-    logger.log('Adding item to cart:', { productId, quantity, isAuthenticated, sessionId });
+  const addItem = React.useCallback(async (productId: string, quantity: number = 1, selectedSize?: string): Promise<void> => {
+    logger.log('Adding item to cart:', { productId, quantity, selectedSize, isAuthenticated, sessionId });
     
     // Validate inputs
     if (!productId || quantity < 1) {
@@ -704,7 +704,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       try {
         // Add item to backend guest cart
-        const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity);
+        const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity, selectedSize);
         logger.log('Guest cart updated from backend:', updatedCart);
         setCart(updatedCart);
         
@@ -727,9 +727,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (existingItemIndex >= 0) {
             // Update existing item - ADD to existing quantity
             guestCart!.items[existingItemIndex]!.quantity += quantity;
+            if (selectedSize) {
+              guestCart!.items[existingItemIndex]!.selectedSize = selectedSize;
+            }
           } else {
             // Add new item
-            guestCart!.items.push({ productId, quantity });
+            guestCart!.items.push({ productId, quantity, selectedSize });
           }
           
           guestCart!.updatedAt = new Date().toISOString();
@@ -757,7 +760,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Handle authenticated user cart
     try {
       const updatedCart = await executeCartOperation(
-        () => cartApi.addItem(productId, quantity),
+        () => cartApi.addItem(productId, quantity, selectedSize),
         'Item added to cart'
       );
       if (updatedCart) {

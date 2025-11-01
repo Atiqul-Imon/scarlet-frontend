@@ -185,6 +185,7 @@ export interface Product extends BaseEntity {
   attributes?: ProductAttribute[];
   tags?: string[];
   sku?: string;
+  sizes?: string[];
   weight?: number;
   dimensions?: {
     length: number;
@@ -223,6 +224,7 @@ export interface User extends BaseEntity {
 export interface CartItem {
   productId: string;
   quantity: number;
+  selectedSize?: string;
   addedAt?: string;
   // Populated product data
   product?: Product;
@@ -249,6 +251,7 @@ export interface OrderItem {
   quantity: number;
   brand?: string;
   sku?: string;
+  size?: string;
 }
 
 export interface ShippingAddress {

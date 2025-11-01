@@ -33,6 +33,7 @@ interface ProductFormData {
   brand: string;
   tags: string[];
   stock: string;
+  sizes: string[];
   lowStockThreshold: string;
   trackInventory: boolean;
   status: string;
@@ -74,6 +75,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     brand: '',
     tags: [],
     stock: '',
+    sizes: [],
     lowStockThreshold: '10',
     trackInventory: true,
     status: 'draft',
@@ -151,6 +153,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         brand: product.brand || '',
         tags: (product as any).tags || [],
         stock: product.stock?.toString() || '',
+        sizes: product.sizes || [],
         lowStockThreshold: '10',
         trackInventory: ((product as any).trackInventory !== false),
         status: ((product as any).status as string) || 'draft',
@@ -382,6 +385,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : undefined,
         cost: formData.cost ? parseFloat(formData.cost) : undefined,
         stock: parseInt(formData.stock) || 0,
+        sizes: formData.sizes.filter(s => s.trim() !== '').length > 0 ? formData.sizes.filter(s => s.trim() !== '') : undefined,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         dimensions: {
@@ -573,6 +577,51 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               onChange={(e) => handleBrandChange(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Sizes
+            </label>
+            <div className="space-y-2">
+              {formData.sizes.map((size, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={size}
+                    onChange={(e) => {
+                      const newSizes = [...formData.sizes];
+                      newSizes[index] = e.target.value;
+                      handleInputChange('sizes', newSizes);
+                    }}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="e.g., S, M, L, XL, 34, 35, 36"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSizes = formData.sizes.filter((_, i) => i !== index);
+                      handleInputChange('sizes', newSizes);
+                    }}
+                    className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  handleInputChange('sizes', [...formData.sizes, '']);
+                }}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                + Add Size
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Optional: Add sizes for products like shoes, pants, shirts, etc. (e.g., 34, 35, 36, 37 or S, M, L, XL)
+            </p>
           </div>
 
           <div>

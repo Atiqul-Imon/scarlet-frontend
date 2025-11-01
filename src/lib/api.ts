@@ -631,10 +631,10 @@ export const cartApi = {
   },
 
   // Add item to cart
-  addItem: (productId: string, quantity: number): Promise<Cart> => {
+  addItem: (productId: string, quantity: number, selectedSize?: string): Promise<Cart> => {
     return fetchJsonAuth<Cart>('/cart/items', {
       method: 'POST',
-      body: JSON.stringify({ productId, quantity }),
+      body: JSON.stringify({ productId, quantity, selectedSize }),
     });
   },
 
@@ -665,13 +665,13 @@ export const cartApi = {
     return fetchJson<Cart>(`/cart/guest?sessionId=${sessionId}`);
   },
 
-  addGuestItem: (sessionId: string, productId: string, quantity: number): Promise<Cart> => {
+  addGuestItem: (sessionId: string, productId: string, quantity: number, selectedSize?: string): Promise<Cart> => {
     return fetchJson<Cart>('/cart/guest/items', {
       method: 'POST',
       headers: {
         'X-Session-ID': sessionId,
       },
-      body: JSON.stringify({ productId, quantity }),
+      body: JSON.stringify({ productId, quantity, selectedSize }),
     });
   },
 

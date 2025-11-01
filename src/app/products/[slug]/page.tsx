@@ -25,6 +25,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [quantity, setQuantity] = React.useState(1);
+  const [selectedSize, setSelectedSize] = React.useState<string>('');
   const [isAddingToCart, setIsAddingToCart] = React.useState(false);
   const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('description');
@@ -60,6 +61,7 @@ export default function ProductDetailPage() {
         
         const product = productData.data;
         setProduct(product);
+        setSelectedSize(''); // Reset size selection when product changes
         setLoading(false);
         
         // Fetch related products asynchronously after main product loads
@@ -98,16 +100,26 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product || isAddingToCart) return;
     
-    console.log('Adding to cart - Product ID:', product._id, 'Quantity:', quantity);
+    // Validate size selection if sizes are provided
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+      addToast({
+        type: 'error',
+        title: 'Size Required',
+        message: 'Please select a size before adding to cart'
+      });
+      return;
+    }
+    
+    console.log('Adding to cart - Product ID:', product._id, 'Quantity:', quantity, 'Size:', selectedSize);
     setIsAddingToCart(true);
     try {
-      await addItem(product._id!, quantity);
+      await addItem(product._id!, quantity, selectedSize || undefined);
       console.log('Successfully added to cart:', product._id);
       
       addToast({
         type: 'success',
         title: 'Added to Cart',
-        message: `${product.title} added to cart successfully!`
+        message: `${product.title}${selectedSize ? ` (Size: ${selectedSize})` : ''} added to cart successfully!`
       });
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -301,7 +313,33 @@ export default function ProductDetailPage() {
               </p>
             )}
 
-
+            {/* Size Selection */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-base font-semibold text-gray-900">
+                  Size <span className="text-red-600">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
+                        selectedSize === size
+                          ? 'border-red-600 bg-red-50 text-red-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+                {!selectedSize && (
+                  <p className="text-sm text-red-600">Please select a size</p>
+                )}
+              </div>
+            )}
 
             {/* Stock Information */}
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -365,7 +403,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 onClick={handleAddToCart}
-                disabled={!stockStatus || isAddingToCart}
+                disabled={!stockStatus || isAddingToCart || (product.sizes && product.sizes.length > 0 && !selectedSize)}
                 className="w-full h-12 px-6 text-base font-medium rounded-lg flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: '#dc2626',
@@ -475,6 +513,14 @@ export default function ProductDetailPage() {
                       <div className="border-b border-gray-100 pb-2">
                         <dt className="text-sm font-medium text-gray-500">Brand</dt>
                         <dd className="text-sm text-gray-900 mt-1">{product.brand}</dd>
+                      </div>
+                    )}
+                    
+                    {/* Sizes */}
+                    {product.sizes && product.sizes.length > 0 && (
+                      <div className="border-b border-gray-100 pb-2">
+                        <dt className="text-sm font-medium text-gray-500">Available Sizes</dt>
+                        <dd className="text-sm text-gray-900 mt-1">{product.sizes.join(', ')}</dd>
                       </div>
                     )}
                     
