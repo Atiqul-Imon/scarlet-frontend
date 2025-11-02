@@ -243,10 +243,129 @@ function ProductsPageContent() {
     }));
   }, [products]);
 
-  // Get categories for filter
+  // Get all descendant categories recursively
+  const getAllDescendantCategories = React.useCallback((categoryId: string): Category[] => {
+    const result: Category[] = [];
+    const category = categories.find(cat => cat._id === categoryId);
+    if (!category) return result;
+    
+    // Add the category itself
+    result.push(category);
+    
+    // Find all direct children
+    const children = categories.filter(cat => 
+      cat.parentId === categoryId && cat.isActive
+    );
+    
+    // Recursively add all descendants
+    for (const child of children) {
+      if (child._id) {
+        result.push(...getAllDescendantCategories(child._id));
+      }
+    }
+    
+    return result;
+  }, [categories]);
+
+  // Get categories for filter - filtered based on current category
   const categoryOptions = React.useMemo(() => {
-    return categories.map(category => {
-      // Get all descendant category IDs for this category
+    // If no category is selected, show all categories
+    if (!filters.category) {
+      return categories
+        .filter(cat => cat.isActive)
+        .map(category => {
+          const allCategoryIds = getAllDescendantCategoryIds(category._id!);
+          const count = products.filter(p => 
+            p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
+          ).length;
+          
+          return {
+            value: category.slug,
+            label: category.name,
+            count
+          };
+        });
+    }
+
+    // Find the current category
+    const selectedCategory = categories.find(cat => 
+      cat.slug === filters.category || cat.name.toLowerCase() === filters.category?.toLowerCase()
+    );
+
+    if (!selectedCategory) {
+      // Category not found, show all
+      return categories
+        .filter(cat => cat.isActive)
+        .map(category => {
+          const allCategoryIds = getAllDescendantCategoryIds(category._id!);
+          const count = products.filter(p => 
+            p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
+          ).length;
+          
+          return {
+            value: category.slug,
+            label: category.name,
+            count
+          };
+        });
+    }
+
+    // Determine which categories to show
+    let categoriesToShow: Category[] = [];
+
+    if (!selectedCategory._id) {
+      // No category ID, show all
+      return categories
+        .filter(cat => cat.isActive)
+        .map(category => {
+          const allCategoryIds = getAllDescendantCategoryIds(category._id!);
+          const count = products.filter(p => 
+            p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
+          ).length;
+          
+          return {
+            value: category.slug,
+            label: category.name,
+            count
+          };
+        });
+    }
+
+    if (!selectedCategory.parentId) {
+      // Main category (no parent) - show it and all its descendants
+      categoriesToShow = getAllDescendantCategories(selectedCategory._id);
+    } else {
+      // Subcategory (has parent) - show parent, siblings, and children
+      const parent = categories.find(cat => cat._id === selectedCategory.parentId);
+      
+      // Add parent if exists
+      if (parent && parent.isActive) {
+        categoriesToShow.push(parent);
+      }
+      
+      // Add siblings (categories with same parent)
+      const siblings = categories.filter(cat => 
+        cat.parentId === selectedCategory.parentId && 
+        cat.isActive && 
+        cat._id !== selectedCategory._id
+      );
+      categoriesToShow.push(...siblings);
+      
+      // Add current category
+      categoriesToShow.push(selectedCategory);
+      
+      // Add all descendants of current category
+      const descendants = getAllDescendantCategories(selectedCategory._id);
+      // Remove the current category (already added) and add only descendants
+      categoriesToShow.push(...descendants.filter(cat => cat._id !== selectedCategory._id));
+    }
+
+    // Remove duplicates and map to filter options
+    const uniqueCategories = Array.from(
+      new Map(categoriesToShow.map(cat => [cat._id, cat])).values()
+    );
+
+    return uniqueCategories.map(category => {
       const allCategoryIds = getAllDescendantCategoryIds(category._id!);
       const count = products.filter(p => 
         p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
@@ -258,7 +377,7 @@ function ProductsPageContent() {
         count
       };
     });
-  }, [categories, products, getAllDescendantCategoryIds]);
+  }, [categories, products, filters.category, getAllDescendantCategoryIds, getAllDescendantCategories]);
 
   // Price ranges for BDT currency
   const priceRanges = [
