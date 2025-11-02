@@ -372,7 +372,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 // Guest cart helper functions
-const GUEST_CART_KEY = 'scarlet_guest_cart';
+// REMOVED: GUEST_CART_KEY - cart data now stored only in database
+// Cart data is no longer stored in localStorage (industry standard)
+// Only sessionId is stored in localStorage to identify guest carts
 const SESSION_ID_KEY = 'scarlet_session_id';
 
 // Generate or get session ID with mobile-specific handling
@@ -407,82 +409,33 @@ const getSessionId = (): string => {
   }
 };
 
-const getGuestCart = (): Cart => {
-  if (typeof window === 'undefined') {
-    return { _id: 'guest', userId: 'guest', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  }
-  
-  try {
-    logger.log('Getting guest cart from localStorage...');
-    const stored = localStorage.getItem(GUEST_CART_KEY);
-    logger.log('Stored cart data:', stored);
-    
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        logger.log('Parsed cart data:', parsed);
-        
-        // Validate cart structure
-        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) {
-          return parsed;
-        } else {
-          logger.warn('Invalid cart structure, creating new cart');
-          localStorage.removeItem(GUEST_CART_KEY);
-        }
-      } catch (error) {
-        logger.error('Failed to parse guest cart:', error);
-        // Clear corrupted cart data
-        localStorage.removeItem(GUEST_CART_KEY);
-      }
-    }
-    
-    logger.log('No stored cart found, creating new guest cart');
-    const newCart = {
-      _id: 'guest',
-      userId: 'guest',
-      items: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    return newCart;
-  } catch (error) {
-    logger.error('Error accessing localStorage for guest cart:', error);
-    // Return empty cart as fallback
-    return {
-      _id: 'guest',
-      userId: 'guest',
-      items: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  }
+// REMOVED: Cart storage from localStorage (database-only now)
+// Cart data is stored only in database (industry standard)
+// localStorage is only used for sessionId, not cart data
+
+const createEmptyGuestCart = (): Cart => {
+  return {
+    _id: 'guest',
+    userId: 'guest',
+    items: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
 };
 
-const saveGuestCart = (cart: Cart): void => {
+// Helper to clean up old localStorage cart data (one-time cleanup)
+const cleanupOldCartData = (): void => {
   if (typeof window !== 'undefined') {
     try {
-      logger.log('Saving guest cart to localStorage:', cart);
-      localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
-      logger.log('Cart saved successfully');
-    } catch (error) {
-      logger.error('Failed to save guest cart to localStorage:', error);
-      // Try to clear some space by removing old data
-      try {
-        localStorage.removeItem('old_cart_data');
-        localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
-        logger.log('Cart saved after clearing space');
-      } catch (retryError) {
-        logger.error('Failed to save cart even after clearing space:', retryError);
-        // Store in memory as last resort (will be lost on page refresh)
-        (window as any).__scarlet_guest_cart_memory = cart;
+      // Remove old cart data if it exists (one-time migration cleanup)
+      const oldCartData = localStorage.getItem('scarlet_guest_cart');
+      if (oldCartData) {
+        localStorage.removeItem('scarlet_guest_cart');
+        logger.log('Cleaned up old localStorage cart data');
       }
+    } catch (error) {
+      // Ignore cleanup errors
     }
-  }
-};
-
-const clearGuestCart = (): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(GUEST_CART_KEY);
   }
 };
 
@@ -522,7 +475,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { isAuthenticated, user } = useAuth();
   const { addToast } = useToast();
 
+  // Clean up old localStorage cart data on mount (one-time migration)
+  React.useEffect(() => {
+    cleanupOldCartData();
+  }, []);
+
   // Load cart on mount and when authentication state changes
+  // Database-only approach: Always load from backend (industry standard)
   React.useEffect(() => {
     logger.log('Cart provider effect triggered, isAuthenticated:', isAuthenticated, 'sessionId:', sessionId);
     
@@ -540,35 +499,36 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           logger.log('Loaded user cart from backend:', userCart);
           setCart(userCart);
         } else {
-          // For guest users, try backend first, then localStorage as fallback
+          // For guest users: Database-only approach (industry standard)
+          // Always load from backend - no localStorage fallback
           try {
             const guestCart = await cartApi.getGuestCart(sessionId);
             logger.log('Loaded guest cart from backend:', guestCart);
             setCart(guestCart);
-            // Update localStorage for offline support
-            saveGuestCart(guestCart);
           } catch (error) {
             logger.error('Failed to load guest cart from backend:', error);
-            // Fallback to localStorage for offline support
-            const localGuestCart = getGuestCart();
-            logger.log('Fallback to localStorage cart:', localGuestCart);
-            setCart(localGuestCart);
+            // No localStorage fallback - database is single source of truth
+            // Show error but set empty cart
+            const emptyCart = createEmptyGuestCart();
+            setCart(emptyCart);
             
-            // If localStorage has items but backend failed, try to sync later
-            if (localGuestCart.items && localGuestCart.items.length > 0) {
-              logger.log('LocalStorage has items, will retry backend sync');
-              // Retry backend sync after a short delay
-              setTimeout(async () => {
-                try {
-                  const retryCart = await cartApi.getGuestCart(sessionId);
-                  logger.log('Retry sync successful:', retryCart);
-                  setCart(retryCart);
-                  saveGuestCart(retryCart);
-                } catch (retryError) {
-                  logger.log('Retry sync failed, keeping localStorage version');
-                }
-              }, 2000);
-            }
+            // Show user-friendly error message
+            addToast({
+              type: 'warning',
+              title: 'Cannot load cart',
+              message: 'Please check your connection and try again.'
+            });
+            
+            // Retry after a delay
+            setTimeout(async () => {
+              try {
+                const retryCart = await cartApi.getGuestCart(sessionId);
+                logger.log('Retry sync successful:', retryCart);
+                setCart(retryCart);
+              } catch (retryError) {
+                logger.log('Retry sync failed');
+              }
+            }, 3000);
           }
         }
       } catch (error) {
@@ -577,7 +537,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Set empty cart as fallback
         const emptyCart = isAuthenticated 
           ? { _id: 'empty', userId: user?._id || '', items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-          : getGuestCart();
+          : createEmptyGuestCart();
         setCart(emptyCart);
       } finally {
         setLoading(false);
@@ -585,7 +545,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     loadCart();
-  }, [isAuthenticated, sessionId, user]);
+  }, [isAuthenticated, sessionId, user, addToast]);
 
 
   // Handle authentication changes
@@ -595,12 +555,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logger.log('User logged in, syncing guest cart with server');
       syncGuestCartWithServer();
     } else if (!isAuthenticated && (!cart || cart.userId !== 'guest')) {
-      // User logged out, load guest cart
-      logger.log('User logged out, loading guest cart');
-      const guestCart = getGuestCart();
-      setCart(guestCart);
+      // User logged out, load guest cart from backend (database-only)
+      logger.log('User logged out, loading guest cart from backend');
+      const loadGuestCart = async () => {
+        try {
+          const guestCart = await cartApi.getGuestCart(sessionId);
+          setCart(guestCart);
+        } catch (error) {
+          logger.error('Failed to load guest cart:', error);
+          setCart(createEmptyGuestCart());
+        }
+      };
+      loadGuestCart();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, sessionId]);
 
   const itemCount = React.useMemo(() => {
     if (!cart || !cart.items || !Array.isArray(cart.items)) {
@@ -658,6 +626,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [addToast]);
 
+  const refreshCart = React.useCallback(async (): Promise<void> => {
+    logger.log('refreshCart called, isAuthenticated:', isAuthenticated);
+    setLoading(true);
+    
+    try {
+      if (!isAuthenticated) {
+        // For guest users: Database-only approach - always load from backend
+        const guestCart = await cartApi.getGuestCart(sessionId);
+        logger.log('Refreshed guest cart from backend:', guestCart);
+        setCart(guestCart);
+      } else {
+        // For authenticated users, load from backend
+        const userCart = await cartApi.getCart();
+        logger.log('Refreshed user cart from backend:', userCart);
+        setCart(userCart);
+      }
+    } catch (error) {
+      logger.error('Failed to refresh cart:', error);
+      // Don't set error state - just log it
+      // Cart will remain in current state
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, sessionId]);
+
   // Cart abandonment tracking
   const markCartAsAbandoned = React.useCallback(async (): Promise<void> => {
     if (!cart || !cart.items.length) return;
@@ -699,17 +692,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     if (!isAuthenticated) {
-      // Handle guest cart - sync with backend first, then localStorage
+      // Handle guest cart - database-only approach (industry standard)
       logger.log('Adding to guest cart, sessionId:', sessionId);
       
       try {
-        // Add item to backend guest cart
+        // Add item to backend guest cart (database-only, no localStorage)
         const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity, selectedSize, selectedColor);
         logger.log('Guest cart updated from backend:', updatedCart);
         setCart(updatedCart);
         
-        // Also update localStorage for offline support
-        saveGuestCart(updatedCart);
+        // Refresh cart to ensure sync
+        await refreshCart();
         
         addToast({
           type: 'success',
@@ -718,47 +711,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       } catch (error) {
         logger.error('Error adding item to guest cart:', error);
-        
-        // Fallback to localStorage if backend fails
-        try {
-          const guestCart = getGuestCart();
-          const existingItemIndex = guestCart?.items.findIndex(item => item.productId === productId) ?? -1;
-
-          if (existingItemIndex >= 0) {
-            // Update existing item - ADD to existing quantity
-            guestCart!.items[existingItemIndex]!.quantity += quantity;
-            if (selectedSize) {
-              guestCart!.items[existingItemIndex]!.selectedSize = selectedSize;
-            }
-            if (selectedColor) {
-              guestCart!.items[existingItemIndex]!.selectedColor = selectedColor;
-            }
-          } else {
-            // Add new item
-            const newItem: any = { productId, quantity };
-            if (selectedSize) newItem.selectedSize = selectedSize;
-            if (selectedColor) newItem.selectedColor = selectedColor;
-            guestCart!.items.push(newItem);
-          }
-          
-          guestCart!.updatedAt = new Date().toISOString();
-          saveGuestCart(guestCart!);
-          setCart(guestCart!);
-          logger.log('Guest cart updated in localStorage:', guestCart);
-          
-          addToast({
-            type: 'success',
-            title: 'Added to Cart',
-            message: 'Item added to cart (offline mode)'
-          });
-        } catch (fallbackError) {
-          logger.error('Error in fallback guest cart:', fallbackError);
-          addToast({
-            type: 'error',
-            title: 'Error',
-            message: 'Failed to add item to cart'
-          });
-        }
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to add item to cart. Please check your connection and try again.'
+        });
+        throw error; // Don't silently fail
       }
       return;
     }
@@ -772,6 +730,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updatedCart) {
         logger.log('User cart updated from backend:', updatedCart);
         setCart(updatedCart);
+        await refreshCart(); // Refresh to ensure sync
       }
     } catch (error) {
       logger.error('Error adding item to user cart:', error);
@@ -781,22 +740,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         message: 'Failed to add item to cart'
       });
     }
-  }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
 
   const updateItem = React.useCallback(async (productId: string, quantity: number): Promise<void> => {
     if (!isAuthenticated) {
-      // Handle guest cart - sync with backend
+      // Handle guest cart - database-only approach
       try {
         if (quantity <= 0) {
           // Remove item if quantity is 0 or less
           const updatedCart = await cartApi.removeGuestItem(sessionId, productId);
           setCart(updatedCart);
-          saveGuestCart(updatedCart);
+          await refreshCart(); // Refresh to ensure sync
         } else {
           // Update existing item
           const updatedCart = await cartApi.updateGuestItem(sessionId, productId, quantity);
           setCart(updatedCart);
-          saveGuestCart(updatedCart);
+          await refreshCart(); // Refresh to ensure sync
         }
         
         addToast({
@@ -806,39 +765,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       } catch (error) {
         logger.error('Error updating guest cart item:', error);
-        
-        // Fallback to localStorage if backend fails
-        try {
-          const guestCart = getGuestCart();
-          const existingItemIndex = guestCart?.items.findIndex(item => item.productId === productId) ?? -1;
-          
-          if (existingItemIndex >= 0) {
-            if (quantity <= 0) {
-              // Remove item if quantity is 0 or less
-              guestCart!.items.splice(existingItemIndex, 1);
-            } else {
-              // Update existing item
-              guestCart!.items[existingItemIndex]!.quantity = quantity;
-            }
-            
-            guestCart!.updatedAt = new Date().toISOString();
-            saveGuestCart(guestCart!);
-            setCart(guestCart!);
-            
-            addToast({
-              type: 'success',
-              title: 'Cart Updated',
-              message: 'Item quantity updated (offline mode)'
-            });
-          }
-        } catch (fallbackError) {
-          logger.error('Error in fallback guest cart update:', fallbackError);
-          addToast({
-            type: 'error',
-            title: 'Error',
-            message: 'Failed to update cart item'
-          });
-        }
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to update cart item. Please try again.'
+        });
+        throw error; // Don't silently fail
       }
       return;
     }
@@ -847,16 +779,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       () => cartApi.updateItem(productId, quantity),
       'Cart updated'
     );
-    if (updatedCart) setCart(updatedCart);
-  }, [isAuthenticated, executeCartOperation, addToast]);
+    if (updatedCart) {
+      setCart(updatedCart);
+      await refreshCart(); // Refresh to ensure sync
+    }
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
 
   const removeItem = React.useCallback(async (productId: string): Promise<void> => {
     if (!isAuthenticated) {
-      // Handle guest cart - sync with backend
+      // Handle guest cart - database-only approach
       try {
         const updatedCart = await cartApi.removeGuestItem(sessionId, productId);
         setCart(updatedCart);
-        saveGuestCart(updatedCart);
+        
+        // Refresh cart to ensure sync
+        await refreshCart();
         
         addToast({
           type: 'success',
@@ -865,32 +802,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       } catch (error) {
         logger.error('Error removing guest cart item:', error);
-        
-        // Fallback to localStorage if backend fails
-        try {
-          const guestCart = getGuestCart();
-          const existingItemIndex = guestCart?.items.findIndex(item => item.productId === productId) ?? -1;
-          
-          if (existingItemIndex >= 0) {
-            guestCart!.items.splice(existingItemIndex, 1);
-            guestCart!.updatedAt = new Date().toISOString();
-            saveGuestCart(guestCart!);
-            setCart(guestCart!);
-            
-            addToast({
-              type: 'success',
-              title: 'Item Removed',
-              message: 'Item removed from cart (offline mode)'
-            });
-          }
-        } catch (fallbackError) {
-          logger.error('Error in fallback guest cart removal:', fallbackError);
-          addToast({
-            type: 'error',
-            title: 'Error',
-            message: 'Failed to remove item from cart'
-          });
-        }
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to remove item from cart. Please try again.'
+        });
+        throw error; // Don't silently fail
       }
       return;
     }
@@ -899,19 +816,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       () => cartApi.removeItem(productId),
       'Item removed from cart'
     );
-    if (updatedCart) setCart(updatedCart);
-  }, [isAuthenticated, executeCartOperation, addToast]);
+    if (updatedCart) {
+      setCart(updatedCart);
+      await refreshCart(); // Refresh to ensure sync
+    }
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
 
   const clearCart = React.useCallback(async (): Promise<void> => {
     if (!isAuthenticated) {
-      // Handle guest cart - sync with backend first, then clear localStorage
+      // Handle guest cart - database-only approach
+      // Always clear backend (even if UI shows empty - force clear)
       try {
         // Clear guest cart on backend
         const updatedCart = await cartApi.clearGuestCart(sessionId);
         setCart(updatedCart);
         
-        // Also clear localStorage for offline support
-        clearGuestCart();
+        // Refresh cart to ensure sync
+        await refreshCart();
         
         addToast({
           type: 'success',
@@ -920,33 +841,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       } catch (error) {
         logger.error('Error clearing guest cart:', error);
-        
-        // Fallback to localStorage if backend fails
-        try {
-          clearGuestCart();
-          // Create a fresh empty cart instead of getting from localStorage
-          const emptyCart = {
-            _id: 'guest',
-            userId: 'guest',
-            items: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          setCart(emptyCart);
-          
-          addToast({
-            type: 'success',
-            title: 'Cart Cleared',
-            message: 'All items removed from cart (offline mode)!'
-          });
-        } catch (fallbackError) {
-          logger.error('Error in fallback guest cart clear:', fallbackError);
-          addToast({
-            type: 'error',
-            title: 'Error',
-            message: 'Failed to clear cart'
-          });
-        }
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to clear cart. Please try again.'
+        });
+        throw error; // Don't silently fail
       }
       return;
     }
@@ -955,43 +855,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       () => cartApi.clearCart(),
       'Cart cleared'
     );
-    if (updatedCart) setCart(updatedCart);
-  }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
-
-  const refreshCart = React.useCallback(async (): Promise<void> => {
-    logger.log('refreshCart called, isAuthenticated:', isAuthenticated);
-    setLoading(true);
-    
-    try {
-      if (!isAuthenticated) {
-        // For guest users, try to load from backend first, then fallback to localStorage
-        try {
-          const guestCart = await cartApi.getGuestCart(sessionId);
-          logger.log('Refreshed guest cart from backend:', guestCart);
-          setCart(guestCart);
-          // Also update localStorage for offline support
-          saveGuestCart(guestCart);
-        } catch (error) {
-          logger.error('Failed to load guest cart from backend:', error);
-          // Fallback to localStorage
-          const localGuestCart = getGuestCart();
-          logger.log('Fallback to localStorage cart:', localGuestCart);
-          setCart(localGuestCart);
-        }
-      } else {
-        // For authenticated users, load from backend
-        try {
-          const userCart = await cartApi.getCart();
-          logger.log('Refreshed user cart from backend:', userCart);
-          setCart(userCart);
-        } catch (error) {
-          logger.error('Failed to refresh user cart:', error);
-        }
-      }
-    } finally {
-      setLoading(false);
+    if (updatedCart) {
+      setCart(updatedCart);
+      await refreshCart(); // Refresh to ensure sync
     }
-  }, [isAuthenticated, sessionId]);
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
 
   // Sync guest cart with server when user logs in
   const syncGuestCartWithServer = React.useCallback(async () => {
@@ -1004,8 +872,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const mergedCart = await cartApi.mergeGuestCart(sessionId);
       logger.log('Merged cart:', mergedCart);
       
-      // Clear guest cart after successful sync
-      clearGuestCart();
+      // Guest cart is automatically cleared on backend during merge
+      // No need to clear localStorage (database-only approach)
       
       // Set the merged cart
       setCart(mergedCart);
@@ -1023,25 +891,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         message: 'Some items may not have been synced to your account'
       });
     }
-  }, [isAuthenticated, sessionId, addToast]);
+  }, [isAuthenticated, sessionId, addToast, cart]);
 
   // Handle cart sync when user logs in
   React.useEffect(() => {
     if (isAuthenticated && cart?.userId === 'guest') {
       syncGuestCartWithServer();
     }
-  }, [isAuthenticated, syncGuestCartWithServer]);
+  }, [isAuthenticated, syncGuestCartWithServer, cart]);
 
   const resetCart = React.useCallback(() => {
-    clearGuestCart();
-    // Create a fresh empty cart instead of getting from localStorage
-    const emptyCart = {
-      _id: 'guest',
-      userId: 'guest',
-      items: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    // Reset cart state (database-only - no localStorage to clear)
+    const emptyCart = createEmptyGuestCart();
     setCart(emptyCart);
     setError(null);
   }, []);

@@ -470,16 +470,17 @@ export default function CartPage() {
               >
                 🔄
               </Button>
-              {enrichedItems.length > 0 && (
-                <Button 
-                  variant="ghost" 
-                  onClick={handleClearCart}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 text-sm sm:text-base"
-                  size="sm"
-                >
-                  Clear Cart
-                </Button>
-              )}
+              {/* Always show clear cart button (even if UI shows empty - force clear backend) */}
+              <Button 
+                variant="ghost" 
+                onClick={handleClearCart}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 text-sm sm:text-base"
+                size="sm"
+                disabled={loading}
+                title={enrichedItems.length === 0 ? "Clear any remaining items from cart" : "Clear all items from cart"}
+              >
+                Clear Cart
+              </Button>
             </div>
           </div>
           <p className="text-sm sm:text-base text-gray-600">
