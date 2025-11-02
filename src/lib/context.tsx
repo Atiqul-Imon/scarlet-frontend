@@ -494,7 +494,7 @@ interface CartContextValue {
   itemCount: number;
   totalPrice: number;
   sessionId: string;
-  addItem: (productId: string, quantity?: number, selectedSize?: string) => Promise<void>;
+  addItem: (productId: string, quantity?: number, selectedSize?: string, selectedColor?: string) => Promise<void>;
   updateItem: (productId: string, quantity: number) => Promise<void>;
   removeItem: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -684,8 +684,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart, sessionId, user]);
 
-  const addItem = React.useCallback(async (productId: string, quantity: number = 1, selectedSize?: string): Promise<void> => {
-    logger.log('Adding item to cart:', { productId, quantity, selectedSize, isAuthenticated, sessionId });
+  const addItem = React.useCallback(async (productId: string, quantity: number = 1, selectedSize?: string, selectedColor?: string): Promise<void> => {
+    logger.log('Adding item to cart:', { productId, quantity, selectedSize, selectedColor, isAuthenticated, sessionId });
     
     // Validate inputs
     if (!productId || quantity < 1) {
@@ -704,7 +704,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       try {
         // Add item to backend guest cart
-        const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity, selectedSize);
+        const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity, selectedSize, selectedColor);
         logger.log('Guest cart updated from backend:', updatedCart);
         setCart(updatedCart);
         
@@ -730,9 +730,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (selectedSize) {
               guestCart!.items[existingItemIndex]!.selectedSize = selectedSize;
             }
+            if (selectedColor) {
+              guestCart!.items[existingItemIndex]!.selectedColor = selectedColor;
+            }
           } else {
             // Add new item
-            guestCart!.items.push({ productId, quantity, selectedSize });
+            const newItem: any = { productId, quantity };
+            if (selectedSize) newItem.selectedSize = selectedSize;
+            if (selectedColor) newItem.selectedColor = selectedColor;
+            guestCart!.items.push(newItem);
           }
           
           guestCart!.updatedAt = new Date().toISOString();
@@ -760,7 +766,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Handle authenticated user cart
     try {
       const updatedCart = await executeCartOperation(
-        () => cartApi.addItem(productId, quantity, selectedSize),
+        () => cartApi.addItem(productId, quantity, selectedSize, selectedColor),
         'Item added to cart'
       );
       if (updatedCart) {

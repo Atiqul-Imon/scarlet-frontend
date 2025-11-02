@@ -22,6 +22,7 @@ interface OrderDetails {
     quantity: number;
     price: number;
     size?: string;
+    color?: string;
   }>;
   // Additional fields for receipt
   customerName?: string;
@@ -389,6 +390,9 @@ function OrderSuccessPageContent() {
                       <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       {item.size && (
                         <span className="text-sm font-medium text-gray-700">Size: {item.size}</span>
+                      )}
+                      {item.color && (
+                        <span className="text-sm font-medium text-gray-700 ml-2">Color: {item.color}</span>
                       )}
                     </div>
                   </div>

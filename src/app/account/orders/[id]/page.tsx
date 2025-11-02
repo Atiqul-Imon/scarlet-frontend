@@ -34,6 +34,8 @@ interface OrderDetails {
     quantity: number;
     price: number;
     image?: string;
+    size?: string;
+    color?: string;
   }>;
   subtotal: number;
   shipping: number;
@@ -103,7 +105,8 @@ export default function OrderDetailsPage(): JSX.Element {
             quantity: item.quantity || 1,
             price: item.price || 0,
             image: item.image,
-            size: item.size
+            size: item.size,
+            color: item.color
           })),
           subtotal: order.subtotal || 0,
           shipping: order.shipping || 0,
@@ -441,6 +444,9 @@ export default function OrderDetailsPage(): JSX.Element {
                     <p className="text-sm text-gray-600">SKU: {item.productId}</p>
                     {item.size && (
                       <span className="text-sm font-medium text-gray-700">Size: {item.size}</span>
+                    )}
+                    {item.color && (
+                      <span className="text-sm font-medium text-gray-700 ml-2">Color: {item.color}</span>
                     )}
                   </div>
                 </div>

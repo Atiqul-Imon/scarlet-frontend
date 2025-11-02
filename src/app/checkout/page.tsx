@@ -62,6 +62,7 @@ interface CartItemData {
   brand?: string;
   stock?: number;
   selectedSize?: string;
+  selectedColor?: string;
 }
 
 export default function CheckoutPage() {
@@ -434,7 +435,8 @@ export default function CheckoutPage() {
               quantity: item.quantity,
               brand: 'Test Brand',
               stock: 10,
-              selectedSize: item.selectedSize
+              selectedSize: item.selectedSize,
+              selectedColor: item.selectedColor
             };
           }
           

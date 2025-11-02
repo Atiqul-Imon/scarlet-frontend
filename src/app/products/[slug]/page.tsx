@@ -26,6 +26,7 @@ export default function ProductDetailPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [quantity, setQuantity] = React.useState(1);
   const [selectedSize, setSelectedSize] = React.useState<string>('');
+  const [selectedColor, setSelectedColor] = React.useState<string>('');
   const [isAddingToCart, setIsAddingToCart] = React.useState(false);
   const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('description');
@@ -74,6 +75,7 @@ export default function ProductDetailPage() {
         
         setProduct(product);
         setSelectedSize(''); // Reset size selection when product changes
+        setSelectedColor(''); // Reset color selection when product changes
         setLoading(false);
         
         // Fetch related products asynchronously after main product loads
@@ -121,17 +123,27 @@ export default function ProductDetailPage() {
       });
       return;
     }
+
+    // Validate color selection if colors are provided
+    if (product.colors && product.colors.length > 0 && !selectedColor) {
+      addToast({
+        type: 'error',
+        title: 'Color Required',
+        message: 'Please select a color before adding to cart'
+      });
+      return;
+    }
     
-    console.log('Adding to cart - Product ID:', product._id, 'Quantity:', quantity, 'Size:', selectedSize);
+    console.log('Adding to cart - Product ID:', product._id, 'Quantity:', quantity, 'Size:', selectedSize, 'Color:', selectedColor);
     setIsAddingToCart(true);
     try {
-      await addItem(product._id!, quantity, selectedSize || undefined);
+      await addItem(product._id!, quantity, selectedSize || undefined, selectedColor || undefined);
       console.log('Successfully added to cart:', product._id);
       
       addToast({
         type: 'success',
         title: 'Added to Cart',
-        message: `${product.title}${selectedSize ? ` (Size: ${selectedSize})` : ''} added to cart successfully!`
+        message: `${product.title}${selectedSize ? ` (Size: ${selectedSize})` : ''}${selectedColor ? ` (Color: ${selectedColor})` : ''} added to cart successfully!`
       });
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -372,7 +384,49 @@ export default function ProductDetailPage() {
                 </div>
               ) : null;
             })()}
-            
+
+            {/* Color Selector */}
+            {(() => {
+              let normalizedColors: string[] = [];
+              
+              if (product.colors) {
+                const colors: any = product.colors;
+                if (Array.isArray(colors)) {
+                  normalizedColors = colors.filter((c: string) => c && c.trim());
+                } else if (typeof colors === 'string') {
+                  normalizedColors = colors.split(',').map((c: string) => c.trim()).filter((c: string) => c);
+                } else {
+                  normalizedColors = [String(colors)].filter((c: string) => c.trim());
+                }
+              }
+              
+              return normalizedColors.length > 0 ? (
+                <div className="space-y-2">
+                  <label className="text-base font-semibold text-gray-900">
+                    Color <span className="text-red-600">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {normalizedColors.map((color: string, index: number) => (
+                      <button
+                        key={`${color}-${index}`}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
+                          selectedColor === color
+                            ? 'border-red-600 bg-red-50 text-red-700'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                  {!selectedColor && (
+                    <p className="text-sm text-red-600">Please select a color</p>
+                  )}
+                </div>
+              ) : null;
+            })()}
 
             {/* Out of Stock Notice - Only show when out of stock */}
             {!stockStatus && (
@@ -429,7 +483,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 onClick={handleAddToCart}
-                disabled={!stockStatus || isAddingToCart || (product.sizes && product.sizes.length > 0 && !selectedSize)}
+                disabled={!stockStatus || isAddingToCart || (product.sizes && product.sizes.length > 0 && !selectedSize) || (product.colors && product.colors.length > 0 && !selectedColor)}
                 className="w-full h-12 px-6 text-base font-medium rounded-lg flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: '#dc2626',

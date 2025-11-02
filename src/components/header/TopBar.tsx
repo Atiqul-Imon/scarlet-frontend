@@ -254,6 +254,9 @@ export default function TopBar() {
                                 {item.selectedSize && (
                                   <span className="text-xs font-medium text-gray-700">Size: {item.selectedSize}</span>
                                 )}
+                                {item.selectedColor && (
+                                  <span className="text-xs font-medium text-gray-700 ml-2">Color: {item.selectedColor}</span>
+                                )}
                               </div>
                               {item.product?.price && (
                                 <p className="text-xs text-red-700 font-medium">

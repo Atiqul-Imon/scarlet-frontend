@@ -17,6 +17,7 @@ interface CartItemData {
   brand?: string;
   stock?: number;
   selectedSize?: string;
+  selectedColor?: string;
 }
 
 interface CartItemProps {
@@ -111,6 +112,9 @@ const CartItem = React.memo(function CartItem({
                   )}
                   {item.selectedSize && (
                     <span className="text-xs font-medium text-gray-700">Size: {item.selectedSize}</span>
+                  )}
+                  {item.selectedColor && (
+                    <span className="text-xs font-medium text-gray-700 ml-2">Color: {item.selectedColor}</span>
                   )}
                 </div>
               </div>
@@ -245,6 +249,9 @@ const CartItem = React.memo(function CartItem({
                 )}
                 {item.selectedSize && (
                   <span className="text-sm font-medium text-gray-700">Size: {item.selectedSize}</span>
+                )}
+                {item.selectedColor && (
+                  <span className="text-sm font-medium text-gray-700 ml-2">Color: {item.selectedColor}</span>
                 )}
               </div>
             </div>

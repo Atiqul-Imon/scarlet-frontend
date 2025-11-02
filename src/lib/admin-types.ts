@@ -46,6 +46,7 @@ export interface AdminProduct {
   };
   stock: number;
   sizes?: string[];
+  colors?: string[];
   attributes?: Record<string, string | number | boolean | null>;
   homepageSection?: 'new-arrivals' | 'skincare-essentials' | 'makeup-collection' | null;
   createdAt?: string;
@@ -60,6 +61,7 @@ export interface AdminOrderItem {
   sku: string;
   variant: string | null;
   size?: string;
+  color?: string;
   quantity: number;
   price: number;
   total: number;

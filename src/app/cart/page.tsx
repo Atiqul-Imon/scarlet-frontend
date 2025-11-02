@@ -26,6 +26,7 @@ interface CartItemData {
   brand?: string;
   stock?: number;
   selectedSize?: string;
+  selectedColor?: string;
 }
 
 // Removed unused Cart interface
@@ -105,7 +106,8 @@ export default function CartPage() {
               image: item.product?.images?.[0] || '/placeholder-product.jpg',
               price: item.product?.price || { currency: 'BDT', amount: 0 },
               quantity: item.quantity,
-              selectedSize: item.selectedSize
+              ...(item.selectedSize && { selectedSize: item.selectedSize }),
+              ...(item.selectedColor && { selectedColor: item.selectedColor })
             };
             if (item.product?.brand) {
               enrichedItem.brand = item.product.brand;

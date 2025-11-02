@@ -34,6 +34,7 @@ interface ProductFormData {
   tags: string[];
   stock: string;
   sizes: string[];
+  colors: string[];
   lowStockThreshold: string;
   trackInventory: boolean;
   status: string;
@@ -42,6 +43,7 @@ interface ProductFormData {
     length: string;
     width: string;
     height: string;
+    unit: 'cm' | 'in';
   };
   seoTitle: string;
   seoDescription: string;
@@ -76,6 +78,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     tags: [],
     stock: '',
     sizes: [],
+    colors: [],
     lowStockThreshold: '10',
     trackInventory: true,
     status: 'draft',
@@ -83,7 +86,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     dimensions: {
       length: '',
       width: '',
-      height: ''
+      height: '',
+      unit: 'cm' as const
     },
     seoTitle: '',
     seoDescription: '',
@@ -100,6 +104,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [newSizeInput, setNewSizeInput] = useState('');
+  const [newColorInput, setNewColorInput] = useState('');
 
   // Load categories
   const loadCategories = async () => {
@@ -155,6 +160,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         tags: (product as any).tags || [],
         stock: product.stock?.toString() || '',
         sizes: product.sizes || [],
+        colors: product.colors || [],
         lowStockThreshold: '10',
         trackInventory: ((product as any).trackInventory !== false),
         status: ((product as any).status as string) || 'draft',
@@ -162,7 +168,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         dimensions: {
           length: ((product as any).dimensions?.length as number | undefined)?.toString() || '',
           width: ((product as any).dimensions?.width as number | undefined)?.toString() || '',
-          height: ((product as any).dimensions?.height as number | undefined)?.toString() || ''
+          height: ((product as any).dimensions?.height as number | undefined)?.toString() || '',
+          unit: ((product as any).dimensions?.unit as 'cm' | 'in') || 'cm'
         },
         seoTitle: ((product as any).seoTitle as string) || '',
         seoDescription: ((product as any).seoDescription as string) || '',
@@ -387,12 +394,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         cost: formData.cost ? parseFloat(formData.cost) : undefined,
         stock: parseInt(formData.stock) || 0,
         sizes: formData.sizes.filter(s => s.trim() !== '').length > 0 ? formData.sizes.filter(s => s.trim() !== '') : undefined,
+        colors: formData.colors.filter(c => c.trim() !== '').length > 0 ? formData.colors.filter(c => c.trim() !== '') : undefined,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         dimensions: {
           length: formData.dimensions.length ? parseFloat(formData.dimensions.length) : 0,
           width: formData.dimensions.width ? parseFloat(formData.dimensions.width) : 0,
-          height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : 0
+          height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : 0,
+          unit: formData.dimensions.unit || 'cm'
         },
         variants: formData.variants.map(variant => ({
           ...variant,
@@ -673,6 +682,97 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Colors
+            </label>
+            
+            {/* Display existing colors as tags */}
+            {formData.colors.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {formData.colors.map((color, index) => (
+                  color.trim() && (
+                    <div
+                      key={index}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 font-medium"
+                    >
+                      <span>{color}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newColors = formData.colors.filter((_, i) => i !== index);
+                          handleInputChange('colors', newColors);
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                        aria-label={`Remove color ${color}`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
+
+            {/* Add new color input */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newColorInput}
+                onChange={(e) => setNewColorInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newColorInput.trim()) {
+                    e.preventDefault();
+                    const newColor = newColorInput.trim();
+                    if (!formData.colors.includes(newColor)) {
+                      handleInputChange('colors', [...formData.colors, newColor]);
+                      setNewColorInput('');
+                    } else {
+                      // Color already exists
+                      setNewColorInput('');
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value.trim()) {
+                    const newColor = e.target.value.trim();
+                    if (!formData.colors.includes(newColor)) {
+                      handleInputChange('colors', [...formData.colors, newColor]);
+                      setNewColorInput('');
+                    }
+                  }
+                }}
+                placeholder="Enter color (e.g., Red, Blue, Black, White, Rose Gold)"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const newColor = newColorInput.trim();
+                  if (newColor && !formData.colors.includes(newColor)) {
+                    handleInputChange('colors', [...formData.colors, newColor]);
+                    setNewColorInput('');
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex-shrink-0"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Helper text */}
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-gray-500">
+                Optional: Add colors for products. Customers will need to select a color when adding to cart.
+              </p>
+              <p className="text-xs text-gray-400">
+                Press Enter or click Add to add a color. Duplicate colors are not allowed.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Status
             </label>
             <select
@@ -799,6 +899,103 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               Track Inventory
             </label>
           </div>
+        </div>
+      </div>
+
+      {/* Physical Attributes */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-6">Physical Attributes</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Weight (kg)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.weight}
+              onChange={(e) => handleInputChange('weight', e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="0.00"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Product weight in kilograms (for shipping calculations)
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Dimensions Unit
+            </label>
+            <select
+              value={formData.dimensions.unit}
+              onChange={(e) => handleInputChange('dimensions.unit', e.target.value as 'cm' | 'in')}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            >
+              <option value="cm">Centimeters (cm)</option>
+              <option value="in">Inches (in)</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Unit of measurement for product dimensions
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Product Dimensions
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-2">
+                Length ({formData.dimensions.unit})
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.dimensions.length}
+                onChange={(e) => handleInputChange('dimensions.length', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-2">
+                Width ({formData.dimensions.unit})
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.dimensions.width}
+                onChange={(e) => handleInputChange('dimensions.width', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-2">
+                Height ({formData.dimensions.unit})
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.dimensions.height}
+                onChange={(e) => handleInputChange('dimensions.height', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Optional: Product dimensions for shipping calculations. Length × Width × Height in {formData.dimensions.unit}.
+          </p>
         </div>
       </div>
 

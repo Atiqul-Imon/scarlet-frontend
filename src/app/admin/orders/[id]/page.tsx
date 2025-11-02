@@ -86,6 +86,7 @@ export default function OrderDetailPage() {
           sku: item.sku || 'N/A',
           variant: item.variant || null,
           size: item.size || undefined,
+          color: item.color || undefined,
           quantity: item.quantity,
           price: item.price,
           total: item.price * item.quantity,
@@ -427,6 +428,7 @@ export default function OrderDetailPage() {
                         <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                           <span>SKU: {item.sku}</span>
                           {item.size && <span className="font-medium text-gray-700">Size: {item.size}</span>}
+                          {item.color && <span className="font-medium text-gray-700 ml-2">Color: {item.color}</span>}
                           {item.variant && <span>Variant: {item.variant}</span>}
                           <span>Qty: {item.quantity}</span>
                         </div>
