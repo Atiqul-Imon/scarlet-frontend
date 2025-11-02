@@ -118,7 +118,8 @@ function OrderSuccessPageContent() {
             title: item.title || 'Product',
             quantity: item.quantity || 1,
             price: item.price || 0,
-            size: item.size
+            size: item.size,
+            color: item.color
           })),
           // Additional fields for receipt
           customerName: order.shippingAddress?.name || 'Customer',
@@ -337,32 +338,32 @@ function OrderSuccessPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* Success Header */}
-        <div className="text-center mb-12">
-          <div className="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-green-100 rounded-full flex items-center justify-center">
             <CheckCircleIcon />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 px-2">
             Thank you for your order!
           </h1>
-          <p className="text-lg text-gray-600 mb-2">
+          <p className="text-base sm:text-lg text-gray-600 mb-2 px-2">
             Your order has been confirmed and is being processed.
           </p>
-              <p className="text-sm text-gray-500">
-                A confirmation email has been sent to {orderDetails?.email}
-              </p>
+          <p className="text-xs sm:text-sm text-gray-500 px-2">
+            A confirmation email has been sent to {orderDetails?.email}
+          </p>
         </div>
 
         {/* Order Summary Card */}
-        <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
           {/* Order Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 pb-6 border-b border-gray-200">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200">
+            <div className="mb-4 sm:mb-0">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1 sm:mb-2">
                 Order #{orderDetails?.orderNumber}
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600">
                 Placed on {new Date().toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -370,38 +371,38 @@ function OrderSuccessPageContent() {
                 })}
               </p>
             </div>
-            <div className="mt-4 sm:mt-0 text-left sm:text-right">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-left sm:text-right">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {formatPrice(orderDetails?.total, orderDetails?.currency)}
               </p>
-              <p className="text-sm text-gray-600">Total paid</p>
+              <p className="text-xs sm:text-sm text-gray-600">Total paid</p>
             </div>
           </div>
 
           {/* Order Items */}
-          <div className="mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
-            <div className="space-y-4">
+          <div className="mb-6 sm:mb-8">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Order Items</h3>
+            <div className="space-y-3 sm:space-y-4">
               {(orderDetails?.items || []).map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-b-0">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{item.title}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-gray-100 last:border-b-0 gap-2 sm:gap-0">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 text-sm sm:text-base break-words">{item.title}</h4>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-600">Qty: {item.quantity}</p>
                       {item.size && (
-                        <span className="text-sm font-medium text-gray-700">Size: {item.size}</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-700">Size: {item.size}</span>
                       )}
                       {item.color && (
-                        <span className="text-sm font-medium text-gray-700 ml-2">Color: {item.color}</span>
+                        <span className="text-xs sm:text-sm font-medium text-gray-700">Color: {item.color}</span>
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">
+                  <div className="text-left sm:text-right flex-shrink-0">
+                    <p className="text-base sm:text-base font-medium text-gray-900">
                       {formatPrice(item.price * item.quantity, orderDetails?.currency)}
                     </p>
                     {item.quantity > 1 && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {formatPrice(item.price, orderDetails?.currency)} each
                       </p>
                     )}
@@ -412,16 +413,16 @@ function OrderSuccessPageContent() {
           </div>
 
           {/* Delivery Information */}
-          <div className="bg-blue-50 rounded-lg p-6">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="bg-blue-50 rounded-lg p-4 sm:p-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
               <TruckIcon />
-              <h3 className="font-medium text-gray-900">Estimated Delivery</h3>
+              <h3 className="font-medium text-gray-900 text-sm sm:text-base">Estimated Delivery</h3>
             </div>
-            <p className="text-gray-700">
+            <p className="text-sm sm:text-base text-gray-700">
               Your order is expected to arrive by{' '}
               <span className="font-medium">{orderDetails.estimatedDelivery}</span>
             </p>
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-xs sm:text-sm text-gray-600 mt-2">
               You'll receive tracking information via email once your order ships.
             </p>
           </div>
@@ -442,33 +443,39 @@ function OrderSuccessPageContent() {
         </div>
 
         {/* Receipt Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Order Receipt</h2>
-            <div className="flex gap-3">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Order Receipt</h2>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 onClick={handleDownloadReceipt}
                 variant="secondary"
                 size="sm"
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
-                <DownloadIcon className="w-4 h-4 mr-2" />
-                Download Receipt
+                <DownloadIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Download Receipt</span>
+                <span className="sm:hidden">Download</span>
               </Button>
               <Button
                 onClick={handleDownloadDetailedReceipt}
                 variant="ghost"
                 size="sm"
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
-                <DownloadIcon className="w-4 h-4 mr-2" />
-                Detailed PDF
+                <DownloadIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Detailed PDF</span>
+                <span className="sm:hidden">Detailed</span>
               </Button>
               <Button
                 onClick={handleDownloadSimpleReceipt}
                 variant="ghost"
                 size="sm"
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
-                <DownloadIcon className="w-4 h-4 mr-2" />
-                Simple PDF
+                <DownloadIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Simple PDF</span>
+                <span className="sm:hidden">Simple</span>
               </Button>
             </div>
           </div>
@@ -507,34 +514,34 @@ function OrderSuccessPageContent() {
         </div>
 
         {/* Account Created Message (for auto-created accounts) */}
-        <div className="mb-8 bg-green-50 border border-green-200 rounded-lg p-6">
+        <div className="mb-6 sm:mb-8 bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-lg font-medium text-green-900">
+            <div className="ml-2 sm:ml-3 flex-1 min-w-0">
+              <h3 className="text-base sm:text-lg font-medium text-green-900">
                 🎉 Your Account is Ready!
               </h3>
-              <div className="mt-2 text-sm text-green-700">
-                <p className="mb-2">
-                  We've created an account for you using your phone number: <strong>{orderDetails?.shippingAddress?.phone || orderDetails?.customerPhone}</strong>
+              <div className="mt-2 text-xs sm:text-sm text-green-700">
+                <p className="mb-2 break-words">
+                  We've created an account for you using your phone number: <strong className="break-all">{orderDetails?.shippingAddress?.phone || orderDetails?.customerPhone}</strong>
                   {orderDetails?.email && (
-                    <span> and email: <strong>{orderDetails.email}</strong></span>
+                    <span> and email: <strong className="break-all">{orderDetails.email}</strong></span>
                   )}
                 </p>
                 <p className="mb-3">
                   You can now track your order, view order history, and enjoy faster checkouts on your next purchase!
                 </p>
-                <div className="bg-white border border-green-200 rounded p-4 mb-3">
-                  <p className="font-medium mb-2">To access your account:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                <div className="bg-white border border-green-200 rounded p-3 sm:p-4 mb-3">
+                  <p className="font-medium mb-2 text-xs sm:text-sm">To access your account:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs sm:text-sm">
                     <li>Click "Set Your Password" below</li>
-                    <li>Enter your phone number: <strong>{orderDetails?.shippingAddress?.phone || orderDetails?.customerPhone}</strong></li>
+                    <li>Enter your phone number: <strong className="break-all">{orderDetails?.shippingAddress?.phone || orderDetails?.customerPhone}</strong></li>
                     {orderDetails?.email && (
-                      <li>Or use your email: <strong>{orderDetails.email}</strong></li>
+                      <li>Or use your email: <strong className="break-all">{orderDetails.email}</strong></li>
                     )}
                     <li>You'll receive a password reset OTP via SMS</li>
                     <li>Set your password and start shopping!</li>
@@ -542,7 +549,7 @@ function OrderSuccessPageContent() {
                 </div>
                 <Link
                   href="/forgot-password"
-                  className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                  className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors text-xs sm:text-sm"
                 >
                   Set Your Password →
                 </Link>
@@ -552,59 +559,61 @@ function OrderSuccessPageContent() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Button
             onClick={() => router.push('/products')}
             variant="secondary"
             size="lg"
+            className="w-full sm:w-auto"
           >
             Continue Shopping
           </Button>
           <Button
             onClick={() => router.push('/login')}
             size="lg"
+            className="w-full sm:w-auto"
           >
             Login to View Order
           </Button>
         </div>
 
         {/* Additional Information */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div>
-            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+        <div className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
+          <div className="px-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <SupportIcon />
             </div>
-            <h3 className="font-medium text-gray-900 mb-2">Need Help?</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-1 sm:mb-2">Need Help?</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">
               Contact our customer support team
             </p>
-            <Link href="/contact" className="text-sm text-red-700 hover:text-red-800 font-medium">
+            <Link href="/contact" className="text-xs sm:text-sm text-red-700 hover:text-red-800 font-medium">
               Get Support
             </Link>
           </div>
           
-          <div>
-            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+          <div className="px-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <ReturnIcon />
             </div>
-            <h3 className="font-medium text-gray-900 mb-2">Easy Returns</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-1 sm:mb-2">Easy Returns</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">
               30-day hassle-free return policy
             </p>
-            <Link href="/returns" className="text-sm text-red-700 hover:text-red-800 font-medium">
+            <Link href="/returns" className="text-xs sm:text-sm text-red-700 hover:text-red-800 font-medium">
               Return Policy
             </Link>
           </div>
           
-          <div>
-            <div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+          <div className="px-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <RewardIcon />
             </div>
-            <h3 className="font-medium text-gray-900 mb-2">Earn Points</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-1 sm:mb-2">Earn Points</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">
               You earned points with this purchase
             </p>
-            <Link href="/account/rewards" className="text-sm text-red-700 hover:text-red-800 font-medium">
+            <Link href="/account/rewards" className="text-xs sm:text-sm text-red-700 hover:text-red-800 font-medium">
               View Rewards
             </Link>
           </div>
