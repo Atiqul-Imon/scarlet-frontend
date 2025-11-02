@@ -74,7 +74,9 @@ export default function CheckoutPage() {
   // Helper function to handle SSLCommerz payment flow
   const handleSSLCommerzPayment = async () => {
     try {
-      console.log('Initiating SSLCommerz payment...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Initiating SSLCommerz payment...');
+      }
       
       // Import the payment API
       const { paymentApi } = await import('../../lib/api');
@@ -99,14 +101,10 @@ export default function CheckoutPage() {
         notes: values.notes,
       };
       
-      console.log('Creating pending order...');
-      
       // Create the order with pending status
       const order = user 
         ? await orderApi.createOrder(orderData)
         : await orderApi.createGuestOrder(sessionId, orderData);
-      
-      console.log('Order created:', order);
       
       // CRITICAL: Use orderNumber (not _id) for SSLCommerz tran_id
       // The IPN handler looks up orders by orderNumber, so they must match
@@ -134,20 +132,16 @@ export default function CheckoutPage() {
         })),
       };
       
-      console.log('Creating payment session...');
-      
       // Create SSLCommerz payment session
       const paymentResponse = await paymentApi.createPayment(paymentData);
       
-      console.log('Payment response:', paymentResponse);
-      
       if (!paymentResponse.success || !paymentResponse.data) {
         const errorMsg = paymentResponse.error || 'Failed to create payment session';
-        console.error('Payment creation failed:', errorMsg, paymentResponse);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Payment creation failed:', errorMsg, paymentResponse);
+        }
         throw new Error(errorMsg);
       }
-      
-      console.log('Payment session created:', paymentResponse.data);
       
       // Store order ID in session storage for payment completion
       sessionStorage.setItem('scarlet_pending_order_id', order._id);
@@ -156,7 +150,9 @@ export default function CheckoutPage() {
       window.location.href = paymentResponse.data.gatewayUrl;
       
     } catch (error) {
-      console.error('SSLCommerz payment error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('SSLCommerz payment error:', error);
+      }
       throw error;
     }
   };
@@ -164,8 +160,6 @@ export default function CheckoutPage() {
   // Helper function to handle direct order placement (COD)
   const handleDirectOrder = async () => {
     try {
-      console.log('Creating direct order...');
-      
       // Import the order API
       const { orderApi } = await import('../../lib/api');
       
@@ -187,8 +181,6 @@ export default function CheckoutPage() {
         paymentMethod: values.paymentMethod,
         notes: values.notes,
       };
-      
-      console.log('Order data:', orderData);
 
       // Create the order (authenticated or guest)
       const order = user 
@@ -210,13 +202,13 @@ export default function CheckoutPage() {
       // Clear the cart first, then redirect
       try {
         await clearCart();
-        console.log('✅ Cart cleared successfully after COD order');
-        
         // Clear session storage
         sessionStorage.removeItem('scarlet_verified_guest_phone');
         sessionStorage.removeItem('scarlet_pending_order_id');
       } catch (error) {
-        console.error('❌ Error clearing cart after order:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error clearing cart after order:', error);
+        }
         addToast({
           type: 'warning',
           title: 'Notice',
@@ -229,7 +221,9 @@ export default function CheckoutPage() {
       router.push(`/checkout/success?orderId=${order._id}`);
       
     } catch (error) {
-      console.error('Direct order error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Direct order error:', error);
+      }
       throw error;
     }
   };
@@ -385,43 +379,45 @@ export default function CheckoutPage() {
     const fetchCartData = async () => {
       setLoading(true);
       try {
-        console.log('Cart data:', cart);
-        
         if (!cart?.items || cart.items.length === 0) {
-          console.log('No cart items found');
           // Don't redirect to cart if an order was just placed
           if (!orderPlaced) {
-            console.log('Redirecting to cart');
             router.push('/cart');
           }
           return;
         }
 
-        console.log('Cart items:', cart.items);
+        // PERFORMANCE: Fetch only products in cart using parallel requests
+        // This is much faster than fetching all products (could be thousands)
+        const productIds = [...new Set(cart.items.map(item => item.productId).filter((id): id is string => !!id))]; // Remove duplicates and undefined
+        const productPromises = productIds.map(id => {
+          // Handle test products
+          if (id.startsWith('test-product-')) {
+            return Promise.resolve(null);
+          }
+          return productApi.getProductById(id).catch(err => {
+            // Log but don't fail - we'll handle missing products gracefully
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`Failed to fetch product ${id}:`, err);
+            }
+            return null;
+          });
+        });
 
-        // Fetch all products to enrich cart items
-        const allProducts = await productApi.getProducts();
-        console.log('Products fetched:', allProducts);
+        const products = await Promise.all(productPromises);
         
-        // Ensure we have the products data - handle different response structures
-        let products: unknown[] = [];
-        if (allProducts?.data && Array.isArray(allProducts.data)) {
-          products = allProducts.data;
-        } else if (Array.isArray(allProducts)) {
-          // Fallback if API returns array directly
-          products = allProducts;
-        } else {
-          console.warn('Unexpected API response structure:', allProducts);
-        }
+        // Create a Map for O(1) lookups instead of O(n) find operations
+        const productMap = new Map<string, any>();
+        products.forEach((product, index) => {
+          if (product) {
+            productMap.set(productIds[index], product);
+          }
+        });
         
-        console.log('Processed products array:', products);
-        console.log('Products array length:', products.length);
-        console.log('First product:', products[0]);
-        
-        // Enrich cart items with product details
+        // Enrich cart items with product details using Map lookup (O(1) vs O(n))
         const enrichedItems: CartItemData[] = cart.items.map(item => {
-          const product = products.find((p: any) => p._id === item.productId) as any;
-          console.log(`Product for ${item.productId}:`, product);
+          // Use Map for O(1) lookup instead of array.find() O(n)
+          const product = productMap.get(item.productId);
           
           // Handle test products that don't exist in database
           if (item.productId.startsWith('test-product-')) {
@@ -449,14 +445,16 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             brand: product?.brand,
             stock: product?.stock,
-            selectedSize: item.selectedSize
+            selectedSize: item.selectedSize,
+            selectedColor: item.selectedColor
           };
         }).filter(item => item.title !== 'Product not found');
 
-        console.log('Enriched items:', enrichedItems);
         setCartItems(enrichedItems);
       } catch (err) {
-        console.error('Error fetching cart data:', err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching cart data:', err);
+        }
         addToast({
           type: 'error',
           title: 'Error',
@@ -475,26 +473,34 @@ export default function CheckoutPage() {
 
   // No longer redirect to login - allow guest checkout
 
-  // Calculate totals with location-based delivery charges
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
-  const freeShippingThreshold = 2000;
-  
-  // Location-based delivery charges
-  const deliveryChargeInsideDhaka = 80;
-  const deliveryChargeOutsideDhaka = 150;
-  
-  // Calculate shipping cost based on delivery area
-  let shippingCost = 0;
-  if (values.deliveryArea === 'inside_dhaka') {
-    shippingCost = deliveryChargeInsideDhaka;
-  } else if (values.deliveryArea === 'outside_dhaka') {
-    shippingCost = deliveryChargeOutsideDhaka;
-  }
-  
-  // Apply free shipping threshold
-  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingCost;
-  const total = subtotal + shipping;
-  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  // PERFORMANCE: Memoize calculations to avoid recalculation on every render
+  const { subtotal, shipping, total, itemCount } = React.useMemo(() => {
+    const freeShippingThreshold = 2000;
+    const deliveryChargeInsideDhaka = 80;
+    const deliveryChargeOutsideDhaka = 150;
+    
+    const calculatedSubtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
+    
+    // Calculate shipping cost based on delivery area
+    let shippingCost = 0;
+    if (values.deliveryArea === 'inside_dhaka') {
+      shippingCost = deliveryChargeInsideDhaka;
+    } else if (values.deliveryArea === 'outside_dhaka') {
+      shippingCost = deliveryChargeOutsideDhaka;
+    }
+    
+    // Apply free shipping threshold
+    const calculatedShipping = calculatedSubtotal >= freeShippingThreshold ? 0 : shippingCost;
+    const calculatedTotal = calculatedSubtotal + calculatedShipping;
+    const calculatedItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    
+    return {
+      subtotal: calculatedSubtotal,
+      shipping: calculatedShipping,
+      total: calculatedTotal,
+      itemCount: calculatedItemCount
+    };
+  }, [cartItems, values.deliveryArea]);
   
   // Handle delivery area change - reset location fields
   const handleDeliveryAreaChange = (area: 'inside_dhaka' | 'outside_dhaka') => {
@@ -555,13 +561,11 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Form submission started');
-    console.log('Form values:', values);
-    console.log('Form errors:', errors);
-    console.log('Form valid:', isValid);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Form submission started', { values, errors, isValid });
+    }
     
     if (!isValid) {
-      console.log('Form validation failed');
       addToast({
         type: 'error',
         title: 'Validation Error',
@@ -572,44 +576,39 @@ export default function CheckoutPage() {
 
     // Prevent double submission
     if (submitting) {
-      console.log('Order submission already in progress, ignoring duplicate request');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Order submission already in progress, ignoring duplicate request');
+      }
       return;
     }
 
     setSubmitting(true);
     
     try {
-      console.log('Refreshing cart to check stock availability...');
-      
       // Refresh cart before placing order to check for stock/availability changes
+      // PERFORMANCE: refreshCart updates cart in context, backend will validate final state
       try {
         await refreshCart();
-        console.log('Cart refreshed successfully');
-        
-        // Check if cart is empty after refresh
-        const { cartApi } = await import('../../lib/api');
-        const refreshedCart = user 
-          ? await cartApi.getCart()
-          : await cartApi.getGuestCart(sessionId);
-        
-        if (!refreshedCart || !refreshedCart.items || refreshedCart.items.length === 0) {
-          addToast({
-            type: 'error',
-            title: 'Cart Empty',
-            message: 'Your cart is empty. Please add items before placing an order.'
-          });
-          setSubmitting(false);
-          router.push('/cart');
-          return;
-        }
-        
-        console.log('Cart has items, proceeding with order creation');
+        // Cart state will be updated via context after refreshCart completes
+        // Backend validation will catch any issues (empty cart, out of stock, etc.)
       } catch (cartError) {
-        console.error('Failed to refresh cart, continuing with order:', cartError);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to refresh cart, continuing with order:', cartError);
+        }
         // Continue with order anyway, backend will validate
       }
       
-      console.log('Creating order...');
+      // Final check using current cart from context (updated by refreshCart)
+      if (!cart || !cart.items || cart.items.length === 0) {
+        addToast({
+          type: 'error',
+          title: 'Cart Empty',
+          message: 'Your cart is empty. Please add items before placing an order.'
+        });
+        setSubmitting(false);
+        router.push('/cart');
+        return;
+      }
       
       // Import retry utility
       const { retryWithBackoff } = await import('../../lib/api');
@@ -636,7 +635,9 @@ export default function CheckoutPage() {
       }
       
     } catch (error: unknown) {
-      console.error('Error placing order:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error placing order:', error);
+      }
       
       // Handle specific error types with field-specific errors
       let errorMessage = 'Failed to place order. Please try again.';
@@ -726,8 +727,7 @@ export default function CheckoutPage() {
       if (Object.keys(fieldErrors).length > 0) {
         Object.entries(fieldErrors).forEach(([field, message]) => {
           // Set field error if the form supports it
-          if (setFieldValue && typeof setFieldValue === 'function') {
-            // Try to set error for the field
+          if (process.env.NODE_ENV === 'development') {
             console.log(`Setting error for field ${field}: ${message}`);
           }
         });
