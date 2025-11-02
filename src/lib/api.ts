@@ -243,11 +243,50 @@ export class ApiError extends Error {
     message: string,
     public status: number,
     public code?: string,
-    public field?: string
+    public field?: string,
+    public details?: string
   ) {
     super(message);
     this.name = 'ApiError';
   }
+}
+
+/**
+ * Retry utility function for network requests with exponential backoff
+ */
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelay: number = 1000,
+  backoffMultiplier: number = 2
+): Promise<T> {
+  let lastError: unknown;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      
+      // Don't retry on 4xx errors (client errors) except for network errors
+      if (error instanceof ApiError && error.status >= 400 && error.status < 500 && error.status !== 0) {
+        throw error; // Don't retry client errors
+      }
+      
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        break;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = initialDelay * Math.pow(backoffMultiplier, attempt);
+      console.log(`⚠️ Request failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms...`);
+      
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
 }
 
 // Generic fetch function with type safety and enhanced error handling
@@ -285,21 +324,25 @@ export async function fetchJson<T = unknown>(
 
     if (!response.ok) {
       console.error(`❌ API Error: ${response.status} ${response.statusText}`, body.error);
+      const errorData = body.error as any;
       throw new ApiError(
-        body.error?.message || `Request failed with status ${response.status}`,
+        errorData?.message || `Request failed with status ${response.status}`,
         response.status,
-        body.error?.code,
-        body.error?.field
+        errorData?.code,
+        errorData?.field,
+        errorData?.details
       );
     }
 
     if (!body.success) {
       console.error(`❌ API Error: Request failed`, body.error);
+      const errorData = body.error as any;
       throw new ApiError(
-        body.error?.message || 'Request failed',
+        errorData?.message || 'Request failed',
         response.status,
-        body.error?.code,
-        body.error?.field
+        errorData?.code,
+        errorData?.field,
+        errorData?.details
       );
     }
 

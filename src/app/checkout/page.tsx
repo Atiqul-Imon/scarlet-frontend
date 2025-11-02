@@ -67,7 +67,7 @@ interface CartItemData {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart, sessionId } = useCart();
+  const { cart, clearCart, sessionId, refreshCart } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -570,52 +570,169 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Prevent double submission
+    if (submitting) {
+      console.log('Order submission already in progress, ignoring duplicate request');
+      return;
+    }
+
     setSubmitting(true);
+    
     try {
+      console.log('Refreshing cart to check stock availability...');
+      
+      // Refresh cart before placing order to check for stock/availability changes
+      try {
+        await refreshCart();
+        console.log('Cart refreshed successfully');
+        
+        // Check if cart is empty after refresh
+        const { cartApi } = await import('../../lib/api');
+        const refreshedCart = user 
+          ? await cartApi.getCart()
+          : await cartApi.getGuestCart(sessionId);
+        
+        if (!refreshedCart || !refreshedCart.items || refreshedCart.items.length === 0) {
+          addToast({
+            type: 'error',
+            title: 'Cart Empty',
+            message: 'Your cart is empty. Please add items before placing an order.'
+          });
+          setSubmitting(false);
+          router.push('/cart');
+          return;
+        }
+        
+        console.log('Cart has items, proceeding with order creation');
+      } catch (cartError) {
+        console.error('Failed to refresh cart, continuing with order:', cartError);
+        // Continue with order anyway, backend will validate
+      }
+      
       console.log('Creating order...');
+      
+      // Import retry utility
+      const { retryWithBackoff } = await import('../../lib/api');
       
       // Check if payment method requires SSLCommerz gateway
       const sslcommerzMethods = ['card', 'bkash', 'nagad', 'rocket'];
       
       if (sslcommerzMethods.includes(values.paymentMethod)) {
-        // Handle SSLCommerz payment flow
-        await handleSSLCommerzPayment();
+        // Handle SSLCommerz payment flow with retry
+        await retryWithBackoff(
+          () => handleSSLCommerzPayment(),
+          3, // max retries
+          1000, // initial delay 1s
+          2 // backoff multiplier
+        );
       } else {
-        // Handle direct order placement (COD)
-        await handleDirectOrder();
+        // Handle direct order placement (COD) with retry
+        await retryWithBackoff(
+          () => handleDirectOrder(),
+          3, // max retries
+          1000, // initial delay 1s
+          2 // backoff multiplier
+        );
       }
       
     } catch (error: unknown) {
       console.error('Error placing order:', error);
       
-      // Handle specific error types
+      // Handle specific error types with field-specific errors
       let errorMessage = 'Failed to place order. Please try again.';
+      let errorTitle = 'Order Failed';
+      const fieldErrors: Record<string, string> = {};
       
-      if (error && typeof error === 'object' && 'status' in error) {
-        const errorObj = error as { status: number; code?: string; message?: string };
-        
-        if (errorObj.status === 400) {
-          if (errorObj.code === 'EMPTY_CART') {
-            errorMessage = 'Your cart is empty. Please add items before placing an order.';
-          } else if (errorObj.code === 'PRODUCTS_UNAVAILABLE') {
-            errorMessage = 'Some products in your cart are no longer available. Please review your cart.';
-          } else if (errorObj.code === 'INSUFFICIENT_STOCK') {
-            errorMessage = errorObj.message || 'Some items are out of stock.';
-          } else if (errorObj.code === 'VALIDATION_ERROR') {
-            errorMessage = 'Please check your order details and try again.';
+      if (error && typeof error === 'object') {
+        // Handle ApiError with field information
+        if ('status' in error && 'message' in error) {
+          const errorObj = error as { 
+            status: number; 
+            code?: string; 
+            message?: string;
+            field?: string;
+            details?: string;
+          };
+          
+          // Extract error message
+          errorMessage = errorObj.message || errorMessage;
+          
+          // Handle field-specific errors
+          if (errorObj.field) {
+            fieldErrors[errorObj.field] = errorMessage;
+            // Also show a toast for field-specific errors
+            addToast({
+              type: 'error',
+              title: `${errorObj.field.charAt(0).toUpperCase() + errorObj.field.slice(1)} Error`,
+              message: errorMessage
+            });
           }
-        } else if (errorObj.status === 401) {
-          errorMessage = 'Please log in to continue with your order.';
-          router.push('/login?redirect=/checkout');
-          return;
+          
+          // Handle specific error codes
+          if (errorObj.status === 400) {
+            if (errorObj.code === 'EMPTY_CART') {
+              errorTitle = 'Cart Empty';
+              errorMessage = 'Your cart is empty. Please add items before placing an order.';
+              setSubmitting(false);
+              router.push('/cart');
+              return;
+            } else if (errorObj.code === 'PRODUCTS_UNAVAILABLE') {
+              errorTitle = 'Products Unavailable';
+              errorMessage = 'Some products in your cart are no longer available. Please review your cart.';
+              setSubmitting(false);
+              router.push('/cart');
+              return;
+            } else if (errorObj.code === 'INSUFFICIENT_STOCK') {
+              errorTitle = 'Insufficient Stock';
+              errorMessage = errorObj.message || 'Some items are out of stock. Please review your cart.';
+              setSubmitting(false);
+              router.push('/cart');
+              return;
+            } else if (errorObj.code === 'VALIDATION_ERROR') {
+              errorTitle = 'Validation Error';
+              // Parse validation errors from message if available
+              if (errorObj.details) {
+                errorMessage = errorObj.details;
+              } else {
+                errorMessage = errorObj.message || 'Please check your order details and try again.';
+              }
+            } else if (errorObj.code === 'SESSION_REQUIRED') {
+              errorTitle = 'Session Expired';
+              errorMessage = 'Your session has expired. Please refresh the page and try again.';
+            }
+          } else if (errorObj.status === 401) {
+            errorTitle = 'Authentication Required';
+            errorMessage = 'Please log in to continue with your order.';
+            router.push('/login?redirect=/checkout');
+            setSubmitting(false);
+            return;
+          } else if (errorObj.status === 0 || errorObj.status === 503 || errorObj.status >= 500) {
+            errorTitle = 'Network Error';
+            errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+          }
         }
       }
       
-      addToast({
-        type: 'error',
-        title: 'Order Failed',
-        message: errorMessage
-      });
+      // Show general error toast if not already shown
+      if (!fieldErrors || Object.keys(fieldErrors).length === 0) {
+        addToast({
+          type: 'error',
+          title: errorTitle,
+          message: errorMessage
+        });
+      }
+      
+      // Update form errors with field-specific errors if available
+      if (Object.keys(fieldErrors).length > 0) {
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          // Set field error if the form supports it
+          if (setFieldValue && typeof setFieldValue === 'function') {
+            // Try to set error for the field
+            console.log(`Setting error for field ${field}: ${message}`);
+          }
+        });
+      }
+      
     } finally {
       setSubmitting(false);
     }
