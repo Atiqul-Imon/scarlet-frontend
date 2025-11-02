@@ -406,13 +406,34 @@ export default function CheckoutPage() {
 
         const products = await Promise.all(productPromises);
         
+        // Track missing products for user notification
+        const missingProducts: string[] = [];
+        
         // Create a Map for O(1) lookups instead of O(n) find operations
         const productMap = new Map<string, any>();
         products.forEach((product, index) => {
+          const productId = productIds[index];
+          if (!productId) return;
+          
           if (product) {
-            productMap.set(productIds[index], product);
+            productMap.set(productId, product);
+          } else if (!productId.startsWith('test-product-')) {
+            // Track missing products (excluding test products)
+            missingProducts.push(productId);
           }
         });
+        
+        // Show warning if some products are missing
+        if (missingProducts.length > 0) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Some products could not be fetched:', missingProducts);
+          }
+          addToast({
+            type: 'warning',
+            title: 'Some products unavailable',
+            message: `${missingProducts.length} product(s) in your cart could not be loaded. Please review your cart.`
+          });
+        }
         
         // Enrich cart items with product details using Map lookup (O(1) vs O(n))
         const enrichedItems: CartItemData[] = cart.items.map(item => {
@@ -436,6 +457,22 @@ export default function CheckoutPage() {
             };
           }
           
+          // If product is missing, mark it but keep it for now (user should see what's in cart)
+          if (!product) {
+            return {
+              productId: item.productId,
+              title: 'Product unavailable',
+              slug: '',
+              image: '/placeholder-product.jpg',
+              price: { currency: 'BDT', amount: 0 },
+              quantity: item.quantity,
+              brand: undefined,
+              stock: 0,
+              ...(item.selectedSize && { selectedSize: item.selectedSize }),
+              ...(item.selectedColor && { selectedColor: item.selectedColor })
+            };
+          }
+          
           return {
             productId: item.productId,
             title: product?.title || 'Product not found',
@@ -445,12 +482,30 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             brand: product?.brand,
             stock: product?.stock,
-            selectedSize: item.selectedSize,
-            selectedColor: item.selectedColor
+            ...(item.selectedSize && { selectedSize: item.selectedSize }),
+            ...(item.selectedColor && { selectedColor: item.selectedColor })
           };
-        }).filter(item => item.title !== 'Product not found');
+        });
 
-        setCartItems(enrichedItems);
+        // Filter out only items that are completely invalid (no productId)
+        const validItems = enrichedItems.filter(item => {
+          if (!item.productId) return false;
+          // Keep items even if they're unavailable - user should see what was in cart
+          return true;
+        });
+        
+        // If no valid items remain, redirect to cart
+        if (validItems.length === 0) {
+          addToast({
+            type: 'error',
+            title: 'Cart is empty',
+            message: 'No valid products found in your cart. Please add items to your cart.'
+          });
+          router.push('/cart');
+          return;
+        }
+
+        setCartItems(validItems);
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Error fetching cart data:', err);
