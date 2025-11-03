@@ -413,7 +413,7 @@ export default function OTPVerification({
             loading={loading}
             disabled={otp.join('').length !== 4 || loading || attemptsRemaining <= 0}
           >
-            {loading ? 'Verifying...' : 'Verify Phone Number'}
+            {loading ? 'Verifying...' : 'Verify OTP'}
           </Button>
 
           <div className="flex space-x-3">
