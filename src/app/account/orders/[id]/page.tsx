@@ -6,6 +6,7 @@ import Link from 'next/link';
 import AccountLayout from '../../../../components/account/AccountLayout';
 import { Button } from '../../../../components/ui/button';
 import OrderReceipt from '../../../../components/orders/OrderReceipt';
+import CancelOrderModal from '../../../../components/orders/CancelOrderModal';
 import { generateReceiptPDF, generateDetailedReceiptPDF, generateSimpleReceiptPDF } from '../../../../lib/receipt-generator';
 import { useAuth, useToast } from '../../../../lib/context';
 import { formatters } from '../../../../lib/utils';
@@ -40,14 +41,14 @@ interface OrderDetails {
   subtotal: number;
   shipping: number;
   tax: number;
-  estimatedDelivery?: string;
-  trackingNumber?: string;
+  estimatedDelivery?: string | undefined;
+  trackingNumber?: string | undefined;
   customerName: string;
-  customerEmail?: string;
-  customerPhone?: string;
+  customerEmail?: string | undefined;
+  customerPhone?: string | undefined;
 }
 
-export default function OrderDetailsPage(): JSX.Element {
+export default function OrderDetailsPage(): React.ReactElement {
   const params = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -57,14 +58,16 @@ export default function OrderDetailsPage(): JSX.Element {
   // Redirect to login if not authenticated
   React.useEffect(() => {
     if (!authLoading && !user) {
-      router.push(`/login?redirect=/account/orders/${params.id}`);
+      router.push(`/login?redirect=/account/orders/${params['id']}`);
     }
-  }, [user, authLoading, router, params.id]);
+  }, [user, authLoading, router, params]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = React.useState(false);
+  const [isCancelling, setIsCancelling] = React.useState(false);
   const receiptRef = React.useRef<HTMLDivElement>(null);
 
-  const orderId = params.id as string;
+  const orderId = params['id'] as string;
 
   React.useEffect(() => {
     if (!orderId) {
@@ -94,9 +97,9 @@ export default function OrderDetailsPage(): JSX.Element {
           shippingAddress: {
             name: `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim() || 'N/A',
             address: order.shippingAddress?.address || 'N/A',
-            city: order.shippingAddress?.city || order.shippingAddress?.division || 'N/A',
-            area: order.shippingAddress?.area || order.shippingAddress?.dhakaArea || order.shippingAddress?.district || 'N/A',
-            postalCode: order.shippingAddress?.postalCode || 'N/A',
+          city: order.shippingAddress?.city || (order.shippingAddress as any)?.division || 'N/A',
+          area: (order.shippingAddress as any)?.area || (order.shippingAddress as any)?.dhakaArea || (order.shippingAddress as any)?.district || 'N/A',
+          postalCode: (order.shippingAddress as any)?.postalCode || 'N/A',
             phone: order.shippingAddress?.phone || 'N/A'
           },
           items: (order.items || []).map((item: any) => ({
@@ -114,7 +117,7 @@ export default function OrderDetailsPage(): JSX.Element {
           estimatedDelivery: order.estimatedDelivery,
           trackingNumber: order.trackingNumber,
           customerName: `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim() || 'N/A',
-          customerEmail: order.shippingAddress?.email,
+          customerEmail: (order.shippingAddress as any)?.email,
           customerPhone: order.shippingAddress?.phone
         };
 
@@ -278,6 +281,81 @@ export default function OrderDetailsPage(): JSX.Element {
     return statusMap[status as keyof typeof statusMap] || status;
   };
 
+  // Check if order can be cancelled
+  const canCancelOrder = (): boolean => {
+    if (!orderDetails) return false;
+    const cancellableStatuses = ['pending', 'confirmed', 'processing'];
+    return cancellableStatuses.includes(orderDetails.status);
+  };
+
+  // Handle order cancellation
+  const handleCancelOrder = async (reason: string) => {
+    if (!orderDetails) return;
+    
+    setIsCancelling(true);
+    try {
+      await orderApi.cancelOrder(orderDetails._id, reason);
+      
+      addToast({
+        type: 'success',
+        title: 'Order Cancelled',
+        message: `Order #${orderDetails.orderNumber} has been cancelled successfully.`
+      });
+
+      // Refresh order details
+      const updatedOrder = await orderApi.getOrder(orderDetails._id);
+      
+      // Transform updated order data
+      const updatedOrderDetails: OrderDetails = {
+        _id: updatedOrder._id,
+        orderNumber: updatedOrder.orderNumber || `SCR-${updatedOrder._id}`,
+        createdAt: updatedOrder.createdAt || new Date().toISOString(),
+        status: updatedOrder.status || 'pending',
+        total: updatedOrder.total || 0,
+        currency: updatedOrder.currency || 'BDT',
+        paymentMethod: updatedOrder.paymentInfo?.method || 'unknown',
+        paymentStatus: updatedOrder.paymentInfo?.status || 'pending',
+        shippingAddress: {
+          name: `${updatedOrder.shippingAddress?.firstName || ''} ${updatedOrder.shippingAddress?.lastName || ''}`.trim() || 'N/A',
+          address: updatedOrder.shippingAddress?.address || 'N/A',
+          city: updatedOrder.shippingAddress?.city || (updatedOrder.shippingAddress as any)?.division || 'N/A',
+          area: (updatedOrder.shippingAddress as any)?.area || (updatedOrder.shippingAddress as any)?.dhakaArea || (updatedOrder.shippingAddress as any)?.district || 'N/A',
+          postalCode: (updatedOrder.shippingAddress as any)?.postalCode || 'N/A',
+          phone: updatedOrder.shippingAddress?.phone || 'N/A'
+        },
+        items: updatedOrder.items.map(item => ({
+          productId: item.productId,
+          title: item.title,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+          size: item.size || undefined,
+          color: item.color || undefined
+        })),
+        subtotal: updatedOrder.subtotal || 0,
+        shipping: updatedOrder.shipping || 0,
+        tax: updatedOrder.tax || 0,
+        estimatedDelivery: updatedOrder.estimatedDelivery,
+        trackingNumber: updatedOrder.trackingNumber,
+        customerName: `${updatedOrder.shippingAddress?.firstName || ''} ${updatedOrder.shippingAddress?.lastName || ''}`.trim() || 'N/A',
+        customerEmail: (updatedOrder.shippingAddress as any)?.email,
+        customerPhone: updatedOrder.shippingAddress?.phone
+      };
+      
+      setOrderDetails(updatedOrderDetails);
+      setShowCancelModal(false);
+    } catch (error: any) {
+      addToast({
+        type: 'error',
+        title: 'Cancellation Failed',
+        message: error.message || 'Failed to cancel order. Please try again.'
+      });
+      throw error; // Re-throw so modal can handle it
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   // Show loading or redirect - don't show skeleton if not authenticated
   if (authLoading || loading || !user) {
     if (!authLoading && !user) {
@@ -322,6 +400,15 @@ export default function OrderDetailsPage(): JSX.Element {
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(orderDetails.status)}`}>
               {getStatusText(orderDetails.status)}
             </span>
+            {canCancelOrder() && (
+              <Button 
+                variant="danger" 
+                size="sm"
+                onClick={() => setShowCancelModal(true)}
+              >
+                Cancel Order
+              </Button>
+            )}
             <Link href="/account/orders">
               <Button variant="ghost" size="sm">
                 Back to Orders
@@ -556,11 +643,21 @@ export default function OrderDetailsPage(): JSX.Element {
           </div>
         </div>
       </div>
+      {/* Cancel Order Modal */}
+      {orderDetails && (
+        <CancelOrderModal
+          isOpen={showCancelModal}
+          onClose={() => setShowCancelModal(false)}
+          onConfirm={handleCancelOrder}
+          orderNumber={orderDetails.orderNumber}
+          isLoading={isCancelling}
+        />
+      )}
     </AccountLayout>
   );
 }
 
-function OrderDetailsSkeleton(): JSX.Element {
+function OrderDetailsSkeleton(): React.ReactElement {
   return (
     <div className="space-y-6 animate-pulse">
       {/* Header Skeleton */}
@@ -614,7 +711,7 @@ function OrderDetailsSkeleton(): JSX.Element {
   );
 }
 
-function ErrorIcon(): JSX.Element {
+function ErrorIcon(): React.ReactElement {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-500">
       <circle cx="12" cy="12" r="10"/>
@@ -624,7 +721,7 @@ function ErrorIcon(): JSX.Element {
   );
 }
 
-function DownloadIcon({ className }: { className?: string }): JSX.Element {
+function DownloadIcon({ className }: { className?: string }): React.ReactElement {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

@@ -6,11 +6,12 @@ import AccountLayout from '../../../components/account/AccountLayout';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Select } from '../../../components/ui/select';
+import CancelOrderModal from '../../../components/orders/CancelOrderModal';
 import { useDebounce } from '../../../lib/hooks';
 import { formatters } from '../../../lib/utils';
 import { Order, OrderStatus, SelectOption } from '../../../lib/types';
 import { orderApi } from '../../../lib/api';
-import { useAuth } from '../../../lib/context';
+import { useAuth, useToast } from '../../../lib/context';
 
 interface OrderFilters {
   search: string;
@@ -36,11 +37,15 @@ const dateRangeOptions: SelectOption[] = [
   { value: '365', label: 'Last Year' },
 ];
 
-export default function OrderHistoryPage(): JSX.Element {
+export default function OrderHistoryPage(): React.ReactElement {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { addToast } = useToast();
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [showCancelModal, setShowCancelModal] = React.useState(false);
+  const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
+  const [isCancelling, setIsCancelling] = React.useState(false);
 
   // Redirect to login if not authenticated
   React.useEffect(() => {
@@ -128,6 +133,80 @@ export default function OrderHistoryPage(): JSX.Element {
 
   const handleFilterChange = (key: keyof OrderFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Check if order can be cancelled
+  const canCancelOrder = (order: Order): boolean => {
+    const cancellableStatuses = ['pending', 'confirmed', 'processing'];
+    return cancellableStatuses.includes(order.status);
+  };
+
+  // Handle cancel button click
+  const handleCancelClick = (order: Order) => {
+    setSelectedOrder(order);
+    setShowCancelModal(true);
+  };
+
+  // Handle order cancellation
+  const handleCancelOrder = async (reason: string) => {
+    if (!selectedOrder) return;
+    
+    setIsCancelling(true);
+    try {
+      await orderApi.cancelOrder(selectedOrder._id!, reason);
+      
+      addToast({
+        type: 'success',
+        title: 'Order Cancelled',
+        message: `Order #${selectedOrder.orderNumber} has been cancelled successfully.`
+      });
+
+      // Refresh orders list
+      const ordersResponse = await orderApi.getOrders(1, 50);
+      let updatedOrders: Order[] = 
+        (ordersResponse && typeof ordersResponse === 'object' && 'orders' in ordersResponse && Array.isArray((ordersResponse as any).orders))
+          ? (ordersResponse as any).orders
+          : Array.isArray(ordersResponse) 
+            ? ordersResponse 
+            : [];
+      
+      // Apply current filters
+      if (filters.search) {
+        updatedOrders = updatedOrders.filter((order: Order) => 
+          order.orderNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
+          order.items.some(item => 
+            item.title.toLowerCase().includes(filters.search.toLowerCase())
+          )
+        );
+      }
+      
+      if (filters.status !== 'all') {
+        updatedOrders = updatedOrders.filter((order: Order) => order.status === filters.status);
+      }
+      
+      if (filters.dateRange !== 'all') {
+        const daysAgo = parseInt(filters.dateRange);
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
+        updatedOrders = updatedOrders.filter((order: Order) => {
+          const orderDate = new Date(order.createdAt || 0);
+          return orderDate >= cutoffDate;
+        });
+      }
+      
+      setOrders(updatedOrders);
+      setShowCancelModal(false);
+      setSelectedOrder(null);
+    } catch (error: any) {
+      addToast({
+        type: 'error',
+        title: 'Cancellation Failed',
+        message: error.message || 'Failed to cancel order. Please try again.'
+      });
+      throw error; // Re-throw so modal can handle it
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   // Show loading or redirect - don't show skeleton if not authenticated
@@ -326,8 +405,12 @@ export default function OrderHistoryPage(): JSX.Element {
                           Reorder
                         </Button>
                       )}
-                      {(order.status === 'pending' || order.status === 'confirmed') && (
-                        <Button variant="ghost" size="sm">
+                      {canCancelOrder(order) && (
+                        <Button 
+                          variant="danger" 
+                          size="sm"
+                          onClick={() => handleCancelClick(order)}
+                        >
                           Cancel Order
                         </Button>
                       )}
@@ -364,11 +447,25 @@ export default function OrderHistoryPage(): JSX.Element {
           </div>
         )}
       </div>
+
+      {/* Cancel Order Modal */}
+      {selectedOrder && (
+        <CancelOrderModal
+          isOpen={showCancelModal}
+          onClose={() => {
+            setShowCancelModal(false);
+            setSelectedOrder(null);
+          }}
+          onConfirm={handleCancelOrder}
+          orderNumber={selectedOrder.orderNumber}
+          isLoading={isCancelling}
+        />
+      )}
     </AccountLayout>
   );
 }
 
-function OrderHistorySkeleton(): JSX.Element {
+function OrderHistorySkeleton(): React.ReactElement {
   return (
     <div className="space-y-6 animate-pulse">
       {/* Header Skeleton */}
@@ -429,7 +526,7 @@ function OrderHistorySkeleton(): JSX.Element {
 }
 
 // Icon Components
-function SearchIcon(): JSX.Element {
+function SearchIcon(): React.ReactElement {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="11" cy="11" r="8" />
@@ -438,7 +535,7 @@ function SearchIcon(): JSX.Element {
   );
 }
 
-function TruckIcon({ className }: { className?: string }): JSX.Element {
+function TruckIcon({ className }: { className?: string }): React.ReactElement {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
@@ -450,7 +547,7 @@ function TruckIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function CalendarIcon({ className }: { className?: string }): JSX.Element {
+function CalendarIcon({ className }: { className?: string }): React.ReactElement {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -461,7 +558,7 @@ function CalendarIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function CheckIcon({ className }: { className?: string }): JSX.Element {
+function CheckIcon({ className }: { className?: string }): React.ReactElement {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="20 6 9 17 4 12" />
@@ -469,7 +566,7 @@ function CheckIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function OrderIcon({ className }: { className?: string }): JSX.Element {
+function OrderIcon({ className }: { className?: string }): React.ReactElement {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -478,7 +575,7 @@ function OrderIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function ReceiptIcon({ className }: { className?: string }): JSX.Element {
+function ReceiptIcon({ className }: { className?: string }): React.ReactElement {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
