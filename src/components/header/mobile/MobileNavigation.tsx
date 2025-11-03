@@ -168,60 +168,6 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
 
         {/* Navigation Content */}
         <div className="flex-1 overflow-y-auto bg-white mobile-menu-panel">
-          {/* Quick Actions */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href="/cart"
-                onClick={handleLinkClick}
-                className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-              >
-                <div className="relative">
-                  <CartIcon />
-                  {itemCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                      {itemCount > 99 ? '99+' : itemCount}
-                    </span>
-                  )}
-                </div>
-                <span className="text-sm font-medium text-gray-900">Cart ({itemCount})</span>
-              </Link>
-              
-              <Link
-                href="/wishlist"
-                onClick={handleLinkClick}
-                className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <HeartIcon />
-                <span className="text-sm font-medium text-gray-900">Wishlist</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Blog Section */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <Link
-              href="/blog"
-              onClick={handleLinkClick}
-              className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-            >
-              <BlogIcon />
-              <span className="text-sm font-medium text-gray-900">Scarlet Blog</span>
-            </Link>
-          </div>
-
-          {/* Skincare Consultation Section */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <Link
-              href="/skincare-consultation"
-              onClick={handleLinkClick}
-              className="flex items-center gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-            >
-              <ConsultationIcon />
-              <span className="text-sm font-medium text-gray-900">Skincare Consultation</span>
-            </Link>
-          </div>
-
           {/* User Account Section */}
           {user ? (
             <div className="px-4 py-3 border-b border-gray-200">
