@@ -168,55 +168,6 @@ export default function MobileNavigation({ isOpen, onClose, categoryTree }: Mobi
 
         {/* Navigation Content */}
         <div className="flex-1 overflow-y-auto bg-white mobile-menu-panel">
-          {/* User Account Section */}
-          {user ? (
-            <div className="px-4 py-3 border-b border-gray-200">
-              <div className="space-y-2">
-                <Link
-                  href="/account"
-                  onClick={handleLinkClick}
-                  className="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <UserIcon />
-                  <span className="text-sm font-medium">My Account</span>
-                </Link>
-                <Link
-                  href="/account/orders"
-                  onClick={handleLinkClick}
-                  className="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <OrderIcon />
-                  <span className="text-sm font-medium">My Orders</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 p-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
-                >
-                  <LogoutIcon />
-                  <span className="text-sm font-medium">Sign Out</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="px-4 py-3 border-b border-gray-200">
-              <div className="space-y-2">
-                <Link
-                  href="/login"
-                  onClick={handleLinkClick}
-                  className="block w-full text-center py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={handleLinkClick}
-                  className="block w-full text-center py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            </div>
-          )}
 
           {/* Categories - Show only top-level with nested children */}
           <div className="px-4 py-3">
