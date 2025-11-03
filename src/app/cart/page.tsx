@@ -48,6 +48,8 @@ export default function CartPage() {
   const [showOTPRequest, setShowOTPRequest] = React.useState(false);
   const [showOTPVerification, setShowOTPVerification] = React.useState(false);
   const [verifiedPhone, setVerifiedPhone] = React.useState<string | null>(null);
+  const [verifiedEmail, setVerifiedEmail] = React.useState<string | null>(null);
+  const [verifiedIdentifierType, setVerifiedIdentifierType] = React.useState<'email' | 'phone' | null>(null);
   const [receivedOTP, setReceivedOTP] = React.useState<string | null>(null);
 
   // Debug cart state
@@ -278,7 +280,7 @@ export default function CartPage() {
   }, [clearCart, addToast]);
 
   const handleCheckout = () => {
-    // If user is not logged in, require OTP verification
+    // Require OTP verification for guest checkout
     if (!user) {
       setShowOTPRequest(true);
       return;
@@ -288,27 +290,45 @@ export default function CartPage() {
     router.push('/checkout');
   };
 
-  // OTP handlers
-  const handleOTPSent = (phone: string, otp?: string) => {
-    setVerifiedPhone(phone);
-    setReceivedOTP(otp || null);
+  // OTP handlers - now supports email or phone
+  const handleOTPSent = (identifier: string, type: 'email' | 'phone') => {
+    if (type === 'phone') {
+      setVerifiedPhone(identifier);
+      setVerifiedEmail(null);
+      sessionStorage.setItem('scarlet_verified_guest_phone', identifier);
+      sessionStorage.removeItem('scarlet_verified_guest_email');
+    } else {
+      setVerifiedEmail(identifier);
+      setVerifiedPhone(null);
+      sessionStorage.setItem('scarlet_verified_guest_email', identifier);
+      sessionStorage.removeItem('scarlet_verified_guest_phone');
+    }
+    setVerifiedIdentifierType(type);
+    setReceivedOTP(null);
     setShowOTPRequest(false);
     setShowOTPVerification(true);
   };
 
-  const handleOTPVerified = (phone: string) => {
+  const handleOTPVerified = (identifier: string) => {
     setShowOTPVerification(false);
-    // Proceed to checkout with verified phone as URL parameter
-    router.push(`/checkout?verifiedPhone=${encodeURIComponent(phone)}`);
+    // Proceed to checkout with verified identifier as URL parameter
+    if (verifiedIdentifierType === 'phone') {
+      router.push(`/checkout?verifiedPhone=${encodeURIComponent(identifier)}`);
+    } else {
+      router.push(`/checkout?verifiedEmail=${encodeURIComponent(identifier)}`);
+    }
   };
 
   const handleOTPCancel = () => {
     setShowOTPRequest(false);
     setShowOTPVerification(false);
     setVerifiedPhone(null);
+    setVerifiedEmail(null);
+    setVerifiedIdentifierType(null);
     setReceivedOTP(null);
-    // Clear verified phone from sessionStorage
+    // Clear verified identifiers from sessionStorage
     sessionStorage.removeItem('scarlet_verified_guest_phone');
+    sessionStorage.removeItem('scarlet_verified_guest_email');
   };
 
   // Mobile-specific cart refresh mechanism
@@ -542,10 +562,13 @@ export default function CartPage() {
         isOpen={showOTPRequest}
       />
       
-      {showOTPVerification && verifiedPhone && (
+      {showOTPVerification && verifiedIdentifierType && (verifiedPhone || verifiedEmail) && (
         <div className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <OTPVerification
-            phone={verifiedPhone}
+            identifier={verifiedPhone || verifiedEmail || ''}
+            identifierType={verifiedIdentifierType}
+            phone={verifiedPhone || undefined}
+            email={verifiedEmail || undefined}
             sessionId={sessionId}
             purpose="guest_checkout"
             onVerified={handleOTPVerified}

@@ -7,16 +7,22 @@ import { otpApi } from '../../lib/api';
 import type { OTPRequest, OTPVerification } from '../../lib/api';
 
 interface OTPVerificationProps {
-  phone: string;
+  phone?: string; // For backward compatibility
+  email?: string; // New - for email verification
+  identifier: string; // The actual identifier (email or phone)
+  identifierType: 'email' | 'phone'; // Type of identifier
   sessionId: string;
   purpose: 'guest_checkout' | 'phone_verification' | 'password_reset';
-  onVerified: (phone: string) => void;
+  onVerified: (identifier: string) => void;
   onCancel: () => void;
   className?: string;
 }
 
 export default function OTPVerification({
-  phone,
+  phone: phoneProp,
+  email: emailProp,
+  identifier,
+  identifierType,
   sessionId,
   purpose,
   onVerified,
@@ -32,6 +38,10 @@ export default function OTPVerification({
   const [error, setError] = React.useState<string | null>(null);
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
+  // Determine identifier from props (backward compatibility)
+  const actualIdentifier = identifier || phoneProp || emailProp || '';
+  const actualType = identifierType || (phoneProp ? 'phone' : 'email');
+
   // Format phone number for display
   const formatPhone = (phone: string): string => {
     // Convert +8801XXXXXXXXX to 01XXXXXXXXX for display
@@ -39,6 +49,19 @@ export default function OTPVerification({
       return '0' + phone.slice(4);
     }
     return phone;
+  };
+
+  // Format identifier for display
+  const formatIdentifier = (): string => {
+    if (actualType === 'phone') {
+      return formatPhone(actualIdentifier);
+    }
+    // Mask email: user@domain.com -> u***@domain.com
+    const [local, domain] = actualIdentifier.split('@');
+    if (local && domain) {
+      return `${local[0]}***@${domain}`;
+    }
+    return actualIdentifier;
   };
 
   // Timer for resend OTP
@@ -198,7 +221,7 @@ export default function OTPVerification({
     
     try {
       const verification: OTPVerification = {
-        phone,
+        phone: actualIdentifier, // Use actual identifier (phone or email)
         code: otpString,
         sessionId,
         purpose
@@ -209,10 +232,12 @@ export default function OTPVerification({
       if (result.success) {
         addToast({
           type: 'success',
-          title: 'Phone Verified',
-          message: 'Your phone number has been verified successfully!'
+          title: actualType === 'phone' ? 'Phone Verified' : 'Email Verified',
+          message: actualType === 'phone' 
+            ? 'Your phone number has been verified successfully!'
+            : 'Your email address has been verified successfully!'
         });
-        onVerified(phone);
+        onVerified(actualIdentifier);
       }
     } catch (error: any) {
       console.error('OTP verification error:', error);
@@ -269,7 +294,7 @@ export default function OTPVerification({
     setSending(true);
     try {
       const request: OTPRequest = {
-        phone,
+        phone: actualIdentifier, // Use actual identifier (phone or email)
         purpose
       };
 
@@ -316,13 +341,13 @@ export default function OTPVerification({
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Verify Your Phone Number
+          Verify Your {actualType === 'phone' ? 'Phone Number' : 'Email Address'}
         </h3>
         <p className="text-sm text-gray-600">
           We've sent a 4-digit verification code to
         </p>
         <p className="text-sm font-medium text-gray-900">
-          {formatPhone(phone)}
+          {formatIdentifier()}
         </p>
       </div>
 
@@ -366,7 +391,7 @@ export default function OTPVerification({
           )}
           <div className="mt-2 text-center">
             <p className="text-xs text-gray-500 mb-1">
-              Enter the 4-digit code sent to your phone
+              Enter the 4-digit code sent to your {actualType === 'phone' ? 'phone' : 'email'}
             </p>
             <p className="text-xs text-gray-400">
               💡 Tip: Use <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">←</kbd> <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">→</kbd> arrows to navigate, <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Backspace</kbd> to clear

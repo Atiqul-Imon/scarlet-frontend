@@ -10,7 +10,7 @@ import type { OTPRequest } from '../../lib/api';
 interface OTPRequestModalProps {
   sessionId: string;
   purpose: 'guest_checkout' | 'phone_verification' | 'password_reset';
-  onOTPSent: (phone: string) => void;
+  onOTPSent: (identifier: string, type: 'email' | 'phone') => void;
   onCancel: () => void;
   isOpen: boolean;
 }
@@ -23,7 +23,9 @@ export default function OTPRequestModal({
   isOpen
 }: OTPRequestModalProps) {
   const { addToast } = useToast();
+  const [verificationType, setVerificationType] = React.useState<'email' | 'phone'>('phone');
   const [phone, setPhone] = React.useState('');
+  const [email, setEmail] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -31,7 +33,9 @@ export default function OTPRequestModal({
   React.useEffect(() => {
     if (isOpen) {
       setPhone('');
+      setEmail('');
       setError(null);
+      setVerificationType('phone'); // Default to phone
     }
   }, [isOpen]);
 
@@ -60,6 +64,11 @@ export default function OTPRequestModal({
     return cleanPhone;
   };
 
+  // Validate email
+  const validateEmail = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  };
+
   // Handle phone input change
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -71,39 +80,81 @@ export default function OTPRequestModal({
     }
   };
 
+  // Handle email input change
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!phone.trim()) {
-      setError('Phone number is required');
-      return;
-    }
+    setError(null);
 
-    if (!validatePhone(phone)) {
-      setError('Please enter a valid Bangladesh phone number (01XXXXXXXXX)');
-      return;
+    // Validate based on verification type
+    if (verificationType === 'phone') {
+      if (!phone.trim()) {
+        setError('Phone number is required');
+        return;
+      }
+
+      if (!validatePhone(phone)) {
+        setError('Please enter a valid Bangladesh phone number (01XXXXXXXXX)');
+        return;
+      }
+    } else {
+      if (!email.trim()) {
+        setError('Email address is required');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
     }
 
     setLoading(true);
-    setError(null);
 
     try {
-      const normalizedPhone = normalizePhone(phone);
-      const request: OTPRequest = {
-        phone: normalizedPhone,
-        purpose
-      };
+      if (verificationType === 'phone') {
+        const normalizedPhone = normalizePhone(phone);
+        const request: OTPRequest = {
+          phone: normalizedPhone,
+          purpose
+        };
 
-      const result = await otpApi.generateOTP(request, sessionId);
-      
-      if (result.success) {
-        addToast({
-          type: 'success',
-          title: 'OTP Sent',
-          message: `A verification code has been sent to ${phone}`
-        });
-        onOTPSent(normalizedPhone);
+        const result = await otpApi.generateOTP(request, sessionId);
+        
+        if (result.success) {
+          addToast({
+            type: 'success',
+            title: 'OTP Sent',
+            message: `A verification code has been sent to ${phone}`
+          });
+          onOTPSent(normalizedPhone, 'phone');
+        }
+      } else {
+        // Email OTP - need to call API that supports email
+        const result = await otpApi.generateOTP({ 
+          phone: email, // Backend will detect if it's email
+          purpose 
+        } as OTPRequest, sessionId);
+        
+        if (result.success) {
+          addToast({
+            type: 'success',
+            title: 'OTP Sent',
+            message: `A verification code has been sent to ${email}`
+          });
+          onOTPSent(email, 'email');
+        }
       }
     } catch (error: any) {
       console.error('OTP generation error:', error);
@@ -112,6 +163,8 @@ export default function OTPRequestModal({
       
       if (error.message?.includes('valid Bangladesh phone number')) {
         errorMessage = 'Please enter a valid Bangladesh phone number (01XXXXXXXXX)';
+      } else if (error.message?.includes('valid email')) {
+        errorMessage = 'Please enter a valid email address';
       } else if (error.message?.includes('Please wait')) {
         errorMessage = error.message;
       }
@@ -139,32 +192,91 @@ export default function OTPRequestModal({
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Verify Your Phone Number
+            Verify Your Contact Information
           </h3>
           <p className="text-sm text-gray-600">
             {purpose === 'guest_checkout' 
-              ? 'We need to verify your phone number to proceed with checkout'
-              : 'Enter your phone number to receive a verification code'
+              ? 'We need to verify your email or phone number to proceed with checkout'
+              : 'Enter your email or phone number to receive a verification code'
             }
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Verification Type Selection */}
           <div>
-            <Input
-              label="Phone Number"
-              type="tel"
-              value={phone}
-              onChange={handlePhoneChange}
-              placeholder="01XXXXXXXXX"
-              error={error}
-              autoComplete="tel"
-              autoFocus
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter your Bangladesh mobile number (01XXXXXXXXX)
-            </p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Verify via:
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setVerificationType('phone');
+                  setError(null);
+                }}
+                className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
+                  verificationType === 'phone'
+                    ? 'border-red-500 bg-red-50 text-red-700'
+                    : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                }`}
+              >
+                📱 Phone
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setVerificationType('email');
+                  setError(null);
+                }}
+                className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
+                  verificationType === 'email'
+                    ? 'border-red-500 bg-red-50 text-red-700'
+                    : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                }`}
+              >
+                ✉️ Email
+              </button>
+            </div>
           </div>
+
+          {/* Phone Input */}
+          {verificationType === 'phone' && (
+            <div>
+              <Input
+                label="Phone Number"
+                type="tel"
+                value={phone}
+                onChange={handlePhoneChange}
+                placeholder="01XXXXXXXXX"
+                error={error}
+                autoComplete="tel"
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter your Bangladesh mobile number (01XXXXXXXXX)
+              </p>
+            </div>
+          )}
+
+          {/* Email Input */}
+          {verificationType === 'email' && (
+            <div>
+              <Input
+                label="Email Address"
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                placeholder="your@email.com"
+                error={error}
+                autoComplete="email"
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter your email address to receive verification code
+              </p>
+            </div>
+          )}
 
           <div className="flex space-x-3">
             <Button
@@ -180,7 +292,11 @@ export default function OTPRequestModal({
               type="submit"
               variant="primary"
               loading={loading}
-              disabled={!phone.trim() || loading}
+              disabled={
+                (verificationType === 'phone' && !phone.trim()) ||
+                (verificationType === 'email' && !email.trim()) ||
+                loading
+              }
               className="flex-1"
             >
               {loading ? 'Sending...' : 'Send OTP'}
@@ -191,7 +307,10 @@ export default function OTPRequestModal({
         {/* Production notice */}
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
           <p className="text-xs text-green-800 text-center">
-            📱 OTP will be sent to your phone via SMS
+            {verificationType === 'phone' 
+              ? '📱 OTP will be sent to your phone via SMS'
+              : '✉️ OTP will be sent to your email address'
+            }
           </p>
         </div>
       </div>
