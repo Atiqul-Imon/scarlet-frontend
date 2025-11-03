@@ -24,8 +24,8 @@ interface CheckoutFormData {
   // Shipping Information
   firstName: string;
   lastName?: string; // Made optional
-  email?: string; // Made optional
-  phone: string;
+  email?: string; // Optional, but required if phone not provided
+  phone?: string; // Optional, but required if email not provided
   address: string;
   deliveryArea: 'inside_dhaka' | 'outside_dhaka'; // Location selection
   // Inside Dhaka fields
@@ -87,7 +87,7 @@ export default function CheckoutPage() {
         firstName: values.firstName,
         lastName: values.lastName || undefined,
         email: values.email || undefined,
-        phone: values.phone,
+        phone: values.phone || undefined,
         address: values.address,
         deliveryArea: values.deliveryArea,
         dhakaArea: values.dhakaArea || undefined,
@@ -118,7 +118,7 @@ export default function CheckoutPage() {
         customerInfo: {
           name: `${values.firstName} ${values.lastName || ''}`.trim(),
           email: values.email || `${values.phone}@scarlet.com`,
-          phone: values.phone,
+          phone: values.phone || undefined,
           address: values.address,
           city: values.city,
           country: 'Bangladesh',
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
         firstName: values.firstName,
         lastName: values.lastName || undefined,
         email: values.email || undefined,
-        phone: values.phone,
+        phone: values.phone || undefined,
         address: values.address,
         deliveryArea: values.deliveryArea,
         dhakaArea: values.dhakaArea || undefined,
@@ -271,7 +271,7 @@ export default function CheckoutPage() {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       email: user?.email || '',
-      phone: user?.phone || verifiedGuestPhone || '',
+      phone: user?.phone || verifiedGuestPhone || undefined,
       address: '',
       deliveryArea: 'inside_dhaka', // Default to Inside Dhaka
       dhakaArea: '',
@@ -294,13 +294,28 @@ export default function CheckoutPage() {
       
       // Last name is optional - no validation needed
       
-      // Email is optional, but if provided, must be valid
-      if (values.email && values.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
-        errors.email = 'Please enter a valid email address';
+      // Email OR Phone is required (at least one must be provided)
+      const hasEmail = values.email && values.email.trim().length > 0;
+      const hasPhone = values.phone && values.phone.trim().length > 0;
+      
+      // At least one is required
+      if (!hasEmail && !hasPhone) {
+        errors.email = 'Email or phone number is required';
+        errors.phone = 'Email or phone number is required';
       }
       
-      if (!values.phone || !/^(\+88)?01[3-9]\d{8}$/.test(values.phone)) {
-        errors.phone = 'Please enter a valid Bangladesh phone number';
+      // Validate email if provided
+      if (hasEmail) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+          errors.email = 'Please enter a valid email address';
+        }
+      }
+      
+      // Validate phone if provided (still Bangladesh format)
+      if (hasPhone) {
+        if (!/^(\+88)?01[3-9]\d{8}$/.test(values.phone.trim())) {
+          errors.phone = 'Please enter a valid Bangladesh phone number';
+        }
       }
       
       if (!values.address || values.address.length < 10) {
@@ -876,37 +891,43 @@ export default function CheckoutPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <Input
-                      label="Email Address (Optional)"
-                      name="email"
-                      type="email"
-                      value={values.email}
-                      onChange={handleChange}
-                      error={errors.email || undefined}
-                      placeholder="Email (optional)"
-                    />
-                    <div>
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-3">
+                      Email or phone number is required (provide at least one)
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input
-                        label="Phone Number *"
-                        name="phone"
-                        type="tel"
-                        value={values.phone}
+                        label="Email Address"
+                        name="email"
+                        type="email"
+                        value={values.email}
                         onChange={handleChange}
-                        error={errors.phone || undefined}
-                        placeholder="01XXXXXXXXX"
-                        required
-                        readOnly={!user && isGuestPhoneVerified}
-                        className={!user && isGuestPhoneVerified ? "bg-gray-50 cursor-not-allowed" : ""}
+                        error={errors.email || undefined}
+                        placeholder="your@email.com"
+                        helperText={!values.phone ? "Required if phone not provided" : "Optional"}
                       />
-                      {!user && isGuestPhoneVerified && (
-                        <div className="mt-2 flex items-center text-sm text-green-600">
-                          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span>Phone number verified via OTP</span>
-                        </div>
-                      )}
+                      <div>
+                        <Input
+                          label="Phone Number"
+                          name="phone"
+                          type="tel"
+                          value={values.phone || ''}
+                          onChange={handleChange}
+                          error={errors.phone || undefined}
+                          placeholder="01XXXXXXXXX"
+                          helperText={!values.email ? "Required if email not provided" : "Optional"}
+                          readOnly={!user && isGuestPhoneVerified}
+                          className={!user && isGuestPhoneVerified ? "bg-gray-50 cursor-not-allowed" : ""}
+                        />
+                        {!user && isGuestPhoneVerified && (
+                          <div className="mt-2 flex items-center text-sm text-green-600">
+                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span>Phone number verified via OTP</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
