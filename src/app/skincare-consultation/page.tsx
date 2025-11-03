@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircleIcon, ExclamationCircleIcon, InformationCircleIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ExclamationCircleIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import { fetchJson } from '@/lib/api';
 
 interface FormData {
@@ -256,14 +256,14 @@ export default function SkincareConsultationPage() {
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-purple-50 to-blue-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-700 to-purple-600 mb-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-700 to-purple-600 mb-4 text-center pt-6 mt-6">
             স্কিনকেয়ার পরামর্শ নিন
           </h1>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 text-center">
             Get Your Skin Care Suggestion
           </h2>
           <p className="text-gray-700 text-lg mb-8 text-center max-w-2xl mx-auto">
-            আপনার ত্বকের সমস্যা সমাধানে আমাদের বিশেষজ্ঞ ডাক্তারদের পরামর্শ নিন
+            ত্বকের সমস্যা সমাধানে আমাদের বিশেষজ্ঞ ডাক্তারদের পরামর্শ নিন
             <br />
             Get personalized skincare advice from our medical professionals
           </p>
@@ -561,7 +561,7 @@ export default function SkincareConsultationPage() {
                   জমা হচ্ছে... / Submitting...
                 </>
               ) : (
-                'পরামর্শ পাঠান / Submit Consultation'
+                'Submit'
               )}
             </button>
           </form>
