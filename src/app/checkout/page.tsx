@@ -243,35 +243,54 @@ export default function CheckoutPage() {
   const [selectedDistrict, setSelectedDistrict] = React.useState<District | null>(null);
   const [selectedUpazilla, setSelectedUpazilla] = React.useState<Upazilla | null>(null);
 
-  // Check for verified guest phone on mount
-  React.useEffect(() => {
-    if (!user) {
-      // Check URL params for verified phone
-      const urlParams = new URLSearchParams(window.location.search);
-      const phone = urlParams.get('verifiedPhone');
-      if (phone) {
-        setVerifiedGuestPhone(phone);
-        setIsGuestPhoneVerified(true);
-        // Store in sessionStorage for persistence
+  // Get verified identifier from URL or sessionStorage (synchronously for initial values)
+  const getVerifiedIdentifier = (): { phone: string | null; email: string | null } => {
+    if (typeof window === 'undefined') return { phone: null, email: null };
+    
+    // Check URL params first
+    const urlParams = new URLSearchParams(window.location.search);
+    const phone = urlParams.get('verifiedPhone');
+    const email = urlParams.get('verifiedEmail');
+    
+    if (phone) {
+      if (typeof window !== 'undefined') {
         sessionStorage.setItem('scarlet_verified_guest_phone', phone);
-      } else {
-        // Check sessionStorage as fallback
-        const storedPhone = sessionStorage.getItem('scarlet_verified_guest_phone');
-        if (storedPhone) {
-          setVerifiedGuestPhone(storedPhone);
-          setIsGuestPhoneVerified(true);
-        }
       }
+      return { phone, email: null };
+    } else if (email) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('scarlet_verified_guest_email', email);
+      }
+      return { phone: null, email };
+    } else {
+      // Check sessionStorage as fallback
+      if (typeof window !== 'undefined') {
+        const storedPhone = sessionStorage.getItem('scarlet_verified_guest_phone');
+        const storedEmail = sessionStorage.getItem('scarlet_verified_guest_email');
+        return { phone: storedPhone, email: storedEmail };
+      }
+      return { phone: null, email: null };
     }
-  }, [user]);
+  };
+
+  // Get verified identifiers for initial form values
+  const verifiedIdentifier = getVerifiedIdentifier();
+
+  // Check for verified guest phone or email on mount (for UI state)
+  React.useEffect(() => {
+    if (!user && verifiedIdentifier.phone) {
+      setVerifiedGuestPhone(verifiedIdentifier.phone);
+      setIsGuestPhoneVerified(true);
+    }
+  }, [user, verifiedIdentifier.phone]);
 
   // Form handling
   const { values, errors, handleChange, handleSubmit, isValid, setFieldValue } = useForm<CheckoutFormData>({
     initialValues: {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
-      email: user?.email || '',
-      phone: (user?.phone || verifiedGuestPhone) || undefined,
+      email: user?.email || verifiedIdentifier.email || '',
+      phone: (user?.phone || verifiedGuestPhone || verifiedIdentifier.phone) || undefined,
       address: '',
       deliveryArea: 'inside_dhaka', // Default to Inside Dhaka
       dhakaArea: '',
@@ -1164,7 +1183,7 @@ export default function CheckoutPage() {
                       onClick={() => setStep('payment')}
                       disabled={
                         !values.firstName || 
-                        !values.phone || 
+                        (!values.email?.trim() && !values.phone?.trim()) || // Email OR phone required (not both)
                         !values.address || 
                         (values.deliveryArea === 'inside_dhaka' && !values.dhakaArea) ||
                         (values.deliveryArea === 'outside_dhaka' && (!values.division || !values.district || !values.upazilla || !values.postalCode))
