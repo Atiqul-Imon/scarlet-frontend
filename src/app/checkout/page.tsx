@@ -690,8 +690,9 @@ export default function CheckoutPage() {
     try {
       // Refresh cart before placing order to check for stock/availability changes
       // PERFORMANCE: refreshCart updates cart in context, backend will validate final state
+      // Use silent=true to prevent flickering during order submission
       try {
-        await refreshCart();
+        await refreshCart(true); // Silent refresh - don't update loading state
         // Cart state will be updated via context after refreshCart completes
         // Backend validation will catch any issues (empty cart, out of stock, etc.)
       } catch (cartError) {

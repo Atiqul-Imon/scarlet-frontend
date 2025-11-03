@@ -451,7 +451,7 @@ interface CartContextValue {
   updateItem: (productId: string, quantity: number) => Promise<void>;
   removeItem: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
-  refreshCart: () => Promise<void>;
+  refreshCart: (silent?: boolean) => Promise<void>;
   resetCart: () => void; // For debugging and cleanup
   markCartAsAbandoned: () => Promise<void>; // For cart abandonment tracking
 }
@@ -626,9 +626,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [addToast]);
 
-  const refreshCart = React.useCallback(async (): Promise<void> => {
-    logger.log('refreshCart called, isAuthenticated:', isAuthenticated);
-    setLoading(true);
+  const refreshCart = React.useCallback(async (silent: boolean = false): Promise<void> => {
+    logger.log('refreshCart called, isAuthenticated:', isAuthenticated, 'silent:', silent);
+    if (!silent) {
+      setLoading(true);
+    }
     
     try {
       if (!isAuthenticated) {
@@ -647,7 +649,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Don't set error state - just log it
       // Cart will remain in current state
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [isAuthenticated, sessionId]);
 
