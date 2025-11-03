@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogApi } from '@/lib/api';
-import { BlogPost, BlogCategory } from '@/lib/types';
+import { BlogCategory } from '@/lib/types';
 import SimpleRichTextEditor from '@/components/editor/SimpleRichTextEditor';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import { parseApiError, getFieldDisplayName } from '@/lib/admin-error-utils';
 import { 
   ArrowLeftIcon, 
   EyeIcon, 
@@ -46,6 +47,9 @@ export default function EnhancedNewBlogPostPage() {
   const [keywordInput, setKeywordInput] = useState('');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [technicalDetails, setTechnicalDetails] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -61,7 +65,7 @@ export default function EnhancedNewBlogPostPage() {
   }, []);
 
   // Auto-save functionality
-  const { save: autoSave } = useAutoSave({
+  const { save: _autoSave } = useAutoSave({
     data: formData,
     onSave: async (data) => {
       if (!data.title || !data.content) return;
@@ -174,8 +178,29 @@ export default function EnhancedNewBlogPostPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.content) {
-      alert('Please fill in required fields');
+    // Clear previous errors
+    setFormErrors({});
+    setGeneralError(null);
+    setTechnicalDetails(undefined);
+    
+    // Client-side validation
+    const clientErrors: Record<string, string> = {};
+    if (!formData.title || formData.title.trim().length === 0) {
+      clientErrors['title'] = 'Please enter a title for your blog post';
+    }
+    if (!formData.content || formData.content.trim().length === 0) {
+      clientErrors['content'] = 'Please add content to your blog post';
+    }
+    if (!formData.slug || formData.slug.trim().length === 0) {
+      clientErrors['slug'] = 'A URL slug is required for your blog post';
+    }
+    if (!formData.author.name || formData.author.name.trim().length === 0) {
+      clientErrors['author.name'] = 'Please enter the author name';
+    }
+    
+    if (Object.keys(clientErrors).length > 0) {
+      setFormErrors(clientErrors);
+      setGeneralError('Please fill in all required fields');
       return;
     }
 
@@ -186,7 +211,19 @@ export default function EnhancedNewBlogPostPage() {
       router.push(`/admin/blog/posts/${createdPost._id}/edit`);
     } catch (err) {
       console.error('Error creating post:', err);
-      alert('Failed to create post');
+      
+      // Parse error into user-friendly format
+      const parsedError = parseApiError(err);
+      
+      // Set field-specific errors
+      const fieldErrors: Record<string, string> = {};
+      parsedError.fieldErrors.forEach(({ field, message }) => {
+        fieldErrors[field] = message;
+      });
+      
+      setFormErrors(fieldErrors);
+      setGeneralError(parsedError.generalMessage);
+      setTechnicalDetails(parsedError.technicalDetails);
     } finally {
       setLoading(false);
     }
@@ -243,6 +280,43 @@ export default function EnhancedNewBlogPostPage() {
         </div>
       </div>
 
+      {/* Error Display */}
+      {(generalError || Object.keys(formErrors).length > 0) && (
+        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3 flex-1">
+              <h3 className="text-sm font-medium text-red-800">
+                {generalError || 'Please fix the errors below to continue'}
+              </h3>
+              {Object.keys(formErrors).length > 0 && (
+                <ul className="mt-2 list-disc list-inside text-sm text-red-700">
+                  {Object.entries(formErrors).map(([field, message]) => (
+                    <li key={field}>
+                      <strong>{getFieldDisplayName(field)}:</strong> {message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {technicalDetails && (
+                <details className="mt-3">
+                  <summary className="text-xs text-red-600 cursor-pointer hover:text-red-800">
+                    Technical Details (for developers)
+                  </summary>
+                  <pre className="mt-2 text-xs text-red-700 bg-red-100 p-2 rounded overflow-auto">
+                    {technicalDetails}
+                  </pre>
+                </details>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -255,11 +329,31 @@ export default function EnhancedNewBlogPostPage() {
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg"
+                onChange={(e) => {
+                  handleTitleChange(e.target.value);
+                  // Clear error when user starts typing
+                  if (formErrors['title']) {
+                    setFormErrors(prev => {
+                      const next = { ...prev };
+                      delete next['title'];
+                      return next;
+                    });
+                  }
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg ${
+                  formErrors['title'] ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                }`}
                 placeholder="Enter blog post title"
                 required
               />
+              {formErrors['title'] && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {formErrors['title']}
+                </p>
+              )}
             </div>
 
             {/* Slug */}
@@ -270,10 +364,29 @@ export default function EnhancedNewBlogPostPage() {
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, slug: e.target.value }));
+                  if (formErrors['slug']) {
+                    setFormErrors(prev => {
+                      const next = { ...prev };
+                      delete next['slug'];
+                      return next;
+                    });
+                  }
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                  formErrors['slug'] ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                }`}
                 placeholder="blog-post-slug"
               />
+              {formErrors['slug'] && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {formErrors['slug']}
+                </p>
+              )}
             </div>
 
             {/* Rich Text Editor */}
@@ -281,17 +394,36 @@ export default function EnhancedNewBlogPostPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Content *
               </label>
-              <SimpleRichTextEditor
-                content={formData.content}
-                onChange={handleContentChange}
-                placeholder="Start writing your blog post..."
-                minHeight={400}
-                maxHeight={800}
-                showWordCount={true}
-                showToolbar={true}
-                onImageUpload={handleImageUpload}
-                className="min-h-[400px]"
-              />
+              <div className={`border rounded-lg ${formErrors['content'] ? 'border-red-500' : 'border-gray-300'}`}>
+                <SimpleRichTextEditor
+                  content={formData.content}
+                  onChange={(content) => {
+                    handleContentChange(content);
+                    if (formErrors['content']) {
+                      setFormErrors(prev => {
+                        const next = { ...prev };
+                        delete next['content'];
+                        return next;
+                      });
+                    }
+                  }}
+                  placeholder="Start writing your blog post..."
+                  minHeight={400}
+                  maxHeight={800}
+                  showWordCount={true}
+                  showToolbar={true}
+                  onImageUpload={handleImageUpload}
+                  className="min-h-[400px]"
+                />
+              </div>
+              {formErrors['content'] && (
+                <p className="mt-1 text-sm text-red-600 flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {formErrors['content']}
+                </p>
+              )}
             </div>
 
             {/* Excerpt */}
@@ -393,14 +525,33 @@ export default function EnhancedNewBlogPostPage() {
                   <input
                     type="text"
                     value={formData.author.name}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      author: { ...prev.author, name: e.target.value }
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    onChange={(e) => {
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        author: { ...prev.author, name: e.target.value }
+                      }));
+                      if (formErrors['author.name']) {
+                        setFormErrors(prev => {
+                          const next = { ...prev };
+                          delete next['author.name'];
+                          return next;
+                        });
+                      }
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                      formErrors['author.name'] ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="Author name"
                     required
                   />
+                  {formErrors['author.name'] && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {formErrors['author.name']}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -410,14 +561,33 @@ export default function EnhancedNewBlogPostPage() {
                   <input
                     type="email"
                     value={formData.author.email}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      author: { ...prev.author, email: e.target.value }
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    onChange={(e) => {
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        author: { ...prev.author, email: e.target.value }
+                      }));
+                      if (formErrors['author.email']) {
+                        setFormErrors(prev => {
+                          const next = { ...prev };
+                          delete next['author.email'];
+                          return next;
+                        });
+                      }
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                      formErrors['author.email'] ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                     placeholder="author@example.com"
                     required
                   />
+                  {formErrors['author.email'] && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {formErrors['author.email']}
+                    </p>
+                  )}
                 </div>
 
                 <div>
