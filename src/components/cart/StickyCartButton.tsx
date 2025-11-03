@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   ShoppingCartIcon, 
   XMarkIcon,
@@ -12,16 +12,19 @@ import {
 } from '@heroicons/react/24/outline';
 import { useCart } from '@/lib/context';
 import { useAuth } from '@/lib/context';
-import { Cart, CartItem, Product } from '@/lib/types';
+import { CartItem, Product } from '@/lib/types';
 import { productApi } from '@/lib/api';
+import OTPRequestModal from '../auth/OTPRequestModal';
+import OTPVerification from '../auth/OTPVerification';
 
 interface StickyCartButtonProps {
   className?: string;
 }
 
 export default function StickyCartButton({ className = '' }: StickyCartButtonProps) {
-  const { cart, addItem, updateItem, removeItem, itemCount, totalPrice, loading } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { cart, updateItem, removeItem, itemCount, loading, sessionId } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -32,6 +35,13 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
   const [enrichedItems, setEnrichedItems] = useState<Array<CartItem & { product?: Product }>>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  
+  // OTP verification state for guest checkout
+  const [showOTPRequest, setShowOTPRequest] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [verifiedIdentifierType, setVerifiedIdentifierType] = useState<'email' | 'phone' | null>(null);
 
   // Check if mobile device
   useEffect(() => {
@@ -52,6 +62,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
       }, 5000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isExpanded]);
 
   // Animation effect for cart count changes
@@ -61,6 +72,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
       const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [itemCount]);
 
   // Fetch product data for cart items
@@ -88,7 +100,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
           const product = products.find(p => p._id === cartItem.productId);
           return {
             ...cartItem,
-            product
+            ...(product ? { product } : {})
           };
         });
 
@@ -96,7 +108,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
       } catch (error) {
         console.error('Error fetching product data for cart:', error);
         // Fallback to cart items without product data
-        setEnrichedItems(cart.items.map(item => ({ ...item, product: undefined })));
+        setEnrichedItems(cart.items.map(item => ({ ...item })));
       } finally {
         setLoadingProducts(false);
       }
@@ -171,6 +183,59 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
   };
 
   const realTotalPrice = calculateTotalPrice();
+
+  // Handle checkout - same logic as cart page
+  const handleCheckout = () => {
+    // Require OTP verification for guest checkout
+    if (!user) {
+      setIsExpanded(false); // Close cart panel
+      setShowOTPRequest(true);
+      return;
+    }
+    
+    // For logged-in users, proceed directly to checkout
+    setIsExpanded(false); // Close cart panel
+    router.push('/checkout');
+  };
+
+  // OTP handlers - now supports email or phone
+  const handleOTPSent = (identifier: string, type: 'email' | 'phone') => {
+    if (type === 'phone') {
+      setVerifiedPhone(identifier);
+      setVerifiedEmail(null);
+      sessionStorage.setItem('scarlet_verified_guest_phone', identifier);
+      sessionStorage.removeItem('scarlet_verified_guest_email');
+    } else {
+      setVerifiedEmail(identifier);
+      setVerifiedPhone(null);
+      sessionStorage.setItem('scarlet_verified_guest_email', identifier);
+      sessionStorage.removeItem('scarlet_verified_guest_phone');
+    }
+    setVerifiedIdentifierType(type);
+    setShowOTPRequest(false);
+    setShowOTPVerification(true);
+  };
+
+  const handleOTPVerified = (identifier: string) => {
+    setShowOTPVerification(false);
+    // Proceed to checkout with verified identifier as URL parameter
+    if (verifiedIdentifierType === 'phone') {
+      router.push(`/checkout?verifiedPhone=${encodeURIComponent(identifier)}`);
+    } else {
+      router.push(`/checkout?verifiedEmail=${encodeURIComponent(identifier)}`);
+    }
+  };
+
+  const handleOTPCancel = () => {
+    setShowOTPRequest(false);
+    setShowOTPVerification(false);
+    setVerifiedPhone(null);
+    setVerifiedEmail(null);
+    setVerifiedIdentifierType(null);
+    // Clear verified identifiers from sessionStorage
+    sessionStorage.removeItem('scarlet_verified_guest_phone');
+    sessionStorage.removeItem('scarlet_verified_guest_email');
+  };
 
   if (!cart || itemCount === 0) {
     // Don't show on mobile
@@ -369,18 +434,46 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
                   View Cart
                 </Link>
                 
-                <Link
-                  href="/checkout"
+                <button
+                  onClick={handleCheckout}
                   className="block w-full bg-white hover:bg-gray-50 text-red-700 border border-red-700 text-center py-3 px-4 rounded-lg font-medium transition-colors"
-                  onClick={() => setIsExpanded(false)}
                 >
                   Checkout
-                </Link>
+                </button>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* OTP Verification Modals */}
+      {showOTPRequest && sessionId && (
+        <div className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <OTPRequestModal
+            sessionId={sessionId}
+            purpose="guest_checkout"
+            onOTPSent={handleOTPSent}
+            onCancel={handleOTPCancel}
+            isOpen={showOTPRequest}
+          />
+        </div>
+      )}
+
+      {showOTPVerification && verifiedIdentifierType && (verifiedPhone || verifiedEmail) && sessionId && (
+        <div className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <OTPVerification
+            identifier={verifiedPhone || verifiedEmail || ''}
+            identifierType={verifiedIdentifierType}
+            {...(verifiedPhone ? { phone: verifiedPhone } : {})}
+            {...(verifiedEmail ? { email: verifiedEmail } : {})}
+            sessionId={sessionId}
+            purpose="guest_checkout"
+            onVerified={handleOTPVerified}
+            onCancel={handleOTPCancel}
+          />
+        </div>
+      )}
     </div>
   );
 }
+

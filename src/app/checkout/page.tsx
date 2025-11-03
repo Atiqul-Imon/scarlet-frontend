@@ -41,6 +41,8 @@ interface CheckoutFormData {
   
   // Payment Information
   paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod' | 'sslcommerz';
+  // For outside Dhaka orders - payment options
+  payFullAmount?: boolean; // Whether to pay full amount upfront (default: false, pay only delivery charge)
   
   // Special Instructions
   notes?: string;
@@ -82,6 +84,16 @@ export default function CheckoutPage() {
       const { paymentApi } = await import('../../lib/api');
       const { orderApi } = await import('../../lib/api');
       
+      // Calculate payment amount for outside Dhaka orders
+      let paymentAmount = total;
+      if (values.deliveryArea === 'outside_dhaka') {
+        if (values.payFullAmount) {
+          paymentAmount = total; // Pay full amount
+        } else {
+          paymentAmount = 150; // Pay only delivery charge
+        }
+      }
+
       // First create a pending order with location-based fields
       const orderData = {
         firstName: values.firstName,
@@ -98,6 +110,7 @@ export default function CheckoutPage() {
         area: values.area,
         postalCode: values.postalCode,
         paymentMethod: values.paymentMethod,
+        payFullAmount: values.payFullAmount || false,
         notes: values.notes,
       };
       
@@ -110,15 +123,15 @@ export default function CheckoutPage() {
       // The IPN handler looks up orders by orderNumber, so they must match
       const orderNumber = order.orderNumber || order._id;
       
-      // Prepare payment data for SSLCommerz
+      // Prepare payment data for SSLCommerz (use calculated payment amount)
       const paymentData = {
         orderId: orderNumber,
-        amount: total.toFixed(2),
+        amount: paymentAmount.toFixed(2),
         currency: 'BDT',
         customerInfo: {
           name: `${values.firstName} ${values.lastName || ''}`.trim(),
           email: values.email || `${values.phone}@scarlet.com`,
-          phone: values.phone || undefined,
+          phone: values.phone || '',
           address: values.address,
           city: values.city,
           country: 'Bangladesh',
@@ -163,6 +176,23 @@ export default function CheckoutPage() {
       // Import the order API
       const { orderApi } = await import('../../lib/api');
       
+      // For outside Dhaka COD orders, advance payment is required via online payment
+      // If COD is selected for outside Dhaka, we need to redirect to payment gateway
+      if (values.deliveryArea === 'outside_dhaka' && values.paymentMethod === 'cod') {
+        // For COD outside Dhaka, customer must pay delivery charge online first
+        // Redirect them to SSLCommerz payment flow
+        addToast({
+          type: 'info',
+          title: 'Advance Payment Required',
+          message: 'For COD orders outside Dhaka, you must pay the delivery charge (৳150) online first. Redirecting to payment...'
+        });
+        
+        // Temporarily change payment method to SSLCommerz for the advance payment
+        // The actual order will still be marked as COD in the backend
+        await handleSSLCommerzPayment();
+        return;
+      }
+
       // Create order data matching backend interface with location-based fields
       const orderData = {
         firstName: values.firstName,
@@ -179,6 +209,7 @@ export default function CheckoutPage() {
         area: values.area,
         postalCode: values.postalCode,
         paymentMethod: values.paymentMethod,
+        payFullAmount: values.payFullAmount || false,
         notes: values.notes,
       };
 
@@ -301,6 +332,7 @@ export default function CheckoutPage() {
       area: '',
       postalCode: '',
       paymentMethod: 'bkash',
+      payFullAmount: false, // Default: pay only delivery charge for outside Dhaka
       notes: '',
       acceptTerms: false,
     },
@@ -1201,6 +1233,83 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Method</h2>
                   
+                  {/* Outside Dhaka Payment Options */}
+                  {values.deliveryArea === 'outside_dhaka' && (
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start mb-3">
+                        <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-blue-900 mb-2">Advance Payment Required for Outside Dhaka</h3>
+                          <p className="text-sm text-blue-800 mb-4">
+                            For orders outside Dhaka, you must pay the delivery charge (৳150) in advance. You can also choose to pay the full amount upfront.
+                          </p>
+                          
+                          <div className="space-y-3">
+                            <label className={`flex items-start p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                              !values.payFullAmount
+                                ? 'border-blue-500 bg-blue-100'
+                                : 'border-gray-300 bg-white hover:border-gray-400'
+                            }`}>
+                              <input
+                                type="radio"
+                                name="payFullAmount"
+                                checked={!values.payFullAmount}
+                                onChange={() => setFieldValue('payFullAmount', false)}
+                                className="sr-only"
+                              />
+                              <div className={`w-4 h-4 border-2 rounded-full mr-3 mt-0.5 transition-colors ${
+                                !values.payFullAmount
+                                  ? 'border-blue-500 bg-blue-500'
+                                  : 'border-gray-300'
+                              }`}>
+                                {!values.payFullAmount && (
+                                  <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900">Pay Delivery Charge Only (৳150)</div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  Pay ৳150 now. Remaining ৳{total - 150} to be paid via {values.paymentMethod === 'cod' ? 'Cash on Delivery' : 'selected payment method'} when order is delivered.
+                                </div>
+                              </div>
+                            </label>
+                            
+                            <label className={`flex items-start p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                              values.payFullAmount
+                                ? 'border-blue-500 bg-blue-100'
+                                : 'border-gray-300 bg-white hover:border-gray-400'
+                            }`}>
+                              <input
+                                type="radio"
+                                name="payFullAmount"
+                                checked={values.payFullAmount}
+                                onChange={() => setFieldValue('payFullAmount', true)}
+                                className="sr-only"
+                              />
+                              <div className={`w-4 h-4 border-2 rounded-full mr-3 mt-0.5 transition-colors ${
+                                values.payFullAmount
+                                  ? 'border-blue-500 bg-blue-500'
+                                  : 'border-gray-300'
+                              }`}>
+                                {values.payFullAmount && (
+                                  <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900">Pay Full Amount (৳{total})</div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  Pay the complete order amount (৳{total}) now. No additional payment required on delivery.
+                                </div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="space-y-4 mb-6">
                     {/* Mobile Banking */}
                     <div>
@@ -1353,7 +1462,7 @@ export default function CheckoutPage() {
                           Placing Order...
                         </div>
                       ) : (
-                        `Place Order - ${formatPrice(total)}`
+                        `Place Order - ${formatPrice(values.deliveryArea === 'outside_dhaka' && !values.payFullAmount ? 150 : total)}`
                       )}
                     </Button>
                   </div>
@@ -1381,6 +1490,45 @@ export default function CheckoutPage() {
                     {shipping === 0 ? 'Free' : formatPrice(shipping)}
                   </span>
                 </div>
+                
+                {/* Payment Breakdown for Outside Dhaka */}
+                {values.deliveryArea === 'outside_dhaka' && (
+                  <>
+                    <div className="border-t pt-3">
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-gray-600">Total Order Amount</span>
+                        <span className="font-medium text-gray-900">{formatPrice(total)}</span>
+                      </div>
+                      {!values.payFullAmount && (
+                        <>
+                          <div className="flex justify-between text-sm text-blue-700 mb-1">
+                            <span>Advance Payment (Delivery Charge)</span>
+                            <span className="font-medium">৳150</span>
+                          </div>
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Remaining Balance (Pay on Delivery)</span>
+                            <span className="font-medium">৳{total - 150}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-blue-900">
+                          {values.payFullAmount ? 'You will pay:' : 'Pay now:'}
+                        </span>
+                        <span className="text-lg font-bold text-blue-900">
+                          {formatPrice(values.payFullAmount ? total : 150)}
+                        </span>
+                      </div>
+                      {!values.payFullAmount && (
+                        <p className="text-xs text-blue-700 mt-1">
+                          Remaining ৳{total - 150} will be collected on delivery
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
                 
                 <div className="border-t pt-4">
                   <div className="flex justify-between">
