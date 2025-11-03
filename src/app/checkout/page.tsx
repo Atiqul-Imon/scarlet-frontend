@@ -271,7 +271,7 @@ export default function CheckoutPage() {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       email: user?.email || '',
-      phone: user?.phone || verifiedGuestPhone || undefined,
+      phone: (user?.phone || verifiedGuestPhone) || undefined,
       address: '',
       deliveryArea: 'inside_dhaka', // Default to Inside Dhaka
       dhakaArea: '',
@@ -295,25 +295,39 @@ export default function CheckoutPage() {
       // Last name is optional - no validation needed
       
       // Email OR Phone is required (at least one must be provided)
-      const hasEmail = values.email && values.email.trim().length > 0;
-      const hasPhone = values.phone && values.phone.trim().length > 0;
+      // Handle both undefined and empty strings properly
+      const emailValue = values.email?.trim() || '';
+      const phoneValue = values.phone?.trim() || '';
+      const hasEmail = emailValue.length > 0;
+      const hasPhone = phoneValue.length > 0;
       
       // At least one is required
       if (!hasEmail && !hasPhone) {
-        errors.email = 'Email or phone number is required';
-        errors.phone = 'Email or phone number is required';
+        errors.email = 'Email or phone number is required (at least one)';
+        errors.phone = 'Email or phone number is required (at least one)';
+      } else {
+        // Clear errors on the field that's not required if the other is provided
+        // Only show error on the field that actually needs to be filled
+        if (hasEmail && !hasPhone) {
+          // Email provided, phone not required - clear phone error if exists
+          delete errors.phone;
+        }
+        if (hasPhone && !hasEmail) {
+          // Phone provided, email not required - clear email error if exists
+          delete errors.email;
+        }
       }
       
       // Validate email if provided
       if (hasEmail) {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
           errors.email = 'Please enter a valid email address';
         }
       }
       
       // Validate phone if provided (still Bangladesh format)
       if (hasPhone) {
-        if (!/^(\+88)?01[3-9]\d{8}$/.test(values.phone.trim())) {
+        if (!/^(\+88)?01[3-9]\d{8}$/.test(phoneValue)) {
           errors.phone = 'Please enter a valid Bangladesh phone number';
         }
       }
