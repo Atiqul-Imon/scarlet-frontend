@@ -11,8 +11,12 @@ import type { Category, CategoryTree } from '../../lib/types';
 
 // Transform API categories to MegaMenu format - Only parent and child categories (no grandchildren)
 const transformCategoriesToMegaItems = (categories: Category[]): MegaItem[] => {
-  // Filter only active categories
-  const activeCategories = categories.filter(category => category.isActive !== false);
+  // Filter only active categories and exclude "All Item" categories
+  const activeCategories = categories.filter(category => 
+    category.isActive !== false && 
+    category.name?.toLowerCase().trim() !== 'all item' &&
+    category.name?.toLowerCase().trim() !== 'all items'
+  );
   
   // Get top-level categories (parentId is null or undefined)
   const topLevelCategories = activeCategories
