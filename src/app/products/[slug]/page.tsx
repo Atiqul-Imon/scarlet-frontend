@@ -509,7 +509,7 @@ export default function ProductDetailPage() {
 
               <Button
                 onClick={handleBuyNow}
-                disabled={!stockStatus || isAddingToCart}
+                disabled={!stockStatus || isAddingToCart || (product.sizes && product.sizes.length > 0 && !selectedSize) || (product.colors && product.colors.length > 0 && !selectedColor)}
                 className="w-full"
                 size="lg"
               >
