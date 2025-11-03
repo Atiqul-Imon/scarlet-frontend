@@ -384,8 +384,8 @@ export default function CheckoutPage() {
         }
       }
       
-      if (!values.address || values.address.length < 10) {
-        errors.address = 'Address is required and must be at least 10 characters';
+      if (!values.address || values.address.trim().length < 1) {
+        errors.address = 'Address is required';
       }
       
       if (!values.city) {
