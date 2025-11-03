@@ -9,17 +9,31 @@ import type { MegaItem } from './MegaMenu';
 import { categoryApi } from '../../lib/api';
 import type { Category, CategoryTree } from '../../lib/types';
 
-// Transform API categories to MegaMenu format
+// Transform API categories to MegaMenu format - Only parent and child categories (no grandchildren)
 const transformCategoriesToMegaItems = (categories: Category[]): MegaItem[] => {
-  return categories
-    .filter(category => category.isActive !== false)
-    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-    .map((category, index) => ({
-      label: category.name,
-      href: `/products?category=${category.slug}`,
-      icon: category.icon || undefined,
-      id: category._id || `category-${index}`, // Add unique ID for React keys
-    }));
+  // Filter only active categories
+  const activeCategories = categories.filter(category => category.isActive !== false);
+  
+  // Get top-level categories (parentId is null or undefined)
+  const topLevelCategories = activeCategories
+    .filter(cat => !cat.parentId)
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  
+  // Get child categories (parentId matches a top-level category ID)
+  const topLevelIds = new Set(topLevelCategories.map(cat => cat._id).filter(Boolean));
+  const childCategories = activeCategories
+    .filter(cat => cat.parentId && topLevelIds.has(cat.parentId))
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  
+  // Combine parent and child categories only (exclude grandchildren)
+  const parentAndChildCategories = [...topLevelCategories, ...childCategories];
+  
+  return parentAndChildCategories.map((category, index) => ({
+    label: category.name,
+    href: `/products?category=${category.slug}`,
+    icon: category.icon || undefined,
+    id: category._id || `category-${index}`, // Add unique ID for React keys
+  }));
 };
 
 // Build category tree - only top-level categories (parentId is null)
