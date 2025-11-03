@@ -263,7 +263,7 @@ export default function SkincareConsultationPage() {
             Get Your Skin Care Suggestion
           </h2>
           <p className="text-gray-700 text-lg mb-8 text-center max-w-2xl mx-auto">
-            আপনার ত্বকের সমস্যা সমাধানে আমাদের বিশেষজ্ঞদের পরামর্শ পান
+            আপনার ত্বকের সমস্যা সমাধানে আমাদের বিশেষজ্ঞ ডাক্তারদের পরামর্শ পান
             <br />
             Get personalized skincare advice from our medical professionals
           </p>
