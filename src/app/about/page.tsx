@@ -145,8 +145,7 @@ export default function AboutPage() {
               <h4 className="font-semibold text-green-900 mb-3">Inside Dhaka</h4>
               <ul className="text-green-800 text-sm space-y-2">
                 <li>• Delivery Time: 5 working days</li>
-                <li>• Free shipping on orders over ৳2,000</li>
-                <li>• Same-day processing for orders before 2 PM</li>
+                
                 <li>• Real-time tracking available</li>
               </ul>
             </div>
@@ -154,7 +153,6 @@ export default function AboutPage() {
               <h4 className="font-semibold text-blue-900 mb-3">Outside Dhaka</h4>
               <ul className="text-blue-800 text-sm space-y-2">
                 <li>• Delivery Time: 10 working days</li>
-                <li>• Free shipping on orders over ৳3,000</li>
                 <li>• Nationwide coverage</li>
                 <li>• Secure packaging guaranteed</li>
               </ul>

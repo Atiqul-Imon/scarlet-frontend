@@ -192,7 +192,7 @@ export default function CheckoutPage() {
       const price = item.product?.price?.amount || 0;
       return sum + (price * item.quantity);
     }, 0) || 0;
-    const shipping = subtotal > 1000 ? 0 : 100; // Free shipping over 1000 BDT
+    const shipping = 100; // Standard shipping charge (no free shipping)
     const tax = subtotal * 0.05; // 5% tax
     const total = subtotal + shipping + tax;
     
@@ -510,7 +510,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping:</span>
                   <span className="font-medium">
-                    {shipping === 0 ? 'Free' : paymentUtils.formatAmount(shipping)}
+                    {paymentUtils.formatAmount(shipping)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -523,15 +523,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Shipping Info */}
-              <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-800">
-                  {shipping === 0 
-                    ? '🎉 You qualify for free shipping!'
-                    : `Add ${paymentUtils.formatAmount(1000 - subtotal)} more for free shipping`
-                  }
-                </p>
-              </div>
             </div>
           </div>
         </div>

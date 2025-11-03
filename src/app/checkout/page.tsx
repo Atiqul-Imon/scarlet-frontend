@@ -94,7 +94,8 @@ export default function CheckoutPage() {
         }
       }
 
-      // First create a pending order with location-based fields
+      // For SSLCommerz payments, store pending order data (order will be created only after payment succeeds)
+      // Exception: Inside Dhaka COD orders are created immediately (no payment required)
       const orderData = {
         firstName: values.firstName,
         lastName: values.lastName || undefined,
@@ -114,14 +115,14 @@ export default function CheckoutPage() {
         notes: values.notes,
       };
       
-      // Create the order with pending status
-      const order = user 
-        ? await orderApi.createOrder(orderData)
-        : await orderApi.createGuestOrder(sessionId, orderData);
+      // Store pending order (order will be created in IPN handler after payment success)
+      const pendingOrderResponse = user
+        ? await orderApi.storePendingOrder(orderData)
+        : await orderApi.storePendingGuestOrder(sessionId, orderData);
       
-      // CRITICAL: Use orderNumber (not _id) for SSLCommerz tran_id
-      // The IPN handler looks up orders by orderNumber, so they must match
-      const orderNumber = order.orderNumber || order._id;
+      // CRITICAL: Use orderNumber from pending order for SSLCommerz tran_id
+      // The IPN handler will look up pending order by orderNumber and create actual order
+      const orderNumber = pendingOrderResponse.orderNumber;
       
       // Prepare payment data for SSLCommerz (use calculated payment amount)
       const paymentData = {
@@ -156,8 +157,8 @@ export default function CheckoutPage() {
         throw new Error(errorMsg);
       }
       
-      // Store order ID in session storage for payment completion
-      sessionStorage.setItem('scarlet_pending_order_id', order._id);
+      // Store order number in session storage for payment completion
+      sessionStorage.setItem('scarlet_pending_order_number', orderNumber);
       
       // Redirect to SSLCommerz payment gateway
       window.location.href = paymentResponse.data.gatewayUrl;
@@ -610,13 +611,12 @@ export default function CheckoutPage() {
 
   // PERFORMANCE: Memoize calculations to avoid recalculation on every render
   const { subtotal, shipping, total, itemCount } = React.useMemo(() => {
-    const freeShippingThreshold = 2000;
     const deliveryChargeInsideDhaka = 80;
     const deliveryChargeOutsideDhaka = 150;
     
     const calculatedSubtotal = cartItems.reduce((sum, item) => sum + (item.price.amount * item.quantity), 0);
     
-    // Calculate shipping cost based on delivery area
+    // Calculate shipping cost based on delivery area (no free shipping)
     let shippingCost = 0;
     if (values.deliveryArea === 'inside_dhaka') {
       shippingCost = deliveryChargeInsideDhaka;
@@ -624,8 +624,8 @@ export default function CheckoutPage() {
       shippingCost = deliveryChargeOutsideDhaka;
     }
     
-    // Apply free shipping threshold
-    const calculatedShipping = calculatedSubtotal >= freeShippingThreshold ? 0 : shippingCost;
+    // Always charge shipping (no free shipping threshold)
+    const calculatedShipping = shippingCost;
     const calculatedTotal = calculatedSubtotal + calculatedShipping;
     const calculatedItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     
@@ -749,11 +749,18 @@ export default function CheckoutPage() {
       // Import retry utility
       const { retryWithBackoff } = await import('../../lib/api');
       
-      // Check if payment method requires SSLCommerz gateway
-      const sslcommerzMethods = ['card', 'bkash', 'nagad', 'rocket'];
+      // Determine if payment is required before order creation
+      // Payment required for:
+      // 1. SSLCommerz methods (card, bkash, nagad, rocket, sslcommerz)
+      // 2. Outside Dhaka orders (even COD requires advance payment)
+      // Only inside Dhaka COD can create order immediately
+      const sslcommerzMethods = ['card', 'bkash', 'nagad', 'rocket', 'sslcommerz'];
+      const requiresPayment = 
+        sslcommerzMethods.includes(values.paymentMethod) || 
+        values.deliveryArea === 'outside_dhaka';
       
-      if (sslcommerzMethods.includes(values.paymentMethod)) {
-        // Handle SSLCommerz payment flow with retry
+      if (requiresPayment) {
+        // Handle SSLCommerz payment flow (order created only after payment success)
         await retryWithBackoff(
           () => handleSSLCommerzPayment(),
           3, // max retries
@@ -761,7 +768,7 @@ export default function CheckoutPage() {
           2 // backoff multiplier
         );
       } else {
-        // Handle direct order placement (COD) with retry
+        // Handle direct order placement (Inside Dhaka COD only - no payment required)
         await retryWithBackoff(
           () => handleDirectOrder(),
           3, // max retries
@@ -1271,7 +1278,7 @@ export default function CheckoutPage() {
                               <div className="flex-1">
                                 <div className="font-medium text-gray-900">Pay Delivery Charge Only (৳150)</div>
                                 <div className="text-sm text-gray-600 mt-1">
-                                  Pay ৳150 now. Remaining ৳{total - 150} to be paid via {values.paymentMethod === 'cod' ? 'Cash on Delivery' : 'selected payment method'} when order is delivered.
+                                  Pay ৳150 now. Remaining ৳{total - 150} to be paid via {values.paymentMethod === 'cod' ? 'Cash on Delivery' : 'selected payment method'}.
                                 </div>
                               </div>
                             </label>
@@ -1300,7 +1307,7 @@ export default function CheckoutPage() {
                               <div className="flex-1">
                                 <div className="font-medium text-gray-900">Pay Full Amount (৳{total})</div>
                                 <div className="text-sm text-gray-600 mt-1">
-                                  Pay the complete order amount (৳{total}) now. No additional payment required on delivery.
+                                  Pay the complete order amount (৳{total}) now. No additional payment required.
                                 </div>
                               </div>
                             </label>
@@ -1487,7 +1494,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium text-gray-900">
-                    {shipping === 0 ? 'Free' : formatPrice(shipping)}
+                    {formatPrice(shipping)}
                   </span>
                 </div>
                 
@@ -1506,7 +1513,7 @@ export default function CheckoutPage() {
                             <span className="font-medium">৳150</span>
                           </div>
                           <div className="flex justify-between text-sm text-gray-600">
-                            <span>Remaining Balance (Pay on Delivery)</span>
+                            <span>Remaining Balance</span>
                             <span className="font-medium">৳{total - 150}</span>
                           </div>
                         </>
@@ -1521,11 +1528,6 @@ export default function CheckoutPage() {
                           {formatPrice(values.payFullAmount ? total : 150)}
                         </span>
                       </div>
-                      {!values.payFullAmount && (
-                        <p className="text-xs text-blue-700 mt-1">
-                          Remaining ৳{total - 150} will be collected on delivery
-                        </p>
-                      )}
                     </div>
                   </>
                 )}

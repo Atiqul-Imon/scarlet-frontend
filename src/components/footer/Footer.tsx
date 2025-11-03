@@ -4,16 +4,13 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
-  HeartIcon, 
   EnvelopeIcon, 
   PhoneIcon, 
   MapPinIcon,
   ClockIcon,
   ShieldCheckIcon,
-  TruckIcon,
   ArrowPathIcon,
   CreditCardIcon,
-  UserGroupIcon,
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 
@@ -217,15 +214,7 @@ export default function Footer() {
         {/* Features Section */}
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
-                <TruckIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h5 className="font-semibold text-white">Free Shipping</h5>
-                <p className="text-gray-400 text-sm">On orders over ৳2,000</p>
-              </div>
-            </div>
+            {/* Removed Free Shipping section */}
             
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">

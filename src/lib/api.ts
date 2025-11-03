@@ -777,6 +777,25 @@ export const orderApi = {
     });
   },
 
+  // Store pending order (for SSLCommerz - order created only after payment)
+  storePendingOrder: (checkoutData: CheckoutFormData): Promise<{ orderNumber: string }> => {
+    return fetchJsonAuth<{ orderNumber: string }>('/orders/pending', {
+      method: 'POST',
+      body: JSON.stringify(checkoutData),
+    });
+  },
+
+  // Store pending guest order (for SSLCommerz - order created only after payment)
+  storePendingGuestOrder: (sessionId: string, checkoutData: CheckoutFormData): Promise<{ orderNumber: string }> => {
+    return fetchJson<{ orderNumber: string }>('/orders/pending', {
+      method: 'POST',
+      headers: {
+        'X-Session-ID': sessionId,
+      },
+      body: JSON.stringify({ ...checkoutData, sessionId }),
+    });
+  },
+
   // Get user's orders
   getOrders: (page = 1, limit = 10): Promise<PaginatedResponse<Order>> => {
     return fetchJsonAuth<PaginatedResponse<Order>>(`/orders?page=${page}&limit=${limit}`);

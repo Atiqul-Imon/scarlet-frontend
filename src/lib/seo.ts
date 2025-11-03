@@ -6,7 +6,7 @@ export const seoConfig = {
   siteName: 'Scarlet',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://scarletunlimited.net',
   defaultTitle: 'Scarlet - Premium Beauty & Skincare Store',
-  defaultDescription: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka.',
+  defaultDescription: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands.',
   defaultKeywords: 'beauty, skincare, makeup, cosmetics, K-beauty, premium beauty, Bangladesh, Dhaka, online beauty store',
   twitterHandle: '@ScarletBeauty',
   facebookAppId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
@@ -127,7 +127,7 @@ export function generateProductMetadata(product: Product): Metadata {
 
   return generateMetadata({
     title: product.title,
-    description: product.description || `Buy ${product.title} from ${product.brand || 'Scarlet'}. ${product.price.currency} ${product.price.amount}. Free delivery in Dhaka.`,
+    description: product.description || `Buy ${product.title} from ${product.brand || 'Scarlet'}. ${product.price.currency} ${product.price.amount}.`,
     keywords,
     image: product.images?.[0] || `${seoConfig.siteUrl}/images/products/${product.slug}.jpg`,
     url: `/products/${product.slug}`,
@@ -148,7 +148,7 @@ export function generateCategoryMetadata(category: Category): Metadata {
 
   return generateMetadata({
     title: category.name,
-    description: category.description || `Shop ${category.name} products at Scarlet. Premium beauty and skincare products with free delivery in Dhaka.`,
+    description: category.description || `Shop ${category.name} products at Scarlet. Premium beauty and skincare products.`,
     keywords,
     url: `/products?category=${category.slug}`,
   });

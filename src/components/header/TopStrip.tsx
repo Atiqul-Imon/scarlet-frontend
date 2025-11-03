@@ -51,28 +51,7 @@ export default function TopStrip() {
           </div>
 
           {/* Right side - Additional info */}
-          <div className="hidden md:flex items-center space-x-4 text-xs">
-            <span className="text-red-100">
-              Free shipping on orders over ৳2,000
-            </span>
-            <span className="text-red-200">|</span>
-            <span className="text-red-100">
-              Same day delivery in Dhaka
-            </span>
-          </div>
-        </div>
-
-        {/* Mobile responsive layout */}
-        <div className="md:hidden mt-2 pt-2 border-t border-red-400/30">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-red-100">
-              Free shipping on orders over ৳2,000
-            </span>
-            <span className="text-red-200">•</span>
-            <span className="text-red-100">
-              Same day delivery in Dhaka
-            </span>
-          </div>
+          {/* Removed free shipping and same day delivery text */}
         </div>
       </div>
     </div>

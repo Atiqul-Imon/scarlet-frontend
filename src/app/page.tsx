@@ -5,7 +5,7 @@ import { ResponsiveFlex } from "../components/layout";
 
 export const metadata = {
   title: "Premium Beauty & Skincare Store in Bangladesh",
-  description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.",
+  description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands.",
   keywords: [
     "beauty store Bangladesh",
     "skincare products Dhaka",
@@ -20,7 +20,7 @@ export const metadata = {
   ],
   openGraph: {
     title: "Premium Beauty & Skincare Store in Bangladesh",
-    description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.",
+    description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands.",
     images: [
       {
         url: '/images/og-home.jpg',

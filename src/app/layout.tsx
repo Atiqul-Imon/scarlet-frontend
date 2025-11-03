@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     default: "Scarlet - Premium Beauty & Skincare Store",
     template: "%s | Scarlet"
   },
-  description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.",
+    description: "Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands.",
   keywords: [
     "beauty",
     "skincare", 
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'Scarlet',
     title: 'Scarlet - Premium Beauty & Skincare Store',
-    description: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.',
+    description: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands.',
     images: [
       {
         url: '/images/og-home.jpg',
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     site: '@ScarletBeauty',
     creator: '@ScarletBeauty',
     title: 'Scarlet - Premium Beauty & Skincare Store',
-    description: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands. Free delivery in Dhaka, Bangladesh.',
+    description: 'Discover the finest collection of beauty and skincare products at Scarlet. From K-beauty essentials to premium international brands.',
     images: ['/images/og-home.jpg'],
   },
   robots: {
