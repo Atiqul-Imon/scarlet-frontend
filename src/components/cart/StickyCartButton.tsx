@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -446,32 +447,42 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
         )}
       </div>
 
-      {/* OTP Verification Modals */}
-      {showOTPRequest && sessionId && (
-        <div className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-          <OTPRequestModal
-            sessionId={sessionId}
-            purpose="guest_checkout"
-            onOTPSent={handleOTPSent}
-            onCancel={handleOTPCancel}
-            isOpen={showOTPRequest}
-          />
-        </div>
+      {/* OTP Verification Modals - Render using portal to escape positioning context */}
+      {typeof window !== 'undefined' && createPortal(
+        <OTPRequestModal
+          sessionId={sessionId || ''}
+          purpose="guest_checkout"
+          onOTPSent={handleOTPSent}
+          onCancel={handleOTPCancel}
+          isOpen={showOTPRequest}
+        />,
+        document.body
       )}
-
-      {showOTPVerification && verifiedIdentifierType && (verifiedPhone || verifiedEmail) && sessionId && (
-        <div className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-          <OTPVerification
-            identifier={verifiedPhone || verifiedEmail || ''}
-            identifierType={verifiedIdentifierType}
-            {...(verifiedPhone ? { phone: verifiedPhone } : {})}
-            {...(verifiedEmail ? { email: verifiedEmail } : {})}
-            sessionId={sessionId}
-            purpose="guest_checkout"
-            onVerified={handleOTPVerified}
-            onCancel={handleOTPCancel}
-          />
-        </div>
+      
+      {typeof window !== 'undefined' && showOTPVerification && verifiedIdentifierType && (verifiedPhone || verifiedEmail) && sessionId && createPortal(
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            // Close modal when clicking backdrop (outside the modal content)
+            if (e.target === e.currentTarget) {
+              handleOTPCancel();
+            }
+          }}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <OTPVerification
+              identifier={verifiedPhone || verifiedEmail || ''}
+              identifierType={verifiedIdentifierType}
+              {...(verifiedPhone ? { phone: verifiedPhone } : {})}
+              {...(verifiedEmail ? { email: verifiedEmail } : {})}
+              sessionId={sessionId}
+              purpose="guest_checkout"
+              onVerified={handleOTPVerified}
+              onCancel={handleOTPCancel}
+            />
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

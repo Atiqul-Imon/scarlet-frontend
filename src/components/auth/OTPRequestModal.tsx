@@ -182,9 +182,23 @@ export default function OTPRequestModal({
 
   if (!isOpen) return null;
 
+  // Handle backdrop click to close modal
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only close if clicking the backdrop itself, not the modal content
+    if (e.target === e.currentTarget) {
+      onCancel();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+    <div 
+      className="fixed inset-0 bg-gradient-to-br from-red-100 via-purple-50 to-blue-100 bg-opacity-90 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div 
+        className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="text-center mb-6">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <svg className="w-8 h-8 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +263,7 @@ export default function OTPRequestModal({
                 value={phone}
                 onChange={handlePhoneChange}
                 placeholder="01XXXXXXXXX"
-                error={error}
+                {...(error ? { error } : {})}
                 autoComplete="tel"
                 autoFocus
               />
@@ -268,7 +282,7 @@ export default function OTPRequestModal({
                 value={email}
                 onChange={handleEmailChange}
                 placeholder="your@email.com"
-                error={error}
+                {...(error ? { error } : {})}
                 autoComplete="email"
                 autoFocus
               />
