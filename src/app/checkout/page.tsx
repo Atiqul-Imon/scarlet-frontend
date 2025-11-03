@@ -332,7 +332,7 @@ export default function CheckoutPage() {
       city: 'Dhaka',
       area: '',
       postalCode: '',
-      paymentMethod: 'bkash',
+      paymentMethod: 'sslcommerz', // Default: will redirect to SSLCommerz where user chooses method
       payFullAmount: false, // Default: pay only delivery charge for outside Dhaka
       notes: '',
       acceptTerms: false,
@@ -1263,7 +1263,13 @@ export default function CheckoutPage() {
                                 type="radio"
                                 name="payFullAmount"
                                 checked={!values.payFullAmount}
-                                onChange={() => setFieldValue('payFullAmount', false)}
+                                onChange={() => {
+                                  setFieldValue('payFullAmount', false);
+                                  // Auto-select COD when choosing "Pay Delivery Charge Only"
+                                  if (values.paymentMethod !== 'cod') {
+                                    setFieldValue('paymentMethod', 'cod');
+                                  }
+                                }}
                                 className="sr-only"
                               />
                               <div className={`w-4 h-4 border-2 rounded-full mr-3 mt-0.5 transition-colors ${
@@ -1278,7 +1284,7 @@ export default function CheckoutPage() {
                               <div className="flex-1">
                                 <div className="font-medium text-gray-900">Pay Delivery Charge Only (৳150)</div>
                                 <div className="text-sm text-gray-600 mt-1">
-                                  Pay ৳150 now. Remaining ৳{total - 150} to be paid via {values.paymentMethod === 'cod' ? 'Cash on Delivery' : 'selected payment method'}.
+                                  Pay ৳150 online (via SSLCommerz). Remaining ৳{total - 150} will be collected via Cash on Delivery.
                                 </div>
                               </div>
                             </label>
@@ -1292,7 +1298,13 @@ export default function CheckoutPage() {
                                 type="radio"
                                 name="payFullAmount"
                                 checked={values.payFullAmount}
-                                onChange={() => setFieldValue('payFullAmount', true)}
+                                onChange={() => {
+                                  setFieldValue('payFullAmount', true);
+                                  // Reset payment method to SSLCommerz when switching to "Pay Full Amount"
+                                  if (values.paymentMethod === 'cod') {
+                                    setFieldValue('paymentMethod', 'sslcommerz');
+                                  }
+                                }}
                                 className="sr-only"
                               />
                               <div className={`w-4 h-4 border-2 rounded-full mr-3 mt-0.5 transition-colors ${
@@ -1318,91 +1330,115 @@ export default function CheckoutPage() {
                   )}
                   
                   <div className="space-y-4 mb-6">
-                    {/* Mobile Banking */}
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-3">Mobile Banking</h3>
-                      <div className="space-y-2">
-                        {[
-                          { id: 'bkash', name: 'bKash', color: 'red' },
-                          { id: 'nagad', name: 'Nagad', color: 'orange' },
-                          { id: 'rocket', name: 'Rocket', color: 'blue' }
-                        ].map(method => (
-                          <label key={method.id} className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300">
+                    {/* Conditional Payment Methods Based on Payment Option */}
+                    {values.deliveryArea === 'outside_dhaka' && !values.payFullAmount ? (
+                      /* Outside Dhaka - Pay Delivery Charge Only: Show only COD */
+                      <div>
+                        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <p className="text-sm text-gray-700">
+                            You'll pay ৳150 online via SSLCommerz (choose your preferred payment method on the SSLCommerz page), 
+                            and the remaining ৳{total - 150} will be collected via Cash on Delivery.
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-3">Payment Method</h3>
+                          <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300 bg-gray-50">
                             <input
                               type="radio"
                               name="paymentMethod"
-                              value={method.id}
-                              checked={values.paymentMethod === method.id}
+                              value="cod"
+                              checked={values.paymentMethod === 'cod'}
                               onChange={handleChange}
                               className="sr-only"
                             />
                             <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
-                              values.paymentMethod === method.id 
+                              values.paymentMethod === 'cod' 
                                 ? 'border-red-500 bg-red-500' 
                                 : 'border-gray-300'
                             }`}>
-                              {values.paymentMethod === method.id && (
+                              {values.paymentMethod === 'cod' && (
                                 <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
                               )}
                             </div>
-                            <div className={`px-3 py-1 rounded text-sm font-medium bg-${method.color}-100 text-${method.color}-700 mr-3`}>
-                              {method.name}
+                            <CashIcon />
+                            <div className="ml-2 flex-1">
+                              <span className="text-sm text-gray-900 font-medium">Cash on Delivery (Partial Payment)</span>
+                              <p className="text-xs text-gray-600 mt-1">
+                                Pay ৳150 online first, then pay remaining amount on delivery
+                              </p>
                             </div>
-                            <span className="text-sm text-gray-600">Pay securely with {method.name} via SSLCommerz</span>
                           </label>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-
-                    {/* Other Payment Methods */}
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-3">Other Methods</h3>
+                    ) : (
+                      /* Inside Dhaka OR Outside Dhaka with Pay Full Amount: Show simplified payment options */
                       <div className="space-y-2">
+                        {/* Online Payment via SSLCommerz - Single Option */}
                         <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300">
                           <input
                             type="radio"
                             name="paymentMethod"
-                            value="card"
-                            checked={values.paymentMethod === 'card'}
-                            onChange={handleChange}
+                            value="sslcommerz"
+                            checked={values.paymentMethod === 'sslcommerz' || 
+                                   values.paymentMethod === 'bkash' || 
+                                   values.paymentMethod === 'nagad' || 
+                                   values.paymentMethod === 'rocket' || 
+                                   values.paymentMethod === 'card'}
+                            onChange={() => setFieldValue('paymentMethod', 'sslcommerz')}
                             className="sr-only"
                           />
                           <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
-                            values.paymentMethod === 'card' 
+                            values.paymentMethod === 'sslcommerz' || 
+                            values.paymentMethod === 'bkash' || 
+                            values.paymentMethod === 'nagad' || 
+                            values.paymentMethod === 'rocket' || 
+                            values.paymentMethod === 'card'
                               ? 'border-red-500 bg-red-500' 
                               : 'border-gray-300'
                           }`}>
-                            {values.paymentMethod === 'card' && (
+                            {(values.paymentMethod === 'sslcommerz' || 
+                              values.paymentMethod === 'bkash' || 
+                              values.paymentMethod === 'nagad' || 
+                              values.paymentMethod === 'rocket' || 
+                              values.paymentMethod === 'card') && (
                               <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
                             )}
                           </div>
                           <CreditCardIcon />
-                          <span className="text-sm text-gray-900 ml-2">Debit/Credit Card (via SSLCommerz)</span>
+                          <div className="ml-2 flex-1">
+                            <span className="text-sm text-gray-900 font-medium">Pay Online via SSLCommerz</span>
+                            <p className="text-xs text-gray-600 mt-1">
+                              Choose your preferred payment method (bKash, Nagad, Rocket, Card, etc.) on the SSLCommerz payment page
+                            </p>
+                          </div>
                         </label>
 
-                        <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="cod"
-                            checked={values.paymentMethod === 'cod'}
-                            onChange={handleChange}
-                            className="sr-only"
-                          />
-                          <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
-                            values.paymentMethod === 'cod' 
-                              ? 'border-red-500 bg-red-500' 
-                              : 'border-gray-300'
-                          }`}>
-                            {values.paymentMethod === 'cod' && (
-                              <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
-                            )}
-                          </div>
-                          <CashIcon />
-                          <span className="text-sm text-gray-900 ml-2">Cash on Delivery</span>
-                        </label>
+                        {/* Cash on Delivery - Only for Inside Dhaka */}
+                        {values.deliveryArea === 'inside_dhaka' && (
+                          <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-red-300">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="cod"
+                              checked={values.paymentMethod === 'cod'}
+                              onChange={handleChange}
+                              className="sr-only"
+                            />
+                            <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
+                              values.paymentMethod === 'cod' 
+                                ? 'border-red-500 bg-red-500' 
+                                : 'border-gray-300'
+                            }`}>
+                              {values.paymentMethod === 'cod' && (
+                                <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />
+                              )}
+                            </div>
+                            <CashIcon />
+                            <span className="text-sm text-gray-900 ml-2">Cash on Delivery</span>
+                          </label>
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="mb-6">
