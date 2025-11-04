@@ -226,11 +226,47 @@ export interface AdminActivityLog {
   _id: string;
   userId: string;
   userEmail: string;
+  userName?: string;
   action: string;
+  resourceType?: string;
+  resourceId?: string;
+  severity?: 'info' | 'warning' | 'error' | 'critical';
   details?: Record<string, unknown>;
+  changes?: {
+    before?: any;
+    after?: any;
+    field?: string;
+  };
   timestamp: string;
   ip: string;
   userAgent?: string;
+  requestMethod?: string;
+  requestPath?: string;
+  statusCode?: number;
+  duration?: number;
+  error?: string;
+}
+
+export interface AdminActivityLogFilters {
+  userId?: string;
+  userEmail?: string;
+  action?: string;
+  resourceType?: string;
+  resourceId?: string;
+  severity?: 'info' | 'warning' | 'error' | 'critical';
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+  ip?: string;
+}
+
+export interface AdminActivityStats {
+  total: number;
+  byAction: Array<{ action: string; count: number }>;
+  bySeverity: Array<{ severity: string; count: number }>;
+  byResourceType: Array<{ resourceType: string; count: number }>;
+  byUser: Array<{ userId: string; userEmail: string; count: number }>;
+  dailyActivity: Array<{ date: string; count: number }>;
 }
 
 // Navigation Types

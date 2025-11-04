@@ -37,7 +37,9 @@ import {
   AdminPaginatedResponse,
   UserAnalytics,
   SystemSettings,
-  AdminActivityLog
+  AdminActivityLog,
+  AdminActivityLogFilters,
+  AdminActivityStats
 } from './admin-types';
 // import { validateProduct, validateUser, validateOrder, safeApiCall } from './validation';
 export { paymentApi } from './api/payments';
@@ -1408,12 +1410,67 @@ export const adminApi = {
 
   // Activity Logs
   logs: {
-    getActivityLogs: (page: number = 1, limit: number = 50): Promise<AdminPaginatedResponse<AdminActivityLog>> => {
+    getActivityLogs: (
+      filters?: AdminActivityLogFilters,
+      page: number = 1,
+      limit: number = 50
+    ): Promise<AdminPaginatedResponse<AdminActivityLog>> => {
       const params = new URLSearchParams({ 
         page: page.toString(), 
         limit: limit.toString() 
       });
+      
+      if (filters) {
+        if (filters.userId) params.append('userId', filters.userId);
+        if (filters.userEmail) params.append('userEmail', filters.userEmail);
+        if (filters.action) params.append('action', filters.action);
+        if (filters.resourceType) params.append('resourceType', filters.resourceType);
+        if (filters.resourceId) params.append('resourceId', filters.resourceId);
+        if (filters.severity) params.append('severity', filters.severity);
+        if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+        if (filters.dateTo) params.append('dateTo', filters.dateTo);
+        if (filters.search) params.append('search', filters.search);
+        if (filters.ip) params.append('ip', filters.ip);
+      }
+      
       return fetchJsonAuth<AdminPaginatedResponse<AdminActivityLog>>(`/admin/logs/activity?${params.toString()}`);
+    },
+    getActivityStats: (dateFrom?: string, dateTo?: string): Promise<AdminActivityStats> => {
+      const params = new URLSearchParams();
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
+      return fetchJsonAuth<AdminActivityStats>(`/admin/logs/activity/stats?${params.toString()}`);
+    },
+    exportActivityLogs: async (
+      filters?: AdminActivityLogFilters,
+      format: 'csv' | 'json' = 'json'
+    ): Promise<Blob> => {
+      const params = new URLSearchParams({ format });
+      
+      if (filters) {
+        if (filters.userId) params.append('userId', filters.userId);
+        if (filters.userEmail) params.append('userEmail', filters.userEmail);
+        if (filters.action) params.append('action', filters.action);
+        if (filters.resourceType) params.append('resourceType', filters.resourceType);
+        if (filters.resourceId) params.append('resourceId', filters.resourceId);
+        if (filters.severity) params.append('severity', filters.severity);
+        if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+        if (filters.dateTo) params.append('dateTo', filters.dateTo);
+        if (filters.search) params.append('search', filters.search);
+        if (filters.ip) params.append('ip', filters.ip);
+      }
+      
+      // Handle Blob response directly
+      const token = localStorage.getItem('token');
+      const baseUrl = process.env['NEXT_PUBLIC_API_URL'] || 'https://api.scarletunlimited.net';
+      const actualResponse = await fetch(`${baseUrl}/admin/logs/activity/export?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': format === 'csv' ? 'text/csv' : 'application/json'
+        }
+      });
+      
+      return actualResponse.blob();
     }
   },
 
