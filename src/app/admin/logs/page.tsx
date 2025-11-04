@@ -414,7 +414,7 @@ export default function ActivityLogsPage() {
                   value={filters.search || ''}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   placeholder="Search logs..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -427,7 +427,7 @@ export default function ActivityLogsPage() {
                 value={filters.action || ''}
                 onChange={(e) => setFilters({ ...filters, action: e.target.value })}
                 placeholder="e.g., CREATE_PRODUCT"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder:text-gray-400"
               />
             </div>
 
@@ -473,7 +473,7 @@ export default function ActivityLogsPage() {
                 value={filters.userEmail || ''}
                 onChange={(e) => setFilters({ ...filters, userEmail: e.target.value })}
                 placeholder="user@example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder:text-gray-400"
               />
             </div>
 
@@ -485,7 +485,7 @@ export default function ActivityLogsPage() {
                 value={filters.ip || ''}
                 onChange={(e) => setFilters({ ...filters, ip: e.target.value })}
                 placeholder="192.168.1.1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder:text-gray-400"
               />
             </div>
 
@@ -496,7 +496,7 @@ export default function ActivityLogsPage() {
                 type="date"
                 value={filters.dateFrom || ''}
                 onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700"
               />
             </div>
 
@@ -507,7 +507,7 @@ export default function ActivityLogsPage() {
                 type="date"
                 value={filters.dateTo || ''}
                 onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-700"
               />
             </div>
           </div>
