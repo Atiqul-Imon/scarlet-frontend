@@ -1036,6 +1036,7 @@ export default function CheckoutPage() {
                         <div>
                           <div className="font-medium text-gray-900">Inside Dhaka</div>
                           <div className="text-sm text-gray-600">Delivery: ৳80</div>
+                          <div className="text-xs text-gray-500 mt-1">3-4 day Delivery</div>
                         </div>
                       </label>
                       
@@ -1064,6 +1065,7 @@ export default function CheckoutPage() {
                         <div>
                           <div className="font-medium text-gray-900">Outside Dhaka</div>
                           <div className="text-sm text-gray-600">Delivery: ৳150</div>
+                          <div className="text-xs text-gray-500 mt-1">5 day Delivery</div>
                         </div>
                       </label>
                     </div>

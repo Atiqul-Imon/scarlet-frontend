@@ -699,8 +699,8 @@ export default function ProductDetailPage() {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">Shipping Information</h4>
                   <ul className="space-y-2 text-gray-700">
-                    <li>• Standard delivery: 2-3 business days in Dhaka</li>
-                    <li>• Outside Dhaka: 3-5 business days</li>
+                    <li>• Inside Dhaka: 3-4 day Delivery</li>
+                    <li>• Outside Dhaka: 5 day Delivery</li>
                     <li>• Express delivery available for urgent orders</li>
                   </ul>
                 </div>

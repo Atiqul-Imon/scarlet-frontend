@@ -59,6 +59,19 @@ export default function CartSummary({
         </div>
       </div>
 
+      {/* Delivery Information */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="text-xs text-gray-600 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-gray-700">Delivery Time:</span>
+          </div>
+          <div className="pl-4 space-y-0.5">
+            <div>• Inside Dhaka: 3-4 day Delivery</div>
+            <div>• Outside Dhaka: 5 day Delivery</div>
+          </div>
+        </div>
+      </div>
+
       {/* Checkout Button */}
       <Button
         onClick={onCheckout}
