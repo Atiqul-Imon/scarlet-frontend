@@ -721,18 +721,19 @@ export default function CheckoutPage() {
     
     try {
       // Refresh cart before placing order to check for stock/availability changes
-      // PERFORMANCE: refreshCart updates cart in context, backend will validate final state
+      // PERFORMANCE: refreshCart updates cart in context silently to prevent flicker
       // Use silent=true to prevent flickering during order submission
       try {
-        await refreshCart(true); // Silent refresh - don't update loading state
-        // Cart state will be updated via context after refreshCart completes
-        // Backend validation will catch any issues (empty cart, out of stock, etc.)
+        await refreshCart(true); // Silent refresh - don't update loading state, prevents flicker
       } catch (cartError) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Failed to refresh cart, continuing with order:', cartError);
         }
         // Continue with order anyway, backend will validate
       }
+      
+      // Small delay to allow state update to complete (React batches updates)
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       // Final check using current cart from context (updated by refreshCart)
       if (!cart || !cart.items || cart.items.length === 0) {

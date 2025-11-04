@@ -637,12 +637,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // For guest users: Database-only approach - always load from backend
         const guestCart = await cartApi.getGuestCart(sessionId);
         logger.log('Refreshed guest cart from backend:', guestCart);
-        setCart(guestCart);
+        // Use functional update to prevent unnecessary re-renders if cart hasn't changed
+        setCart(prevCart => {
+          // Only update if cart data actually changed (prevents flicker)
+          if (silent && prevCart && JSON.stringify(prevCart.items) === JSON.stringify(guestCart.items)) {
+            return prevCart;
+          }
+          return guestCart;
+        });
       } else {
         // For authenticated users, load from backend
         const userCart = await cartApi.getCart();
         logger.log('Refreshed user cart from backend:', userCart);
-        setCart(userCart);
+        // Use functional update to prevent unnecessary re-renders if cart hasn't changed
+        setCart(prevCart => {
+          // Only update if cart data actually changed (prevents flicker)
+          if (silent && prevCart && JSON.stringify(prevCart.items) === JSON.stringify(userCart.items)) {
+            return prevCart;
+          }
+          return userCart;
+        });
       }
     } catch (error) {
       logger.error('Failed to refresh cart:', error);
@@ -704,9 +718,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const updatedCart = await cartApi.addGuestItem(sessionId, productId, quantity, selectedSize, selectedColor);
         logger.log('Guest cart updated from backend:', updatedCart);
         setCart(updatedCart);
-        
-        // Refresh cart to ensure sync
-        await refreshCart();
+        // No need to refreshCart() - updatedCart already contains the latest state
         
         addToast({
           type: 'success',
@@ -734,7 +746,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updatedCart) {
         logger.log('User cart updated from backend:', updatedCart);
         setCart(updatedCart);
-        await refreshCart(); // Refresh to ensure sync
+        // No need to refreshCart() - updatedCart already contains the latest state
       }
     } catch (error) {
       logger.error('Error adding item to user cart:', error);
@@ -744,7 +756,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         message: 'Failed to add item to cart'
       });
     }
-  }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
 
   const updateItem = React.useCallback(async (productId: string, quantity: number): Promise<void> => {
     if (!isAuthenticated) {
