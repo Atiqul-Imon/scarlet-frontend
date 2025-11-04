@@ -19,7 +19,7 @@ interface CheckoutFormData {
   address: string;
   city: string;
   area: string;
-  postalCode: string;
+  postalCode?: string; // Optional
   
   // Payment Information
   paymentMethod: PaymentMethod;
@@ -102,10 +102,11 @@ export default function CheckoutPage() {
       newErrors.area = 'Area/Thana is required';
     }
 
-    if (!formData.postalCode.trim()) {
-      newErrors.postalCode = 'Postal code is required';
-    } else if (!/^\d{4}$/.test(formData.postalCode)) {
-      newErrors.postalCode = 'Postal code must be 4 digits';
+    // Postal code is optional, but if provided, must be valid format
+    if (formData.postalCode && formData.postalCode.trim()) {
+      if (!/^\d{4}$/.test(formData.postalCode.trim())) {
+        newErrors.postalCode = 'Postal code must be 4 digits';
+      }
     }
 
     if (!formData.acceptTerms) {
@@ -387,14 +388,14 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Postal Code *
+                        Postal Code
                       </label>
                       <input
                         type="text"
-                        value={formData.postalCode}
+                        value={formData.postalCode || ''}
                         onChange={(e) => handleInputChange('postalCode', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="1205"
+                        placeholder="1205 (optional)"
                         maxLength={4}
                       />
                       {errors.postalCode && (

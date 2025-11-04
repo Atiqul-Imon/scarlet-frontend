@@ -37,7 +37,7 @@ interface CheckoutFormData {
   // Legacy fields (keep for backward compatibility)
   city: string;
   area: string;
-  postalCode: string;
+  postalCode?: string; // Optional
   
   // Payment Information
   paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod' | 'sslcommerz';
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
         upazilla: values.upazilla || undefined,
         city: values.city,
         area: values.area,
-        postalCode: values.postalCode,
+        postalCode: values.postalCode || '',
         paymentMethod: values.paymentMethod,
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
           address: values.address,
           city: values.city,
           country: 'Bangladesh',
-          postcode: values.postalCode,
+          postcode: values.postalCode || '',
         },
         items: cartItems.map(item => ({
           name: item.title,
@@ -208,7 +208,7 @@ export default function CheckoutPage() {
         upazilla: values.upazilla || undefined,
         city: values.city,
         area: values.area,
-        postalCode: values.postalCode,
+        postalCode: values.postalCode || '',
         paymentMethod: values.paymentMethod,
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
@@ -414,9 +414,9 @@ export default function CheckoutPage() {
         errors.area = 'Area/Thana is required';
       }
       
-      // Postal code is only required for outside Dhaka
-      if (values.deliveryArea === 'outside_dhaka') {
-        if (!values.postalCode || !/^\d{4}$/.test(values.postalCode)) {
+      // Postal code is optional, but if provided, must be valid format
+      if (values.postalCode && values.postalCode.trim()) {
+        if (!/^\d{4}$/.test(values.postalCode.trim())) {
           errors.postalCode = 'Postal code must be 4 digits';
         }
       }
@@ -1193,13 +1193,12 @@ export default function CheckoutPage() {
                     <>
                       <div className="mb-4">
                         <Input
-                          label="Postal Code *"
+                          label="Postal Code"
                           name="postalCode"
                           value={values.postalCode}
                           onChange={handleChange}
                           error={errors.postalCode || undefined}
-                          placeholder="1000"
-                          required
+                          placeholder="1000 (optional)"
                         />
                       </div>
                       
@@ -1227,7 +1226,7 @@ export default function CheckoutPage() {
                         (!values.email?.trim() && !values.phone?.trim()) || // Email OR phone required (not both)
                         !values.address || 
                         (values.deliveryArea === 'inside_dhaka' && !values.dhakaArea) ||
-                        (values.deliveryArea === 'outside_dhaka' && (!values.division || !values.district || !values.upazilla || !values.postalCode))
+                        (values.deliveryArea === 'outside_dhaka' && (!values.division || !values.district || !values.upazilla))
                       }
                     >
                       Continue to Payment
