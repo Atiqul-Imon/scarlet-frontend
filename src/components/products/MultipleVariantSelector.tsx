@@ -30,7 +30,7 @@ export default function MultipleVariantSelector({
     return `${size || 'no-size'}_${color || 'no-color'}`;
   };
 
-  // Check if a combination already exists
+  // Check if a combination already exists (exact match)
   const findSelection = (size: string, color: string): VariantSelection | undefined => {
     return selections.find(s => 
       (s.size || '') === (size || '') && 
@@ -130,17 +130,11 @@ export default function MultipleVariantSelector({
                   key={`size-${size}-${index}`}
                   type="button"
                   onClick={() => {
-                    // When size is clicked, if no color, add with empty color
-                    // If colors exist, we'll need to handle that differently
-                    if (normalizedColors.length === 0) {
-                      addVariant(size, '');
-                    } else {
-                      // For now, just add with first color or show message
-                      // User will need to select color separately
-                    }
+                    // When size is clicked, add it with empty color (user can select color later or add as-is)
+                    addVariant(size, '');
                   }}
-                  className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
-                    selections.some(s => s.size === size)
+                  className={`px-4 py-2 border-2 font-medium transition-all ${
+                    selections.some(s => s.size === size && !s.color)
                       ? 'border-red-600 bg-red-50 text-red-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
                   }`}
@@ -164,13 +158,11 @@ export default function MultipleVariantSelector({
                   key={`color-${color}-${index}`}
                   type="button"
                   onClick={() => {
-                    // When color is clicked, if no size, add with empty size
-                    if (normalizedSizes.length === 0) {
-                      addVariant('', color);
-                    }
+                    // When color is clicked, add it with empty size (user can select size later or add as-is)
+                    addVariant('', color);
                   }}
-                  className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
-                    selections.some(s => s.color === color)
+                  className={`px-4 py-2 border-2 font-medium transition-all ${
+                    selections.some(s => s.color === color && !s.size)
                       ? 'border-red-600 bg-red-50 text-red-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
                   }`}
@@ -200,7 +192,7 @@ export default function MultipleVariantSelector({
                       key={variantId}
                       type="button"
                       onClick={() => addVariant(size, color)}
-                      className={`px-3 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
+                      className={`px-3 py-2.5 border-2 text-sm font-medium transition-all ${
                         isActive
                           ? 'border-red-600 bg-red-50 text-red-700 shadow-sm'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50 hover:shadow-sm'
@@ -211,7 +203,7 @@ export default function MultipleVariantSelector({
                         <span className="text-xs opacity-75">/</span>
                         <span>{color}</span>
                         {isActive && (
-                          <span className="mt-1 text-xs font-bold bg-red-600 text-white px-2 py-0.5 rounded-full">
+                          <span className="mt-1 text-xs font-bold bg-red-600 text-white px-2 py-0.5">
                             Qty: {selection.quantity}
                           </span>
                         )}
@@ -235,7 +227,7 @@ export default function MultipleVariantSelector({
             {selections.map((selection) => (
               <div
                 key={selection.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -251,7 +243,7 @@ export default function MultipleVariantSelector({
                 
                 <div className="flex items-center gap-3">
                   {/* Quantity Controls */}
-                  <div className="flex items-center border border-gray-300 rounded-lg bg-white">
+                  <div className="flex items-center border border-gray-300 bg-white">
                     <button
                       type="button"
                       onClick={() => updateQuantity(selection.id, selection.quantity - 1)}

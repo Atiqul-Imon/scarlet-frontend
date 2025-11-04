@@ -116,16 +116,41 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product || isAddingToCart) return;
     
-    // Use multiple variant selections if available, otherwise fall back to single selection
+    // Check if product has variants (sizes or colors)
     const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
     
-    if (hasVariants && variantSelections.length === 0) {
+    // If product has NO variants, allow direct add to cart with just quantity
+    if (!hasVariants) {
+      setIsAddingToCart(true);
+      try {
+        await addItem(product._id!, quantity);
+        addToast({
+          type: 'success',
+          title: 'Added to Cart',
+          message: `${product.title} added to cart successfully!`
+        });
+        setQuantity(1);
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: error instanceof Error ? error.message : 'Failed to add item to cart'
+        });
+      } finally {
+        setIsAddingToCart(false);
+      }
+      return;
+    }
+    
+    // Product has variants - check if using variant selector or old single selection
+    if (variantSelections.length === 0) {
       // Check if using old single selection method
       if (product.sizes && product.sizes.length > 0 && !selectedSize) {
         addToast({
           type: 'error',
           title: 'Selection Required',
-          message: 'Please select at least one size-color combination before adding to cart'
+          message: 'Please select a size before adding to cart'
         });
         return;
       }
@@ -133,12 +158,12 @@ export default function ProductDetailPage() {
         addToast({
           type: 'error',
           title: 'Selection Required',
-          message: 'Please select at least one size-color combination before adding to cart'
+          message: 'Please select a color before adding to cart'
         });
         return;
       }
       
-      // Use old single selection method
+      // Use old single selection method (for backward compatibility)
       setIsAddingToCart(true);
       try {
         await addItem(product._id!, quantity, selectedSize || undefined, selectedColor || undefined);
@@ -164,15 +189,7 @@ export default function ProductDetailPage() {
       return;
     }
     
-    // Handle multiple variant selections
-    if (variantSelections.length === 0) {
-      addToast({
-        type: 'error',
-        title: 'Selection Required',
-        message: 'Please select at least one variant combination before adding to cart'
-      });
-      return;
-    }
+    // Handle multiple variant selections (from variant selector)
     
     setIsAddingToCart(true);
     try {
@@ -503,7 +520,11 @@ export default function ProductDetailPage() {
                 disabled={
                   !stockStatus || 
                   isAddingToCart || 
-                  ((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && variantSelections.length === 0 && !selectedSize && !selectedColor
+                  // Only disable if product has variants but none selected
+                  (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
+                   variantSelections.length === 0 && 
+                   !selectedSize && 
+                   !selectedColor)
                 }
                 className="w-full h-12 px-6 text-base font-medium rounded-lg flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
@@ -533,7 +554,11 @@ export default function ProductDetailPage() {
                 disabled={
                   !stockStatus || 
                   isAddingToCart || 
-                  ((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && variantSelections.length === 0 && !selectedSize && !selectedColor
+                  // Only disable if product has variants but none selected
+                  (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
+                   variantSelections.length === 0 && 
+                   !selectedSize && 
+                   !selectedColor)
                 }
                 className="w-full"
                 size="lg"
