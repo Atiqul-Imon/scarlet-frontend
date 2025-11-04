@@ -157,7 +157,8 @@ export default function CartPage() {
               quantity: item.quantity,
               brand: product.brand,
               stock: product.stock,
-              selectedSize: item.selectedSize
+              selectedSize: item.selectedSize,
+              selectedColor: item.selectedColor
             });
           } else {
             // Product not found in API - try to fetch individual product
@@ -207,12 +208,12 @@ export default function CartPage() {
     fetchCartData();
   }, [cart?.items, addToast]);
 
-  const handleUpdateQuantity = React.useCallback(async (productId: string, quantity: number) => {
+  const handleUpdateQuantity = React.useCallback(async (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => {
     if (quantity < 1) return;
     
     setIsUpdating(true);
     try {
-      await updateItem(productId, quantity);
+      await updateItem(productId, quantity, selectedSize, selectedColor);
       // Don't show toast for every quantity change to avoid spam
       if (quantity === 0) {
         addToast({
@@ -233,13 +234,13 @@ export default function CartPage() {
     }
   }, [updateItem, addToast]);
 
-  const handleRemoveItem = React.useCallback(async (productId: string) => {
+  const handleRemoveItem = React.useCallback(async (productId: string, selectedSize?: string, selectedColor?: string) => {
     // Prevent multiple clicks on the same item
     if (removingItems.has(productId)) return;
     
     setRemovingItems(prev => new Set(prev).add(productId));
     try {
-      await removeItem(productId);
+      await removeItem(productId, selectedSize, selectedColor);
       addToast({
         type: 'success',
         title: 'Item Removed',

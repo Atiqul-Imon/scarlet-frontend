@@ -448,8 +448,8 @@ interface CartContextValue {
   totalPrice: number;
   sessionId: string;
   addItem: (productId: string, quantity?: number, selectedSize?: string, selectedColor?: string) => Promise<void>;
-  updateItem: (productId: string, quantity: number) => Promise<void>;
-  removeItem: (productId: string) => Promise<void>;
+  updateItem: (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => Promise<void>;
+  removeItem: (productId: string, selectedSize?: string, selectedColor?: string) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: (silent?: boolean) => Promise<void>;
   resetCart: () => void; // For debugging and cleanup
@@ -758,18 +758,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [isAuthenticated, executeCartOperation, addToast, sessionId]);
 
-  const updateItem = React.useCallback(async (productId: string, quantity: number): Promise<void> => {
+  const updateItem = React.useCallback(async (productId: string, quantity: number, selectedSize?: string, selectedColor?: string): Promise<void> => {
     if (!isAuthenticated) {
       // Handle guest cart - database-only approach
       try {
         if (quantity <= 0) {
           // Remove item if quantity is 0 or less
-          const updatedCart = await cartApi.removeGuestItem(sessionId, productId);
+          const updatedCart = await cartApi.removeGuestItem(sessionId, productId, selectedSize, selectedColor);
           setCart(updatedCart);
           await refreshCart(); // Refresh to ensure sync
         } else {
           // Update existing item
-          const updatedCart = await cartApi.updateGuestItem(sessionId, productId, quantity);
+          const updatedCart = await cartApi.updateGuestItem(sessionId, productId, quantity, selectedSize, selectedColor);
           setCart(updatedCart);
           await refreshCart(); // Refresh to ensure sync
         }
@@ -792,7 +792,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const updatedCart = await executeCartOperation(
-      () => cartApi.updateItem(productId, quantity),
+      () => cartApi.updateItem(productId, quantity, selectedSize, selectedColor),
       'Cart updated'
     );
     if (updatedCart) {
@@ -801,11 +801,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
 
-  const removeItem = React.useCallback(async (productId: string): Promise<void> => {
+  const removeItem = React.useCallback(async (productId: string, selectedSize?: string, selectedColor?: string): Promise<void> => {
     if (!isAuthenticated) {
       // Handle guest cart - database-only approach
       try {
-        const updatedCart = await cartApi.removeGuestItem(sessionId, productId);
+        const updatedCart = await cartApi.removeGuestItem(sessionId, productId, selectedSize, selectedColor);
         setCart(updatedCart);
         
         // Refresh cart to ensure sync
@@ -829,7 +829,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const updatedCart = await executeCartOperation(
-      () => cartApi.removeItem(productId),
+      () => cartApi.removeItem(productId, selectedSize, selectedColor),
       'Item removed from cart'
     );
     if (updatedCart) {

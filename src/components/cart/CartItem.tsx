@@ -22,8 +22,8 @@ interface CartItemData {
 
 interface CartItemProps {
   item: CartItemData;
-  onUpdateQuantity: (productId: string, quantity: number) => void;
-  onRemove: (productId: string) => void;
+  onUpdateQuantity: (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => void;
+  onRemove: (productId: string, selectedSize?: string, selectedColor?: string) => void;
   isUpdating?: boolean;
 }
 
@@ -56,13 +56,13 @@ const CartItem = React.memo(function CartItem({
     if (newQuantity === quantity) return;
     
     setQuantity(newQuantity);
-    onUpdateQuantity(item.productId, newQuantity);
+    onUpdateQuantity(item.productId, newQuantity, item.selectedSize, item.selectedColor);
   };
 
   const handleRemove = async () => {
     setIsRemoving(true);
     try {
-      await onRemove(item.productId);
+      await onRemove(item.productId, item.selectedSize, item.selectedColor);
     } finally {
       setIsRemoving(false);
     }
