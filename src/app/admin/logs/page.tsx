@@ -35,6 +35,7 @@ export default function ActivityLogsPage() {
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [productTitles, setProductTitles] = useState<Record<string, string>>({});
   
   // Filter states
   const [filters, setFilters] = useState<Partial<AdminActivityLogFilters>>({
@@ -96,6 +97,40 @@ export default function ActivityLogsPage() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  // Fetch product titles for product-related logs
+  useEffect(() => {
+    const fetchProductTitles = async () => {
+      const productIds = new Set<string>();
+      logs.forEach(log => {
+        if (log.resourceType === 'product' && log.resourceId) {
+          productIds.add(log.resourceId);
+        }
+      });
+
+      if (productIds.size === 0) return;
+
+      const titles: Record<string, string> = {};
+      const fetchPromises = Array.from(productIds).map(async (productId) => {
+        try {
+          const product = await adminApi.products.getProduct(productId);
+          if (product && product.title) {
+            titles[productId] = product.title;
+          }
+        } catch (err) {
+          console.error(`Failed to fetch product ${productId}:`, err);
+          titles[productId] = 'Product not found';
+        }
+      });
+
+      await Promise.all(fetchPromises);
+      setProductTitles(prev => ({ ...prev, ...titles }));
+    };
+
+    if (logs.length > 0) {
+      fetchProductTitles();
+    }
+  }, [logs]);
 
   const handleExport = async (format: 'csv' | 'json') => {
     try {
@@ -231,10 +266,26 @@ export default function ActivityLogsPage() {
     // Resource information
     if (log.resourceType && log.resourceId) {
       const resourceName = log.resourceType.charAt(0).toUpperCase() + log.resourceType.slice(1);
-      readableDetails.push({
-        label: 'Resource',
-        value: `${resourceName} (ID: ${log.resourceId.substring(0, 8)}...)`
-      });
+      
+      // For products, show title if available
+      if (log.resourceType === 'product') {
+        const productTitle = productTitles[log.resourceId];
+        if (productTitle) {
+          readableDetails.push({
+            label: 'Product Title',
+            value: productTitle
+          });
+        }
+        readableDetails.push({
+          label: 'Product ID',
+          value: log.resourceId
+        });
+      } else {
+        readableDetails.push({
+          label: 'Resource',
+          value: `${resourceName} (ID: ${log.resourceId.substring(0, 8)}...)`
+        });
+      }
     }
     
     // Extract meaningful information from details
@@ -708,9 +759,15 @@ export default function ActivityLogsPage() {
                                 </div>
                               )}
                               {log.requestPath && (
-                                <div className="text-xs">
-                                  <span className="font-medium text-gray-600">Endpoint: </span>
-                                  <code className="bg-gray-100 px-1 rounded">{log.requestMethod} {log.requestPath}</code>
+                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                  <p className="text-xs font-semibold text-gray-700 mb-2">Endpoint Information</p>
+                                  <div className="bg-gray-50 px-3 py-2 rounded border border-gray-200">
+                                    <code className="text-xs text-gray-800 font-mono break-all">
+                                      <span className="font-semibold text-blue-600">{log.requestMethod || 'GET'}</span>
+                                      {' '}
+                                      <span className="text-gray-700">{log.requestPath}</span>
+                                    </code>
+                                  </div>
                                 </div>
                               )}
                               {log.userAgent && (
