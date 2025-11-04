@@ -251,32 +251,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-r from-red-500 to-rose-500 rounded-2xl p-6 text-white">
-          <h3 className="text-lg font-bold mb-2">Add New Product</h3>
-          <p className="text-red-100 mb-4">Expand your beauty collection</p>
-          <button className="bg-white text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-50 transition-colors duration-200">
-            Add Product
-          </button>
-        </div>
-        
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl p-6 text-white">
-          <h3 className="text-lg font-bold mb-2">Process Orders</h3>
-          <p className="text-blue-100 mb-4">Fulfill customer dreams</p>
-          <button className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors duration-200">
-            View Orders
-          </button>
-        </div>
-        
-        <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-6 text-white">
-          <h3 className="text-lg font-bold mb-2">Analytics Report</h3>
-          <p className="text-green-100 mb-4">Track your success</p>
-          <button className="bg-white text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-green-50 transition-colors duration-200">
-            View Analytics
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
