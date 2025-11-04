@@ -225,6 +225,88 @@ export default function ActivityLogsPage() {
     });
   };
 
+  const formatDetailsForAdmin = (log: AdminActivityLog) => {
+    const readableDetails: Array<{ label: string; value: string | React.ReactNode }> = [];
+    
+    // Resource information
+    if (log.resourceType && log.resourceId) {
+      const resourceName = log.resourceType.charAt(0).toUpperCase() + log.resourceType.slice(1);
+      readableDetails.push({
+        label: 'Resource',
+        value: `${resourceName} (ID: ${log.resourceId.substring(0, 8)}...)`
+      });
+    }
+    
+    // Extract meaningful information from details
+    if (log.details) {
+      const details = log.details as any;
+      
+      // Extract from params (URL parameters)
+      if (details['params'] && Object.keys(details['params']).length > 0) {
+        Object.entries(details['params']).forEach(([key, value]) => {
+          const label = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+          readableDetails.push({
+            label: label,
+            value: String(value)
+          });
+        });
+      }
+      
+      // Extract from query (query string parameters)
+      if (details['query'] && Object.keys(details['query']).length > 0) {
+        const queryEntries = Object.entries(details['query']);
+        // Filter out technical pagination params - only show meaningful filters
+        const meaningfulQuery = queryEntries.filter(([key]) => 
+          !['page', 'limit', 'skip'].includes(key)
+        );
+        
+        // Only show pagination if there are other meaningful fields, or if it's the only info
+        if (meaningfulQuery.length > 0) {
+          meaningfulQuery.forEach(([key, value]) => {
+            const label = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+            readableDetails.push({
+              label: label,
+              value: String(value)
+            });
+          });
+        } else if (queryEntries.length > 0 && readableDetails.length === 0) {
+          // Only pagination info and no other details - don't show anything meaningful
+          // This will result in "No additional information available" message
+        }
+      }
+      
+      // Extract from body (request body data)
+      if (details['body'] && typeof details['body'] === 'object') {
+        // Show meaningful fields from body
+        Object.entries(details['body']).forEach(([key, value]) => {
+          // Skip technical fields
+          if (['_id', '__v', 'createdAt', 'updatedAt'].includes(key)) return;
+          
+          const label = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+          let displayValue = value;
+          
+          if (typeof value === 'object' && value !== null) {
+            // For objects, show a summary
+            if (Array.isArray(value)) {
+              displayValue = `${value.length} item(s)`;
+            } else {
+              displayValue = Object.keys(value).length > 0 
+                ? `${Object.keys(value).length} field(s) updated`
+                : 'No changes';
+            }
+          }
+          
+          readableDetails.push({
+            label: label,
+            value: String(displayValue)
+          });
+        });
+      }
+    }
+    
+    return readableDetails;
+  };
+
   const hasActiveFilters = Object.values(filters).some(v => v !== '' && v !== undefined);
 
   if (loading && (!logs || logs.length === 0)) {
@@ -559,15 +641,15 @@ export default function ActivityLogsPage() {
                           {(log.details || log.changes || log.error) && (
                             <button
                               onClick={() => setExpandedLog(expandedLog === log._id ? null : log._id)}
-                              className="text-xs text-blue-600 hover:text-blue-700 mt-1 flex items-center space-x-1"
+                              className="mt-2 inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                             >
                               <span>{expandedLog === log._id ? 'Hide' : 'Show'} Details</span>
-                              {expandedLog === log._id ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
+                              {expandedLog === log._id ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
                             </button>
                           )}
 
                           {expandedLog === log._id && (
-                            <div className="mt-3 space-y-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="mt-3 space-y-2 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
                               {log.error && (
                                 <div>
                                   <p className="text-xs font-medium text-red-600 mb-1">Error:</p>
@@ -599,10 +681,30 @@ export default function ActivityLogsPage() {
                               )}
                               {log.details && Object.keys(log.details).length > 0 && (
                                 <div>
-                                  <p className="text-xs font-medium text-gray-700 mb-1">Details:</p>
-                                  <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
-                                    {JSON.stringify(log.details, null, 2)}
-                                  </pre>
+                                  <p className="text-sm font-semibold text-gray-700 mb-2">Action Information</p>
+                                  <div className="space-y-2">
+                                    {formatDetailsForAdmin(log).map((item, index) => (
+                                      <div key={index} className="flex items-start justify-between py-1.5 px-2 bg-white rounded border border-gray-200">
+                                        <span className="text-xs font-medium text-gray-600">{item.label}:</span>
+                                        <span className="text-xs text-gray-900 ml-2 text-right flex-1">{item.value}</span>
+                                      </div>
+                                    ))}
+                                    {formatDetailsForAdmin(log).length === 0 && (
+                                      <div className="text-xs text-gray-500 italic py-2">
+                                        No additional information available
+                                      </div>
+                                    )}
+                                  </div>
+                                  {process.env.NODE_ENV === 'development' && (
+                                    <details className="mt-3">
+                                      <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">
+                                        Show technical details (dev only)
+                                      </summary>
+                                      <pre className="mt-2 bg-gray-100 p-2 rounded text-xs overflow-auto max-h-32">
+                                        {JSON.stringify(log.details, null, 2)}
+                                      </pre>
+                                    </details>
+                                  )}
                                 </div>
                               )}
                               {log.requestPath && (
