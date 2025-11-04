@@ -103,8 +103,8 @@ export default function ProductsPage() {
       const response = await adminApi.products.getProducts(queryFilters);
       
       if (response) {
-        // Handle the actual response structure: {products: Array, total: number, page: number, totalPages: number}
-        const products = response.products || [];
+        // Handle the actual response structure: {data: Array, total: number, page: number, totalPages: number}
+        const products = (response as any).products || (response as any).data || [];
         setProducts(products);
         setPagination(prev => ({
           ...prev,
@@ -664,8 +664,15 @@ export default function ProductsPage() {
                           className="w-12 h-12 rounded-lg object-cover mr-4"
                         />
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {product.title}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {product.title}
+                            </span>
+                            {(product as any).isComingSoon && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                Coming Soon
+                              </span>
+                            )}
                           </div>
                           <div className="text-sm text-gray-500">
                             {product.brand || 'No brand'}

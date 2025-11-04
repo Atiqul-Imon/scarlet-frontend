@@ -49,6 +49,12 @@ export default function ProductShowcase({
           const productsData = Array.isArray(response) ? response : [];
           setProducts(productsData.slice(0, limit));
           return;
+        } else if (category === 'coming-soon') {
+          // Use the new homepage section API
+          const response = await fetchJson<Product[]>(`/catalog/products/homepage/coming-soon`);
+          const productsData = Array.isArray(response) ? response : [];
+          setProducts(productsData.slice(0, limit));
+          return;
         } else if (category === 'skincare-essentials') {
           // Use the new homepage section API
           const response = await fetchJson<Product[]>(`/catalog/products/homepage/skincare-essentials`);

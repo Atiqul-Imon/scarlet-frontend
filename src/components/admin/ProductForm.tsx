@@ -49,6 +49,7 @@ interface ProductFormData {
   seoDescription: string;
   seoKeywords: string[];
   homepageSection: string;
+  isComingSoon: boolean;
   variants: Array<{
     id: string;
     name: string;
@@ -93,6 +94,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     seoDescription: '',
     seoKeywords: [],
     homepageSection: '',
+    isComingSoon: false,
     variants: []
   });
 
@@ -175,6 +177,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         seoDescription: ((product as any).seoDescription as string) || '',
         seoKeywords: ((product as any).seoKeywords as string[]) || [],
         homepageSection: product.homepageSection || '',
+        isComingSoon: ((product as any).isComingSoon as boolean) || false,
         variants: (((product as any).variants as Array<{ id?: string; name: string; sku: string; stock: number; price: number; }>) || []).map(v => ({
           id: (v.id ?? Date.now().toString()) as string,
           name: v.name,
@@ -408,7 +411,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
           stock: parseInt(variant.stock) || 0,
           price: parseFloat(variant.price) || 0
         })),
-        homepageSection: formData.homepageSection || null
+        homepageSection: formData.homepageSection || null,
+        isComingSoon: formData.isComingSoon
       };
 
       if (mode === 'create') {
@@ -1096,11 +1100,29 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
           >
             <option value="">No section (default)</option>
             <option value="new-arrivals">New Arrivals</option>
+            <option value="coming-soon">Coming Soon</option>
             <option value="skincare-essentials">Skincare Essentials</option>
             <option value="makeup-collection">Makeup Collection</option>
           </select>
           <p className="text-xs text-gray-500 mt-1">
             Select which homepage section this product should appear in. Leave empty to not show on homepage.
+          </p>
+        </div>
+        
+        <div className="mt-4">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.isComingSoon}
+              onChange={(e) => handleInputChange('isComingSoon', e.target.checked)}
+              className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+            />
+            <span className="ml-2 text-sm font-medium text-gray-700">
+              Mark as Coming Soon
+            </span>
+          </label>
+          <p className="text-xs text-gray-500 mt-1 ml-6">
+            Products marked as "Coming Soon" will be displayed in the Coming Soon section on the homepage.
           </p>
         </div>
       </div>

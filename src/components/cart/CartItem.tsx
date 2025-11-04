@@ -185,12 +185,12 @@ const CartItem = React.memo(function CartItem({
                   handleQuantityChange(newQty);
                 }}
                 disabled={isUpdating || isOutOfStock}
-                className="w-12 text-center border-0 focus:ring-0 text-sm font-medium disabled:opacity-50"
+                className="w-12 text-center border-0 focus:ring-0 text-sm font-semibold text-gray-900 bg-white disabled:opacity-50"
               />
               
               <button
                 onClick={() => handleQuantityChange(quantity + 1)}
-                disabled={quantity >= 99 || isUpdating || isOutOfStock || (item.stock && quantity >= item.stock)}
+                disabled={quantity >= 99 || isUpdating || isOutOfStock || (item.stock !== undefined && quantity >= item.stock)}
                 className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Increase quantity"
               >
@@ -311,12 +311,12 @@ const CartItem = React.memo(function CartItem({
                     handleQuantityChange(newQty);
                   }}
                   disabled={isUpdating || isOutOfStock}
-                  className="w-12 text-center border-0 focus:ring-0 text-sm font-medium disabled:opacity-50"
+                  className="w-12 text-center border-0 focus:ring-0 text-sm font-semibold text-gray-900 bg-white disabled:opacity-50"
                 />
                 
                 <button
                   onClick={() => handleQuantityChange(quantity + 1)}
-                  disabled={quantity >= 99 || isUpdating || isOutOfStock || (item.stock && quantity >= item.stock)}
+                  disabled={quantity >= 99 || isUpdating || isOutOfStock || (item.stock !== undefined && quantity >= item.stock)}
                   className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Increase quantity"
                 >

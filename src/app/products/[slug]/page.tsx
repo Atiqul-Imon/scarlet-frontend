@@ -477,8 +477,11 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Quantity Selector - Only show if no variants or using old single selection */}
-            {stockStatus && variantSelections.length === 0 && (
+            {/* Quantity Selector - Only show if no variants at all (no sizes, no colors) */}
+            {stockStatus && 
+             variantSelections.length === 0 && 
+             !product.sizes && 
+             !product.colors && (
               <div className="flex items-center gap-4">
                 <label htmlFor="quantity" className="text-base font-semibold text-gray-900">
                   Quantity:

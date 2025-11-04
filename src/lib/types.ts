@@ -196,7 +196,8 @@ export interface Product extends BaseEntity {
   };
   isActive?: boolean;
   isFeatured?: boolean;
-  homepageSection?: 'new-arrivals' | 'skincare-essentials' | 'makeup-collection' | null;
+  homepageSection?: 'new-arrivals' | 'skincare-essentials' | 'makeup-collection' | 'coming-soon' | null;
+  isComingSoon?: boolean;
   seoTitle?: string;
   seoDescription?: string;
 }

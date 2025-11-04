@@ -47,6 +47,7 @@ export default function MultipleVariantSelector({
       // If exists, just increment quantity (if within stock limit)
       updateQuantity(existing.id, existing.quantity + 1);
     } else {
+      // Add new combination with quantity 1
       const newSelection: VariantSelection = {
         size,
         color,
@@ -331,6 +332,9 @@ export default function MultipleVariantSelector({
                     {selection.color && (
                       <span className="font-medium">Color: {selection.color}</span>
                     )}
+                    {!selection.size && !selection.color && (
+                      <span className="text-gray-500 italic">No variants</span>
+                    )}
                   </div>
                 </div>
                 
@@ -368,8 +372,9 @@ export default function MultipleVariantSelector({
                   <button
                     type="button"
                     onClick={() => removeVariant(selection.id)}
-                    className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors rounded"
                     aria-label="Remove variant"
+                    title="Remove this combination"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

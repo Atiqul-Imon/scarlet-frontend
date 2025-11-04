@@ -49,6 +49,14 @@ export default function Home() {
         limit={30}
       />
       
+      {/* Coming Soon */}
+      <ProductShowcase 
+        title="Coming Soon"
+        subtitle="Get ready for exciting new products"
+        category="coming-soon"
+        viewAllLink="/products?filter=coming-soon"
+        limit={30}
+      />
       
       {/* Skincare Section */}
       <ProductShowcase 
