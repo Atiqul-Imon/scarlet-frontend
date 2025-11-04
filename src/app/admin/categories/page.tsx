@@ -26,8 +26,7 @@ export default function AdminCategoriesPage() {
   const [updating, setUpdating] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
-  // Hierarchy view state
-  const [viewMode, setViewMode] = React.useState<'grid' | 'hierarchy'>('hierarchy');
+  // Hierarchy view state - only hierarchy view now
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   
   // Search and filter state
@@ -101,6 +100,7 @@ export default function AdminCategoriesPage() {
   };
 
   // Filter categories based on search query and status
+  // Show all categories (parent, child, grandchild, etc.)
   const filterCategories = (categories: Category[]): Category[] => {
     if (!debouncedSearchQuery && filterStatus === 'all') {
       return categories;
@@ -602,30 +602,6 @@ export default function AdminCategoriesPage() {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('hierarchy')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'hierarchy'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Hierarchy
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Grid
-            </button>
-          </div>
-
           {/* Stats */}
           <div className="bg-green-50 px-4 py-2 rounded-lg">
             <span className="text-sm font-medium text-green-800">
@@ -780,8 +756,7 @@ export default function AdminCategoriesPage() {
       )}
 
       {/* Hierarchy Controls */}
-      {viewMode === 'hierarchy' && (
-        <div className="mb-6 space-y-4">
+      <div className="mb-6 space-y-4">
           {/* Main Controls */}
           <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg">
             <div className="flex items-center space-x-4">
@@ -874,7 +849,6 @@ export default function AdminCategoriesPage() {
             </div>
           </div>
         </div>
-      )}
 
       {/* Content */}
       <div className="bg-white rounded-lg shadow">
@@ -911,7 +885,7 @@ export default function AdminCategoriesPage() {
               </div>
             )}
           </div>
-        ) : viewMode === 'hierarchy' ? (
+        ) : (
           /* Hierarchy View */
           <div className="divide-y divide-gray-200">
             {filteredCategoryTree.length > 0 ? (
@@ -965,129 +939,6 @@ export default function AdminCategoriesPage() {
                 )}
               </div>
             )}
-          </div>
-        ) : (
-          /* Grid View - 2 Rows x 4 Categories (Max 8) */
-          <div className="p-6 sm:p-8 lg:p-12 min-h-screen">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 max-w-none">
-              {filteredCategories.slice(0, 8).map((category) => (
-                <div
-                  key={category._id}
-                  className="group relative bg-white rounded-3xl border border-gray-100 hover:border-gray-200 hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] w-full"
-                  style={{ minWidth: '200px', maxWidth: 'none' }}
-                >
-                  {/* Card Header with Image/Icon */}
-                  <div className="relative p-6 sm:p-8 lg:p-10">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white opacity-50"></div>
-                    
-                    {/* Category Image/Icon */}
-                    <div className="relative z-10 flex flex-col items-center">
-                      <div 
-                        className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 transition-all duration-300 cursor-pointer overflow-hidden shadow-xl group-hover:shadow-2xl ${
-                          category.isActive 
-                            ? 'bg-gradient-to-br from-green-100 to-green-200 hover:from-green-200 hover:to-green-300' 
-                            : 'bg-gradient-to-br from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300'
-                        }`}
-                        onClick={() => updateHomepageVisibility(category._id!)}
-                        style={{ minWidth: '96px', minHeight: '96px' }}
-                      >
-                        {category.image ? (
-                          <img
-                            src={category.image}
-                            alt={category.name}
-                            className="w-full h-full object-cover rounded-3xl"
-                          />
-                        ) : getCategoryIcon(category) ? (
-                          <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
-                            {getCategoryIcon(category)}
-                          </span>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-gray-400">
-                            <svg className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span className="text-sm mt-2 font-medium">No Image</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Category Name */}
-                      <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 text-center leading-tight">
-                        {category.name}
-                      </h3>
-                    </div>
-                  </div>
-                  
-                  {/* Card Footer */}
-                  <div className="px-6 pb-6 sm:px-8 sm:pb-8 lg:px-10 lg:pb-10">
-                    {/* Status Badge */}
-                    <div className="flex justify-center mb-6">
-                      <span className={`inline-flex items-center px-6 py-3 text-base font-bold rounded-full ${
-                        category.isActive 
-                          ? 'bg-green-100 text-green-800 border-2 border-green-200' 
-                          : 'bg-gray-100 text-gray-600 border-2 border-gray-200'
-                      }`}>
-                        <div className={`w-4 h-4 rounded-full mr-4 ${
-                          category.isActive ? 'bg-green-500' : 'bg-gray-400'
-                        }`}></div>
-                        {category.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-center space-x-4">
-                      <Link
-                        href={`/admin/categories/${category._id}/edit`}
-                        className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-xl transition-all duration-200 group/edit"
-                        title="Edit category"
-                      >
-                        <PencilIcon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 group-hover/edit:scale-110 transition-transform" />
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteCategory(category._id!)}
-                        disabled={deletingCategory === category._id}
-                        className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-xl transition-all duration-200 group/delete disabled:opacity-50"
-                        title="Delete category"
-                      >
-                        {deletingCategory === category._id ? (
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <TrashIcon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 group-hover/delete:scale-110 transition-transform" />
-                        )}
-                      </button>
-                    </div>
-                    
-                    {/* Loading Indicator */}
-                    {updating === category._id && (
-                      <div className="mt-4 flex justify-center">
-                        <div className="inline-block animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-red-700"></div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl"></div>
-                </div>
-              ))}
-              
-              {/* Show More Button if more than 8 categories */}
-              {categories.length > 8 && (
-                <div className="col-span-2 sm:col-span-3 md:col-span-4 flex items-center justify-center">
-                  <div className="text-center p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                    <p className="text-sm text-gray-600 mb-2">
-                      Showing 8 of {categories.length} categories
-                    </p>
-                    <button
-                      onClick={() => setViewMode('hierarchy')}
-                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      View All Categories →
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         )}
       </div>
