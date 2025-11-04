@@ -24,6 +24,8 @@ export default function MultipleVariantSelector({
   initialSelections = []
 }: MultipleVariantSelectorProps) {
   const [selections, setSelections] = React.useState<VariantSelection[]>(initialSelections);
+  const [selectedSizeForCombination, setSelectedSizeForCombination] = React.useState<string>('');
+  const [selectedColorForCombination, setSelectedColorForCombination] = React.useState<string>('');
 
   // Generate unique ID for a combination
   const getVariantId = (size: string, color: string): string => {
@@ -118,8 +120,8 @@ export default function MultipleVariantSelector({
     <div className="space-y-6">
       {/* Size and Color Selection Grid */}
       <div className="space-y-4">
-        {/* Size Selection */}
-        {normalizedSizes.length > 0 && (
+        {/* Size Selection - Only show individual selectors when both exist */}
+        {normalizedSizes.length > 0 && normalizedColors.length === 0 && (
           <div className="space-y-2">
             <label className="text-base font-semibold text-gray-900">
               Select Size <span className="text-red-600">*</span>
@@ -129,10 +131,7 @@ export default function MultipleVariantSelector({
                 <button
                   key={`size-${size}-${index}`}
                   type="button"
-                  onClick={() => {
-                    // When size is clicked, add it with empty color (user can select color later or add as-is)
-                    addVariant(size, '');
-                  }}
+                  onClick={() => addVariant(size, '')}
                   className={`px-4 py-2 border-2 font-medium transition-all ${
                     selections.some(s => s.size === size && !s.color)
                       ? 'border-red-600 bg-red-50 text-red-700'
@@ -146,8 +145,8 @@ export default function MultipleVariantSelector({
           </div>
         )}
 
-        {/* Color Selection */}
-        {normalizedColors.length > 0 && (
+        {/* Color Selection - Only show individual selectors when both exist */}
+        {normalizedColors.length > 0 && normalizedSizes.length === 0 && (
           <div className="space-y-2">
             <label className="text-base font-semibold text-gray-900">
               Select Color <span className="text-red-600">*</span>
@@ -157,10 +156,7 @@ export default function MultipleVariantSelector({
                 <button
                   key={`color-${color}-${index}`}
                   type="button"
-                  onClick={() => {
-                    // When color is clicked, add it with empty size (user can select size later or add as-is)
-                    addVariant('', color);
-                  }}
+                  onClick={() => addVariant('', color)}
                   className={`px-4 py-2 border-2 font-medium transition-all ${
                     selections.some(s => s.color === color && !s.size)
                       ? 'border-red-600 bg-red-50 text-red-700'
@@ -174,45 +170,142 @@ export default function MultipleVariantSelector({
           </div>
         )}
 
-        {/* Combination Builder - Grid of Size x Color */}
+        {/* Combination Builder - When both size and color exist */}
         {(normalizedSizes.length > 0 && normalizedColors.length > 0) && (
-          <div className="space-y-3 pt-4 border-t border-gray-200">
+          <div className="space-y-4 pt-4 border-t border-gray-200">
             <label className="text-base font-semibold text-gray-900">
-              Select Combinations <span className="text-gray-500 text-sm font-normal">(Click to add to cart)</span>
+              Select Size and Color Combination
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-              {normalizedSizes.map((size: string) => (
-                normalizedColors.map((color: string) => {
-                  const variantId = getVariantId(size, color);
-                  const selection = findSelection(size, color);
-                  const isActive = !!selection;
-
+            
+            {/* Size Selection for Combination - Multiple selection allowed */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Step 1: Select Size(s) <span className="text-red-600">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {normalizedSizes.map((size: string, index: number) => {
+                  const isSelected = selectedSizeForCombination === size;
                   return (
                     <button
-                      key={variantId}
+                      key={`combo-size-${size}-${index}`}
                       type="button"
-                      onClick={() => addVariant(size, color)}
-                      className={`px-3 py-2.5 border-2 text-sm font-medium transition-all ${
-                        isActive
-                          ? 'border-red-600 bg-red-50 text-red-700 shadow-sm'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50 hover:shadow-sm'
+                      onClick={() => {
+                        // Toggle selection - allow only one size at a time for combination
+                        setSelectedSizeForCombination(isSelected ? '' : size);
+                      }}
+                      className={`px-4 py-2 border-2 font-medium transition-all ${
+                        isSelected
+                          ? 'border-red-600 bg-red-50 text-red-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-1">
-                        <span>{size}</span>
-                        <span className="text-xs opacity-75">/</span>
-                        <span>{color}</span>
-                        {isActive && (
-                          <span className="mt-1 text-xs font-bold bg-red-600 text-white px-2 py-0.5">
-                            Qty: {selection.quantity}
-                          </span>
-                        )}
-                      </div>
+                      {size}
                     </button>
                   );
-                })
-              ))}
+                })}
+              </div>
             </div>
+
+            {/* Color Selection for Combination - Multiple selection allowed */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Step 2: Select Color(s) <span className="text-red-600">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {normalizedColors.map((color: string, index: number) => {
+                  const isSelected = selectedColorForCombination === color;
+                  return (
+                    <button
+                      key={`combo-color-${color}-${index}`}
+                      type="button"
+                      onClick={() => {
+                        // Toggle selection - allow only one color at a time for combination
+                        setSelectedColorForCombination(isSelected ? '' : color);
+                      }}
+                      className={`px-4 py-2 border-2 font-medium transition-all ${
+                        isSelected
+                          ? 'border-red-600 bg-red-50 text-red-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Add Combination Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedSizeForCombination && selectedColorForCombination) {
+                    addVariant(selectedSizeForCombination, selectedColorForCombination);
+                    // Keep selections active so user can add same combination multiple times or change and add new
+                  }
+                }}
+                disabled={!selectedSizeForCombination || !selectedColorForCombination}
+                className={`px-6 py-3 border-2 font-medium transition-all flex items-center gap-2 ${
+                  selectedSizeForCombination && selectedColorForCombination
+                    ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
+                    : 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Combination
+              </button>
+              {selectedSizeForCombination && selectedColorForCombination && (
+                <p className="mt-2 text-sm text-gray-600">
+                  Ready to add: <span className="font-medium">{selectedSizeForCombination}</span> / <span className="font-medium">{selectedColorForCombination}</span>
+                  <span className="ml-2 text-xs text-gray-500">(Click + to add, or change selection to add different combinations)</span>
+                </p>
+              )}
+            </div>
+
+            {/* Quick Add: Multiple sizes for selected color */}
+            {selectedColorForCombination && !selectedSizeForCombination && (
+              <div className="pt-2 border-t border-gray-200">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Or: Add multiple sizes for <span className="font-semibold text-red-600">{selectedColorForCombination}</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {normalizedSizes.map((size: string, index: number) => (
+                    <button
+                      key={`quick-size-${size}-${index}`}
+                      type="button"
+                      onClick={() => addVariant(size, selectedColorForCombination)}
+                      className="px-4 py-2 border-2 border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50 font-medium transition-all"
+                    >
+                      {size} <span className="text-xs text-gray-500">+</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Add: Multiple colors for selected size */}
+            {selectedSizeForCombination && !selectedColorForCombination && (
+              <div className="pt-2 border-t border-gray-200">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Or: Add multiple colors for <span className="font-semibold text-red-600">{selectedSizeForCombination}</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {normalizedColors.map((color: string, index: number) => (
+                    <button
+                      key={`quick-color-${color}-${index}`}
+                      type="button"
+                      onClick={() => addVariant(selectedSizeForCombination, color)}
+                      className="px-4 py-2 border-2 border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50 font-medium transition-all"
+                    >
+                      {color} <span className="text-xs text-gray-500">+</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
