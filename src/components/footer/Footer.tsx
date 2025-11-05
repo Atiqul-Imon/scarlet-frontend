@@ -20,13 +20,13 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white">
       {/* Main Footer Content */}
-      <div className="container-herlan py-16">
+      <div className="container-herlan py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <div className="mb-6">
-              <div className="mb-4">
+            <div className="mb-4">
+              <div className="mb-3">
                 <Image
                   src="https://res.cloudinary.com/db5yniogx/image/upload/v1760152223/scarletlogopng001_tebeai_10b44a.png"
                   alt="Scarlet"
@@ -36,41 +36,41 @@ export default function Footer() {
                   priority
                 />
               </div>
-              <p className="text-gray-300 leading-relaxed mb-6">
+              <p className="text-gray-300 leading-relaxed mb-4 text-sm">
                 Discover the finest collection of beauty and skincare products. 
                 From K-beauty essentials to premium international brands, 
                 we bring beauty to your doorstep.
               </p>
               
               {/* Social Media */}
-              <div className="flex space-x-4">
+              <div className="flex space-x-3">
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
+                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="Facebook"
                 >
-                  <span className="text-white font-bold">f</span>
+                  <span className="text-white font-bold text-xs">f</span>
                 </a>
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
+                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="Instagram"
                 >
-                  <span className="text-white font-bold">ig</span>
+                  <span className="text-white font-bold text-xs">ig</span>
                 </a>
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
+                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="YouTube"
                 >
-                  <span className="text-white font-bold">yt</span>
+                  <span className="text-white font-bold text-xs">yt</span>
                 </a>
                 <a 
                   href="#" 
-                  className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
+                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
                   aria-label="TikTok"
                 >
-                  <span className="text-white font-bold">tt</span>
+                  <span className="text-white font-bold text-xs">tt</span>
                 </a>
               </div>
             </div>
@@ -78,35 +78,58 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-6 text-red-400">Quick Links</h4>
-            <ul className="space-y-3">
+            {/* Easy Returns + Secure Payment badges above Quick Links */}
+            <div className="mb-4 space-y-2">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <ArrowPathIcon className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h5 className="font-semibold text-white text-sm">Easy Returns</h5>
+                  <p className="text-gray-400 text-xs">7-10 working days refund</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <ShieldCheckIcon className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h5 className="font-semibold text-white text-sm">Secure Payment</h5>
+                  <p className="text-gray-400 text-xs">SSL Commerce certified</p>
+                </div>
+              </div>
+            </div>
+
+            <h4 className="text-lg font-semibold mb-4 text-red-400">Quick Links</h4>
+            <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/about" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/contact" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/blog" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Beauty Blog
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/careers" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/press" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/press" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Press
                 </Link>
               </li>
               <li>
-                <Link href="/affiliate" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/affiliate" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Affiliate Program
                 </Link>
               </li>
@@ -115,35 +138,35 @@ export default function Footer() {
 
           {/* Customer Service */}
           <div>
-            <h4 className="text-lg font-semibold mb-6 text-red-400">Customer Service</h4>
-            <ul className="space-y-3">
+            <h4 className="text-lg font-semibold mb-4 text-red-400">Customer Service</h4>
+            <ul className="space-y-2">
               <li>
-                <Link href="/faq" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/faq" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link href="/shipping" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/shipping" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Shipping Info
                 </Link>
               </li>
               <li>
-                <Link href="/return-policy" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/return-policy" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Return & Refund Policy
                 </Link>
               </li>
               <li>
-                <Link href="/size-guide" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/size-guide" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Size Guide
                 </Link>
               </li>
               <li>
-                <Link href="/track-order" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/track-order" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Track Your Order
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="text-gray-300 hover:text-red-400 transition-colors">
+                <Link href="/support" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
                   Support Center
                 </Link>
               </li>
@@ -152,8 +175,8 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-lg font-semibold mb-6 text-red-400">Get in Touch</h4>
-            <div className="space-y-4">
+            <h4 className="text-lg font-semibold mb-4 text-red-400">Get in Touch</h4>
+            <div className="space-y-3">
               <div className="flex items-start space-x-3">
                 <MapPinIcon className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
                 <div>
@@ -211,119 +234,55 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Features Section */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {/* Removed Free Shipping section */}
-            
+        {/* Additional Features */}
+        <div className="border-t border-gray-800 mt-8 pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
-                <ArrowPathIcon className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+                <ClockIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h5 className="font-semibold text-white">Easy Returns</h5>
-                <p className="text-gray-400 text-sm">7-10 working days refund</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
-                <ShieldCheckIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h5 className="font-semibold text-white">Secure Payment</h5>
-                <p className="text-gray-400 text-sm">SSL Commerce certified</p>
+                <h5 className="font-semibold text-white text-sm">Fast Delivery</h5>
+                <p className="text-gray-400 text-xs">Dhaka: 5 days, Outside: 10 days</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
-                <ClockIcon className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+                <ChatBubbleLeftRightIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h5 className="font-semibold text-white">Fast Delivery</h5>
-                <p className="text-gray-400 text-sm">Dhaka: 5 days, Outside: 10 days</p>
+                <h5 className="font-semibold text-white text-sm">24/7 Support</h5>
+                <p className="text-gray-400 text-xs">Always here to help</p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-red-700 rounded-full flex items-center justify-center">
-                <ChatBubbleLeftRightIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h5 className="font-semibold text-white">24/7 Support</h5>
-                <p className="text-gray-400 text-sm">Always here to help</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Newsletter Signup */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <h4 className="text-2xl font-bold mb-4 text-red-400">Stay Beautiful with Scarlet</h4>
-            <p className="text-gray-300 mb-6">
-              Get the latest beauty tips, exclusive offers, and new product announcements delivered to your inbox.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                className="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              />
-              <button className="px-6 py-3 bg-red-700 text-white rounded-lg hover:bg-red-800 transition-colors font-medium">
-                Subscribe
-              </button>
-            </div>
-            <p className="text-gray-400 text-xs mt-3">
-              By subscribing, you agree to our Privacy Policy and Terms of Service.
-            </p>
           </div>
         </div>
 
         {/* Payment Methods Banner - SSLCommerz */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="text-center mb-6">
+        <div className="border-t border-gray-800 mt-8 pt-6">
+          <div className="text-center mb-4">
             <h4 className="text-lg font-semibold text-red-400 mb-2">Secure Payment Methods</h4>
             <p className="text-gray-400 text-sm">SSL Commerce Certified - Your payments are 100% secure</p>
           </div>
           
-          {/* SSLCommerz Payment Banner */}
-          <div className="flex justify-center mb-6">
-            <a
-              href="https://www.sslcommerz.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block"
-            >
-              <Image
-                src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-05.png"
-                alt="SSLCommerz Payment Methods - Visa, Mastercard, bKash, Nagad, Rocket and more"
-                width={600}
-                height={200}
-                className="h-auto max-w-full"
-                style={{ width: 'auto', height: 'auto', maxWidth: '600px' }}
-              />
-            </a>
-          </div>
-          
           {/* Additional Payment Info */}
-          <div className="flex flex-wrap justify-center items-center gap-4 mt-4">
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
-              <CreditCardIcon className="w-6 h-6 text-gray-600" />
-              <span className="text-gray-700 text-sm font-medium">Credit/Debit Cards</span>
+          <div className="flex flex-wrap justify-center items-center gap-3">
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
+              <CreditCardIcon className="w-5 h-5 text-gray-600" />
+              <span className="text-gray-700 text-xs font-medium">Credit/Debit Cards</span>
             </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
-              <span className="text-green-600 text-sm font-bold">bKash</span>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
+              <span className="text-green-600 text-xs font-bold">bKash</span>
             </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
-              <span className="text-blue-600 text-sm font-bold">Nagad</span>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
+              <span className="text-blue-600 text-xs font-bold">Nagad</span>
             </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
-              <span className="text-purple-600 text-sm font-bold">Rocket</span>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
+              <span className="text-purple-600 text-xs font-bold">Rocket</span>
             </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-4 py-2">
-              <span className="text-gray-600 text-sm font-medium">Cash on Delivery</span>
+            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
+              <span className="text-gray-600 text-xs font-medium">Cash on Delivery</span>
             </div>
           </div>
         </div>
@@ -331,43 +290,43 @@ export default function Footer() {
 
       {/* Bottom Footer */}
       <div className="border-t border-gray-800 bg-gray-950">
-        <div className="container-herlan py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
-              <p className="text-gray-400 text-sm">
+        <div className="container-herlan py-4">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
+              <p className="text-gray-400 text-xs whitespace-nowrap">
                 © {currentYear} Scarlet Unlimited. All rights reserved.
               </p>
-              <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-                <Link href="/about" className="hover:text-red-400 transition-colors">
+              <div className="flex flex-wrap justify-center gap-3 text-xs text-gray-500">
+                <Link href="/about" className="hover:text-red-400 transition-colors whitespace-nowrap">
                   About Us
                 </Link>
-                <Link href="/privacy" className="hover:text-red-400 transition-colors">
+                <Link href="/privacy" className="hover:text-red-400 transition-colors whitespace-nowrap">
                   Privacy Policy
                 </Link>
-                <Link href="/terms" className="hover:text-red-400 transition-colors">
+                <Link href="/terms" className="hover:text-red-400 transition-colors whitespace-nowrap">
                   Terms & Conditions
                 </Link>
-                <Link href="/return-policy" className="hover:text-red-400 transition-colors">
+                <Link href="/return-policy" className="hover:text-red-400 transition-colors whitespace-nowrap">
                   Return & Refund Policy
                 </Link>
-                <span>Trade License: TRAD/DNCC/050622/2023</span>
-                <span>Owner: Nabila Sultana</span>
+                <span className="whitespace-nowrap">Trade License: TRAD/DNCC/050622/2023</span>
+                <span className="whitespace-nowrap">Owner: Nabila Sultana</span>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-400 text-sm">Payment Methods:</span>
-              <div className="flex space-x-2">
-                <div className="w-8 h-6 bg-gray-700 rounded flex items-center justify-center">
-                  <CreditCardIcon className="w-4 h-4 text-gray-400" />
+            <div className="flex items-center space-x-3">
+              <span className="text-gray-400 text-xs whitespace-nowrap">Payment Methods:</span>
+              <div className="flex space-x-1.5">
+                <div className="w-7 h-5 bg-gray-700 rounded flex items-center justify-center">
+                  <CreditCardIcon className="w-3.5 h-3.5 text-gray-400" />
                 </div>
-                <div className="w-8 h-6 bg-gray-700 rounded flex items-center justify-center">
+                <div className="w-7 h-5 bg-gray-700 rounded flex items-center justify-center">
                   <span className="text-gray-400 text-xs font-bold">bK</span>
                 </div>
-                <div className="w-8 h-6 bg-gray-700 rounded flex items-center justify-center">
+                <div className="w-7 h-5 bg-gray-700 rounded flex items-center justify-center">
                   <span className="text-gray-400 text-xs font-bold">NG</span>
                 </div>
-                <div className="w-8 h-6 bg-gray-700 rounded flex items-center justify-center">
+                <div className="w-7 h-5 bg-gray-700 rounded flex items-center justify-center">
                   <span className="text-gray-400 text-xs font-bold">RM</span>
                 </div>
               </div>

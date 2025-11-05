@@ -124,6 +124,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = React.useState<{ userId: string; userType: 'customer' | 'admin' } | null>(null);
   const [isConnecting, setIsConnecting] = React.useState(false);
   const connectionAttempted = React.useRef(false);
+  const reconnectAttempts = React.useRef(0);
+  const maxReconnectAttempts = 5;
   
   // Use refs to access current state values without causing re-renders
   const stateRef = React.useRef(state);
@@ -170,17 +172,31 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         console.log('Socket connected');
         dispatch({ type: 'SET_CONNECTED', payload: true });
         
-        // Authenticate with the server
-        newSocket.emit('authenticate', { userId, userType });
+        // Get JWT token from localStorage
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+        
+        // Authenticate with the server (include token for JWT verification)
+        newSocket.emit('authenticate', { 
+          userId, 
+          userType,
+          ...(token && { token }) // Include token if available
+        });
       });
 
       newSocket.on('authenticated', async () => {
         console.log('Socket authenticated');
         dispatch({ type: 'SET_AUTHENTICATED', payload: true });
         setCurrentUser({ userId, userType });
+        reconnectAttempts.current = 0; // Reset on successful authentication
+        setIsConnecting(false);
         
         // Update online status
-        await chatApi.updateUserOnlineStatus(userId, true);
+        try {
+          await chatApi.updateUserOnlineStatus(userId, true);
+        } catch (error) {
+          console.error('Failed to update online status:', error);
+          // Don't block authentication if this fails
+        }
         
         // Auto-rejoin conversation if user has one (critical for customers on reconnect)
         if (userType === 'customer') {
@@ -200,6 +216,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       newSocket.on('auth_error', (data) => {
         console.error('Socket authentication error:', data.message);
         dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+        setIsConnecting(false);
+        connectionAttempted.current = false; // Allow retry on auth error
+        
+        // If token-related error, try to refresh token
+        if (data.message?.includes('token') || data.message?.includes('Invalid')) {
+          console.warn('Token may be expired, user may need to re-login');
+        }
       });
 
       newSocket.on('joined_conversation', (data) => {
@@ -289,20 +312,24 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         });
       });
 
-      newSocket.on('error', (data) => {
-        console.error('Socket error:', data.message);
-      });
-
-      newSocket.on('disconnect', () => {
-        console.log('Socket disconnected');
-        dispatch({ type: 'SET_CONNECTED', payload: false });
-        dispatch({ type: 'SET_AUTHENTICATED', payload: false });
-      });
-
       newSocket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
         dispatch({ type: 'SET_CONNECTED', payload: false });
         dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+        reconnectAttempts.current++;
+        
+        // Reset connection attempt flag after delay to allow retry
+        if (reconnectAttempts.current < maxReconnectAttempts) {
+          setTimeout(() => {
+            connectionAttempted.current = false;
+            setIsConnecting(false);
+          }, Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000)); // Exponential backoff, max 30s
+        } else {
+          // Max attempts reached, reset for manual retry
+          connectionAttempted.current = false;
+          setIsConnecting(false);
+          console.error('Max reconnection attempts reached. Please refresh the page.');
+        }
       });
 
       newSocket.on('reconnect_error', (error) => {
@@ -313,6 +340,47 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         console.error('Socket reconnection failed');
         dispatch({ type: 'SET_CONNECTED', payload: false });
         dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+        connectionAttempted.current = false;
+        setIsConnecting(false);
+      });
+
+      newSocket.on('reconnect', (attemptNumber) => {
+        console.log('Socket reconnected after', attemptNumber, 'attempts');
+        reconnectAttempts.current = 0; // Reset on successful reconnect
+        dispatch({ type: 'SET_CONNECTED', payload: true });
+        
+        // Re-authenticate on reconnect
+        const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+        if (currentUserRef.current) {
+          newSocket.emit('authenticate', {
+            userId: currentUserRef.current.userId,
+            userType: currentUserRef.current.userType,
+            ...(token && { token })
+          });
+        }
+      });
+
+      // Handle rate limit errors and other socket errors
+      newSocket.on('error', (data: { message?: string; code?: string }) => {
+        if (data.code === 'RATE_LIMIT_EXCEEDED') {
+          console.warn('Rate limit exceeded:', data.message);
+          // Could show a toast notification here
+        } else {
+          console.error('Socket error:', data.message || data);
+        }
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+        dispatch({ type: 'SET_CONNECTED', payload: false });
+        dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+        
+        // Reset connection attempt flag for auto-reconnect scenarios
+        // Socket.io will handle reconnection automatically
+        if (reason === 'io server disconnect') {
+          // Server disconnected, need to reconnect manually
+          connectionAttempted.current = false;
+        }
       });
 
       setSocket(newSocket);
@@ -396,16 +464,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (conversation) {
         console.log('📤 Sending message to conversation:', conversation._id, 'from', user.userType);
         
-        // Save message to database via API
-        await chatApi.sendMessage(
-          conversation._id,
-          user.userId,
-          user.userType,
-          content,
-          messageType
-        );
-        
-        // Emit message via socket for real-time delivery
+        // Emit message via socket - socket handler will save to database
+        // This prevents duplicate message saves (REST API + Socket)
         socket.emit('send_message', {
           conversationId: conversation._id,
           content,
