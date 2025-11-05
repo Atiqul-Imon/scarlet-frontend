@@ -7,7 +7,7 @@ import AccountLayout from '../../components/account/AccountLayout';
 import { Button } from '../../components/ui/button';
 import { formatters } from '../../lib/utils';
 import { Order, OrderStatus } from '../../lib/types';
-import { orderApi } from '../../lib/api';
+import { orderApi, creditApi } from '../../lib/api';
 
 interface DashboardStats {
   totalOrders: number;
@@ -27,13 +27,14 @@ interface RecentOrder {
   itemCount: number;
 }
 
-export default function AccountDashboard(): JSX.Element {
+export default function AccountDashboard() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { itemCount, totalPrice } = useCart();
   const [stats, setStats] = React.useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = React.useState<RecentOrder[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [creditBalance, setCreditBalance] = React.useState<number>(0);
 
   // Redirect to login if not authenticated
   React.useEffect(() => {
@@ -48,7 +49,9 @@ export default function AccountDashboard(): JSX.Element {
       try {
         // Fetch user's orders
         const ordersResponse = await orderApi.getOrders(1, 10);
-        const orders = ordersResponse.data || ordersResponse;
+        const orders = Array.isArray(ordersResponse) 
+          ? ordersResponse 
+          : (ordersResponse.data || []);
         
         // Calculate stats from real data
         const totalOrders = orders.length;
@@ -60,6 +63,17 @@ export default function AccountDashboard(): JSX.Element {
           sum + (order.total || 0), 0
         );
         
+        // Fetch credit balance
+        let credits = 0;
+        try {
+          const creditData = await creditApi.getBalance();
+          credits = creditData.balance || 0;
+          setCreditBalance(credits);
+        } catch (error) {
+          console.error('Failed to load credit balance:', error);
+          setCreditBalance(0);
+        }
+        
         // For now, we'll use placeholder values for wishlist and rewards
         // These would need separate API endpoints
         const stats: DashboardStats = {
@@ -67,7 +81,7 @@ export default function AccountDashboard(): JSX.Element {
           pendingOrders,
           totalSpent,
           wishlistItems: 0, // TODO: Implement wishlist API
-          rewardPoints: Math.floor(totalSpent), // Simple points calculation
+          rewardPoints: credits, // Use actual credit balance
         };
 
         // Transform orders to RecentOrder format
@@ -344,17 +358,21 @@ export default function AccountDashboard(): JSX.Element {
           <div className="bg-gradient-to-r from-purple-500 to-red-700 rounded-lg p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold mb-2">Scarlet Rewards</h3>
+                <h3 className="text-lg font-semibold mb-2">Credit Wallet</h3>
                 <p className="text-purple-100 mb-4">
-                  You have {stats.rewardPoints} points available
+                  You have {creditBalance} credits available
                 </p>
                 <p className="text-sm text-purple-100">
-                  Earn 1 point for every $1 spent. Redeem 100 points for $5 off your next order.
+                  Earn credits by signing up (+100), referring friends (+100), and completing orders (+200). 
+                  Redeem 100 credits for ৳10 off your next order (minimum cart value 500 BDT).
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold mb-2">{stats.rewardPoints}</div>
-                <p className="text-sm text-purple-100">Points</p>
+                <div className="text-3xl font-bold mb-2">{creditBalance}</div>
+                <p className="text-sm text-purple-100">Credits</p>
+                <p className="text-xs text-purple-200 mt-1">
+                  ≈ ৳{(creditBalance / 10).toFixed(2)}
+                </p>
               </div>
             </div>
           </div>
@@ -364,7 +382,7 @@ export default function AccountDashboard(): JSX.Element {
   );
 }
 
-function DashboardSkeleton(): JSX.Element {
+function DashboardSkeleton() {
   return (
     <div className="space-y-8 animate-pulse">
       {/* Welcome Section Skeleton */}
@@ -408,7 +426,7 @@ function DashboardSkeleton(): JSX.Element {
 }
 
 // Icon Components
-function OrdersIcon({ className }: { className?: string }): JSX.Element {
+function OrdersIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -417,7 +435,7 @@ function OrdersIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function PendingIcon({ className }: { className?: string }): JSX.Element {
+function PendingIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
@@ -426,7 +444,7 @@ function PendingIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function DollarIcon({ className }: { className?: string }): JSX.Element {
+function DollarIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <line x1="12" y1="1" x2="12" y2="23" />
@@ -435,7 +453,7 @@ function DollarIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function HeartIcon({ className }: { className?: string }): JSX.Element {
+function HeartIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -443,7 +461,7 @@ function HeartIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function CartIcon({ className }: { className?: string }): JSX.Element {
+function CartIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="9" cy="21" r="1" />
@@ -453,7 +471,7 @@ function CartIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function UserIcon({ className }: { className?: string }): JSX.Element {
+function UserIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -462,7 +480,7 @@ function UserIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function AddressIcon({ className }: { className?: string }): JSX.Element {
+function AddressIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -471,7 +489,7 @@ function AddressIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function SecurityIcon({ className }: { className?: string }): JSX.Element {
+function SecurityIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -479,7 +497,7 @@ function SecurityIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function ChevronRightIcon({ className }: { className?: string }): JSX.Element {
+function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <polyline points="9 18 15 12 9 6" />

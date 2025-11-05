@@ -16,6 +16,7 @@ export default function CreditsPage() {
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | undefined>();
   const [hasMore, setHasMore] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -73,11 +74,10 @@ export default function CreditsPage() {
   const copyReferralCode = () => {
     if (!referralCode) return;
     navigator.clipboard.writeText(referralCode);
-    addToast({
-      type: 'success',
-      title: 'Copied!',
-      message: 'Referral code copied to clipboard.'
-    });
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 1000);
   };
 
   const formatDate = (dateString?: string) => {
@@ -152,28 +152,31 @@ export default function CreditsPage() {
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Referral Program</h2>
         
-        {referralCode && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Your Referral Code</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={referralCode}
-                readOnly
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-lg"
-              />
-              <button
-                onClick={copyReferralCode}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Copy
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Share this code with friends and earn 100 credits when they sign up!
-            </p>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Your Referral Code</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={referralCode || 'Loading...'}
+              readOnly
+              className="flex-1 px-4 py-2 border-2 border-gray-400 rounded-lg bg-white font-mono text-lg font-semibold"
+              style={{ 
+                color: referralCode ? '#111827' : '#9CA3AF',
+                backgroundColor: referralCode ? '#FFFFFF' : '#F9FAFB'
+              }}
+            />
+            <button
+              onClick={copyReferralCode}
+              disabled={!referralCode}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed min-w-[80px]"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
           </div>
-        )}
+          <p className="text-sm text-gray-500 mt-2">
+            Share this code with friends and earn 100 credits when they sign up!
+          </p>
+        </div>
 
         {referralStats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
