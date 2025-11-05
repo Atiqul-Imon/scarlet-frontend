@@ -98,7 +98,7 @@ export default function OrderDetailsPage(): React.ReactElement {
             name: `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim() || 'N/A',
             address: order.shippingAddress?.address || 'N/A',
           city: order.shippingAddress?.city || (order.shippingAddress as any)?.division || 'N/A',
-          area: (order.shippingAddress as any)?.area || (order.shippingAddress as any)?.dhakaArea || (order.shippingAddress as any)?.district || 'N/A',
+          area: (order.shippingAddress as any)?.area || (order.shippingAddress as any)?.district || 'N/A',
           postalCode: (order.shippingAddress as any)?.postalCode || 'N/A',
             phone: order.shippingAddress?.phone || 'N/A'
           },
@@ -319,7 +319,7 @@ export default function OrderDetailsPage(): React.ReactElement {
           name: `${updatedOrder.shippingAddress?.firstName || ''} ${updatedOrder.shippingAddress?.lastName || ''}`.trim() || 'N/A',
           address: updatedOrder.shippingAddress?.address || 'N/A',
           city: updatedOrder.shippingAddress?.city || (updatedOrder.shippingAddress as any)?.division || 'N/A',
-          area: (updatedOrder.shippingAddress as any)?.area || (updatedOrder.shippingAddress as any)?.dhakaArea || (updatedOrder.shippingAddress as any)?.district || 'N/A',
+          area: (updatedOrder.shippingAddress as any)?.area || (updatedOrder.shippingAddress as any)?.district || 'N/A',
           postalCode: (updatedOrder.shippingAddress as any)?.postalCode || 'N/A',
           phone: updatedOrder.shippingAddress?.phone || 'N/A'
         },

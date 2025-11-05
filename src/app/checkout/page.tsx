@@ -12,13 +12,11 @@ import { productApi, creditApi } from '../../lib/api';
 import type { CreditRedemptionValidation } from '../../lib/types';
 import { 
   bangladeshDivisions, 
-  dhakaAreas, 
   getDivisionById, 
   getDistrictById,
   type Division,
   type District,
-  type Upazilla,
-  type DhakaArea
+  type Upazilla
 } from '../../lib/data/bangladesh-locations';
 
 interface CheckoutFormData {
@@ -28,9 +26,7 @@ interface CheckoutFormData {
   email?: string; // Optional, but required if phone not provided
   phone?: string; // Optional, but required if email not provided
   address: string;
-  deliveryArea: 'inside_dhaka' | 'outside_dhaka'; // Location selection
-  // Inside Dhaka fields
-  dhakaArea?: string; // Thana/Area in Dhaka
+  deliveryArea: 'inside_dhaka' | 'outside_dhaka'; // Location selection // Thana/Area in Dhaka
   // Outside Dhaka fields
   division?: string; // Division/City
   district?: string; // District/Zilla
@@ -104,7 +100,6 @@ export default function CheckoutPage() {
         phone: values.phone || undefined,
         address: values.address,
         deliveryArea: values.deliveryArea,
-        dhakaArea: values.dhakaArea || undefined,
         division: values.division || undefined,
         district: values.district || undefined,
         upazilla: values.upazilla || undefined,
@@ -204,7 +199,6 @@ export default function CheckoutPage() {
         phone: values.phone || undefined,
         address: values.address,
         deliveryArea: values.deliveryArea,
-        dhakaArea: values.dhakaArea || undefined,
         division: values.division || undefined,
         district: values.district || undefined,
         upazilla: values.upazilla || undefined,
@@ -335,7 +329,6 @@ export default function CheckoutPage() {
       phone: (user?.phone || verifiedGuestPhone || verifiedIdentifier.phone) || undefined,
       address: '',
       deliveryArea: 'inside_dhaka', // Default to Inside Dhaka
-      dhakaArea: '',
       division: '',
       district: '',
       upazilla: '',
@@ -404,9 +397,7 @@ export default function CheckoutPage() {
       
       // Validate location fields based on delivery area
       if (values.deliveryArea === 'inside_dhaka') {
-        if (!values.dhakaArea) {
-          errors.dhakaArea = 'Please select a Thana/Area in Dhaka';
-        }
+        // No additional fields required for inside Dhaka - only address is needed
       } else if (values.deliveryArea === 'outside_dhaka') {
         if (!values.division) {
           errors.division = 'Please select a Division/City';
@@ -419,10 +410,8 @@ export default function CheckoutPage() {
         }
       }
       
-      // Keep area for backward compatibility (will be set from dhakaArea or upazilla)
-      if (!values.area && values.deliveryArea === 'inside_dhaka' && !values.dhakaArea) {
-        errors.area = 'Area/Thana is required';
-      }
+      // Keep area for backward compatibility (will be set from upazilla for outside_dhaka)
+      // For inside_dhaka, area is not required - will default to "Dhaka"
       
       // Postal code is optional, but if provided, must be valid format
       if (values.postalCode && values.postalCode.trim()) {
@@ -699,8 +688,6 @@ export default function CheckoutPage() {
       setSelectedDivision(null);
       setSelectedDistrict(null);
       setSelectedUpazilla(null);
-      } else {
-        setFieldValue('dhakaArea', '');
       }
   };
   
@@ -733,13 +720,6 @@ export default function CheckoutPage() {
     setSelectedUpazilla(upazilla || null);
     setFieldValue('upazilla', upazillaId);
     setFieldValue('area', upazilla?.name || '');
-  };
-  
-  // Handle Dhaka area change
-  const handleDhakaAreaChange = (areaId: string) => {
-    const area = dhakaAreas.find(a => a.id === areaId);
-    setFieldValue('dhakaArea', areaId);
-    setFieldValue('area', area?.name || '');
   };
   
   const formatPrice = (amount: number | undefined) => `৳${amount?.toLocaleString('en-US') || '0'}`;
@@ -1125,41 +1105,15 @@ export default function CheckoutPage() {
                   {/* Conditional Location Fields */}
                   {values.deliveryArea === 'inside_dhaka' && (
                     <div className="mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Thana/Area in Dhaka *
-                        </label>
-                        <select
-                          name="dhakaArea"
-                          value={values.dhakaArea || ''}
-                          onChange={(e) => handleDhakaAreaChange(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
-                          required
-                        >
-                          <option value="">Select Thana/Area</option>
-                          {dhakaAreas.map((area) => (
-                            <option key={area.id} value={area.id}>
-                              {area.name}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.dhakaArea && (
-                          <p className="text-red-500 text-sm mt-1">{errors.dhakaArea}</p>
-                        )}
-                      </div>
-                      
-                      {/* Address field below Thana/Area for Inside Dhaka */}
-                      <div className="mt-4">
-                        <Input
-                          label="Address *"
-                          name="address"
-                          value={values.address}
-                          onChange={handleChange}
-                          error={errors.address || undefined}
-                          placeholder="House/Flat, Road, Block, Sector"
-                          required
-                        />
-                      </div>
+                      <Input
+                        label="Address *"
+                        name="address"
+                        value={values.address}
+                        onChange={handleChange}
+                        error={errors.address || undefined}
+                        placeholder="House/Flat, Road, Block, Sector"
+                        required
+                      />
                     </div>
                   )}
 
@@ -1278,7 +1232,6 @@ export default function CheckoutPage() {
                         !values.firstName || 
                         (!values.email?.trim() && !values.phone?.trim()) || // Email OR phone required (not both)
                         !values.address || 
-                        (values.deliveryArea === 'inside_dhaka' && !values.dhakaArea) ||
                         (values.deliveryArea === 'outside_dhaka' && (!values.division || !values.district || !values.upazilla))
                       }
                     >
