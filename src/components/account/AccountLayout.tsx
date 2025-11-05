@@ -36,6 +36,11 @@ const accountNavItems: NavigationItem[] = [
     icon: HeartIcon,
   },
   {
+    label: 'Credits',
+    href: '/account/credits',
+    icon: CreditIcon,
+  },
+  {
     label: 'Security',
     href: '/account/security',
     icon: SecurityIcon,
@@ -200,6 +205,19 @@ function HeartIcon({ className }: { className?: string }): JSX.Element {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+}
+
+function CreditIcon({ className }: { className?: string }): JSX.Element {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
+      <circle cx="7" cy="7" r="1" />
+      <circle cx="7" cy="17" r="1" />
+      <circle cx="17" cy="7" r="1" />
+      <circle cx="17" cy="17" r="1" />
     </svg>
   );
 }

@@ -150,6 +150,65 @@ export interface BrandHierarchy {
   maxLevel: number;
 }
 
+// Credit System Types
+export interface CreditWallet {
+  _id?: string;
+  userId: string;
+  balance: number;
+  totalEarned: number;
+  totalRedeemed: number;
+  version: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreditTransaction {
+  _id?: string;
+  userId: string;
+  type: 'earned' | 'redeemed' | 'refunded' | 'adjusted';
+  amount: number;
+  source: 'signup' | 'referral' | 'order' | 'manual' | 'refund';
+  referenceId?: string;
+  referenceType?: 'order' | 'referral' | 'signup' | 'manual';
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Referral {
+  _id?: string;
+  referrerId: string;
+  referredId: string;
+  referralCode: string;
+  status: 'pending' | 'completed' | 'rejected';
+  creditsAwarded: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ReferralStats {
+  totalReferrals: number;
+  successfulReferrals: number;
+  creditsEarned: number;
+  monthlyReferrals: number;
+  monthlyLimit: number;
+  canReferMore: boolean;
+}
+
+export interface CreditRedemptionValidation {
+  valid: boolean;
+  availableCredits: number;
+  maxRedeemable: number;
+  discountAmount: number;
+  minCartValue: number;
+  errors?: string[];
+}
+
+export interface CreditBalance {
+  balance: number;
+  value: number; // BDT value (balance / 10)
+}
+
 export interface BrandStats {
   totalBrands: number;
   activeBrands: number;
@@ -445,6 +504,7 @@ export interface LoginFormData {
 }
 
 export interface RegisterFormData {
+  referralCode?: string;
   email?: string;
   phone?: string;
   password: string;

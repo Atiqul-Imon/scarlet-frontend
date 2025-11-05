@@ -103,6 +103,12 @@ const navigationItems: AdminNavItem[] = [
     icon: ShoppingCartIcon,
   },
   {
+    id: 'credits',
+    label: 'Credit Management',
+    href: '/admin/credits',
+    icon: GiftIcon,
+  },
+  {
     id: 'analytics',
     label: 'Beauty Analytics',
     href: '/admin/analytics',
@@ -187,12 +193,14 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                       }
                     `}
                   >
-                    <item.icon 
-                      className={`
-                        flex-shrink-0 w-5 h-5 mr-3 transition-colors duration-200
-                        ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-red-500'}
-                      `} 
-                    />
+                    {item.icon && (
+                      <item.icon 
+                        className={`
+                          flex-shrink-0 w-5 h-5 mr-3 transition-colors duration-200
+                          ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-red-500'}
+                        `} 
+                      />
+                    )}
                     <span className="flex-1">{item.label}</span>
                     
                     {/* Badge */}
@@ -279,12 +287,14 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                       }
                     `}
                   >
-                    <item.icon 
-                      className={`
-                        flex-shrink-0 w-5 h-5 mr-3 transition-colors duration-200
-                        ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-red-500'}
-                      `} 
-                    />
+                    {item.icon && (
+                      <item.icon 
+                        className={`
+                          flex-shrink-0 w-5 h-5 mr-3 transition-colors duration-200
+                          ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-red-500'}
+                        `} 
+                      />
+                    )}
                     <span className="flex-1">{item.label}</span>
                     
                     {/* Badge */}

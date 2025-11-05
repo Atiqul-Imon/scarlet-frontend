@@ -24,7 +24,13 @@ import {
   Brand,
   BrandTree,
   BrandHierarchy,
-  BrandStats
+  BrandStats,
+  CreditWallet,
+  CreditTransaction,
+  Referral,
+  ReferralStats,
+  CreditRedemptionValidation,
+  CreditBalance
 } from './types';
 import {
   AdminStats,
@@ -1594,6 +1600,52 @@ export const adminApi = {
     }> => {
       return fetchJsonAuth('/consultations/stats');
     }
+  },
+
+  // Credit Management
+  credits: {
+    getTransactions: (filters: any = {}, page: number = 1, limit: number = 50): Promise<any> => {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+      return fetchJsonAuth(`/admin/credits/transactions?${params.toString()}`);
+    },
+
+    getReferrals: (filters: any = {}, page: number = 1, limit: number = 50): Promise<any> => {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+      return fetchJsonAuth(`/admin/credits/referrals?${params.toString()}`);
+    },
+
+    getStats: (): Promise<any> => {
+      return fetchJsonAuth('/admin/credits/stats');
+    },
+
+    getSuspiciousReferrals: (): Promise<{ referrals: any[] }> => {
+      return fetchJsonAuth('/admin/credits/suspicious-referrals');
+    },
+
+    adjustUserCredits: (userId: string, amount: number, reason: string): Promise<{ success: boolean; message: string }> => {
+      return fetchJsonAuth('/admin/credits/adjust', {
+        method: 'POST',
+        body: JSON.stringify({ userId, amount, reason })
+      });
+    },
+
+    getUserWallet: (userId: string): Promise<any> => {
+      return fetchJsonAuth(`/admin/credits/wallet/${userId}`);
+    }
   }
 };
 
@@ -1915,6 +1967,54 @@ export const brandApi = {
   updateBrandProductCount: (brandId: string): Promise<{ success: boolean }> => {
     return fetchJsonAuth(`/brands/${brandId}/update-product-count`, {
       method: 'PATCH'
+    });
+  }
+};
+
+// Credit API functions
+export const creditApi = {
+  // Get credit balance
+  getBalance: (): Promise<CreditBalance> => {
+    return fetchJsonAuth('/credits/balance');
+  },
+
+  // Get credit wallet details
+  getWallet: (): Promise<CreditWallet> => {
+    return fetchJsonAuth('/credits/wallet');
+  },
+
+  // Get credit transactions with pagination
+  getTransactions: (limit: number = 20, cursor?: string): Promise<{
+    transactions: CreditTransaction[];
+    hasMore: boolean;
+    nextCursor?: string;
+  }> => {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    if (cursor) params.append('cursor', cursor);
+    return fetchJsonAuth(`/credits/transactions?${params}`);
+  },
+
+  // Get user's referral code
+  getReferralCode: (): Promise<{ referralCode: string }> => {
+    return fetchJsonAuth('/credits/referral-code');
+  },
+
+  // Get referral statistics
+  getReferralStats: (): Promise<ReferralStats> => {
+    return fetchJsonAuth('/credits/referrals/stats');
+  },
+
+  // Get user referrals list
+  getReferrals: (limit: number = 20): Promise<{ referrals: Referral[] }> => {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    return fetchJsonAuth(`/credits/referrals?${params}`);
+  },
+
+  // Validate credit redemption before checkout
+  validateRedemption: (creditsToRedeem: number, cartTotal: number): Promise<CreditRedemptionValidation> => {
+    return fetchJsonAuth('/credits/validate-redemption', {
+      method: 'POST',
+      body: JSON.stringify({ creditsToRedeem, cartTotal })
     });
   }
 };

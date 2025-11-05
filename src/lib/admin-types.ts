@@ -274,7 +274,7 @@ export interface AdminNavItem {
   id: string;
   label: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon?: React.ComponentType<{ className?: string }>;
   badge?: number;
   children?: AdminNavItem[];
 }

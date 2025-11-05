@@ -8,7 +8,8 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useCart, useToast, useAuth } from '../../lib/context';
 import { useForm } from '../../lib/hooks';
-import { productApi } from '../../lib/api';
+import { productApi, creditApi } from '../../lib/api';
+import type { CreditRedemptionValidation } from '../../lib/types';
 import { 
   bangladeshDivisions, 
   dhakaAreas, 
@@ -113,12 +114,13 @@ export default function CheckoutPage() {
         paymentMethod: values.paymentMethod,
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
+        creditsToRedeem: user && creditsToRedeem > 0 && creditValidation?.valid ? creditsToRedeem : undefined,
       };
       
       // Store pending order (order will be created in IPN handler after payment success)
       const pendingOrderResponse = user
-        ? await orderApi.storePendingOrder(orderData)
-        : await orderApi.storePendingGuestOrder(sessionId, orderData);
+        ? await orderApi.storePendingOrder(orderData as any)
+        : await orderApi.storePendingGuestOrder(sessionId, orderData as any);
       
       // CRITICAL: Use orderNumber from pending order for SSLCommerz tran_id
       // The IPN handler will look up pending order by orderNumber and create actual order
@@ -212,12 +214,13 @@ export default function CheckoutPage() {
         paymentMethod: values.paymentMethod,
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
+        creditsToRedeem: user && creditsToRedeem > 0 && creditValidation?.valid ? creditsToRedeem : undefined,
       };
 
       // Create the order (authenticated or guest)
       const order = user 
-        ? await orderApi.createOrder(orderData)
-        : await orderApi.createGuestOrder(sessionId, orderData);
+        ? await orderApi.createOrder(orderData as any)
+        : await orderApi.createGuestOrder(sessionId, orderData as any);
       
       addToast({
         type: 'success',
@@ -269,6 +272,13 @@ export default function CheckoutPage() {
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
   const [step, setStep] = React.useState<'shipping' | 'payment'>('shipping');
+  
+  // Credit redemption state
+  const [creditBalance, setCreditBalance] = React.useState<number>(0);
+  const [creditsToRedeem, setCreditsToRedeem] = React.useState<number>(0);
+  const [creditDiscount, setCreditDiscount] = React.useState<number>(0);
+  const [creditValidation, setCreditValidation] = React.useState<CreditRedemptionValidation | null>(null);
+  const [loadingCreditBalance, setLoadingCreditBalance] = React.useState(false);
   
   // Location state for dropdowns
   const [selectedDivision, setSelectedDivision] = React.useState<Division | null>(null);
@@ -609,6 +619,23 @@ export default function CheckoutPage() {
 
   // No longer redirect to login - allow guest checkout
 
+  // Load credit balance for authenticated users
+  React.useEffect(() => {
+    if (user) {
+      setLoadingCreditBalance(true);
+      creditApi.getBalance()
+        .then((data) => {
+          setCreditBalance(data.balance);
+        })
+        .catch((error) => {
+          console.error('Failed to load credit balance:', error);
+        })
+        .finally(() => {
+          setLoadingCreditBalance(false);
+        });
+    }
+  }, [user]);
+
   // PERFORMANCE: Memoize calculations to avoid recalculation on every render
   const { subtotal, shipping, total, itemCount } = React.useMemo(() => {
     const deliveryChargeInsideDhaka = 80;
@@ -626,7 +653,7 @@ export default function CheckoutPage() {
     
     // Always charge shipping (no free shipping threshold)
     const calculatedShipping = shippingCost;
-    const calculatedTotal = calculatedSubtotal + calculatedShipping;
+    const calculatedTotal = Math.max(0, calculatedSubtotal + calculatedShipping - creditDiscount);
     const calculatedItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     
     return {
@@ -635,7 +662,31 @@ export default function CheckoutPage() {
       total: calculatedTotal,
       itemCount: calculatedItemCount
     };
-  }, [cartItems, values.deliveryArea]);
+  }, [cartItems, values.deliveryArea, creditDiscount]);
+
+  // Validate credit redemption when credits change (after subtotal/shipping are calculated)
+  React.useEffect(() => {
+    if (user && creditsToRedeem > 0 && step === 'payment') {
+      const cartTotal = subtotal + shipping;
+      creditApi.validateRedemption(creditsToRedeem, cartTotal)
+        .then((validation) => {
+          setCreditValidation(validation);
+          if (validation.valid) {
+            setCreditDiscount(validation.discountAmount);
+          } else {
+            setCreditDiscount(0);
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to validate credit redemption:', error);
+          setCreditValidation(null);
+          setCreditDiscount(0);
+        });
+    } else if (creditsToRedeem === 0) {
+      setCreditDiscount(0);
+      setCreditValidation(null);
+    }
+  }, [creditsToRedeem, subtotal, shipping, step, user]);
   
   // Handle delivery area change - reset location fields
   const handleDeliveryAreaChange = (area: 'inside_dhaka' | 'outside_dhaka') => {
@@ -1242,6 +1293,67 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Method</h2>
                   
+                  {/* Credit Redemption Section - Only for authenticated users */}
+                  {user && creditBalance > 0 && (
+                    <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <h3 className="font-semibold text-purple-900 mb-3">Redeem Credits</h3>
+                      <div className="mb-3">
+                        <p className="text-sm text-purple-800 mb-2">
+                          Available Credits: <span className="font-semibold">{creditBalance}</span> 
+                          (≈ {(creditBalance / 10).toFixed(2)} BDT)
+                        </p>
+                        {subtotal + shipping < 500 && (
+                          <p className="text-xs text-red-600 mb-2">
+                            Minimum cart value of 500 BDT required to redeem credits
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max={creditBalance}
+                          step="100"
+                          value={creditsToRedeem || ''}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            setCreditsToRedeem(Math.min(value, creditBalance));
+                          }}
+                          disabled={subtotal + shipping < 500}
+                          className="flex-1 px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="Enter credits to redeem"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (creditValidation?.maxRedeemable) {
+                              setCreditsToRedeem(creditValidation.maxRedeemable);
+                            }
+                          }}
+                          disabled={subtotal + shipping < 500 || !creditValidation?.maxRedeemable}
+                          className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        >
+                          Max
+                        </button>
+                      </div>
+                      {creditsToRedeem > 0 && creditValidation && (
+                        <div className="text-sm">
+                          {creditValidation.valid ? (
+                            <p className="text-green-600">
+                              ✓ Discount: ৳{creditValidation.discountAmount.toFixed(2)}
+                            </p>
+                          ) : (
+                            <div className="text-red-600">
+                              {creditValidation.errors?.map((error, idx) => (
+                                <p key={idx}>✗ {error}</p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Outside Dhaka Payment Options */}
                   {values.deliveryArea === 'outside_dhaka' && (
                     <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1535,6 +1647,13 @@ export default function CheckoutPage() {
                     {formatPrice(shipping)}
                   </span>
                 </div>
+                
+                {creditDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Credit Discount</span>
+                    <span className="font-medium">-{formatPrice(creditDiscount)}</span>
+                  </div>
+                )}
                 
                 {/* Payment Breakdown for Outside Dhaka */}
                 {values.deliveryArea === 'outside_dhaka' && (

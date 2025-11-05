@@ -26,6 +26,7 @@ export default function RegisterPage() {
       password: '',
       confirmPassword: '',
       acceptTerms: false,
+      referralCode: '',
     },
     validate: (values) => {
       const errors: Partial<RegisterFormData> = {};
@@ -45,7 +46,7 @@ export default function RegisterPage() {
         errors.phone = 'Email or phone number is required';
       } else {
         // Validate email if provided
-        if (hasEmail) {
+        if (hasEmail && values.email) {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(values.email.trim())) {
             errors.email = 'Please enter a valid email address';
@@ -53,10 +54,18 @@ export default function RegisterPage() {
         }
         
         // Validate phone if provided
-        if (hasPhone) {
+        if (hasPhone && values.phone) {
           const phoneRegex = /^(\+8801|01)[3-9]\d{8}$/;
           if (!phoneRegex.test(values.phone.trim())) {
             errors.phone = 'Please enter a valid phone number (01XXXXXXXXX)';
+          }
+        }
+        
+        // Validate referral code format if provided
+        if (values.referralCode && values.referralCode.trim()) {
+          const referralCodeRegex = /^SCARLET-[A-Z0-9]{6}$/i;
+          if (!referralCodeRegex.test(values.referralCode.trim())) {
+            errors.referralCode = 'Invalid referral code format. Should be SCARLET-XXXXXX';
           }
         }
       }
@@ -72,7 +81,7 @@ export default function RegisterPage() {
       }
       
       if (!values.acceptTerms) {
-        errors.acceptTerms = 'You must accept the terms and conditions';
+        errors.acceptTerms = 'You must accept the terms and conditions' as any;
       }
       
       return errors;
@@ -89,7 +98,8 @@ export default function RegisterPage() {
           phone: values.phone?.trim() || undefined,
           password: values.password,
           acceptTerms: values.acceptTerms,
-        });
+          referralCode: values.referralCode?.trim() || undefined,
+        } as RegisterFormData);
         
         // Check for redirect parameter first
         const urlParams = new URLSearchParams(window.location.search);
@@ -256,6 +266,23 @@ export default function RegisterPage() {
                   </button>
                 }
               />
+            </div>
+
+            {/* Referral Code Field (Optional) */}
+            <div>
+              <Input
+                label="Referral Code (Optional)"
+                name="referralCode"
+                type="text"
+                value={values.referralCode || ''}
+                onChange={handleChange}
+                error={errors.referralCode}
+                placeholder="SCARLET-XXXXXX"
+                className="uppercase"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Have a referral code? Enter it here to earn 100 bonus credits when you sign up!
+              </p>
             </div>
 
             <div className="flex items-start space-x-3">

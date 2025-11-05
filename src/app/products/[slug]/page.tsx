@@ -387,58 +387,62 @@ export default function ProductDetailPage() {
       <div className="container-herlan py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
-          <Link href="/" className="hover:text-red-700 transition-colors">Home</Link>
+          <Link href="/" className="hover:text-red-700 transition-colors duration-200">Home</Link>
           <ChevronRightIcon />
-          <Link href="/products" className="hover:text-red-700 transition-colors">Products</Link>
+          <Link href="/products" className="hover:text-red-700 transition-colors duration-200">Products</Link>
           <ChevronRightIcon />
           <span className="text-gray-900 font-medium">{product.title}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mb-20">
           {/* Product Images */}
-          <div>
-            <ProductGallery images={product.images} productTitle={product.title} />
+          <div className="relative">
+            <div className="sticky top-8">
+              <ProductGallery images={product.images} productTitle={product.title} />
+            </div>
           </div>
 
           {/* Product Information */}
-          <div className="space-y-6">
+          <div className="space-y-7">
             {/* Brand */}
             {product.brand && (
               <div>
                 <Link 
                   href={`/brands/${product.brand.toLowerCase()}`} 
-                  className="text-sm text-red-700 hover:text-red-800 font-medium transition-colors"
+                  className="inline-flex items-center text-sm text-red-700 hover:text-red-800 font-semibold transition-all duration-200 hover:gap-2 gap-1.5 uppercase tracking-wide"
                 >
-                  {product.brand}
+                  <span>{product.brand}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
               </div>
             )}
 
             {/* Out of Stock Badge - Only show when out of stock */}
             {!stockStatus && (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-sm font-medium text-red-600">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-sm font-semibold text-red-700">
                   Out of Stock
                 </span>
               </div>
             )}
 
             {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">{product.title}</h1>
-
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight tracking-tight">{product.title}</h1>
 
             {/* Price */}
-            <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-gray-900">
+            <div className="flex items-baseline gap-4 pb-2">
+              <span className="text-4xl font-bold text-gray-900">
                 {formatPrice(currentPrice, product.price.currency)}
               </span>
               {hasDiscount && (
                 <>
-                  <span className="text-xl text-gray-500 line-through">
+                  <span className="text-xl text-gray-400 line-through font-medium">
                     {formatPrice(product.price.originalAmount!, product.price.currency)}
                   </span>
-                  <span className="bg-red-100 text-red-800 text-sm font-medium px-2 py-1 rounded">
+                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-sm">
                     {calculateDiscountPercentage(product.price.originalAmount!, product.price.amount)}% OFF
                   </span>
                 </>
@@ -447,10 +451,12 @@ export default function ProductDetailPage() {
 
             {/* Quick Description */}
             {product.description && (
-              <p className="text-gray-700 leading-relaxed">
-                {product.description.substring(0, 200)}
-                {product.description.length > 200 && '...'}
-              </p>
+              <div className="bg-gray-50 rounded-r-xl py-5 pl-0 pr-5 border-l-0 border-t border-r border-b border-gray-100">
+                <p className="text-gray-700 leading-relaxed text-base">
+                  {product.description.substring(0, 200)}
+                  {product.description.length > 200 && '...'}
+                </p>
+              </div>
             )}
 
             {/* Multiple Variant Selector */}
@@ -464,14 +470,14 @@ export default function ProductDetailPage() {
 
             {/* Out of Stock Notice - Only show when out of stock */}
             {!stockStatus && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <span className="text-sm font-medium text-red-600">
+              <div className="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 rounded-lg p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-sm font-semibold text-red-700">
                     Out of Stock
                   </span>
                 </div>
-                <p className="text-sm text-red-600 mt-2">
+                <p className="text-sm text-red-700 leading-relaxed">
                   This product is currently unavailable. Please check back later or add it to your wishlist to be notified when it's back in stock.
                 </p>
               </div>
@@ -486,10 +492,10 @@ export default function ProductDetailPage() {
                 <label htmlFor="quantity" className="text-base font-semibold text-gray-900">
                   Quantity:
                 </label>
-                <div className="flex items-center border-2 border-gray-300 rounded-lg bg-white">
+                <div className="flex items-center border-2 border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-medium"
+                    className="px-5 py-3 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-700 font-semibold border-r border-gray-200"
                     disabled={quantity <= 1}
                     aria-label="Decrease quantity"
                   >
@@ -502,11 +508,11 @@ export default function ProductDetailPage() {
                     max={product.stock || 999}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 text-center border-0 focus:ring-0 py-3 text-base font-semibold text-gray-900 bg-white"
+                    className="w-24 text-center border-0 focus:ring-0 py-3 text-lg font-bold text-gray-900 bg-white"
                   />
                   <button
                     onClick={() => setQuantity(Math.min(product.stock || 999, quantity + 1))}
-                    className="px-4 py-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-medium"
+                    className="px-5 py-3 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-700 font-semibold border-l border-gray-200"
                     disabled={quantity >= (product.stock || 999)}
                     aria-label="Increase quantity"
                   >
@@ -517,7 +523,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
               <button
                 onClick={handleAddToCart}
                 disabled={
@@ -529,25 +535,19 @@ export default function ProductDetailPage() {
                    !selectedSize && 
                    !selectedColor)
                 }
-                className="w-full h-12 px-6 text-base font-medium rounded-lg flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  minHeight: '48px'
-                }}
+                className="group w-full h-14 px-6 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg hover:shadow-xl hover:from-red-700 hover:to-rose-700 transform hover:-translate-y-0.5 disabled:transform-none"
               >
                 {isAddingToCart ? (
                   <div className="flex items-center gap-2">
                     <LoadingSpinner />
-                    Adding...
+                    <span>Adding...</span>
                   </div>
                 ) : !stockStatus ? (
-                  'Out of Stock'
+                  <span>Out of Stock</span>
                 ) : (
                   <>
                     <CartIcon />
-                    Add to Cart
+                    <span>Add to Cart</span>
                   </>
                 )}
               </button>
@@ -563,7 +563,7 @@ export default function ProductDetailPage() {
                    !selectedSize && 
                    !selectedColor)
                 }
-                className="w-full"
+                className="w-full h-14 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:transform-none"
                 size="lg"
               >
                 {!stockStatus ? 'Out of Stock' : 'Buy Now'}
@@ -571,15 +571,15 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Wishlist & Share */}
-            <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
+            <div className="flex items-center gap-4 pt-8 border-t border-gray-200">
               <button
                 onClick={handleWishlistToggle}
-                className={`flex items-center gap-3 px-6 py-3 border-2 rounded-lg transition-all duration-200 bg-white shadow-sm hover:shadow-md ${
+                className={`flex items-center gap-3 px-6 py-3.5 border-2 rounded-xl transition-all duration-300 bg-white shadow-sm hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none ${
                   product && (product.stock === 0 || product.stock === undefined)
                     ? (isInWishlist(product._id!) 
-                        ? 'border-red-300 hover:border-red-400 bg-red-50' 
-                        : 'border-gray-300 hover:border-red-400 hover:bg-red-50')
-                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 cursor-not-allowed opacity-60'
+                        ? 'border-red-300 bg-red-50 hover:border-red-400 hover:bg-red-100' 
+                        : 'border-gray-200 hover:border-red-300 hover:bg-red-50')
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-not-allowed opacity-60'
                 }`}
                 disabled={product && product.stock !== 0 && product.stock !== undefined}
                 title={product && (product.stock === 0 || product.stock === undefined) 
@@ -587,11 +587,11 @@ export default function ProductDetailPage() {
                   : 'Wishlist only for out-of-stock items'}
               >
                 <HeartIcon filled={product && isInWishlist(product._id!)} />
-                <span className={`text-sm font-semibold ${
+                <span className={`text-sm font-semibold transition-colors ${
                   product && (product.stock === 0 || product.stock === undefined)
                     ? (isInWishlist(product._id!) 
                         ? 'text-red-700' 
-                        : 'text-gray-800 hover:text-red-700')
+                        : 'text-gray-800')
                     : 'text-gray-500'
                 }`}>
                   {product && (product.stock === 0 || product.stock === undefined)
@@ -601,9 +601,9 @@ export default function ProductDetailPage() {
                 </span>
               </button>
               
-              <button className="flex items-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 bg-white shadow-sm hover:shadow-md">
+              <button className="flex items-center gap-3 px-6 py-3.5 border-2 border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 bg-white shadow-sm hover:shadow-lg transform hover:-translate-y-0.5">
                 <ShareIcon />
-                <span className="text-sm font-semibold text-gray-800 hover:text-gray-700">Share</span>
+                <span className="text-sm font-semibold text-gray-800">Share</span>
               </button>
             </div>
 
@@ -611,57 +611,61 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Details Tabs */}
-        <div className="mb-16">
-          <div className="border-b border-gray-200 mb-8">
-            <nav className="-mb-px flex space-x-8">
-              {[
-                { id: 'description', label: 'Description' },
-                { id: 'ingredients', label: 'Ingredients' },
-                { id: 'shipping', label: 'Shipping & Returns' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-red-500 text-red-700'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-          </div>
+        <div className="mb-20">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="border-b border-gray-200 bg-gray-50/50">
+              <nav className="flex space-x-1 px-6">
+                {[
+                  { id: 'description', label: 'Description' },
+                  { id: 'ingredients', label: 'Ingredients' },
+                  { id: 'shipping', label: 'Shipping & Returns' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative py-4 px-6 font-semibold text-sm transition-all duration-200 ${
+                      activeTab === tab.id
+                        ? 'text-red-700'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {tab.label}
+                    {activeTab === tab.id && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-600 to-rose-600"></span>
+                    )}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-          <div className="prose prose-sm max-w-none">
+            <div className="prose prose-sm max-w-none p-8">
             {activeTab === 'description' && (
-              <div className="space-y-4">
-                <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                <div className="mt-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Product Specifications</h4>
-                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-6">
+                <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <h4 className="font-bold text-lg text-gray-900 mb-6">Product Specifications</h4>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Brand */}
                     {product.brand && (
-                      <div className="border-b border-gray-100 pb-2">
-                        <dt className="text-sm font-medium text-gray-500">Brand</dt>
-                        <dd className="text-sm text-gray-900 mt-1">{product.brand}</dd>
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                        <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Brand</dt>
+                        <dd className="text-sm font-semibold text-gray-900">{product.brand}</dd>
                       </div>
                     )}
                     
                     {/* Sizes */}
                     {product.sizes && product.sizes.length > 0 && (
-                      <div className="border-b border-gray-100 pb-2">
-                        <dt className="text-sm font-medium text-gray-500">Available Sizes</dt>
-                        <dd className="text-sm text-gray-900 mt-1">{product.sizes.join(', ')}</dd>
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                        <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Available Sizes</dt>
+                        <dd className="text-sm font-semibold text-gray-900">{product.sizes.join(', ')}</dd>
                       </div>
                     )}
                     
                     {/* SKU */}
                     {product.sku && (
-                      <div className="border-b border-gray-100 pb-2">
-                        <dt className="text-sm font-medium text-gray-500">SKU</dt>
-                        <dd className="text-sm text-gray-900 mt-1">{product.sku}</dd>
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                        <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">SKU</dt>
+                        <dd className="text-sm font-semibold text-gray-900 font-mono">{product.sku}</dd>
                       </div>
                     )}
                     
@@ -671,11 +675,11 @@ export default function ProductDetailPage() {
                         return key !== 'cost' && key !== 'categoryIds' && key !== 'category' && key !== 'subcategory' && value !== undefined && value !== null && String(value) !== '';
                       })
                       .map(([key, value]) => (
-                        <div key={key} className="border-b border-gray-100 pb-2">
-                          <dt className="text-sm font-medium text-gray-500 capitalize">
+                        <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                          <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                             {key.replace(/([A-Z])/g, ' $1').trim()}
                           </dt>
-                          <dd className="text-sm text-gray-900 mt-1">{String(value)}</dd>
+                          <dd className="text-sm font-semibold text-gray-900">{String(value)}</dd>
                         </div>
                       ))}
                   </dl>
@@ -684,44 +688,77 @@ export default function ProductDetailPage() {
             )}
 
             {activeTab === 'ingredients' && (
-              <div className="space-y-4">
-                <h4 className="font-semibold text-gray-900">Key Ingredients</h4>
-                <p className="text-gray-700">
-                  Detailed ingredient information will be displayed here. This section typically includes 
-                  active ingredients, full INCI list, and any allergen information.
-                </p>
+              <div className="space-y-6">
+                <h4 className="font-bold text-lg text-gray-900">Key Ingredients</h4>
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                  <p className="text-gray-700 leading-relaxed">
+                    Detailed ingredient information will be displayed here. This section typically includes 
+                    active ingredients, full INCI list, and any allergen information.
+                  </p>
+                </div>
               </div>
             )}
-
 
             {activeTab === 'shipping' && (
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Shipping Information</h4>
-                  <ul className="space-y-2 text-gray-700">
-                    <li>• Inside Dhaka: 3-4 day Delivery</li>
-                    <li>• Outside Dhaka: 5 day Delivery</li>
-                    <li>• Express delivery available for urgent orders</li>
+              <div className="space-y-8">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                  <h4 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                    Shipping Information
+                  </h4>
+                  <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 font-bold mt-0.5">•</span>
+                      <span><strong>Inside Dhaka:</strong> 3-4 day Delivery</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 font-bold mt-0.5">•</span>
+                      <span><strong>Outside Dhaka:</strong> 5 day Delivery</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 font-bold mt-0.5">•</span>
+                      <span>Express delivery available for urgent orders</span>
+                    </li>
                   </ul>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Return Policy</h4>
-                  <ul className="space-y-2 text-gray-700">
-                    <li>• 7-day return policy for unopened products</li>
-                    <li>• Products must be in original packaging</li>
-                    <li>• Return shipping costs may apply</li>
-                    <li>• Refunds processed within 5-7 business days</li>
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                  <h4 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Return Policy
+                  </h4>
+                  <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 font-bold mt-0.5">•</span>
+                      <span>7-day return policy for unopened products</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 font-bold mt-0.5">•</span>
+                      <span>Products must be in original packaging</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 font-bold mt-0.5">•</span>
+                      <span>Return shipping costs may apply</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 font-bold mt-0.5">•</span>
+                      <span>Refunds processed within 5-7 business days</span>
+                    </li>
                   </ul>
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-8">You May Also Like</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-10">You May Also Like</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <Link
@@ -729,22 +766,22 @@ export default function ProductDetailPage() {
                   href={`/products/${relatedProduct.slug}`}
                   className="group"
                 >
-                  <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4">
-                    <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                  <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 border border-gray-100 overflow-hidden transform hover:-translate-y-1">
+                    <div className="aspect-square bg-gray-100 rounded-xl mb-4 overflow-hidden">
                       {relatedProduct.images[0] && (
                         <Image
                           src={relatedProduct.images[0]}
                           alt={relatedProduct.title}
                           width={200}
                           height={200}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       )}
                     </div>
-                    <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">
+                    <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-red-700 transition-colors">
                       {relatedProduct.title}
                     </h4>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-xl font-bold text-gray-900">
                       {formatPrice(relatedProduct.price.amount, relatedProduct.price.currency)}
                     </p>
                   </div>
