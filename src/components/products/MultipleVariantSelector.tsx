@@ -32,33 +32,48 @@ export default function MultipleVariantSelector({
     return `${size || 'no-size'}_${color || 'no-color'}`;
   };
 
-  // Check if a combination already exists (exact match)
-  const findSelection = (size: string, color: string): VariantSelection | undefined => {
-    return selections.find(s => 
-      (s.size || '') === (size || '') && 
-      (s.color || '') === (color || '')
-    );
-  };
-
   // Add a new variant combination
-  const addVariant = (size: string, color: string) => {
-    const existing = findSelection(size, color);
-    if (existing) {
-      // If exists, just increment quantity (if within stock limit)
-      updateQuantity(existing.id, existing.quantity + 1);
-    } else {
-      // Add new combination with quantity 1
-      const newSelection: VariantSelection = {
-        size,
-        color,
-        quantity: 1,
-        id: getVariantId(size, color)
-      };
-      const updated = [...selections, newSelection];
-      setSelections(updated);
-      onSelectionsChange(updated);
+  const addVariant = React.useCallback((size: string, color: string) => {
+    setSelections(prevSelections => {
+      const existing = prevSelections.find(s => 
+        (s.size || '') === (size || '') && 
+        (s.color || '') === (color || '')
+      );
+      
+      if (existing) {
+        // If exists, just increment quantity (if within stock limit)
+        const newQuantity = Math.min(existing.quantity + 1, maxStock);
+        if (newQuantity < 1) return prevSelections;
+        
+        const updated = prevSelections.map(s => 
+          s.id === existing.id ? { ...s, quantity: newQuantity } : s
+        );
+        onSelectionsChange(updated);
+        return updated;
+      } else {
+        // Add new combination with quantity 1
+        const newSelection: VariantSelection = {
+          size,
+          color,
+          quantity: 1,
+          id: getVariantId(size, color)
+        };
+        const updated = [...prevSelections, newSelection];
+        onSelectionsChange(updated);
+        return updated;
+      }
+    });
+  }, [maxStock, onSelectionsChange]);
+
+  // Auto-add combination when both size and color are selected
+  React.useEffect(() => {
+    if (selectedSizeForCombination && selectedColorForCombination) {
+      addVariant(selectedSizeForCombination, selectedColorForCombination);
+      // Clear selections after adding so user can select new combination
+      setSelectedSizeForCombination('');
+      setSelectedColorForCombination('');
     }
-  };
+  }, [selectedSizeForCombination, selectedColorForCombination, addVariant]);
 
   // Update quantity for a specific variant
   const updateQuantity = (id: string, newQuantity: number) => {
@@ -236,35 +251,21 @@ export default function MultipleVariantSelector({
               </div>
             </div>
 
-            {/* Add Combination Button */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedSizeForCombination && selectedColorForCombination) {
-                    addVariant(selectedSizeForCombination, selectedColorForCombination);
-                    // Keep selections active so user can add same combination multiple times or change and add new
-                  }
-                }}
-                disabled={!selectedSizeForCombination || !selectedColorForCombination}
-                className={`px-6 py-3 border-2 font-medium transition-all flex items-center gap-2 ${
-                  selectedSizeForCombination && selectedColorForCombination
-                    ? 'border-red-600 bg-red-600 text-white hover:bg-red-700'
-                    : 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add Combination
-              </button>
-              {selectedSizeForCombination && selectedColorForCombination && (
-                <p className="mt-2 text-sm text-gray-600">
-                  Ready to add: <span className="font-medium">{selectedSizeForCombination}</span> / <span className="font-medium">{selectedColorForCombination}</span>
-                  <span className="ml-2 text-xs text-gray-500">(Click + to add, or change selection to add different combinations)</span>
+            {/* Auto-add info message */}
+            {selectedSizeForCombination && !selectedColorForCombination && (
+              <div className="pt-2">
+                <p className="text-sm text-gray-600">
+                  Size <span className="font-medium text-red-600">{selectedSizeForCombination}</span> selected. Select a color to add the combination automatically.
                 </p>
-              )}
-            </div>
+              </div>
+            )}
+            {!selectedSizeForCombination && selectedColorForCombination && (
+              <div className="pt-2">
+                <p className="text-sm text-gray-600">
+                  Color <span className="font-medium text-red-600">{selectedColorForCombination}</span> selected. Select a size to add the combination automatically.
+                </p>
+              </div>
+            )}
 
             {/* Quick Add: Multiple sizes for selected color */}
             {selectedColorForCombination && !selectedSizeForCombination && (
