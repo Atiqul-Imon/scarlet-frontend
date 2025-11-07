@@ -10,7 +10,7 @@ import { getImageKitStatus } from '@/lib/imagekit-test';
 import { Category } from '@/lib/types';
 import { ExtendedAdminProduct } from '@/lib/admin-types';
 import ImageSelector from '@/components/admin/ImageSelector';
-import SearchableCategoryDropdown from '@/components/admin/SearchableCategoryDropdown';
+import CategoryCheckboxSelector from '@/components/admin/CategoryCheckboxSelector';
 
 interface ProductFormProps {
   productId?: string;
@@ -28,7 +28,7 @@ interface ProductFormData {
   cost: string;
   sku: string;
   barcode: string;
-  category: string;
+  categoryIds: string[];
   subcategory: string;
   brand: string;
   tags: string[];
@@ -72,7 +72,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     cost: '',
     sku: '',
     barcode: '',
-    category: '',
+    categoryIds: [] as string[],
     subcategory: '',
     brand: '',
     tags: [],
@@ -154,7 +154,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         cost: (product.attributes?.['cost'] as number | string | boolean | null | undefined)?.toString() || '',
         sku: product.sku || '',
         barcode: product.barcode || '',
-        category: product.categoryIds?.[0] || '',
+        categoryIds: product.categoryIds || [],
         subcategory: (product.attributes?.['subcategory'] as string | undefined) || '',
         brand: product.brand || '',
         tags: (product as any).tags || [],
@@ -565,16 +565,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
+              Categories <span className="text-gray-500 text-xs">(Select multiple)</span>
             </label>
-            <SearchableCategoryDropdown
+            <CategoryCheckboxSelector
               categories={categories}
-              value={formData.category}
-              onChange={(categoryId) => handleInputChange('category', categoryId)}
+              selectedCategoryIds={formData.categoryIds}
+              onChange={(categoryIds) => handleInputChange('categoryIds', categoryIds)}
               loading={categoriesLoading}
               disabled={categoriesLoading}
-              placeholder="Select Category"
             />
+            {formData.categoryIds.length > 0 && (
+              <p className="mt-2 text-xs text-gray-500">
+                {formData.categoryIds.length} categor{formData.categoryIds.length === 1 ? 'y' : 'ies'} selected
+              </p>
+            )}
           </div>
 
           <div>
