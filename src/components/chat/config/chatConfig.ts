@@ -3,7 +3,7 @@ import { ChatConfig } from '../types';
 
 export const chatConfig: ChatConfig = {
   whatsapp: {
-    phoneNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+8801XXXXXXXXX',
+    phoneNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+8801407000543',
     businessName: 'Scarlet Beauty Store',
     welcomeMessage: {
       en: 'Hello! 👋 Welcome to Scarlet. How can I help you with your beauty needs today?',

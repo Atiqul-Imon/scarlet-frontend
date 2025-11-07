@@ -26,7 +26,7 @@ export default function FloatingWhatsAppButton({ className = '' }: FloatingWhats
   }, []);
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = '8801234567890'; // Update with your WhatsApp number
+    const phoneNumber = '8801407000543'; // WhatsApp number
     const message = 'Hello! I would like to know more about your beauty products.';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
