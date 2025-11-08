@@ -241,6 +241,9 @@ export default function AdminCategoriesPage() {
         )
       );
 
+      sessionStorage.removeItem('cachedCategories');
+      sessionStorage.removeItem('cachedHeaderCategories');
+
       setMessage({ 
         type: 'success', 
         text: `Category ${newStatus ? 'activated' : 'deactivated'} successfully` 
@@ -322,6 +325,9 @@ export default function AdminCategoriesPage() {
       
       // Refresh categories after successful deletion
       await fetchCategories();
+
+      sessionStorage.removeItem('cachedCategories');
+      sessionStorage.removeItem('cachedHeaderCategories');
       
       setMessage({ type: 'success', text: 'Category deleted successfully' });
       setTimeout(() => setMessage(null), 3000);

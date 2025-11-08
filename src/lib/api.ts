@@ -603,43 +603,54 @@ export const categoryApi = {
   },
 
   // Create category
-  createCategory: (categoryData: Omit<Category, '_id' | 'createdAt' | 'updatedAt'>): Promise<Category> => {
-    return fetchJsonAuth<Category>('/catalog/categories', {
+  createCategory: async (categoryData: Omit<Category, '_id' | 'createdAt' | 'updatedAt'>): Promise<Category> => {
+    const category = await fetchJsonAuth<Category>('/catalog/categories', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(categoryData),
     });
+
+    clearCategoryCaches();
+    return category;
   },
 
   // Update category
-  updateCategory: (categoryId: string, categoryData: Partial<Category>): Promise<Category> => {
-    return fetchJsonAuth<Category>(`/catalog/categories/${categoryId}`, {
+  updateCategory: async (categoryId: string, categoryData: Partial<Category>): Promise<Category> => {
+    const category = await fetchJsonAuth<Category>(`/catalog/categories/${categoryId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(categoryData),
     });
+
+    clearCategoryCaches();
+    return category;
   },
 
   // Update category sort order (bulk)
-  updateCategorySortOrder: (categoryUpdates: Array<{id: string, sortOrder: number}>): Promise<{message: string}> => {
-    return fetchJsonAuth<{message: string}>('/admin/categories/sort-order', {
+  updateCategorySortOrder: async (categoryUpdates: Array<{id: string, sortOrder: number}>): Promise<{message: string}> => {
+    const response = await fetchJsonAuth<{message: string}>('/admin/categories/sort-order', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ categoryUpdates }),
     });
+
+    clearCategoryCaches();
+    return response;
   },
 
   // Delete category
-  deleteCategory: (categoryId: string): Promise<void> => {
-    return fetchJsonAuth<void>(`/catalog/categories/${categoryId}`, {
+  deleteCategory: async (categoryId: string): Promise<void> => {
+    await fetchJsonAuth<void>(`/catalog/categories/${categoryId}`, {
       method: 'DELETE',
     });
+
+    clearCategoryCaches();
   },
 
   // Hierarchy functions
@@ -1413,31 +1424,43 @@ export const adminApi = {
       return fetchJsonAuth<Category>(`/admin/categories/${categoryId}`);
     },
 
-    createCategory: (categoryData: Partial<Category>): Promise<Category> => {
-      return fetchJsonAuth<Category>('/admin/categories', {
+    createCategory: async (categoryData: Partial<Category>): Promise<Category> => {
+      const category = await fetchJsonAuth<Category>('/admin/categories', {
         method: 'POST',
         body: JSON.stringify(categoryData)
       });
+
+      clearCategoryCaches();
+      return category;
     },
 
-    updateCategory: (categoryId: string, categoryData: Partial<Category>): Promise<Category> => {
-      return fetchJsonAuth<Category>(`/admin/categories/${categoryId}`, {
+    updateCategory: async (categoryId: string, categoryData: Partial<Category>): Promise<Category> => {
+      const category = await fetchJsonAuth<Category>(`/admin/categories/${categoryId}`, {
         method: 'PUT',
         body: JSON.stringify(categoryData)
       });
+
+      clearCategoryCaches();
+      return category;
     },
 
-    updateCategoryStatus: (categoryId: string, isActive: boolean): Promise<{ message: string }> => {
-      return fetchJsonAuth(`/admin/categories/${categoryId}/status`, {
+    updateCategoryStatus: async (categoryId: string, isActive: boolean): Promise<{ success: boolean }> => {
+      const result = await fetchJsonAuth<{ success: boolean }>(`/admin/categories/${categoryId}/status`, {
         method: 'PATCH',
         body: JSON.stringify({ isActive })
       });
+
+      clearCategoryCaches();
+      return result;
     },
 
-    deleteCategory: (categoryId: string): Promise<{ message: string }> => {
-      return fetchJsonAuth(`/admin/categories/${categoryId}`, {
+    deleteCategory: async (categoryId: string): Promise<{ success: boolean }> => {
+      const result = await fetchJsonAuth<{ success: boolean }>(`/admin/categories/${categoryId}`, {
         method: 'DELETE'
       });
+
+      clearCategoryCaches();
+      return result;
     }
   },
 
@@ -2139,5 +2162,26 @@ export const searchApi = {
 if (typeof window !== 'undefined') {
   startTokenRefreshScheduler();
 }
+
+const clearCategoryCaches = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    sessionStorage.removeItem('cachedCategories');
+    sessionStorage.removeItem('cachedHeaderCategories');
+  } catch (error) {
+    console.warn('Failed to clear category cache storage', error);
+  }
+
+  import('swr')
+    .then(({ mutate }) => {
+      mutate('/categories');
+    })
+    .catch(() => {
+      // SWR may not be available (e.g., during SSR); ignore errors
+    });
+};
 
 

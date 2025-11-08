@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { mutate } from 'swr';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -224,6 +225,11 @@ export default function NewCategoryPage() {
     setLoading(true);
     try {
       await categoryApi.createCategory(formData);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('cachedCategories');
+        sessionStorage.removeItem('cachedHeaderCategories');
+      }
+      mutate('/categories');
       addToast({
         type: 'success',
         title: 'Category created',
