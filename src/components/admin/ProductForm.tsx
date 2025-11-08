@@ -81,7 +81,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     colors: [],
     lowStockThreshold: '10',
     trackInventory: true,
-    status: 'draft',
+    status: 'active',
     weight: '',
     dimensions: {
       length: '',
@@ -163,7 +163,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         colors: product.colors || [],
         lowStockThreshold: '10',
         trackInventory: ((product as any).trackInventory !== false),
-        status: ((product as any).status as string) || 'draft',
+        status: ((product as any).status as string) || 'active',
         weight: ((product as any).weight as number | undefined)?.toString() || '',
         dimensions: {
           length: ((product as any).dimensions?.length as number | undefined)?.toString() || '',
