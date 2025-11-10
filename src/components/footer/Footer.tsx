@@ -223,9 +223,6 @@ export default function Footer() {
                 <p className="text-gray-400 text-xs mb-2">
                   <strong>Trade License:</strong> TRAD/DNCC/050622/2023
                 </p>
-                <p className="text-gray-400 text-xs mb-2">
-                  <strong>Business Owner:</strong> Nabila Sultana
-                </p>
                 <p className="text-gray-400 text-xs">
                   <strong>License Valid Until:</strong> June 30, 2026
                 </p>
@@ -313,7 +310,6 @@ export default function Footer() {
                   Delivery Policy
                 </Link>
                 <span className="whitespace-nowrap">Trade License: TRAD/DNCC/050622/2023</span>
-                <span className="whitespace-nowrap">Owner: Nabila Sultana</span>
               </div>
             </div>
             

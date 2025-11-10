@@ -48,7 +48,6 @@ export default function TermsPage() {
                   <p><strong>Registered Address:</strong> 3 No. West Tejturi Bazar, Lt.-3, Block-B, Do.-55, Bashundhara City, Dhaka</p>
                   <p><strong>Trade License No:</strong> TRAD/DNCC/050622/2023</p>
                   <p><strong>TIN Certificate No:</strong> (To be updated)</p>
-                  <p><strong>Business Owner:</strong> Nabila Sultana</p>
                   <p><strong>Email:</strong> nabilasultana0000@gmail.com</p>
                   <p><strong>Phone:</strong> +880 1407 000543</p>
                   <p><strong>Business Start Date:</strong> November 15, 2021</p>
