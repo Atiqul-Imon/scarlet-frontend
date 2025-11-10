@@ -309,6 +309,9 @@ export default function Footer() {
                 <Link href="/return-policy" className="hover:text-red-400 transition-colors whitespace-nowrap">
                   Return & Refund Policy
                 </Link>
+                <Link href="/delivery-policy" className="hover:text-red-400 transition-colors whitespace-nowrap">
+                  Delivery Policy
+                </Link>
                 <span className="whitespace-nowrap">Trade License: TRAD/DNCC/050622/2023</span>
                 <span className="whitespace-nowrap">Owner: Nabila Sultana</span>
               </div>
