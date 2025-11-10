@@ -123,16 +123,6 @@ export default function Footer() {
                   Careers
                 </Link>
               </li>
-              <li>
-                <Link href="/press" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
-                  Press
-                </Link>
-              </li>
-              <li>
-                <Link href="/affiliate" className="text-gray-300 hover:text-red-400 transition-colors text-sm">
-                  Affiliate Program
-                </Link>
-              </li>
             </ul>
           </div>
 
