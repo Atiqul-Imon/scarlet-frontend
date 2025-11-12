@@ -449,6 +449,23 @@ export default function ProductDetailPage() {
               )}
             </div>
 
+            {/* Stock Quantity Display - SSLCommerz Compliance */}
+            <div className="mb-4">
+              {product.stock !== undefined && product.stock > 0 ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                  <span className="text-sm font-semibold text-green-800">
+                    Stock Quantity: <strong>{product.stock}</strong> {product.stock === 1 ? 'unit' : 'units'} available
+                  </span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+                  <span className="text-sm font-semibold text-red-800">
+                    Stock Status: <strong>Out of Stock</strong> (0 units available)
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Quick Description */}
             {product.description && (
               <div className="bg-gray-50 rounded-r-xl py-5 pl-0 pr-5 border-l-0 border-t border-r border-b border-gray-100">
@@ -642,9 +659,34 @@ export default function ProductDetailPage() {
             {activeTab === 'description' && (
               <div className="space-y-6">
                 <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
+                
+                {/* Stock Quantity in Description - SSLCommerz Compliance */}
+                <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">Stock Information</h4>
+                  {product.stock !== undefined && product.stock > 0 ? (
+                    <p className="text-sm text-gray-700">
+                      <strong>Available:</strong> {product.stock} {product.stock === 1 ? 'unit' : 'units'} in stock
+                    </p>
+                  ) : (
+                    <p className="text-sm text-red-700">
+                      <strong>Status:</strong> Out of Stock (0 units available)
+                    </p>
+                  )}
+                </div>
+                
                 <div className="mt-8 pt-6 border-t border-gray-100">
                   <h4 className="font-bold text-lg text-gray-900 mb-6">Product Specifications</h4>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Stock Quantity */}
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                      <dt className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Stock Quantity</dt>
+                      <dd className="text-sm font-semibold text-gray-900">
+                        {product.stock !== undefined && product.stock > 0 
+                          ? `${product.stock} ${product.stock === 1 ? 'unit' : 'units'} available`
+                          : 'Out of Stock (0 units available)'}
+                      </dd>
+                    </div>
+                    
                     {/* Brand */}
                     {product.brand && (
                       <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">

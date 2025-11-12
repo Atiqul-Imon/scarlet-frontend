@@ -250,7 +250,26 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-8 pt-6">
           <div className="text-center mb-4">
             <h4 className="text-lg font-semibold text-red-400 mb-2">Secure Payment Methods</h4>
-            <p className="text-gray-400 text-sm">SSL Commerce Certified - Your payments are 100% secure</p>
+            <p className="text-gray-400 text-sm mb-4">SSL Commerce Certified - Your payments are 100% secure</p>
+            
+            {/* SSLCommerz Payment Banner */}
+            <div className="flex justify-center mb-4">
+              <a 
+                href="https://www.sslcommerz.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <Image
+                  src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-05.png"
+                  alt="SSLCommerz - Secure Payment Gateway"
+                  width={300}
+                  height={80}
+                  className="h-auto max-w-full"
+                  priority
+                />
+              </a>
+            </div>
           </div>
           
           {/* Additional Payment Info */}
