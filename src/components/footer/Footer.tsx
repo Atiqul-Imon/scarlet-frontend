@@ -253,7 +253,7 @@ export default function Footer() {
             <p className="text-gray-400 text-sm mb-4">SSL Commerce Certified - Your payments are 100% secure</p>
             
             {/* SSLCommerz Payment Banner */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center">
               <a 
                 href="https://www.sslcommerz.com" 
                 target="_blank" 
@@ -263,32 +263,12 @@ export default function Footer() {
                 <Image
                   src="/images/payment/Payment Banner_Jul24_V1-03.webp"
                   alt="SSLCommerz - Secure Payment Gateway"
-                  width={300}
-                  height={80}
-                  className="h-auto max-w-full"
+                  width={800}
+                  height={200}
+                  className="h-auto w-full max-w-4xl"
                   priority
                 />
               </a>
-            </div>
-          </div>
-          
-          {/* Additional Payment Info */}
-          <div className="flex flex-wrap justify-center items-center gap-3">
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
-              <CreditCardIcon className="w-5 h-5 text-gray-600" />
-              <span className="text-gray-700 text-xs font-medium">Credit/Debit Cards</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
-              <span className="text-green-600 text-xs font-bold">bKash</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
-              <span className="text-blue-600 text-xs font-bold">Nagad</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
-              <span className="text-purple-600 text-xs font-bold">Rocket</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-1.5">
-              <span className="text-gray-600 text-xs font-medium">Cash on Delivery</span>
             </div>
           </div>
         </div>
