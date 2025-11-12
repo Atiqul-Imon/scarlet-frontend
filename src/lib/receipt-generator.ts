@@ -13,7 +13,6 @@ interface OrderReceiptData {
     address: string;
     city: string;
     area: string;
-    postalCode: string;
     phone: string;
   };
   items: Array<{
@@ -327,7 +326,7 @@ export function generateDetailedReceiptPDF(orderData: OrderReceiptData): void {
   yPosition += lineHeight;
   addText(orderData.shippingAddress.address, margin, yPosition);
   yPosition += lineHeight;
-  addText(`${orderData.shippingAddress.area}, ${orderData.shippingAddress.city} - ${orderData.shippingAddress.postalCode}`, margin, yPosition);
+  addText(`${orderData.shippingAddress.area}, ${orderData.shippingAddress.city}`, margin, yPosition);
   yPosition += lineHeight;
   addText(`Phone: ${orderData.shippingAddress.phone}`, margin, yPosition);
   yPosition += lineHeight * 2;

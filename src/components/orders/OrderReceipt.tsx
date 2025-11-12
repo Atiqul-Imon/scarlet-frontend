@@ -23,7 +23,6 @@ interface OrderReceiptProps {
     address: string;
     city: string;
     area: string;
-    postalCode: string;
     phone: string;
   };
   items: OrderItem[];
@@ -187,7 +186,7 @@ export default function OrderReceipt({
             <div className="text-xs sm:text-sm space-y-1 break-words">
               <p className="font-medium" style={{color: '#000000'}}>{shippingAddress.name}</p>
               <p style={{color: '#000000'}}>{shippingAddress.address}</p>
-              <p style={{color: '#000000'}}>{shippingAddress.area}, {shippingAddress.city} - {shippingAddress.postalCode}</p>
+              <p style={{color: '#000000'}}>{shippingAddress.area}, {shippingAddress.city}</p>
               <p style={{color: '#000000'}}>Phone: {shippingAddress.phone}</p>
             </div>
           </div>

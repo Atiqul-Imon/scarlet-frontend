@@ -32,7 +32,6 @@ interface OrderDetails {
     address: string;
     city: string;
     area: string;
-    postalCode: string;
     phone: string;
   };
   subtotal?: number;
@@ -124,12 +123,17 @@ function OrderSuccessPageContent() {
           // Additional fields for receipt
           customerName: order.shippingAddress?.name || 'Customer',
           customerPhone: order.shippingAddress?.phone,
-          shippingAddress: order.shippingAddress || {
+          shippingAddress: order.shippingAddress ? {
+            name: order.shippingAddress.firstName + (order.shippingAddress.lastName ? ' ' + order.shippingAddress.lastName : ''),
+            address: order.shippingAddress.address,
+            city: order.shippingAddress.city,
+            area: order.shippingAddress.area || order.shippingAddress.city,
+            phone: order.shippingAddress.phone || 'N/A'
+          } : {
             name: 'Customer',
             address: 'N/A',
             city: 'N/A',
             area: 'N/A',
-            postalCode: 'N/A',
             phone: 'N/A'
           },
           subtotal: order.subtotal || order.total || 0,
@@ -187,12 +191,17 @@ function OrderSuccessPageContent() {
         customerName: orderDetails.customerName || 'Customer',
         customerEmail: orderDetails.email,
         customerPhone: orderDetails.customerPhone,
-        shippingAddress: orderDetails.shippingAddress || {
+        shippingAddress: orderDetails.shippingAddress ? {
+          name: orderDetails.shippingAddress.name || 'Customer',
+          address: orderDetails.shippingAddress.address || 'N/A',
+          city: orderDetails.shippingAddress.city || 'N/A',
+          area: orderDetails.shippingAddress.area || 'N/A',
+          phone: orderDetails.shippingAddress.phone || 'N/A'
+        } : {
           name: 'Customer',
           address: 'N/A',
           city: 'N/A',
           area: 'N/A',
-          postalCode: 'N/A',
           phone: 'N/A'
         },
         items: orderDetails.items,
@@ -232,12 +241,17 @@ function OrderSuccessPageContent() {
         customerName: orderDetails.customerName || 'Customer',
         customerEmail: orderDetails.email,
         customerPhone: orderDetails.customerPhone,
-        shippingAddress: orderDetails.shippingAddress || {
+        shippingAddress: orderDetails.shippingAddress ? {
+          name: orderDetails.shippingAddress.name || 'Customer',
+          address: orderDetails.shippingAddress.address || 'N/A',
+          city: orderDetails.shippingAddress.city || 'N/A',
+          area: orderDetails.shippingAddress.area || 'N/A',
+          phone: orderDetails.shippingAddress.phone || 'N/A'
+        } : {
           name: 'Customer',
           address: 'N/A',
           city: 'N/A',
           area: 'N/A',
-          postalCode: 'N/A',
           phone: 'N/A'
         },
         items: orderDetails.items,
@@ -277,12 +291,17 @@ function OrderSuccessPageContent() {
         customerName: orderDetails.customerName || 'Customer',
         customerEmail: orderDetails.email,
         customerPhone: orderDetails.customerPhone,
-        shippingAddress: orderDetails.shippingAddress || {
+        shippingAddress: orderDetails.shippingAddress ? {
+          name: orderDetails.shippingAddress.name || 'Customer',
+          address: orderDetails.shippingAddress.address || 'N/A',
+          city: orderDetails.shippingAddress.city || 'N/A',
+          area: orderDetails.shippingAddress.area || 'N/A',
+          phone: orderDetails.shippingAddress.phone || 'N/A'
+        } : {
           name: 'Customer',
           address: 'N/A',
           city: 'N/A',
           area: 'N/A',
-          postalCode: 'N/A',
           phone: 'N/A'
         },
         items: orderDetails.items,
@@ -490,12 +509,17 @@ function OrderSuccessPageContent() {
                 customerName={orderDetails.customerName || 'Customer'}
                 customerEmail={orderDetails.email}
                 customerPhone={orderDetails.customerPhone}
-                shippingAddress={orderDetails.shippingAddress || {
+                shippingAddress={orderDetails.shippingAddress ? {
+                  name: orderDetails.shippingAddress.name || 'Customer',
+                  address: orderDetails.shippingAddress.address || 'N/A',
+                  city: orderDetails.shippingAddress.city || 'N/A',
+                  area: orderDetails.shippingAddress.area || 'N/A',
+                  phone: orderDetails.shippingAddress.phone || 'N/A'
+                } : {
                   name: 'Customer',
                   address: 'N/A',
                   city: 'N/A',
                   area: 'N/A',
-                  postalCode: 'N/A',
                   phone: 'N/A'
                 }}
                 items={orderDetails.items}

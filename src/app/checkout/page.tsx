@@ -34,7 +34,6 @@ interface CheckoutFormData {
   // Legacy fields (keep for backward compatibility)
   city: string;
   area: string;
-  postalCode?: string; // Optional
   
   // Payment Information
   paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod' | 'sslcommerz';
@@ -105,7 +104,6 @@ export default function CheckoutPage() {
         upazilla: values.upazilla || undefined,
         city: values.city,
         area: values.area,
-        postalCode: values.postalCode || '',
         paymentMethod: values.paymentMethod,
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
@@ -133,7 +131,7 @@ export default function CheckoutPage() {
           address: values.address,
           city: values.city,
           country: 'Bangladesh',
-          postcode: values.postalCode || '',
+          postcode: '',
         },
         items: cartItems.map(item => ({
           name: item.title,
@@ -204,7 +202,6 @@ export default function CheckoutPage() {
         upazilla: values.upazilla || undefined,
         city: values.city,
         area: values.area,
-        postalCode: values.postalCode || '',
         paymentMethod: values.paymentMethod,
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
@@ -334,7 +331,6 @@ export default function CheckoutPage() {
       upazilla: '',
       city: 'Dhaka',
       area: '',
-      postalCode: '',
       paymentMethod: 'sslcommerz', // Default: will redirect to SSLCommerz where user chooses method
       payFullAmount: false, // Default: pay only delivery charge for outside Dhaka
       notes: '',
@@ -412,13 +408,6 @@ export default function CheckoutPage() {
       
       // Keep area for backward compatibility (will be set from upazilla for outside_dhaka)
       // For inside_dhaka, area is not required - will default to "Dhaka"
-      
-      // Postal code is optional, but if provided, must be valid format
-      if (values.postalCode && values.postalCode.trim()) {
-        if (!/^\d{4}$/.test(values.postalCode.trim())) {
-          errors.postalCode = 'Postal code must be 4 digits';
-        }
-      }
       
       if (!values.paymentMethod) {
         errors.paymentMethod = 'Payment method is required';
@@ -1198,18 +1187,7 @@ export default function CheckoutPage() {
 
                   {values.deliveryArea === 'outside_dhaka' && (
                     <>
-                      <div className="mb-4">
-                        <Input
-                          label="Postal Code"
-                          name="postalCode"
-                          value={values.postalCode}
-                          onChange={handleChange}
-                          error={errors.postalCode || undefined}
-                          placeholder="1000 (optional)"
-                        />
-                      </div>
-                      
-                      {/* Address field below Postal Code for Outside Dhaka */}
+                      {/* Address field for Outside Dhaka */}
                       <div className="mb-6">
                         <Input
                           label="Address *"
