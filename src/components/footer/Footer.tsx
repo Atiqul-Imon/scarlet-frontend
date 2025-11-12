@@ -261,7 +261,7 @@ export default function Footer() {
                 className="inline-block"
               >
                 <Image
-                  src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-05.png"
+                  src="/payment/Payment Banner_Jul24_V1-03.webp"
                   alt="SSLCommerz - Secure Payment Gateway"
                   width={300}
                   height={80}
