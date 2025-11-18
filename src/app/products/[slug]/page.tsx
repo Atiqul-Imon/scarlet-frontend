@@ -357,12 +357,80 @@ export default function ProductDetailPage() {
     
     // Fallback to single stock
     return product.stock || 0;
-  }, [product, selectedSize, selectedColor, variantSelections.length, totalVariantStock]);
+  }, [product, selectedSize, selectedColor, variantSelections.length, totalVariantStock, getVariantKey]);
 
   const isInStock = React.useMemo(() => {
     return currentStock > 0;
   }, [currentStock]);
+
+  // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
+  // Memoize calculations that depend on product (must be called unconditionally)
+  const currentPrice = React.useMemo(() => product?.price.amount || 0, [product?.price.amount]);
+  const hasDiscount = React.useMemo(() => 
+    product?.price.originalAmount && product.price.originalAmount > (product.price.amount || 0),
+    [product?.price.originalAmount, product?.price.amount]
+  );
+
+  // Memoize maxStock for variant selector
+  const maxStockForSelector = React.useMemo(() => {
+    if (!product) return 999;
+    const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
+    if (hasVariants && product.variantStock) {
+      return totalVariantStock || 999;
+    }
+    return product.stock || 999;
+  }, [product, totalVariantStock]);
+
+  // Memoize stock display JSX to avoid calling useMemo inside JSX (React Hooks violation)
+  const stockDisplay = React.useMemo(() => {
+    if (!product) return null;
+    
+    const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
+    
+    if (hasVariants && product.variantStock) {
+      // Show both total and per-variant stock
+      return (
+        <>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+            <span className="text-sm font-semibold text-blue-800">
+              Total Stock: <strong>{totalVariantStock}</strong> {totalVariantStock === 1 ? 'unit' : 'units'} across all variants
+            </span>
+          </div>
+          {(selectedSize || selectedColor) && currentStock > 0 && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+              <span className="text-sm font-semibold text-green-800">
+                Selected Variant ({selectedSize || 'N/A'}, {selectedColor || 'N/A'}): <strong>{currentStock}</strong> {currentStock === 1 ? 'unit' : 'units'} available
+              </span>
+            </div>
+          )}
+          {(selectedSize || selectedColor) && currentStock === 0 && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+              <span className="text-sm font-semibold text-red-800">
+                Selected Variant ({selectedSize || 'N/A'}, {selectedColor || 'N/A'}): <strong>Out of Stock</strong>
+              </span>
+            </div>
+          )}
+        </>
+      );
+    } else {
+      // Single stock display
+      return currentStock > 0 ? (
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+          <span className="text-sm font-semibold text-green-800">
+            Stock Quantity: <strong>{currentStock}</strong> {currentStock === 1 ? 'unit' : 'units'} available
+          </span>
+        </div>
+      ) : (
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+          <span className="text-sm font-semibold text-red-800">
+            Stock Status: <strong>Out of Stock</strong> (0 units available)
+          </span>
+        </div>
+      );
+    }
+  }, [product, product?.sizes, product?.colors, product?.variantStock, product?.stock, selectedSize, selectedColor, variantSelections.length, currentStock, totalVariantStock]);
   
+  // NOW we can do early returns after all hooks are called
   // Show loading skeleton while fetching data
   if (loading) {
     return (
@@ -396,22 +464,6 @@ export default function ProductDetailPage() {
   if (!product) {
     return <ProductDetailSkeleton />;
   }
-
-  const currentPrice = React.useMemo(() => product?.price.amount || 0, [product?.price.amount]);
-  const hasDiscount = React.useMemo(() => 
-    product.price.originalAmount && product.price.originalAmount > product.price.amount,
-    [product.price.originalAmount, product.price.amount]
-  );
-
-  // Memoize maxStock for variant selector
-  const maxStockForSelector = React.useMemo(() => {
-    if (!product) return 999;
-    const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
-    if (hasVariants && product.variantStock) {
-      return totalVariantStock || 999;
-    }
-    return product.stock || 999;
-  }, [product, totalVariantStock]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -493,51 +545,7 @@ export default function ProductDetailPage() {
 
             {/* Stock Quantity Display - SSLCommerz Compliance */}
             <div className="mb-4 space-y-2">
-              {React.useMemo(() => {
-                const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
-                
-                if (hasVariants && product.variantStock) {
-                  // Show both total and per-variant stock
-                  return (
-                    <>
-                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                        <span className="text-sm font-semibold text-blue-800">
-                          Total Stock: <strong>{totalVariantStock}</strong> {totalVariantStock === 1 ? 'unit' : 'units'} across all variants
-                        </span>
-                      </div>
-                      {(selectedSize || selectedColor) && currentStock > 0 && (
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-                          <span className="text-sm font-semibold text-green-800">
-                            Selected Variant ({selectedSize || 'N/A'}, {selectedColor || 'N/A'}): <strong>{currentStock}</strong> {currentStock === 1 ? 'unit' : 'units'} available
-                          </span>
-                        </div>
-                      )}
-                      {(selectedSize || selectedColor) && currentStock === 0 && (
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-                          <span className="text-sm font-semibold text-red-800">
-                            Selected Variant ({selectedSize || 'N/A'}, {selectedColor || 'N/A'}): <strong>Out of Stock</strong>
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  );
-                } else {
-                  // Single stock display
-                  return currentStock > 0 ? (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-                      <span className="text-sm font-semibold text-green-800">
-                        Stock Quantity: <strong>{currentStock}</strong> {currentStock === 1 ? 'unit' : 'units'} available
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-                      <span className="text-sm font-semibold text-red-800">
-                        Stock Status: <strong>Out of Stock</strong> (0 units available)
-                      </span>
-                    </div>
-                  );
-                }
-              }, [product.sizes, product.colors, product.variantStock, product.stock, selectedSize, selectedColor, variantSelections.length, currentStock, totalVariantStock])}
+              {stockDisplay}
             </div>
 
             {/* Quick Description */}
