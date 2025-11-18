@@ -191,10 +191,10 @@ export default function Footer() {
               <div className="flex items-center space-x-3">
                 <EnvelopeIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <a 
-                  href="mailto:nabilasultana0000@gmail.com" 
+                  href="mailto:info@scarletunlimited.net" 
                   className="text-gray-300 hover:text-red-400 transition-colors text-sm"
                 >
-                  nabilasultana0000@gmail.com
+                  info@scarletunlimited.net
                 </a>
               </div>
               

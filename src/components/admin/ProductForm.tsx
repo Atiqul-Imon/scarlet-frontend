@@ -11,6 +11,7 @@ import { Category } from '@/lib/types';
 import { ExtendedAdminProduct } from '@/lib/admin-types';
 import ImageSelector from '@/components/admin/ImageSelector';
 import CategoryCheckboxSelector from '@/components/admin/CategoryCheckboxSelector';
+import VariantStockManager from '@/components/admin/VariantStockManager';
 
 interface ProductFormProps {
   productId?: string;
@@ -49,6 +50,7 @@ interface ProductFormData {
   seoDescription: string;
   seoKeywords: string[];
   homepageSection: string;
+  variantStock: Record<string, string>; // Values as strings for form inputs
   variants: Array<{
     id: string;
     name: string;
@@ -93,6 +95,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     seoDescription: '',
     seoKeywords: [],
     homepageSection: '',
+    variantStock: {},
     variants: []
   });
 
@@ -175,6 +178,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         seoDescription: ((product as any).seoDescription as string) || '',
         seoKeywords: ((product as any).seoKeywords as string[]) || [],
         homepageSection: product.homepageSection || '',
+        variantStock: product.variantStock 
+          ? Object.fromEntries(
+              Object.entries(product.variantStock).map(([key, value]) => [
+                key,
+                typeof value === 'number' ? value.toString() : String(value || '')
+              ])
+            )
+          : {},
         variants: (((product as any).variants as Array<{ id?: string; name: string; sku: string; stock: number; price: number; }>) || []).map(v => ({
           id: (v.id ?? Date.now().toString()) as string,
           name: v.name,
@@ -395,6 +406,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         stock: parseInt(formData.stock) || 0,
         sizes: formData.sizes.filter(s => s.trim() !== '').length > 0 ? formData.sizes.filter(s => s.trim() !== '') : undefined,
         colors: formData.colors.filter(c => c.trim() !== '').length > 0 ? formData.colors.filter(c => c.trim() !== '') : undefined,
+        variantStock: Object.keys(formData.variantStock).length > 0 ? formData.variantStock : undefined,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         dimensions: {
@@ -774,6 +786,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               </p>
             </div>
           </div>
+
+          {/* Variant Stock Manager */}
+          {(formData.sizes.length > 0 || formData.colors.length > 0) && (
+            <div className="col-span-2">
+              <VariantStockManager
+                sizes={formData.sizes}
+                colors={formData.colors}
+                variantStock={formData.variantStock}
+                onChange={(variantStock) => handleInputChange('variantStock', variantStock)}
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

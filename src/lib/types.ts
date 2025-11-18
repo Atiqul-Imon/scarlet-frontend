@@ -240,6 +240,7 @@ export interface Product extends BaseEntity {
   price: ProductPrice;
   brand?: string;
   stock?: number;
+  variantStock?: Record<string, number>; // Stock per variant combination: "size_color" format
   categoryIds: string[];
   attributes?: ProductAttribute[];
   tags?: string[];

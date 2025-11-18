@@ -45,6 +45,7 @@ export interface AdminProduct {
     originalAmount?: number;
   };
   stock: number;
+  variantStock?: Record<string, number>; // Stock per variant combination: "size_color" format
   sizes?: string[];
   colors?: string[];
   attributes?: Record<string, string | number | boolean | null>;

@@ -12,6 +12,7 @@ interface MultipleVariantSelectorProps {
   sizes?: string[] | undefined;
   colors?: string[] | undefined;
   maxStock?: number;
+  variantStock?: Record<string, number>; // Stock per variant combination
   onSelectionsChange: (selections: VariantSelection[]) => void;
   initialSelections?: VariantSelection[];
 }
@@ -20,6 +21,7 @@ export default function MultipleVariantSelector({
   sizes = [],
   colors = [],
   maxStock = 999,
+  variantStock,
   onSelectionsChange,
   initialSelections = []
 }: MultipleVariantSelectorProps) {
@@ -32,8 +34,26 @@ export default function MultipleVariantSelector({
     return `${size || 'no-size'}_${color || 'no-color'}`;
   };
 
+  // Get stock for a specific variant
+  const getVariantStock = (size: string, color: string): number => {
+    if (!variantStock) return maxStock;
+    const key = getVariantId(size, color);
+    return variantStock[key] || 0;
+  };
+
+  // Check if variant is in stock
+  const isVariantInStock = (size: string, color: string): boolean => {
+    if (!variantStock) return true; // If no variant stock, assume in stock
+    return getVariantStock(size, color) > 0;
+  };
+
   // Add a new variant combination
   const addVariant = React.useCallback((size: string, color: string) => {
+    // Check if variant is in stock
+    if (!isVariantInStock(size, color)) {
+      return; // Don't add out-of-stock variants
+    }
+
     setSelections(prevSelections => {
       const existing = prevSelections.find(s => 
         (s.size || '') === (size || '') && 
@@ -42,7 +62,8 @@ export default function MultipleVariantSelector({
       
       if (existing) {
         // If exists, just increment quantity (if within stock limit)
-        const newQuantity = Math.min(existing.quantity + 1, maxStock);
+        const variantStockLimit = getVariantStock(size, color);
+        const newQuantity = Math.min(existing.quantity + 1, variantStockLimit);
         if (newQuantity < 1) return prevSelections;
         
         const updated = prevSelections.map(s => 
@@ -63,7 +84,7 @@ export default function MultipleVariantSelector({
         return updated;
       }
     });
-  }, [maxStock, onSelectionsChange]);
+  }, [maxStock, onSelectionsChange, variantStock]);
 
   // Auto-add combination when both size and color are selected
   React.useEffect(() => {
@@ -78,8 +99,17 @@ export default function MultipleVariantSelector({
   // Update quantity for a specific variant
   const updateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
-    if (newQuantity > maxStock) {
-      newQuantity = maxStock;
+    
+    const selection = selections.find(s => s.id === id);
+    if (selection) {
+      const variantStockLimit = getVariantStock(selection.size, selection.color);
+      if (newQuantity > variantStockLimit) {
+        newQuantity = variantStockLimit;
+      }
+    } else {
+      if (newQuantity > maxStock) {
+        newQuantity = maxStock;
+      }
     }
     
     const updated = selections.map(s => 
@@ -201,21 +231,40 @@ export default function MultipleVariantSelector({
               <div className="flex flex-wrap gap-2">
                 {normalizedSizes.map((size: string, index: number) => {
                   const isSelected = selectedSizeForCombination === size;
+                  // Check if any color combination with this size is in stock
+                  const hasStock = normalizedColors.length === 0 
+                    ? isVariantInStock(size, '')
+                    : normalizedColors.some(color => isVariantInStock(size, color));
+                  
                   return (
                     <button
                       key={`combo-size-${size}-${index}`}
                       type="button"
                       onClick={() => {
-                        // Toggle selection - allow only one size at a time for combination
-                        setSelectedSizeForCombination(isSelected ? '' : size);
+                        if (hasStock) {
+                          // Toggle selection - allow only one size at a time for combination
+                          setSelectedSizeForCombination(isSelected ? '' : size);
+                        }
                       }}
+                      disabled={!hasStock}
                       className={`px-4 py-2 border-2 font-medium transition-all ${
-                        isSelected
+                        !hasStock
+                          ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                          : isSelected
                           ? 'border-red-600 bg-red-50 text-red-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
                       }`}
+                      title={!hasStock ? 'Out of stock' : ''}
                     >
                       {size}
+                      {variantStock && (
+                        <span className="ml-2 text-xs">
+                          ({normalizedColors.length === 0 
+                            ? getVariantStock(size, '')
+                            : normalizedColors.filter(c => isVariantInStock(size, c)).length + '/' + normalizedColors.length
+                          })
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -230,21 +279,40 @@ export default function MultipleVariantSelector({
               <div className="flex flex-wrap gap-2">
                 {normalizedColors.map((color: string, index: number) => {
                   const isSelected = selectedColorForCombination === color;
+                  // Check if any size combination with this color is in stock
+                  const hasStock = normalizedSizes.length === 0 
+                    ? isVariantInStock('', color)
+                    : normalizedSizes.some(size => isVariantInStock(size, color));
+                  
                   return (
                     <button
                       key={`combo-color-${color}-${index}`}
                       type="button"
                       onClick={() => {
-                        // Toggle selection - allow only one color at a time for combination
-                        setSelectedColorForCombination(isSelected ? '' : color);
+                        if (hasStock) {
+                          // Toggle selection - allow only one color at a time for combination
+                          setSelectedColorForCombination(isSelected ? '' : color);
+                        }
                       }}
+                      disabled={!hasStock}
                       className={`px-4 py-2 border-2 font-medium transition-all ${
-                        isSelected
+                        !hasStock
+                          ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                          : isSelected
                           ? 'border-red-600 bg-red-50 text-red-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
                       }`}
+                      title={!hasStock ? 'Out of stock' : ''}
                     >
                       {color}
+                      {variantStock && (
+                        <span className="ml-2 text-xs">
+                          ({normalizedSizes.length === 0 
+                            ? getVariantStock('', color)
+                            : normalizedSizes.filter(s => isVariantInStock(s, color)).length + '/' + normalizedSizes.length
+                          })
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -319,55 +387,66 @@ export default function MultipleVariantSelector({
             Selected Items ({getTotalQuantity()} total)
           </label>
           <div className="space-y-2">
-            {selections.map((selection) => (
-              <div
-                key={selection.id}
-                className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                    {selection.size && (
-                      <span className="font-medium">Size: {selection.size}</span>
-                    )}
-                    {selection.size && selection.color && <span>•</span>}
-                    {selection.color && (
-                      <span className="font-medium">Color: {selection.color}</span>
-                    )}
-                    {!selection.size && !selection.color && (
-                      <span className="text-gray-500 italic">No variants</span>
+            {selections.map((selection) => {
+              const variantStock = getVariantStock(selection.size, selection.color);
+              const variantStockLimit = variantStock || maxStock;
+              
+              return (
+                <div
+                  key={selection.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      {selection.size && (
+                        <span className="font-medium">Size: {selection.size}</span>
+                      )}
+                      {selection.size && selection.color && <span>•</span>}
+                      {selection.color && (
+                        <span className="font-medium">Color: {selection.color}</span>
+                      )}
+                      {!selection.size && !selection.color && (
+                        <span className="text-gray-500 italic">No variants</span>
+                      )}
+                    </div>
+                    {variantStock !== undefined && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Stock: <span className={variantStock > 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                          {variantStock} {variantStock === 1 ? 'unit' : 'units'} available
+                        </span>
+                      </div>
                     )}
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  {/* Quantity Controls */}
-                  <div className="flex items-center border border-gray-300 bg-white">
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(selection.id, selection.quantity - 1)}
-                      className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-700"
-                      disabled={selection.quantity <= 1}
-                      aria-label="Decrease quantity"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                      </svg>
-                    </button>
-                    <span className="w-10 text-center text-sm font-semibold text-gray-900">
-                      {selection.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity(selection.id, selection.quantity + 1)}
-                      className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-700"
-                      disabled={selection.quantity >= maxStock || getTotalQuantity() >= maxStock}
-                      aria-label="Increase quantity"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    {/* Quantity Controls */}
+                    <div className="flex items-center border border-gray-300 bg-white rounded">
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(selection.id, selection.quantity - 1)}
+                        className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-700"
+                        disabled={selection.quantity <= 1}
+                        aria-label="Decrease quantity"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                      </button>
+                      <span className="w-10 text-center text-sm font-semibold text-gray-900">
+                        {selection.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(selection.id, selection.quantity + 1)}
+                        className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-700"
+                        disabled={selection.quantity >= variantStockLimit || getTotalQuantity() >= maxStock}
+                        aria-label="Increase quantity"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
 
                   {/* Remove Button */}
                   <button
@@ -383,7 +462,8 @@ export default function MultipleVariantSelector({
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

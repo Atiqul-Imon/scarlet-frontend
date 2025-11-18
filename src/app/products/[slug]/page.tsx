@@ -321,13 +321,58 @@ export default function ProductDetailPage() {
     return product.price.amount;
   };
 
+  // Helper function to generate variant key
+  const getVariantKey = (size?: string, color?: string): string => {
+    const sizeKey = size || 'no-size';
+    const colorKey = color || 'no-color';
+    return `${sizeKey}_${colorKey}`;
+  };
+
+  // Get stock for a specific variant
+  const getVariantStock = (size?: string, color?: string): number => {
+    if (!product?.variantStock) return 0;
+    const key = getVariantKey(size, color);
+    return product.variantStock[key] || 0;
+  };
+
+  // Get total stock across all variants
+  const getTotalVariantStock = (): number => {
+    if (!product?.variantStock) return 0;
+    return Object.values(product.variantStock).reduce((sum, stock) => sum + (stock || 0), 0);
+  };
+
+  // Get current stock (variant or single)
+  const getCurrentStock = (): number => {
+    if (!product) return 0;
+    
+    // If product has variants and size/color selected, check variant stock
+    const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
+    if (hasVariants && product.variantStock && (selectedSize || selectedColor)) {
+      return getVariantStock(selectedSize || undefined, selectedColor || undefined);
+    }
+    
+    // If product has variants but no variant stock set, return 0
+    if (hasVariants && product.variantStock) {
+      // If using variant selector, check total variant stock
+      if (variantSelections.length > 0) {
+        return getTotalVariantStock();
+      }
+      // If single selection, check that variant
+      if (selectedSize || selectedColor) {
+        return getVariantStock(selectedSize || undefined, selectedColor || undefined);
+      }
+      return getTotalVariantStock();
+    }
+    
+    // Fallback to single stock
+    return product.stock || 0;
+  };
+
   const isInStock = () => {
     if (!product) return false;
     
-    // Check main stock
-    if (product.stock !== undefined && product.stock <= 0) return false;
-    
-    return true;
+    const currentStock = getCurrentStock();
+    return currentStock > 0;
   };
 
 
@@ -450,20 +495,54 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Stock Quantity Display - SSLCommerz Compliance */}
-            <div className="mb-4">
-              {product.stock !== undefined && product.stock > 0 ? (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-                  <span className="text-sm font-semibold text-green-800">
-                    Stock Quantity: <strong>{product.stock}</strong> {product.stock === 1 ? 'unit' : 'units'} available
-                  </span>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-                  <span className="text-sm font-semibold text-red-800">
-                    Stock Status: <strong>Out of Stock</strong> (0 units available)
-                  </span>
-                </div>
-              )}
+            <div className="mb-4 space-y-2">
+              {(() => {
+                const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
+                const currentStock = getCurrentStock();
+                const totalVariantStock = hasVariants && product.variantStock ? getTotalVariantStock() : 0;
+                
+                if (hasVariants && product.variantStock) {
+                  // Show both total and per-variant stock
+                  return (
+                    <>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <span className="text-sm font-semibold text-blue-800">
+                          Total Stock: <strong>{totalVariantStock}</strong> {totalVariantStock === 1 ? 'unit' : 'units'} across all variants
+                        </span>
+                      </div>
+                      {(selectedSize || selectedColor) && currentStock > 0 && (
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                          <span className="text-sm font-semibold text-green-800">
+                            Selected Variant ({selectedSize || 'N/A'}, {selectedColor || 'N/A'}): <strong>{currentStock}</strong> {currentStock === 1 ? 'unit' : 'units'} available
+                          </span>
+                        </div>
+                      )}
+                      {(selectedSize || selectedColor) && currentStock === 0 && (
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+                          <span className="text-sm font-semibold text-red-800">
+                            Selected Variant ({selectedSize || 'N/A'}, {selectedColor || 'N/A'}): <strong>Out of Stock</strong>
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  );
+                } else {
+                  // Single stock display
+                  return currentStock > 0 ? (
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                      <span className="text-sm font-semibold text-green-800">
+                        Stock Quantity: <strong>{currentStock}</strong> {currentStock === 1 ? 'unit' : 'units'} available
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+                      <span className="text-sm font-semibold text-red-800">
+                        Stock Status: <strong>Out of Stock</strong> (0 units available)
+                      </span>
+                    </div>
+                  );
+                }
+              })()}
             </div>
 
             {/* Quick Description */}
@@ -480,7 +559,14 @@ export default function ProductDetailPage() {
             <MultipleVariantSelector
               sizes={product.sizes || undefined}
               colors={product.colors || undefined}
-              maxStock={product.stock || 999}
+              maxStock={(() => {
+                const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
+                if (hasVariants && product.variantStock) {
+                  return getTotalVariantStock() || 999;
+                }
+                return product.stock || 999;
+              })()}
+              {...(product.variantStock && { variantStock: product.variantStock })}
               onSelectionsChange={setVariantSelections}
               initialSelections={variantSelections}
             />
