@@ -81,25 +81,27 @@ export default function ProductDetailPage() {
         setLoading(false);
         
         // Fetch related products asynchronously after main product loads
+        // Optimized: Use dedicated related products endpoint instead of fetching entire category
         if (product.categoryIds && product.categoryIds.length > 0) {
           // Don't await this - let it load in background
-          fetch(`/api/proxy/catalog/products/category/${product.categoryIds[0]}`)
-            .then(categoryResponse => {
-              if (categoryResponse.ok) {
-                return categoryResponse.json();
+          fetch(`/api/proxy/catalog/products/${product._id}/related?limit=3`, {
+            headers: {
+              'Cache-Control': 'max-age=300', // 5 minutes cache
+            },
+          })
+            .then(relatedResponse => {
+              if (relatedResponse.ok) {
+                return relatedResponse.json();
               }
               return null;
             })
-            .then(categoryData => {
-              if (categoryData?.success && categoryData.data) {
-                const related: Product[] = categoryData.data
-                  .filter((p: Product) => p.slug !== slug && p._id !== product._id)
-                  .slice(0, 3);
-                setRelatedProducts(related);
+            .then(relatedData => {
+              if (relatedData?.success && relatedData.data) {
+                setRelatedProducts(relatedData.data);
               }
             })
             .catch(() => {
-              // Silently fail for related products
+              // Silently fail for related products - not critical for page functionality
             });
         }
         
@@ -302,7 +304,7 @@ export default function ProductDetailPage() {
     }
   };
 
-  const formatPrice = (amount: number, currency: string = 'BDT') => {
+  const formatPrice = React.useCallback((amount: number, currency: string = 'BDT') => {
     if (currency === 'BDT') {
       return `৳${amount.toLocaleString('en-US')}`;
     }
@@ -310,73 +312,56 @@ export default function ProductDetailPage() {
       style: 'currency',
       currency: currency,
     }).format(amount);
-  };
+  }, []);
 
-  const calculateDiscountPercentage = (originalPrice: number, salePrice: number) => {
+  const calculateDiscountPercentage = React.useCallback((originalPrice: number, salePrice: number) => {
     return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
-  };
-
-  const getCurrentPrice = () => {
-    if (!product) return 0;
-    return product.price.amount;
-  };
+  }, []);
 
   // Helper function to generate variant key
-  const getVariantKey = (size?: string, color?: string): string => {
+  const getVariantKey = React.useCallback((size?: string, color?: string): string => {
     const sizeKey = size || 'no-size';
     const colorKey = color || 'no-color';
     return `${sizeKey}_${colorKey}`;
-  };
+  }, []);
 
-  // Get stock for a specific variant
-  const getVariantStock = (size?: string, color?: string): number => {
+  // Memoize expensive calculations to avoid recalculating on every render
+  const totalVariantStock = React.useMemo(() => {
     if (!product?.variantStock) return 0;
-    const key = getVariantKey(size, color);
-    return product.variantStock[key] || 0;
-  };
+    return Object.values(product.variantStock).reduce((sum: number, stock: number) => sum + (stock || 0), 0);
+  }, [product?.variantStock]);
 
-  // Get total stock across all variants
-  const getTotalVariantStock = (): number => {
-    if (!product?.variantStock) return 0;
-    return Object.values(product.variantStock).reduce((sum, stock) => sum + (stock || 0), 0);
-  };
-
-  // Get current stock (variant or single)
-  const getCurrentStock = (): number => {
+  const currentStock = React.useMemo(() => {
     if (!product) return 0;
     
     // If product has variants and size/color selected, check variant stock
     const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
     if (hasVariants && product.variantStock && (selectedSize || selectedColor)) {
-      return getVariantStock(selectedSize || undefined, selectedColor || undefined);
+      const key = getVariantKey(selectedSize || undefined, selectedColor || undefined);
+      return product.variantStock[key] || 0;
     }
     
     // If product has variants but no variant stock set, return 0
     if (hasVariants && product.variantStock) {
       // If using variant selector, check total variant stock
       if (variantSelections.length > 0) {
-        return getTotalVariantStock();
+        return totalVariantStock;
       }
       // If single selection, check that variant
       if (selectedSize || selectedColor) {
-        return getVariantStock(selectedSize || undefined, selectedColor || undefined);
+        const key = getVariantKey(selectedSize || undefined, selectedColor || undefined);
+        return product.variantStock[key] || 0;
       }
-      return getTotalVariantStock();
+      return totalVariantStock;
     }
     
     // Fallback to single stock
     return product.stock || 0;
-  };
+  }, [product, selectedSize, selectedColor, variantSelections.length, totalVariantStock]);
 
-  const isInStock = () => {
-    if (!product) return false;
-    
-    const currentStock = getCurrentStock();
+  const isInStock = React.useMemo(() => {
     return currentStock > 0;
-  };
-
-
-  console.log('Loading state:', loading, 'Product:', product, 'Error:', error);
+  }, [currentStock]);
   
   // Show loading skeleton while fetching data
   if (loading) {
@@ -412,9 +397,21 @@ export default function ProductDetailPage() {
     return <ProductDetailSkeleton />;
   }
 
-  const currentPrice = getCurrentPrice();
-  const stockStatus = isInStock();
-  const hasDiscount = product.price.originalAmount && product.price.originalAmount > product.price.amount;
+  const currentPrice = React.useMemo(() => product?.price.amount || 0, [product?.price.amount]);
+  const hasDiscount = React.useMemo(() => 
+    product.price.originalAmount && product.price.originalAmount > product.price.amount,
+    [product.price.originalAmount, product.price.amount]
+  );
+
+  // Memoize maxStock for variant selector
+  const maxStockForSelector = React.useMemo(() => {
+    if (!product) return 999;
+    const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
+    if (hasVariants && product.variantStock) {
+      return totalVariantStock || 999;
+    }
+    return product.stock || 999;
+  }, [product, totalVariantStock]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -465,7 +462,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Out of Stock Badge - Only show when out of stock */}
-            {!stockStatus && (
+            {!isInStock && (
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-sm font-semibold text-red-700">
@@ -496,10 +493,8 @@ export default function ProductDetailPage() {
 
             {/* Stock Quantity Display - SSLCommerz Compliance */}
             <div className="mb-4 space-y-2">
-              {(() => {
+              {React.useMemo(() => {
                 const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
-                const currentStock = getCurrentStock();
-                const totalVariantStock = hasVariants && product.variantStock ? getTotalVariantStock() : 0;
                 
                 if (hasVariants && product.variantStock) {
                   // Show both total and per-variant stock
@@ -542,7 +537,7 @@ export default function ProductDetailPage() {
                     </div>
                   );
                 }
-              })()}
+              }, [product.sizes, product.colors, product.variantStock, product.stock, selectedSize, selectedColor, variantSelections.length, currentStock, totalVariantStock])}
             </div>
 
             {/* Quick Description */}
@@ -559,20 +554,14 @@ export default function ProductDetailPage() {
             <MultipleVariantSelector
               sizes={product.sizes || undefined}
               colors={product.colors || undefined}
-              maxStock={(() => {
-                const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
-                if (hasVariants && product.variantStock) {
-                  return getTotalVariantStock() || 999;
-                }
-                return product.stock || 999;
-              })()}
+              maxStock={maxStockForSelector}
               {...(product.variantStock && { variantStock: product.variantStock })}
               onSelectionsChange={setVariantSelections}
               initialSelections={variantSelections}
             />
 
             {/* Out of Stock Notice - Only show when out of stock */}
-            {!stockStatus && (
+            {!isInStock && (
               <div className="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 rounded-lg p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -587,7 +576,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity Selector - Only show if no variants at all (no sizes, no colors) */}
-            {stockStatus && 
+            {isInStock && 
              variantSelections.length === 0 && 
              !product.sizes && 
              !product.colors && (
@@ -630,7 +619,7 @@ export default function ProductDetailPage() {
               <button
                 onClick={handleAddToCart}
                 disabled={
-                  !stockStatus || 
+                  !isInStock || 
                   isAddingToCart || 
                   // Only disable if product has variants but none selected
                   (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
@@ -645,7 +634,7 @@ export default function ProductDetailPage() {
                     <LoadingSpinner />
                     <span>Adding...</span>
                   </div>
-                ) : !stockStatus ? (
+                ) : !isInStock ? (
                   <span>Out of Stock</span>
                 ) : (
                   <>
@@ -658,7 +647,7 @@ export default function ProductDetailPage() {
               <Button
                 onClick={handleBuyNow}
                 disabled={
-                  !stockStatus || 
+                  !isInStock || 
                   isAddingToCart || 
                   // Only disable if product has variants but none selected
                   (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
@@ -669,7 +658,7 @@ export default function ProductDetailPage() {
                 className="w-full h-14 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:transform-none"
                 size="lg"
               >
-                {!stockStatus ? 'Out of Stock' : 'Buy Now'}
+                {!isInStock ? 'Out of Stock' : 'Buy Now'}
               </Button>
             </div>
 

@@ -119,14 +119,16 @@ function ProductsPageContent() {
     }
   };
 
-  // Fetch products and categories
+  // Fetch products and categories with optimized query parameters
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     
     try {
+      // Optimize: Add limit and pagination to reduce data transfer
+      // Fetch only active products with essential fields
       const [productsData, categoriesData] = await Promise.all([
-        fetchJson<Product[]>('/catalog/products'),
+        fetchJson<Product[]>(`/catalog/products?limit=100&isActive=true`),
         fetchJson<Category[]>('/catalog/categories')
       ]);
       
@@ -267,6 +269,17 @@ function ProductsPageContent() {
     return result;
   }, [categories]);
 
+  // Memoize category counts to avoid recalculating on every render
+  const categoryCounts = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach(product => {
+      product.categoryIds?.forEach(categoryId => {
+        counts.set(categoryId, (counts.get(categoryId) || 0) + 1);
+      });
+    });
+    return counts;
+  }, [products]);
+
   // Get categories for filter - filtered based on current category
   const categoryOptions = React.useMemo(() => {
     // If no category is selected, show all categories
@@ -275,9 +288,8 @@ function ProductsPageContent() {
         .filter(cat => cat.isActive)
         .map(category => {
           const allCategoryIds = getAllDescendantCategoryIds(category._id!);
-          const count = products.filter(p => 
-            p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
-          ).length;
+          // Optimize: Use pre-calculated counts instead of filtering products
+          const count = allCategoryIds.reduce((sum, catId) => sum + (categoryCounts.get(catId) || 0), 0);
           
           return {
             value: category.slug,
@@ -298,9 +310,8 @@ function ProductsPageContent() {
         .filter(cat => cat.isActive)
         .map(category => {
           const allCategoryIds = getAllDescendantCategoryIds(category._id!);
-          const count = products.filter(p => 
-            p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
-          ).length;
+          // Optimize: Use pre-calculated counts
+          const count = allCategoryIds.reduce((sum, catId) => sum + (categoryCounts.get(catId) || 0), 0);
           
           return {
             value: category.slug,
@@ -319,9 +330,8 @@ function ProductsPageContent() {
         .filter(cat => cat.isActive)
         .map(category => {
           const allCategoryIds = getAllDescendantCategoryIds(category._id!);
-          const count = products.filter(p => 
-            p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
-          ).length;
+          // Optimize: Use pre-calculated counts
+          const count = allCategoryIds.reduce((sum, catId) => sum + (categoryCounts.get(catId) || 0), 0);
           
           return {
             value: category.slug,
@@ -367,9 +377,8 @@ function ProductsPageContent() {
 
     return uniqueCategories.map(category => {
       const allCategoryIds = getAllDescendantCategoryIds(category._id!);
-      const count = products.filter(p => 
-        p.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
-      ).length;
+      // Optimize: Use pre-calculated counts
+      const count = allCategoryIds.reduce((sum, catId) => sum + (categoryCounts.get(catId) || 0), 0);
       
       return {
         value: category.slug,
@@ -377,7 +386,7 @@ function ProductsPageContent() {
         count
       };
     });
-  }, [categories, products, filters.category, getAllDescendantCategoryIds, getAllDescendantCategories]);
+  }, [categories, categoryCounts, filters.category, getAllDescendantCategoryIds, getAllDescendantCategories]);
 
   // Price ranges for BDT currency
   const priceRanges = [

@@ -41,11 +41,28 @@ export default function MultipleVariantSelector({
     return variantStock[key] || 0;
   };
 
-  // Check if variant is in stock
-  const isVariantInStock = (size: string, color: string): boolean => {
+  // Memoize stock checks to avoid repeated calculations
+  const stockCheckCache = React.useRef<Map<string, boolean>>(new Map());
+  
+  // Check if variant is in stock (memoized)
+  const isVariantInStock = React.useCallback((size: string, color: string): boolean => {
     if (!variantStock) return true; // If no variant stock, assume in stock
-    return getVariantStock(size, color) > 0;
-  };
+    const key = `${size || 'no-size'}_${color || 'no-color'}`;
+    
+    // Check cache first
+    if (stockCheckCache.current.has(key)) {
+      return stockCheckCache.current.get(key)!;
+    }
+    
+    const inStock = getVariantStock(size, color) > 0;
+    stockCheckCache.current.set(key, inStock);
+    return inStock;
+  }, [variantStock, maxStock]);
+  
+  // Clear cache when variantStock changes
+  React.useEffect(() => {
+    stockCheckCache.current.clear();
+  }, [variantStock]);
 
   // Add a new variant combination
   const addVariant = React.useCallback((size: string, color: string) => {
