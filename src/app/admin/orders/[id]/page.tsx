@@ -26,6 +26,7 @@ import { BDTIcon } from '../../../../components/ui/BDTIcon';
 import { useToast } from '@/lib/context';
 import { adminApi } from '@/lib/api';
 import type { AdminOrder } from '@/lib/admin-types';
+import Invoice from '@/components/admin/Invoice';
 
 interface OrderTimeline {
   id: string;
@@ -56,6 +57,7 @@ export default function OrderDetailPage() {
   const [newNote, setNewNote] = useState('');
   const [notePrivate, setNotePrivate] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
 
   // Fetch order details from API
   const fetchOrderDetails = async () => {
@@ -349,7 +351,13 @@ export default function OrderDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Invoice Print View - Hidden by default, shown only when printing */}
+      <div className="hidden print:block">
+        <Invoice order={order} />
+      </div>
+
+      {/* Regular Admin View - Hidden when printing */}
+      <div className="max-w-7xl mx-auto px-4 py-6 print:hidden">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -633,6 +641,13 @@ export default function OrderDetailPage() {
                   Process Refund
                 </button>
                 <button 
+                  onClick={() => setShowInvoicePreview(true)}
+                  className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <DocumentTextIcon className="w-4 h-4 mr-3 text-gray-400" />
+                  View Invoice
+                </button>
+                <button 
                   onClick={() => window.print()}
                   className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
@@ -767,6 +782,35 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
+      {/* Invoice Preview Modal */}
+      {showInvoicePreview && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-full max-w-5xl shadow-lg rounded-md bg-white">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Invoice Preview</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <PrinterIcon className="w-4 h-4 mr-2" />
+                  Print
+                </button>
+                <button
+                  onClick={() => setShowInvoicePreview(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+            <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+              <Invoice order={order} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Status Update Modal */}
       {showStatusModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -804,6 +848,24 @@ export default function OrderDetailPage() {
       {/* Print Styles */}
       <style jsx global>{`
         @media print {
+          /* Hide everything except invoice */
+          body * {
+            visibility: hidden;
+          }
+          
+          .invoice-container,
+          .invoice-container * {
+            visibility: visible;
+          }
+          
+          .invoice-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: white;
+          }
+
           /* Hide navigation and action buttons */
           nav,
           header,
@@ -811,41 +873,72 @@ export default function OrderDetailPage() {
           button,
           [class*="sidebar"],
           [class*="AdminSidebar"],
-          [class*="AdminHeader"] {
-            display: none !important;
-          }
-
-          /* Hide timeline and notes sections */
+          [class*="AdminHeader"],
           .print-hide {
             display: none !important;
+            visibility: hidden !important;
           }
 
-          /* Page setup */
+          /* Page setup for A4 */
           @page {
-            margin: 1cm;
+            margin: 1.5cm;
             size: A4;
           }
 
           body {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
+            background: white;
           }
 
-          /* Make content full width */
-          .lg\\:col-span-2 {
-            grid-column: span 3 / span 3 !important;
+          /* Invoice specific styles */
+          .invoice-container {
+            max-width: 100%;
+            padding: 0;
           }
 
           /* Ensure proper page breaks */
-          .bg-white {
+          .invoice-items table {
             page-break-inside: avoid;
           }
 
-          /* Show order header prominently */
-          .print-header {
-            border-bottom: 2px solid #000;
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
+          .invoice-items tr {
+            page-break-inside: avoid;
+          }
+
+          /* Print table borders */
+          .invoice-items table,
+          .invoice-items th,
+          .invoice-items td {
+            border: 1px solid #e5e7eb;
+          }
+
+          /* Ensure text is black for printing */
+          .invoice-container {
+            color: #000;
+          }
+
+          /* Hide background colors in print */
+          .bg-gray-50,
+          .bg-gray-100 {
+            background: #f9fafb !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          /* Ensure logo prints correctly */
+          .invoice-container img {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            max-width: 100%;
+            height: auto;
+          }
+        }
+
+        /* Screen styles for invoice preview */
+        @media screen {
+          .invoice-container {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           }
         }
       `}</style>
