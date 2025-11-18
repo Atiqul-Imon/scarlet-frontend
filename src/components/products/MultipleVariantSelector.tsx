@@ -257,14 +257,6 @@ export default function MultipleVariantSelector({
                       title={!hasStock ? 'Out of stock' : ''}
                     >
                       {size}
-                      {variantStock && (
-                        <span className="ml-2 text-xs">
-                          ({normalizedColors.length === 0 
-                            ? getVariantStock(size, '')
-                            : normalizedColors.filter(c => isVariantInStock(size, c)).length + '/' + normalizedColors.length
-                          })
-                        </span>
-                      )}
                     </button>
                   );
                 })}
@@ -305,14 +297,6 @@ export default function MultipleVariantSelector({
                       title={!hasStock ? 'Out of stock' : ''}
                     >
                       {color}
-                      {variantStock && (
-                        <span className="ml-2 text-xs">
-                          ({normalizedSizes.length === 0 
-                            ? getVariantStock('', color)
-                            : normalizedSizes.filter(s => isVariantInStock(s, color)).length + '/' + normalizedSizes.length
-                          })
-                        </span>
-                      )}
                     </button>
                   );
                 })}
