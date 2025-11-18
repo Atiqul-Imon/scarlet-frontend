@@ -209,18 +209,6 @@ export default function Invoice({ order }: InvoiceProps) {
         </div>
       </div>
 
-      {/* Terms and Conditions */}
-      <div className="invoice-terms mb-4 pt-3 border-t border-gray-300 print:mb-3 print:pt-2">
-        <h3 className="text-xs font-bold text-gray-900 uppercase mb-2 print:text-xs">Terms & Conditions</h3>
-        <div className="text-xs text-gray-600 space-y-0.5 print:text-xs leading-tight">
-          <p>1. Goods once sold will not be taken back or exchanged unless there is a manufacturing defect.</p>
-          <p>2. Please check the product thoroughly at the time of delivery. No complaints will be accepted after the delivery person leaves.</p>
-          <p>3. For skincare products, we guarantee 100% original products. However, we cannot guarantee that the product will suit your skin.</p>
-          <p>4. All prices are in Bangladeshi Taka (BDT).</p>
-          <p>5. This is a computer-generated invoice and does not require a signature.</p>
-        </div>
-      </div>
-
       {/* Footer */}
       <div className="invoice-footer pt-3 border-t-2 border-gray-800 print:pt-2">
         <div className="grid grid-cols-2 gap-6 text-xs text-gray-600 print:gap-4">
