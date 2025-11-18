@@ -142,6 +142,38 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     loadCategories();
   }, []);
 
+  // Auto-calculate total stock from variants and variantStock
+  useEffect(() => {
+    let totalStock = 0;
+    let hasVariants = false;
+
+    // Calculate from variantStock (size/color combinations)
+    if (formData.variantStock && Object.keys(formData.variantStock).length > 0) {
+      hasVariants = true;
+      totalStock += Object.values(formData.variantStock).reduce((sum, val) => {
+        const num = parseInt(String(val), 10);
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0);
+    }
+
+    // Calculate from variants array (custom variants)
+    if (formData.variants && formData.variants.length > 0) {
+      hasVariants = true;
+      totalStock += formData.variants.reduce((sum, variant) => {
+        const num = parseInt(String(variant.stock), 10);
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0);
+    }
+
+    // Auto-fill the stock field with calculated total if variants exist
+    if (hasVariants) {
+      setFormData(prev => ({
+        ...prev,
+        stock: totalStock.toString()
+      }));
+    }
+  }, [formData.variantStock, formData.variants]);
+
   const loadProductData = async () => {
     try {
       const product = (await adminApi.products.getProduct(productId!)) as ExtendedAdminProduct;
