@@ -4,8 +4,7 @@ import { usePathname } from 'next/navigation';
 import Header from '../header/Header';
 import Footer from '../footer/Footer';
 import StickyCartButton from '../cart/StickyCartButton';
-import FloatingWhatsAppButton from '../chat/FloatingWhatsAppButton';
-import FloatingMessengerButton from '../chat/FloatingMessengerButton';
+import UnifiedFloatingChatWidget from '../chat/UnifiedFloatingChatWidget';
 import ChatWidget from '../chat/ChatWidget';
 import MobileBottomNav from '../navigation/MobileBottomNav';
 
@@ -44,9 +43,8 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       <StickyCartButton />
       {/* Chat Widget */}
       <ChatWidget />
-      {/* Separated Chat Widgets */}
-      <FloatingWhatsAppButton />
-      <FloatingMessengerButton />
+      {/* Unified Floating Chat Widget */}
+      <UnifiedFloatingChatWidget />
     </div>
   );
 }
