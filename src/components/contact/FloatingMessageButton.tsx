@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { 
   ChatBubbleLeftRightIcon as ChatBubbleSolid,
-  PhoneIcon,
   EnvelopeIcon
 } from '@heroicons/react/24/solid';
 
@@ -39,7 +38,13 @@ export default function FloatingMessageButton({ className = '' }: FloatingMessag
   }, [isExpanded]);
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = '8801407000543'; // WhatsApp number
+    const envNumber = process.env['NEXT_PUBLIC_WHATSAPP_NUMBER'] || '';
+    const phoneNumber = envNumber.replace(/^\+/, '');
+    
+    if (!phoneNumber) {
+      console.warn('WhatsApp number is not configured.');
+      return;
+    }
     const message = 'Hello! I would like to know more about your beauty products.';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
@@ -54,7 +59,7 @@ export default function FloatingMessageButton({ className = '' }: FloatingMessag
   };
 
   const handleEmailClick = () => {
-    const email = 'info@scarlet.com'; // Add your email here
+    const email = 'info@scarletunlimited.net';
     const subject = 'Inquiry about Beauty Products';
     const body = 'Hello! I would like to know more about your beauty products.';
     const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

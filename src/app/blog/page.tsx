@@ -128,11 +128,11 @@ export default function BlogPage() {
         <meta property="og:title" content="Beauty Blog - Latest Tips, Reviews & Skincare Secrets | Scarlet" />
         <meta property="og:description" content="Discover the latest beauty tips, product reviews, and skincare secrets from our experts. Stay updated with trending beauty topics and expert advice." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://scarlet.com.bd/blog" />
+        <meta property="og:url" content="https://scarletunlimited.net/blog" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Beauty Blog - Latest Tips, Reviews & Skincare Secrets | Scarlet" />
         <meta name="twitter:description" content="Discover the latest beauty tips, product reviews, and skincare secrets from our experts. Stay updated with trending beauty topics and expert advice." />
-        <link rel="canonical" href="https://scarlet.com.bd/blog" />
+        <link rel="canonical" href="https://scarletunlimited.net/blog" />
       </Head>
       <div className="min-h-screen bg-gray-50">
         <SectionContainer>

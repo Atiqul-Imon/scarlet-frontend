@@ -31,7 +31,6 @@ export default function Invoice({ order }: InvoiceProps) {
     name: 'Scarlet Unlimited',
     address: '3 No. West Tejturi Bazar, Lt.-3, Block-B, Do.-55, Bashundhara City, Dhaka',
     email: 'info@scarletunlimited.net',
-    phone: '+880 1407 000543',
     website: 'www.scarletunlimited.net'
   };
 
@@ -226,7 +225,6 @@ export default function Invoice({ order }: InvoiceProps) {
           <div>
             <div className="font-bold text-gray-900 mb-0.5 text-xs print:mb-0">Contact Information</div>
             <div className="text-xs">Email: {companyInfo.email}</div>
-            <div className="text-xs">Phone: {companyInfo.phone}</div>
             <div className="text-xs">Website: {companyInfo.website}</div>
           </div>
         </div>

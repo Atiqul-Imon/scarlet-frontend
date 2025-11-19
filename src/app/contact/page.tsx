@@ -3,7 +3,6 @@
 import React from 'react';
 import { 
   EnvelopeIcon, 
-  PhoneIcon, 
   MapPinIcon,
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
@@ -35,24 +34,6 @@ export default function ContactPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-8">Contact Information</h2>
               
               <div className="space-y-8">
-                {/* Phone */}
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <PhoneIcon className="w-6 h-6 text-red-700" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Call Us</h3>
-                    <p className="text-gray-600">
-                      <a href="tel:+8801407000543" className="hover:text-red-700 transition-colors">
-                        +880 1407 000543
-                      </a>
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      We respond within 24 hours
-                    </p>
-                  </div>
-                </div>
-
                 {/* Email */}
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -61,8 +42,8 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Email Us</h3>
                     <p className="text-gray-600">
-                      <a href="mailto:nabilasultana0000@gmail.com" className="hover:text-red-700 transition-colors">
-                        nabilasultana0000@gmail.com
+                      <a href="mailto:info@scarletunlimited.net" className="hover:text-red-700 transition-colors">
+                        info@scarletunlimited.net
                       </a>
                     </p>
                     <p className="text-sm text-gray-500 mt-1">

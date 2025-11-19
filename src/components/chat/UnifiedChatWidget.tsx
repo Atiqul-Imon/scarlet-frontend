@@ -29,32 +29,43 @@ export default function UnifiedChatWidget({ className = '' }: UnifiedChatWidgetP
 
   // Close chat widget when clicking outside on mobile
   useEffect(() => {
-    if (isExpanded && isMobile) {
-      const handleClickOutside = (event: MouseEvent) => {
-        const target = event.target as Element;
-        if (!target.closest('[data-chat-widget]')) {
-          setIsExpanded(false);
-        }
-      };
-
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (!(isExpanded && isMobile)) {
+      return undefined;
     }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('[data-chat-widget]')) {
+        setIsExpanded(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isExpanded, isMobile]);
 
   // Auto-collapse after 5 seconds
   useEffect(() => {
-    if (isExpanded) {
-      const timer = setTimeout(() => {
-        setIsExpanded(false);
-      }, 5000);
-      
-      return () => clearTimeout(timer);
+    if (!isExpanded) {
+      return undefined;
     }
+
+    const timer = setTimeout(() => {
+      setIsExpanded(false);
+    }, 5000);
+    
+    return () => clearTimeout(timer);
   }, [isExpanded]);
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = '8801407000543'; // WhatsApp number
+    const envNumber = process.env['NEXT_PUBLIC_WHATSAPP_NUMBER'] || '';
+    const phoneNumber = envNumber.replace(/^\+/, '');
+    
+    if (!phoneNumber) {
+      console.warn('WhatsApp number is not configured.');
+      return;
+    }
+    
     const message = 'Hello! I would like to know more about your beauty products.';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');

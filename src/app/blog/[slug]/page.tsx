@@ -136,7 +136,7 @@ export default function BlogPostPage() {
           <meta property="og:title" content={post.seoTitle || post.title} />
           <meta property="og:description" content={post.seoDescription || post.excerpt} />
           <meta property="og:type" content="article" />
-          <meta property="og:url" content={`https://scarlet.com.bd/blog/${post.slug}`} />
+          <meta property="og:url" content={`https://scarletunlimited.net/blog/${post.slug}`} />
           {post.featuredImage && (
             <meta property="og:image" content={post.featuredImage} />
           )}
@@ -152,7 +152,7 @@ export default function BlogPostPage() {
           {post.tags.map((tag) => (
             <meta key={tag} property="article:tag" content={tag} />
           ))}
-          <link rel="canonical" href={`https://scarlet.com.bd/blog/${post.slug}`} />
+          <link rel="canonical" href={`https://scarletunlimited.net/blog/${post.slug}`} />
           
           {/* JSON-LD Schema */}
           <script
@@ -172,13 +172,13 @@ export default function BlogPostPage() {
                 "publisher": {
                   "@type": "Organization",
                   "name": "Scarlet",
-                  "url": "https://scarlet.com.bd"
+                  "url": "https://scarletunlimited.net"
                 },
                 "datePublished": post.publishedAt || post.createdAt,
                 "dateModified": post.updatedAt || post.createdAt,
                 "mainEntityOfPage": {
                   "@type": "WebPage",
-                  "@id": `https://scarlet.com.bd/blog/${post.slug}`
+                  "@id": `https://scarletunlimited.net/blog/${post.slug}`
                 },
                 "keywords": post.seoKeywords.join(', '),
                 "wordCount": post.content.split(/\s+/).length,

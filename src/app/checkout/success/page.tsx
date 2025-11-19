@@ -9,6 +9,8 @@ import { useCart } from '../../../lib/context';
 import OrderReceipt from '../../../components/orders/OrderReceipt';
 import { generateReceiptPDF, generateDetailedReceiptPDF, generateSimpleReceiptPDF } from '../../../lib/receipt-generator';
 
+type ReceiptData = Parameters<typeof generateReceiptPDF>[1];
+
 interface OrderDetails {
   orderId: string;
   orderNumber: string;
@@ -16,6 +18,7 @@ interface OrderDetails {
   total: number;
   currency: string;
   estimatedDelivery: string;
+  tax?: number;
   items: Array<{
     productId: string;
     title: string;
@@ -103,7 +106,7 @@ function OrderSuccessPageContent() {
         const orderDetails: OrderDetails = {
           orderId: order._id,
           orderNumber: order.orderNumber || `SCR-${order._id}`,
-          email: order.shippingAddress?.email || 'customer@scarlet.com',
+          email: order.shippingAddress?.email || 'info@scarletunlimited.net',
           total: order.total || 0,
           currency: order.currency || 'BDT',
           estimatedDelivery: order.estimatedDelivery || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
@@ -180,40 +183,54 @@ function OrderSuccessPageContent() {
     }).format(safeAmount);
   };
 
-  const handleDownloadReceipt = async () => {
-    if (!receiptRef.current || !orderDetails) return;
+  const buildReceiptData = (): ReceiptData | null => {
+    if (!orderDetails) return null;
 
-    try {
-      await generateReceiptPDF(receiptRef.current, {
-        orderId: orderDetails.orderId,
-        orderNumber: orderDetails.orderNumber,
-        orderDate: new Date().toISOString(),
-        customerName: orderDetails.customerName || 'Customer',
-        customerEmail: orderDetails.email,
-        customerPhone: orderDetails.customerPhone,
-        shippingAddress: orderDetails.shippingAddress ? {
+    const shippingAddress = orderDetails.shippingAddress
+      ? {
           name: orderDetails.shippingAddress.name || 'Customer',
           address: orderDetails.shippingAddress.address || 'N/A',
           city: orderDetails.shippingAddress.city || 'N/A',
           area: orderDetails.shippingAddress.area || 'N/A',
           phone: orderDetails.shippingAddress.phone || 'N/A'
-        } : {
+        }
+      : {
           name: 'Customer',
           address: 'N/A',
           city: 'N/A',
           area: 'N/A',
           phone: 'N/A'
-        },
-        items: orderDetails.items,
-        subtotal: orderDetails.subtotal || orderDetails.total,
-        shipping: orderDetails.shipping || 0,
-        total: orderDetails.total,
-        currency: orderDetails.currency,
-        paymentMethod: orderDetails.paymentMethod || 'Unknown',
-        status: orderDetails.status || 'confirmed',
-        estimatedDelivery: orderDetails.estimatedDelivery,
-        trackingNumber: orderDetails.trackingNumber
-      });
+        };
+
+    return {
+      orderId: orderDetails.orderId,
+      orderNumber: orderDetails.orderNumber,
+      orderDate: new Date().toISOString(),
+      customerName: orderDetails.customerName || 'Customer',
+      customerEmail: orderDetails.email,
+      shippingAddress,
+      items: orderDetails.items,
+      subtotal: orderDetails.subtotal || orderDetails.total,
+      shipping: orderDetails.shipping || 0,
+      tax: orderDetails.tax ?? 0,
+      total: orderDetails.total,
+      currency: orderDetails.currency,
+      paymentMethod: orderDetails.paymentMethod || 'Unknown',
+      status: orderDetails.status || 'confirmed',
+      ...(orderDetails.customerPhone ? { customerPhone: orderDetails.customerPhone } : {}),
+      ...(orderDetails.estimatedDelivery ? { estimatedDelivery: orderDetails.estimatedDelivery } : {}),
+      ...(orderDetails.trackingNumber ? { trackingNumber: orderDetails.trackingNumber } : {})
+    };
+  };
+
+  const handleDownloadReceipt = async () => {
+    if (!receiptRef.current) return;
+
+    const receiptData = buildReceiptData();
+    if (!receiptData) return;
+
+    try {
+      await generateReceiptPDF(receiptRef.current, receiptData);
 
       addToast({
         type: 'success',
@@ -231,39 +248,11 @@ function OrderSuccessPageContent() {
   };
 
   const handleDownloadDetailedReceipt = () => {
-    if (!orderDetails) return;
+    const receiptData = buildReceiptData();
+    if (!receiptData) return;
 
     try {
-      generateDetailedReceiptPDF({
-        orderId: orderDetails.orderId,
-        orderNumber: orderDetails.orderNumber,
-        orderDate: new Date().toISOString(),
-        customerName: orderDetails.customerName || 'Customer',
-        customerEmail: orderDetails.email,
-        customerPhone: orderDetails.customerPhone,
-        shippingAddress: orderDetails.shippingAddress ? {
-          name: orderDetails.shippingAddress.name || 'Customer',
-          address: orderDetails.shippingAddress.address || 'N/A',
-          city: orderDetails.shippingAddress.city || 'N/A',
-          area: orderDetails.shippingAddress.area || 'N/A',
-          phone: orderDetails.shippingAddress.phone || 'N/A'
-        } : {
-          name: 'Customer',
-          address: 'N/A',
-          city: 'N/A',
-          area: 'N/A',
-          phone: 'N/A'
-        },
-        items: orderDetails.items,
-        subtotal: orderDetails.subtotal || orderDetails.total,
-        shipping: orderDetails.shipping || 0,
-        total: orderDetails.total,
-        currency: orderDetails.currency,
-        paymentMethod: orderDetails.paymentMethod || 'Unknown',
-        status: orderDetails.status || 'confirmed',
-        estimatedDelivery: orderDetails.estimatedDelivery,
-        trackingNumber: orderDetails.trackingNumber
-      });
+      generateDetailedReceiptPDF(receiptData);
 
       addToast({
         type: 'success',
@@ -281,39 +270,11 @@ function OrderSuccessPageContent() {
   };
 
   const handleDownloadSimpleReceipt = () => {
-    if (!orderDetails) return;
+    const receiptData = buildReceiptData();
+    if (!receiptData) return;
 
     try {
-      generateSimpleReceiptPDF({
-        orderId: orderDetails.orderId,
-        orderNumber: orderDetails.orderNumber,
-        orderDate: new Date().toISOString(),
-        customerName: orderDetails.customerName || 'Customer',
-        customerEmail: orderDetails.email,
-        customerPhone: orderDetails.customerPhone,
-        shippingAddress: orderDetails.shippingAddress ? {
-          name: orderDetails.shippingAddress.name || 'Customer',
-          address: orderDetails.shippingAddress.address || 'N/A',
-          city: orderDetails.shippingAddress.city || 'N/A',
-          area: orderDetails.shippingAddress.area || 'N/A',
-          phone: orderDetails.shippingAddress.phone || 'N/A'
-        } : {
-          name: 'Customer',
-          address: 'N/A',
-          city: 'N/A',
-          area: 'N/A',
-          phone: 'N/A'
-        },
-        items: orderDetails.items,
-        subtotal: orderDetails.subtotal || orderDetails.total,
-        shipping: orderDetails.shipping || 0,
-        total: orderDetails.total,
-        currency: orderDetails.currency,
-        paymentMethod: orderDetails.paymentMethod || 'Unknown',
-        status: orderDetails.status || 'confirmed',
-        estimatedDelivery: orderDetails.estimatedDelivery,
-        trackingNumber: orderDetails.trackingNumber
-      });
+      generateSimpleReceiptPDF(receiptData);
 
       addToast({
         type: 'success',

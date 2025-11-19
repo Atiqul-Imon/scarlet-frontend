@@ -315,7 +315,7 @@ export default function OrderReceipt({
             <p style={{color: '#000000'}}>Thank you for shopping with Scarlet Beauty!</p>
             <p style={{color: '#6b7280'}}>For any questions or concerns, please contact our customer support.</p>
             <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 text-xs">
-              <span style={{color: '#6b7280'}}>Email: support@scarletbeauty.com</span>
+              <span style={{color: '#6b7280'}}>Email: info@scarletunlimited.net</span>
               <span style={{color: '#6b7280'}}>Phone: +880 1234 567890</span>
             </div>
           </div>

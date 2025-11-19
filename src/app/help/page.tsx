@@ -75,8 +75,8 @@ export default function HelpPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900">Email Support</h3>
                     <p className="text-gray-600 text-sm mb-2">Send us an email and we'll respond within 24 hours</p>
-                    <a href="mailto:support@scarlet.com" className="text-red-700 hover:text-red-800 font-medium">
-                      support@scarlet.com
+                    <a href="mailto:info@scarletunlimited.net" className="text-red-700 hover:text-red-800 font-medium">
+                      info@scarletunlimited.net
                     </a>
                   </div>
                 </div>

@@ -198,7 +198,7 @@ export default function SettingsPage() {
                 value={settings?.contactEmail || ''}
                 onChange={(e) => updateSetting('contactEmail', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="support@scarlet.com"
+                placeholder="info@scarletunlimited.net"
               />
             </div>
 
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                 value={settings?.adminEmail || ''}
                 onChange={(e) => updateSetting('adminEmail', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="admin@scarlet.com"
+                placeholder="info@scarletunlimited.net"
               />
             </div>
           </div>

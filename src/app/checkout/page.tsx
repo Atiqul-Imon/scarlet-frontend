@@ -15,8 +15,7 @@ import {
   getDivisionById, 
   getDistrictById,
   type Division,
-  type District,
-  type Upazilla
+  type District
 } from '../../lib/data/bangladesh-locations';
 
 interface CheckoutFormData {
@@ -126,7 +125,7 @@ export default function CheckoutPage() {
         currency: 'BDT',
         customerInfo: {
           name: `${values.firstName} ${values.lastName || ''}`.trim(),
-          email: values.email || `${values.phone}@scarlet.com`,
+          email: values.email && values.email.trim() ? values.email : 'info@scarletunlimited.net',
           phone: values.phone || '',
           address: values.address,
           city: values.city,
@@ -269,12 +268,10 @@ export default function CheckoutPage() {
   const [creditsToRedeem, setCreditsToRedeem] = React.useState<number>(0);
   const [creditDiscount, setCreditDiscount] = React.useState<number>(0);
   const [creditValidation, setCreditValidation] = React.useState<CreditRedemptionValidation | null>(null);
-  const [loadingCreditBalance, setLoadingCreditBalance] = React.useState(false);
   
   // Location state for dropdowns
   const [selectedDivision, setSelectedDivision] = React.useState<Division | null>(null);
   const [selectedDistrict, setSelectedDistrict] = React.useState<District | null>(null);
-  const [selectedUpazilla, setSelectedUpazilla] = React.useState<Upazilla | null>(null);
 
   // Get verified identifier from URL or sessionStorage (synchronously for initial values)
   const getVerifiedIdentifier = (): { phone: string | null; email: string | null } => {
@@ -318,12 +315,12 @@ export default function CheckoutPage() {
   }, [user, verifiedIdentifier.phone]);
 
   // Form handling
-  const { values, errors, handleChange, handleSubmit, isValid, setFieldValue } = useForm<CheckoutFormData>({
+  const { values, errors, handleChange, isValid, setFieldValue } = useForm<CheckoutFormData>({
     initialValues: {
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      email: user?.email || verifiedIdentifier.email || '',
-      phone: (user?.phone || verifiedGuestPhone || verifiedIdentifier.phone) || undefined,
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
+      email: user?.email ?? verifiedIdentifier.email ?? '',
+      phone: user?.phone ?? verifiedGuestPhone ?? verifiedIdentifier.phone ?? '',
       address: '',
       deliveryArea: 'inside_dhaka', // Default to Inside Dhaka
       division: '',
@@ -419,10 +416,11 @@ export default function CheckoutPage() {
       
       return errors;
     },
-    onSubmit: async (formData) => {
+    onSubmit: async () => {
       // This will be handled by handlePlaceOrder
     },
   });
+  const getError = <K extends keyof CheckoutFormData>(field: K): string => errors[field] ?? '';
 
   // Update form phone when verified guest phone is set
   React.useEffect(() => {
@@ -521,8 +519,8 @@ export default function CheckoutPage() {
               quantity: item.quantity,
               brand: 'Test Brand',
               stock: 10,
-              selectedSize: item.selectedSize,
-              selectedColor: item.selectedColor
+              ...(item.selectedSize && { selectedSize: item.selectedSize }),
+              ...(item.selectedColor && { selectedColor: item.selectedColor })
             };
           }
           
@@ -600,16 +598,12 @@ export default function CheckoutPage() {
   // Load credit balance for authenticated users
   React.useEffect(() => {
     if (user) {
-      setLoadingCreditBalance(true);
       creditApi.getBalance()
         .then((data) => {
           setCreditBalance(data.balance);
         })
         .catch((error) => {
           console.error('Failed to load credit balance:', error);
-        })
-        .finally(() => {
-          setLoadingCreditBalance(false);
         });
     }
   }, [user]);
@@ -676,7 +670,6 @@ export default function CheckoutPage() {
       setFieldValue('city', 'Dhaka');
       setSelectedDivision(null);
       setSelectedDistrict(null);
-      setSelectedUpazilla(null);
       }
   };
   
@@ -689,7 +682,6 @@ export default function CheckoutPage() {
     setFieldValue('upazilla', '');
     setFieldValue('city', division?.name || '');
     setSelectedDistrict(null);
-    setSelectedUpazilla(null);
   };
   
   // Handle district change
@@ -699,14 +691,12 @@ export default function CheckoutPage() {
     setSelectedDistrict(district || null);
     setFieldValue('district', districtId);
     setFieldValue('upazilla', '');
-    setSelectedUpazilla(null);
   };
   
   // Handle upazilla change
   const handleUpazillaChange = (upazillaId: string) => {
     if (!selectedDistrict) return;
     const upazilla = selectedDistrict.upazillas.find(u => u.id === upazillaId);
-    setSelectedUpazilla(upazilla || null);
     setFieldValue('upazilla', upazillaId);
     setFieldValue('area', upazilla?.name || '');
   };
@@ -972,7 +962,7 @@ export default function CheckoutPage() {
                       name="firstName"
                       value={values.firstName}
                       onChange={handleChange}
-                      error={errors.firstName || undefined}
+                      error={getError('firstName')}
                       required
                     />
                     <Input
@@ -980,7 +970,7 @@ export default function CheckoutPage() {
                       name="lastName"
                       value={values.lastName}
                       onChange={handleChange}
-                      error={errors.lastName || undefined}
+                      error={getError('lastName')}
                       placeholder="Last name (optional)"
                     />
                   </div>
@@ -994,9 +984,9 @@ export default function CheckoutPage() {
                         label="Email Address"
                         name="email"
                         type="email"
-                        value={values.email}
+                        value={values.email ?? ''}
                         onChange={handleChange}
-                        error={errors.email || undefined}
+                        error={getError('email')}
                         placeholder="your@email.com"
                         helperText={!values.phone ? "Required if phone not provided" : "Optional"}
                       />
@@ -1005,9 +995,9 @@ export default function CheckoutPage() {
                           label="Phone Number"
                           name="phone"
                           type="tel"
-                          value={values.phone || ''}
+                          value={values.phone ?? ''}
                           onChange={handleChange}
-                          error={errors.phone || undefined}
+                          error={getError('phone')}
                           placeholder="01XXXXXXXXX"
                           helperText={!values.email ? "Required if email not provided" : "Optional"}
                           readOnly={!user && isGuestPhoneVerified}
@@ -1099,7 +1089,7 @@ export default function CheckoutPage() {
                         name="address"
                         value={values.address}
                         onChange={handleChange}
-                        error={errors.address || undefined}
+                        error={getError('address')}
                         placeholder="House/Flat, Road, Block, Sector"
                         required
                       />
@@ -1194,7 +1184,7 @@ export default function CheckoutPage() {
                           name="address"
                           value={values.address}
                           onChange={handleChange}
-                          error={errors.address || undefined}
+                          error={getError('address')}
                           placeholder="House/Flat, Road, Block, Sector"
                           required
                         />

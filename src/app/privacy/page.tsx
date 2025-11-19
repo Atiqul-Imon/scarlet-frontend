@@ -229,8 +229,7 @@ export default function PrivacyPage() {
                   If you have any questions, concerns, or requests regarding this Privacy Policy or the handling of your personal information, please contact us at:
                 </p>
                 <div className="space-y-2 text-gray-700">
-                  <p><strong>Email:</strong> nabilasultana0000@gmail.com</p>
-                  <p><strong>Phone:</strong> +880 1407 000543</p>
+                  <p><strong>Email:</strong> info@scarletunlimited.net</p>
                   <p><strong>Address:</strong> 3 No. West Tejturi Bazar, Lt.-3, Block-B, Do.-55, Bashundhara City, Dhaka</p>
                 </div>
               </div>

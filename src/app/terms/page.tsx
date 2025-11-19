@@ -48,8 +48,7 @@ export default function TermsPage() {
                   <p><strong>Registered Address:</strong> 3 No. West Tejturi Bazar, Lt.-3, Block-B, Do.-55, Bashundhara City, Dhaka</p>
                   <p><strong>Trade License No:</strong> TRAD/DNCC/050622/2023</p>
                   <p><strong>TIN Certificate No:</strong> (To be updated)</p>
-                  <p><strong>Email:</strong> nabilasultana0000@gmail.com</p>
-                  <p><strong>Phone:</strong> +880 1407 000543</p>
+                  <p><strong>Email:</strong> info@scarletunlimited.net</p>
                   <p><strong>Business Start Date:</strong> November 15, 2021</p>
                   <p><strong>License Valid Until:</strong> June 30, 2026</p>
                 </div>
@@ -155,8 +154,7 @@ export default function TermsPage() {
                   If you have any questions about these Terms and Conditions, please contact us:
                 </p>
                 <div className="space-y-2 text-gray-700">
-                  <p><strong>Email:</strong> nabilasultana0000@gmail.com</p>
-                  <p><strong>Phone:</strong> +880 1407 000543</p>
+                  <p><strong>Email:</strong> info@scarletunlimited.net</p>
                   <p><strong>Address:</strong> 3 No. West Tejturi Bazar, Lt.-3, Block-B, Do.-55, Bashundhara City, Dhaka</p>
                 </div>
               </div>

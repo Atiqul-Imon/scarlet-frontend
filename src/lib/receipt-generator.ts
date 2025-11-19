@@ -28,6 +28,8 @@ interface OrderReceiptData {
   currency: string;
   paymentMethod: string;
   status: string;
+  estimatedDelivery?: string;
+  trackingNumber?: string;
 }
 
 export async function generateReceiptPDF(
@@ -250,7 +252,7 @@ export function generateSimpleReceiptPDF(orderData: OrderReceiptData): void {
   // Footer
   addText('Thank you for shopping with Scarlet Beauty!', margin, yPosition, { fontSize: 10, color: '#666666' });
   yPosition += lineHeight;
-  addText('For support: support@scarletbeauty.com | +880 1234 567890', margin, yPosition, { fontSize: 8, color: '#999999' });
+  addText('For support: info@scarletunlimited.net', margin, yPosition, { fontSize: 8, color: '#999999' });
 
   // Save the PDF
   const filename = generateReceiptFilename(orderData);
@@ -392,7 +394,7 @@ export function generateDetailedReceiptPDF(orderData: OrderReceiptData): void {
   // Footer
   addText('Thank you for shopping with Scarlet Beauty!', margin, yPosition, { fontSize: 10, color: '#666666' });
   yPosition += lineHeight;
-  addText('For support: support@scarletbeauty.com | +880 1234 567890', margin, yPosition, { fontSize: 8, color: '#999999' });
+  addText('For support: info@scarletunlimited.net', margin, yPosition, { fontSize: 8, color: '#999999' });
 
   // Save the PDF
   const filename = generateReceiptFilename(orderData);

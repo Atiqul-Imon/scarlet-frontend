@@ -203,11 +203,7 @@ export default function DeliveryPolicyPage() {
                 <div className="space-y-2 text-gray-700">
                   <p className="flex items-center gap-2">
                     <EnvelopeIcon className="w-5 h-5 text-red-600" />
-                    <strong>Email:</strong> nabilasultana0000@gmail.com
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <PhoneIcon className="w-5 h-5 text-red-600" />
-                    <strong>Phone:</strong> +880 1407 000543
+                    <strong>Email:</strong> info@scarletunlimited.net
                   </p>
                   <p className="flex items-start gap-2">
                     <MapPinIcon className="w-5 h-5 text-red-600 mt-0.5" />

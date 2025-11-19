@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   EnvelopeIcon, 
-  PhoneIcon, 
   MapPinIcon,
   ClockIcon,
   ShieldCheckIcon,
@@ -176,16 +175,6 @@ export default function Footer() {
                     Bashundhara City, Dhaka
                   </p>
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <PhoneIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <a 
-                  href="tel:+8801407000543" 
-                  className="text-gray-300 hover:text-red-400 transition-colors text-sm"
-                >
-                  +880 1407 000543
-                </a>
               </div>
               
               <div className="flex items-center space-x-3">
