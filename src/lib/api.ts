@@ -575,8 +575,22 @@ export const productApi = {
 // Category API functions
 export const categoryApi = {
   // Get all categories
-  getCategories: (): Promise<Category[]> => {
-    return fetchJson<Category[]>('/catalog/categories');
+  getCategories: (options?: { fresh?: boolean; ids?: string[] | string }): Promise<Category[]> => {
+    const params = new URLSearchParams();
+    
+    if (options?.ids) {
+      const idsArray = Array.isArray(options.ids) ? options.ids : [options.ids];
+      if (idsArray.length > 0) {
+        params.append('ids', idsArray.join(','));
+      }
+    }
+    
+    if (options?.fresh) {
+      params.set('fresh', '1');
+    }
+    
+    const queryString = params.toString();
+    return fetchJson<Category[]>(`/catalog/categories${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get category by slug

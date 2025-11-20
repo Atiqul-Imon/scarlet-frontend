@@ -113,7 +113,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
-      const categoriesData = await categoryApi.getCategories();
+      const categoriesData = await categoryApi.getCategories({ fresh: true });
       setCategories(categoriesData);
     } catch (error) {
       console.error('Error loading categories:', error);

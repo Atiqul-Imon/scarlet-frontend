@@ -93,7 +93,7 @@ export default function NewCategoryPage() {
       
       // Fetch both flat categories and tree structure
       const [categoriesResponse, treeResponse] = await Promise.all([
-        categoryApi.getCategories(),
+        categoryApi.getCategories({ fresh: true }),
         categoryApi.getCategoryTree()
       ]);
       
