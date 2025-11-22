@@ -141,6 +141,13 @@ export const bangladeshDivisions: Division[] = [
           { id: 'basail', name: 'Basail' },
           { id: 'bhuapur', name: 'Bhuapur' },
           { id: 'delduar', name: 'Delduar' },
+          { id: 'ghatail', name: 'Ghatail' },
+          { id: 'gopalpur', name: 'Gopalpur' },
+          { id: 'kalihati', name: 'Kalihati' },
+          { id: 'madhupur', name: 'Madhupur' },
+          { id: 'mirzapur', name: 'Mirzapur' },
+          { id: 'nagarpur', name: 'Nagarpur' },
+          { id: 'sakhipur', name: 'Sakhipur' },
         ]
       },
       {
@@ -150,6 +157,11 @@ export const bangladeshDivisions: Division[] = [
           { id: 'faridpur_sadar', name: 'Faridpur Sadar' },
           { id: 'alfadanga', name: 'Alfadanga' },
           { id: 'bhanga', name: 'Bhanga' },
+          { id: 'boalmari', name: 'Boalmari' },
+          { id: 'charbhadrasan', name: 'Charbhadrasan' },
+          { id: 'madhukhali', name: 'Madhukhali' },
+          { id: 'nagarkanda', name: 'Nagarkanda' },
+          { id: 'sadarpur', name: 'Sadarpur' },
         ]
       },
       {
@@ -158,7 +170,28 @@ export const bangladeshDivisions: Division[] = [
         upazillas: [
           { id: 'gopalganj_sadar', name: 'Gopalganj Sadar' },
           { id: 'kashiani', name: 'Kashiani' },
+          { id: 'kotalipara', name: 'Kotalipara' },
+          { id: 'muksudpur', name: 'Muksudpur' },
           { id: 'tungipara', name: 'Tungipara' },
+        ]
+      },
+      {
+        id: 'kishoreganj',
+        name: 'Kishoreganj',
+        upazillas: [
+          { id: 'kishoreganj_sadar', name: 'Kishoreganj Sadar' },
+          { id: 'austagram', name: 'Austagram' },
+          { id: 'bajitpur', name: 'Bajitpur' },
+          { id: 'bhairab', name: 'Bhairab' },
+          { id: 'hossainpur', name: 'Hossainpur' },
+          { id: 'itna', name: 'Itna' },
+          { id: 'karimganj', name: 'Karimganj' },
+          { id: 'katiadi', name: 'Katiadi' },
+          { id: 'kuliarchar', name: 'Kuliarchar' },
+          { id: 'mithamain', name: 'Mithamain' },
+          { id: 'nikli', name: 'Nikli' },
+          { id: 'pakundia', name: 'Pakundia' },
+          { id: 'tarail', name: 'Tarail' },
         ]
       },
       {
@@ -168,6 +201,7 @@ export const bangladeshDivisions: Division[] = [
           { id: 'madaripur_sadar', name: 'Madaripur Sadar' },
           { id: 'kalkini', name: 'Kalkini' },
           { id: 'rajoir', name: 'Rajoir' },
+          { id: 'shibchar', name: 'Shibchar' },
         ]
       },
       {
@@ -177,6 +211,7 @@ export const bangladeshDivisions: Division[] = [
           { id: 'rajbari_sadar', name: 'Rajbari Sadar' },
           { id: 'baliakandi', name: 'Baliakandi' },
           { id: 'goalanda', name: 'Goalanda' },
+          { id: 'pangsha', name: 'Pangsha' },
         ]
       },
       {
@@ -184,8 +219,11 @@ export const bangladeshDivisions: Division[] = [
         name: 'Shariatpur',
         upazillas: [
           { id: 'shariatpur_sadar', name: 'Shariatpur Sadar' },
+          { id: 'bhedarganj', name: 'Bhedarganj' },
           { id: 'damudya', name: 'Damudya' },
+          { id: 'gosairhat', name: 'Gosairhat' },
           { id: 'naria', name: 'Naria' },
+          { id: 'zajira', name: 'Zajira' },
         ]
       },
     ]
@@ -194,6 +232,48 @@ export const bangladeshDivisions: Division[] = [
     id: 'chittagong',
     name: 'Chittagong',
     districts: [
+      {
+        id: 'bandarban',
+        name: 'Bandarban',
+        upazillas: [
+          { id: 'bandarban_sadar', name: 'Bandarban Sadar' },
+          { id: 'alikadam', name: 'Alikadam' },
+          { id: 'thanchi', name: 'Thanchi' },
+          { id: 'lama', name: 'Lama' },
+          { id: 'naikhongchhari', name: 'Naikhongchhari' },
+          { id: 'rowangchhari', name: 'Rowangchhari' },
+          { id: 'ruma', name: 'Ruma' },
+        ]
+      },
+      {
+        id: 'brahmanbaria',
+        name: 'Brahmanbaria',
+        upazillas: [
+          { id: 'brahmanbaria_sadar', name: 'Brahmanbaria Sadar' },
+          { id: 'akhaura', name: 'Akhaura' },
+          { id: 'ashuganj', name: 'Ashuganj' },
+          { id: 'banchharampur', name: 'Banchharampur' },
+          { id: 'bijoynagar', name: 'Bijoynagar' },
+          { id: 'kasba', name: 'Kasba' },
+          { id: 'nabinagar', name: 'Nabinagar' },
+          { id: 'nasirnagar', name: 'Nasirnagar' },
+          { id: 'sarail', name: 'Sarail' },
+        ]
+      },
+      {
+        id: 'chandpur',
+        name: 'Chandpur',
+        upazillas: [
+          { id: 'chandpur_sadar', name: 'Chandpur Sadar' },
+          { id: 'faridganj', name: 'Faridganj' },
+          { id: 'haimchar', name: 'Haimchar' },
+          { id: 'hajiganj', name: 'Hajiganj' },
+          { id: 'kachua', name: 'Kachua' },
+          { id: 'matlab_dakshin', name: 'Matlab Dakshin' },
+          { id: 'matlab_uttar', name: 'Matlab Uttar' },
+          { id: 'shahrasti', name: 'Shahrasti' },
+        ]
+      },
       {
         id: 'chittagong_district',
         name: 'Chittagong',
@@ -213,6 +293,28 @@ export const bangladeshDivisions: Division[] = [
           { id: 'sandwip', name: 'Sandwip' },
           { id: 'satkania', name: 'Satkania' },
           { id: 'sitakunda', name: 'Sitakunda' },
+        ]
+      },
+      {
+        id: 'comilla',
+        name: 'Comilla',
+        upazillas: [
+          { id: 'comilla_sadar', name: 'Comilla Sadar' },
+          { id: 'barura', name: 'Barura' },
+          { id: 'brahmanpara', name: 'Brahmanpara' },
+          { id: 'burichong', name: 'Burichong' },
+          { id: 'chandina', name: 'Chandina' },
+          { id: 'chauddagram', name: 'Chauddagram' },
+          { id: 'daudkandi', name: 'Daudkandi' },
+          { id: 'debidwar', name: 'Debidwar' },
+          { id: 'homna', name: 'Homna' },
+          { id: 'laksam', name: 'Laksam' },
+          { id: 'lalmai', name: 'Lalmai' },
+          { id: 'meghna', name: 'Meghna' },
+          { id: 'monoharganj', name: 'Monoharganj' },
+          { id: 'muradnagar', name: 'Muradnagar' },
+          { id: 'nangalkot', name: 'Nangalkot' },
+          { id: 'titas', name: 'Titas' },
         ]
       },
       {
@@ -237,6 +339,62 @@ export const bangladeshDivisions: Division[] = [
           { id: 'daganbhuiyan', name: 'Daganbhuiyan' },
           { id: 'parshuram', name: 'Parshuram' },
           { id: 'sonagazi', name: 'Sonagazi' },
+        ]
+      },
+      {
+        id: 'khagrachhari',
+        name: 'Khagrachhari',
+        upazillas: [
+          { id: 'khagrachhari_sadar', name: 'Khagrachhari Sadar' },
+          { id: 'dighinala', name: 'Dighinala' },
+          { id: 'lakshmichhari', name: 'Lakshmichhari' },
+          { id: 'mahalchhari', name: 'Mahalchhari' },
+          { id: 'manikchhari', name: 'Manikchhari' },
+          { id: 'matiranga', name: 'Matiranga' },
+          { id: 'panchhari', name: 'Panchhari' },
+          { id: 'ramgarh', name: 'Ramgarh' },
+        ]
+      },
+      {
+        id: 'lakshmipur',
+        name: 'Lakshmipur',
+        upazillas: [
+          { id: 'lakshmipur_sadar', name: 'Lakshmipur Sadar' },
+          { id: 'kamalnagar', name: 'Kamalnagar' },
+          { id: 'raipur', name: 'Raipur' },
+          { id: 'ramganj', name: 'Ramganj' },
+          { id: 'ramgati', name: 'Ramgati' },
+        ]
+      },
+      {
+        id: 'noakhali',
+        name: 'Noakhali',
+        upazillas: [
+          { id: 'noakhali_sadar', name: 'Noakhali Sadar' },
+          { id: 'begumganj', name: 'Begumganj' },
+          { id: 'chatkhil', name: 'Chatkhil' },
+          { id: 'companiganj', name: 'Companiganj' },
+          { id: 'hatiya', name: 'Hatiya' },
+          { id: 'kabirhat', name: 'Kabirhat' },
+          { id: 'senbagh', name: 'Senbagh' },
+          { id: 'sonaimuri', name: 'Sonaimuri' },
+          { id: 'subarnachar', name: 'Subarnachar' },
+        ]
+      },
+      {
+        id: 'rangamati',
+        name: 'Rangamati',
+        upazillas: [
+          { id: 'rangamati_sadar', name: 'Rangamati Sadar' },
+          { id: 'baghaichhari', name: 'Baghaichhari' },
+          { id: 'barkal', name: 'Barkal' },
+          { id: 'kawkhali', name: 'Kawkhali' },
+          { id: 'belaichhari', name: 'Belaichhari' },
+          { id: 'juraichhari', name: 'Juraichhari' },
+          { id: 'kaptai', name: 'Kaptai' },
+          { id: 'langadu', name: 'Langadu' },
+          { id: 'naniarchar', name: 'Naniarchar' },
+          { id: 'rajasthali', name: 'Rajasthali' },
         ]
       },
     ]
@@ -313,22 +471,6 @@ export const bangladeshDivisions: Division[] = [
     name: 'Rajshahi',
     districts: [
       {
-        id: 'rajshahi_district',
-        name: 'Rajshahi',
-        upazillas: [
-          { id: 'rajshahi_sadar', name: 'Rajshahi Sadar' },
-          { id: 'bagha', name: 'Bagha' },
-          { id: 'bagmara', name: 'Bagmara' },
-          { id: 'charghat', name: 'Charghat' },
-          { id: 'durgapur', name: 'Durgapur' },
-          { id: 'godagari', name: 'Godagari' },
-          { id: 'mohanpur', name: 'Mohanpur' },
-          { id: 'paba', name: 'Paba' },
-          { id: 'puthia', name: 'Puthia' },
-          { id: 'tanore', name: 'Tanore' },
-        ]
-      },
-      {
         id: 'bogra',
         name: 'Bogra',
         upazillas: [
@@ -357,29 +499,98 @@ export const bangladeshDivisions: Division[] = [
           { id: 'shibganj', name: 'Shibganj' },
         ]
       },
+      {
+        id: 'joypurhat',
+        name: 'Joypurhat',
+        upazillas: [
+          { id: 'joypurhat_sadar', name: 'Joypurhat Sadar' },
+          { id: 'akkelpur', name: 'Akkelpur' },
+          { id: 'kalai', name: 'Kalai' },
+          { id: 'khetlal', name: 'Khetlal' },
+          { id: 'panchbibi', name: 'Panchbibi' },
+        ]
+      },
+      {
+        id: 'naogaon',
+        name: 'Naogaon',
+        upazillas: [
+          { id: 'naogaon_sadar', name: 'Naogaon Sadar' },
+          { id: 'atrai', name: 'Atrai' },
+          { id: 'badalgachhi', name: 'Badalgachhi' },
+          { id: 'dhamoirhat', name: 'Dhamoirhat' },
+          { id: 'manda', name: 'Manda' },
+          { id: 'mahadevpur', name: 'Mahadevpur' },
+          { id: 'niamatpur', name: 'Niamatpur' },
+          { id: 'patnitala', name: 'Patnitala' },
+          { id: 'porsha', name: 'Porsha' },
+          { id: 'raninagar', name: 'Raninagar' },
+          { id: 'sapahar', name: 'Sapahar' },
+        ]
+      },
+      {
+        id: 'natore',
+        name: 'Natore',
+        upazillas: [
+          { id: 'natore_sadar', name: 'Natore Sadar' },
+          { id: 'bagatipara', name: 'Bagatipara' },
+          { id: 'baraigram', name: 'Baraigram' },
+          { id: 'gurudaspur', name: 'Gurudaspur' },
+          { id: 'lalpur', name: 'Lalpur' },
+          { id: 'singra', name: 'Singra' },
+        ]
+      },
+      {
+        id: 'pabna',
+        name: 'Pabna',
+        upazillas: [
+          { id: 'pabna_sadar', name: 'Pabna Sadar' },
+          { id: 'atgharia', name: 'Atgharia' },
+          { id: 'bera', name: 'Bera' },
+          { id: 'bhangura', name: 'Bhangura' },
+          { id: 'chatmohar', name: 'Chatmohar' },
+          { id: 'faridpur', name: 'Faridpur' },
+          { id: 'ishwardi', name: 'Ishwardi' },
+          { id: 'santhia', name: 'Santhia' },
+          { id: 'sujanagar', name: 'Sujanagar' },
+        ]
+      },
+      {
+        id: 'rajshahi_district',
+        name: 'Rajshahi',
+        upazillas: [
+          { id: 'rajshahi_sadar', name: 'Rajshahi Sadar' },
+          { id: 'bagha', name: 'Bagha' },
+          { id: 'bagmara', name: 'Bagmara' },
+          { id: 'charghat', name: 'Charghat' },
+          { id: 'durgapur', name: 'Durgapur' },
+          { id: 'godagari', name: 'Godagari' },
+          { id: 'mohanpur', name: 'Mohanpur' },
+          { id: 'paba', name: 'Paba' },
+          { id: 'puthia', name: 'Puthia' },
+          { id: 'tanore', name: 'Tanore' },
+        ]
+      },
+      {
+        id: 'sirajganj',
+        name: 'Sirajganj',
+        upazillas: [
+          { id: 'sirajganj_sadar', name: 'Sirajganj Sadar' },
+          { id: 'belkuchi', name: 'Belkuchi' },
+          { id: 'chauhali', name: 'Chauhali' },
+          { id: 'kamarkhanda', name: 'Kamarkhanda' },
+          { id: 'kazipur', name: 'Kazipur' },
+          { id: 'raiganj', name: 'Raiganj' },
+          { id: 'shahjadpur', name: 'Shahjadpur' },
+          { id: 'tarash', name: 'Tarash' },
+          { id: 'ullahpara', name: 'Ullahpara' },
+        ]
+      },
     ]
   },
   {
     id: 'khulna',
     name: 'Khulna',
     districts: [
-      {
-        id: 'khulna_district',
-        name: 'Khulna',
-        upazillas: [
-          { id: 'khulna_sadar', name: 'Khulna Sadar' },
-          { id: 'batiaghata', name: 'Batiaghata' },
-          { id: 'dacope', name: 'Dacope' },
-          { id: 'dumuria', name: 'Dumuria' },
-          { id: 'dighalia', name: 'Dighalia' },
-          { id: 'fakirhat', name: 'Fakirhat' },
-          { id: 'koira', name: 'Koira' },
-          { id: 'paikgachha', name: 'Paikgachha' },
-          { id: 'phultala', name: 'Phultala' },
-          { id: 'rupsa', name: 'Rupsa' },
-          { id: 'terokhada', name: 'Terokhada' },
-        ]
-      },
       {
         id: 'bagerhat',
         name: 'Bagerhat',
@@ -402,6 +613,102 @@ export const bangladeshDivisions: Division[] = [
           { id: 'alamdanga', name: 'Alamdanga' },
           { id: 'damurhuda', name: 'Damurhuda' },
           { id: 'jibannagar', name: 'Jibannagar' },
+        ]
+      },
+      {
+        id: 'jashore',
+        name: 'Jashore',
+        upazillas: [
+          { id: 'jashore_sadar', name: 'Jashore Sadar' },
+          { id: 'abhaynagar', name: 'Abhaynagar' },
+          { id: 'bagherpara', name: 'Bagherpara' },
+          { id: 'chaugachha', name: 'Chaugachha' },
+          { id: 'jhikargachha', name: 'Jhikargachha' },
+          { id: 'keshabpur', name: 'Keshabpur' },
+          { id: 'manirampur', name: 'Manirampur' },
+          { id: 'sharsha', name: 'Sharsha' },
+        ]
+      },
+      {
+        id: 'jhenaidah',
+        name: 'Jhenaidah',
+        upazillas: [
+          { id: 'jhenaidah_sadar', name: 'Jhenaidah Sadar' },
+          { id: 'harinakunda', name: 'Harinakunda' },
+          { id: 'kaliganj', name: 'Kaliganj' },
+          { id: 'kotchandpur', name: 'Kotchandpur' },
+          { id: 'maheshpur', name: 'Maheshpur' },
+          { id: 'shailkupa', name: 'Shailkupa' },
+        ]
+      },
+      {
+        id: 'khulna_district',
+        name: 'Khulna',
+        upazillas: [
+          { id: 'khulna_sadar', name: 'Khulna Sadar' },
+          { id: 'batiaghata', name: 'Batiaghata' },
+          { id: 'dacope', name: 'Dacope' },
+          { id: 'dumuria', name: 'Dumuria' },
+          { id: 'dighalia', name: 'Dighalia' },
+          { id: 'fakirhat', name: 'Fakirhat' },
+          { id: 'koira', name: 'Koira' },
+          { id: 'paikgachha', name: 'Paikgachha' },
+          { id: 'phultala', name: 'Phultala' },
+          { id: 'rupsa', name: 'Rupsa' },
+          { id: 'terokhada', name: 'Terokhada' },
+        ]
+      },
+      {
+        id: 'kushtia',
+        name: 'Kushtia',
+        upazillas: [
+          { id: 'kushtia_sadar', name: 'Kushtia Sadar' },
+          { id: 'bheramara', name: 'Bheramara' },
+          { id: 'daulatpur', name: 'Daulatpur' },
+          { id: 'khoksa', name: 'Khoksa' },
+          { id: 'kumarkhali', name: 'Kumarkhali' },
+          { id: 'mirpur', name: 'Mirpur' },
+        ]
+      },
+      {
+        id: 'magura',
+        name: 'Magura',
+        upazillas: [
+          { id: 'magura_sadar', name: 'Magura Sadar' },
+          { id: 'mohammadpur', name: 'Mohammadpur' },
+          { id: 'shalikha', name: 'Shalikha' },
+          { id: 'sreepur', name: 'Sreepur' },
+        ]
+      },
+      {
+        id: 'meherpur',
+        name: 'Meherpur',
+        upazillas: [
+          { id: 'meherpur_sadar', name: 'Meherpur Sadar' },
+          { id: 'gangni', name: 'Gangni' },
+          { id: 'mujibnagar', name: 'Mujibnagar' },
+        ]
+      },
+      {
+        id: 'narail',
+        name: 'Narail',
+        upazillas: [
+          { id: 'narail_sadar', name: 'Narail Sadar' },
+          { id: 'kalia', name: 'Kalia' },
+          { id: 'lohagara', name: 'Lohagara' },
+        ]
+      },
+      {
+        id: 'satkhira',
+        name: 'Satkhira',
+        upazillas: [
+          { id: 'satkhira_sadar', name: 'Satkhira Sadar' },
+          { id: 'assasuni', name: 'Assasuni' },
+          { id: 'debhata', name: 'Debhata' },
+          { id: 'kalaroa', name: 'Kalaroa' },
+          { id: 'kaliganj', name: 'Kaliganj' },
+          { id: 'patkelghata', name: 'Patkelghata' },
+          { id: 'tala', name: 'Tala' },
         ]
       },
     ]
@@ -448,6 +755,43 @@ export const bangladeshDivisions: Division[] = [
           { id: 'lalmohan', name: 'Lalmohan' },
           { id: 'manpura', name: 'Manpura' },
           { id: 'tazumuddin', name: 'Tazumuddin' },
+        ]
+      },
+      {
+        id: 'jhalokati',
+        name: 'Jhalokati',
+        upazillas: [
+          { id: 'jhalokati_sadar', name: 'Jhalokati Sadar' },
+          { id: 'kathalia', name: 'Kathalia' },
+          { id: 'nalchity', name: 'Nalchity' },
+          { id: 'rajapur', name: 'Rajapur' },
+        ]
+      },
+      {
+        id: 'patuakhali',
+        name: 'Patuakhali',
+        upazillas: [
+          { id: 'patuakhali_sadar', name: 'Patuakhali Sadar' },
+          { id: 'bauphal', name: 'Bauphal' },
+          { id: 'dashmina', name: 'Dashmina' },
+          { id: 'dumki', name: 'Dumki' },
+          { id: 'galachipa', name: 'Galachipa' },
+          { id: 'kalapara', name: 'Kalapara' },
+          { id: 'mirzaganj', name: 'Mirzaganj' },
+          { id: 'rangabali', name: 'Rangabali' },
+        ]
+      },
+      {
+        id: 'pirojpur',
+        name: 'Pirojpur',
+        upazillas: [
+          { id: 'pirojpur_sadar', name: 'Pirojpur Sadar' },
+          { id: 'bhandaria', name: 'Bhandaria' },
+          { id: 'kawkhali', name: 'Kawkhali' },
+          { id: 'mathbaria', name: 'Mathbaria' },
+          { id: 'nazirpur', name: 'Nazirpur' },
+          { id: 'nesarabad', name: 'Nesarabad' },
+          { id: 'zianagar', name: 'Zianagar' },
         ]
       },
     ]
@@ -501,6 +845,66 @@ export const bangladeshDivisions: Division[] = [
           { id: 'sundarganj', name: 'Sundarganj' },
         ]
       },
+      {
+        id: 'kurigram',
+        name: 'Kurigram',
+        upazillas: [
+          { id: 'kurigram_sadar', name: 'Kurigram Sadar' },
+          { id: 'bhurungamari', name: 'Bhurungamari' },
+          { id: 'char_rajibpur', name: 'Char Rajibpur' },
+          { id: 'chilmari', name: 'Chilmari' },
+          { id: 'phulbari', name: 'Phulbari' },
+          { id: 'nageshwari', name: 'Nageshwari' },
+          { id: 'rajarhat', name: 'Rajarhat' },
+          { id: 'raomari', name: 'Raomari' },
+          { id: 'ulipur', name: 'Ulipur' },
+        ]
+      },
+      {
+        id: 'lalmonirhat',
+        name: 'Lalmonirhat',
+        upazillas: [
+          { id: 'lalmonirhat_sadar', name: 'Lalmonirhat Sadar' },
+          { id: 'aditmari', name: 'Aditmari' },
+          { id: 'hatibandha', name: 'Hatibandha' },
+          { id: 'kaliganj', name: 'Kaliganj' },
+          { id: 'patgram', name: 'Patgram' },
+        ]
+      },
+      {
+        id: 'nilphamari',
+        name: 'Nilphamari',
+        upazillas: [
+          { id: 'nilphamari_sadar', name: 'Nilphamari Sadar' },
+          { id: 'dimla', name: 'Dimla' },
+          { id: 'domar', name: 'Domar' },
+          { id: 'jaldhaka', name: 'Jaldhaka' },
+          { id: 'kishoreganj', name: 'Kishoreganj' },
+          { id: 'saidpur', name: 'Saidpur' },
+        ]
+      },
+      {
+        id: 'panchagarh',
+        name: 'Panchagarh',
+        upazillas: [
+          { id: 'panchagarh_sadar', name: 'Panchagarh Sadar' },
+          { id: 'atwari', name: 'Atwari' },
+          { id: 'boda', name: 'Boda' },
+          { id: 'debiganj', name: 'Debiganj' },
+          { id: 'tetulia', name: 'Tetulia' },
+        ]
+      },
+      {
+        id: 'thakurgaon',
+        name: 'Thakurgaon',
+        upazillas: [
+          { id: 'thakurgaon_sadar', name: 'Thakurgaon Sadar' },
+          { id: 'baliadangi', name: 'Baliadangi' },
+          { id: 'haripur', name: 'Haripur' },
+          { id: 'pirganj', name: 'Pirganj' },
+          { id: 'ranisankail', name: 'Ranisankail' },
+        ]
+      },
     ]
   },
   {
@@ -549,6 +953,17 @@ export const bangladeshDivisions: Division[] = [
           { id: 'kendua', name: 'Kendua' },
           { id: 'madan', name: 'Madan' },
           { id: 'mohanganj', name: 'Mohanganj' },
+        ]
+      },
+      {
+        id: 'sherpur',
+        name: 'Sherpur',
+        upazillas: [
+          { id: 'sherpur_sadar', name: 'Sherpur Sadar' },
+          { id: 'jhenaigati', name: 'Jhenaigati' },
+          { id: 'nakla', name: 'Nakla' },
+          { id: 'nalitabari', name: 'Nalitabari' },
+          { id: 'sreebardi', name: 'Sreebardi' },
         ]
       },
     ]
