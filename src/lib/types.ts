@@ -616,7 +616,7 @@ export interface ToastMessage {
 }
 
 // Theme and UI Types
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'outline';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';

@@ -432,7 +432,7 @@ export default function OTPVerification({
               onClick={handleResendOTP}
               disabled={timeLeft > 0 || sending}
               loading={sending}
-              className="flex-1"
+              className="flex-1 font-medium min-w-[120px]"
             >
               {timeLeft > 0 ? `Resend in ${timeLeft}s` : 'Resend OTP'}
             </Button>

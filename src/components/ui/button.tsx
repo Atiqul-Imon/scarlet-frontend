@@ -16,6 +16,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
   ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500 disabled:text-gray-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:bg-red-300',
   success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-green-300',
+  outline: 'border-2 border-gray-400 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-500 focus:ring-gray-500 focus:ring-offset-1 disabled:border-gray-300 disabled:text-gray-500 disabled:bg-gray-50 disabled:cursor-not-allowed',
 } as const;
 
 const buttonSizes: Record<ButtonSize, string> = {
