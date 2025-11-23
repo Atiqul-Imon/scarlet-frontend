@@ -33,6 +33,8 @@ export default function ProductDetailPage() {
   const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('description');
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
+  const [recommendedProducts, setRecommendedProducts] = React.useState<Product[]>([]);
+  const [loadingRecommended, setLoadingRecommended] = React.useState(false);
 
   // Fetch product data with optimized loading
   React.useEffect(() => {
@@ -83,8 +85,24 @@ export default function ProductDetailPage() {
         // Fetch related products asynchronously after main product loads
         // Optimized: Use dedicated related products endpoint instead of fetching entire category
         if (product.categoryIds && product.categoryIds.length > 0) {
-          // Don't await this - let it load in background
-          fetch(`/api/proxy/catalog/products/${product._id}/related?limit=3`, {
+          // Check sessionStorage cache first to reduce server load
+          const cacheKey = `related_products_${product._id}`;
+          const cachedData = sessionStorage.getItem(cacheKey);
+          const cacheTimestamp = sessionStorage.getItem(`${cacheKey}_time`);
+          const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
+          const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes cache
+          
+          if (cachedData && cacheAge < CACHE_DURATION) {
+            try {
+              const cachedProducts = JSON.parse(cachedData);
+              setRelatedProducts(cachedProducts);
+            } catch (e) {
+              // Invalid cache, continue to fetch
+            }
+          }
+          
+          // Fetch related products (limit 4 for better UX)
+          fetch(`/api/proxy/catalog/products/${product._id}/related?limit=4`, {
             headers: {
               'Cache-Control': 'max-age=300', // 5 minutes cache
             },
@@ -98,11 +116,63 @@ export default function ProductDetailPage() {
             .then(relatedData => {
               if (relatedData?.success && relatedData.data) {
                 setRelatedProducts(relatedData.data);
+                // Cache in sessionStorage
+                sessionStorage.setItem(cacheKey, JSON.stringify(relatedData.data));
+                sessionStorage.setItem(`${cacheKey}_time`, Date.now().toString());
               }
             })
             .catch(() => {
               // Silently fail for related products - not critical for page functionality
             });
+          
+          // Fetch recommended products (best sellers/featured from same category)
+          // Optimized: Only fetch if not in cache and load in background
+          const recommendedCacheKey = `recommended_products_${product.categoryIds[0]}`;
+          const recommendedCached = sessionStorage.getItem(recommendedCacheKey);
+          const recommendedCacheTime = sessionStorage.getItem(`${recommendedCacheKey}_time`);
+          const recommendedCacheAge = recommendedCacheTime ? Date.now() - parseInt(recommendedCacheTime) : Infinity;
+          
+          if (!recommendedCached || recommendedCacheAge >= CACHE_DURATION) {
+            setLoadingRecommended(true);
+            // Fetch featured products from same category (limit 4)
+            fetch(`/api/proxy/catalog/products?category=${product.categoryIds[0]}&isFeatured=true&limit=4&sort=popularity`, {
+              headers: {
+                'Cache-Control': 'max-age=300',
+              },
+            })
+              .then(recResponse => {
+                if (recResponse.ok) {
+                  return recResponse.json();
+                }
+                return null;
+              })
+              .then(recData => {
+                if (recData?.success && recData.data) {
+                  // Filter out current product and limit to 4
+                  const filtered = recData.data
+                    .filter((p: Product) => p._id !== product._id)
+                    .slice(0, 4);
+                  setRecommendedProducts(filtered);
+                  // Cache in sessionStorage
+                  sessionStorage.setItem(recommendedCacheKey, JSON.stringify(filtered));
+                  sessionStorage.setItem(`${recommendedCacheKey}_time`, Date.now().toString());
+                }
+              })
+              .catch(() => {
+                // Silently fail - not critical
+              })
+              .finally(() => {
+                setLoadingRecommended(false);
+              });
+          } else {
+            // Use cached recommended products
+            try {
+              const cachedRecommended = JSON.parse(recommendedCached);
+              setRecommendedProducts(cachedRecommended);
+            } catch (e) {
+              // Invalid cache
+            }
+          }
         }
         
       } catch (err) {
@@ -880,10 +950,70 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
+        {/* Recommended Products - Optimized with caching */}
+        {(recommendedProducts.length > 0 || loadingRecommended) && (
+          <div className="mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-6">Recommended for You</h3>
+            {loadingRecommended ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 animate-pulse">
+                    <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
+                    <div className="h-4 bg-gray-200 rounded mb-2" />
+                    <div className="h-6 bg-gray-200 rounded w-24" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {recommendedProducts.map((recProduct) => (
+                  <Link
+                    key={recProduct._id}
+                    href={`/products/${recProduct.slug}`}
+                    className="group"
+                  >
+                    <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 border border-gray-100 overflow-hidden transform hover:-translate-y-1">
+                      <div className="aspect-square bg-gray-100 rounded-xl mb-4 overflow-hidden relative">
+                        {recProduct.images[0] && (
+                          <Image
+                            src={recProduct.images[0]}
+                            alt={recProduct.title}
+                            width={200}
+                            height={200}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        )}
+                        {recProduct.isFeatured && (
+                          <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+                            Featured
+                          </div>
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-red-700 transition-colors">
+                        {recProduct.title}
+                      </h4>
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-xl font-bold text-gray-900">
+                          {formatPrice(recProduct.price.amount, recProduct.price.currency)}
+                        </p>
+                        {recProduct.price.originalAmount && recProduct.price.originalAmount > recProduct.price.amount && (
+                          <p className="text-sm text-gray-400 line-through">
+                            {formatPrice(recProduct.price.originalAmount, recProduct.price.currency)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-10">You May Also Like</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-6">You May Also Like</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <Link
@@ -906,9 +1036,16 @@ export default function ProductDetailPage() {
                     <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-red-700 transition-colors">
                       {relatedProduct.title}
                     </h4>
-                    <p className="text-xl font-bold text-gray-900">
-                      {formatPrice(relatedProduct.price.amount, relatedProduct.price.currency)}
-                    </p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-xl font-bold text-gray-900">
+                        {formatPrice(relatedProduct.price.amount, relatedProduct.price.currency)}
+                      </p>
+                      {relatedProduct.price.originalAmount && relatedProduct.price.originalAmount > relatedProduct.price.amount && (
+                        <p className="text-sm text-gray-400 line-through">
+                          {formatPrice(relatedProduct.price.originalAmount, relatedProduct.price.currency)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </Link>
               ))}
