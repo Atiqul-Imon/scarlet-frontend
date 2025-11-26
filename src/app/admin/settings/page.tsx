@@ -46,28 +46,48 @@ export default function SettingsPage() {
   const applyBackgroundColor = (color: string) => {
     const bgColor = color || '#FFFFFF';
     
-    // Apply to CSS custom property
+    // Apply to CSS custom property (used by globals.css)
     document.documentElement.style.setProperty('--background', bgColor);
     
     // Apply directly to body and html elements
     document.body.style.backgroundColor = bgColor;
     document.documentElement.style.backgroundColor = bgColor;
 
-    // Apply to all elements with bg-white class (override Tailwind's bg-white)
-    const elementsWithBgWhite = document.querySelectorAll('.bg-white');
-    elementsWithBgWhite.forEach((el) => {
-      (el as HTMLElement).style.backgroundColor = bgColor;
-    });
+    // Add class to body for CSS targeting
+    document.body.classList.add('custom-background-applied');
 
-    // Apply to main content areas
-    const mainElements = document.querySelectorAll('main, [role="main"]');
-    mainElements.forEach((el) => {
-      const htmlEl = el as HTMLElement;
-      // Only apply if it has bg-white or no explicit background
-      if (htmlEl.classList.contains('bg-white') || !htmlEl.style.backgroundColor) {
-        htmlEl.style.backgroundColor = bgColor;
+    // Inject a global style to apply background to all page-level containers
+    let styleElement = document.getElementById('dynamic-background-style');
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = 'dynamic-background-style';
+      document.head.appendChild(styleElement);
+    }
+    
+    // Apply background to root containers and page wrappers
+    styleElement.textContent = `
+      /* Apply website background to root containers */
+      body.custom-background-applied > div:first-child,
+      body.custom-background-applied > div:first-child > div:first-child,
+      body.custom-background-applied main,
+      body.custom-background-applied [role="main"],
+      body.custom-background-applied .flex.flex-col.min-h-screen {
+        background-color: ${bgColor} !important;
       }
-    });
+      
+      /* Override bg-white on page-level containers only */
+      body.custom-background-applied > div:first-child.bg-white,
+      body.custom-background-applied > div:first-child > div:first-child.bg-white,
+      body.custom-background-applied main.bg-white,
+      body.custom-background-applied [role="main"].bg-white {
+        background-color: ${bgColor} !important;
+      }
+      
+      /* Apply to page content wrappers */
+      body.custom-background-applied > div:first-child > div:first-child > div {
+        background-color: ${bgColor} !important;
+      }
+    `;
     
     // Convert hex to HSL for Tailwind compatibility
     const hexToHsl = (hex: string): string | null => {
