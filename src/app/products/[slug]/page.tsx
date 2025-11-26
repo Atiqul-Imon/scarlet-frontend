@@ -348,8 +348,104 @@ export default function ProductDetailPage() {
 
   const handlePreorder = async () => {
     // For preorder, add to cart and redirect to checkout with preorder flag
-    await handleAddToCart();
-    router.push('/cart?preorder=true');
+    if (!product || isAddingToCart) return;
+    
+    setIsAddingToCart(true);
+    try {
+      // Check if product has variants
+      const hasVariants = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0);
+      
+      if (!hasVariants) {
+        // No variants - simple add
+        await addItem(product._id!, quantity);
+        // Refresh cart after adding
+        await refreshCart();
+      } else if (variantSelections.length === 0) {
+        // Has variants but using single selection
+        if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+          addToast({
+            type: 'error',
+            title: 'Selection Required',
+            message: 'Please select a size before adding to cart'
+          });
+          setIsAddingToCart(false);
+          return;
+        }
+        if (product.colors && product.colors.length > 0 && !selectedColor) {
+          addToast({
+            type: 'error',
+            title: 'Selection Required',
+            message: 'Please select a color before adding to cart'
+          });
+          setIsAddingToCart(false);
+          return;
+        }
+        await addItem(product._id!, quantity, selectedSize || undefined, selectedColor || undefined);
+        // Refresh cart after adding
+        await refreshCart();
+      } else {
+        // Multiple variant selections
+        const itemsToAdd = variantSelections.map(selection => ({
+          productId: product._id!,
+          quantity: selection.quantity,
+          selectedSize: selection.size || undefined,
+          selectedColor: selection.color || undefined
+        }));
+        
+        if (itemsToAdd.length > 1) {
+          const { cartApi } = await import('../../../lib/api');
+          const sessionId = localStorage.getItem('scarlet_session_id') || '';
+          const normalizedItems = itemsToAdd.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            ...(item.selectedSize && { selectedSize: item.selectedSize }),
+            ...(item.selectedColor && { selectedColor: item.selectedColor })
+          }));
+          
+          if (user) {
+            await cartApi.addItemsBatch(normalizedItems);
+          } else {
+            await cartApi.addGuestItemsBatch(sessionId, normalizedItems);
+          }
+          // Refresh cart after batch add
+          await refreshCart();
+        } else {
+          const singleItem = itemsToAdd[0];
+          if (singleItem) {
+            await addItem(
+              singleItem.productId, 
+              singleItem.quantity, 
+              singleItem.selectedSize, 
+              singleItem.selectedColor
+            );
+            // Refresh cart after adding
+            await refreshCart();
+          }
+        }
+      }
+      
+      // Show success message
+      addToast({
+        type: 'success',
+        title: 'Added to Cart',
+        message: `${product.title} added to cart for preorder!`
+      });
+      
+      // Wait a bit to ensure cart state is fully updated in context
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Redirect to checkout with preorder flag
+      router.push('/checkout?preorder=true');
+    } catch (error) {
+      console.error('Error adding preorder to cart:', error);
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: error instanceof Error ? error.message : 'Failed to add preorder to cart'
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const handleWishlistToggle = async () => {
