@@ -1410,11 +1410,29 @@ export const adminApi = {
       return fetchJsonAuth<SystemSettings>('/admin/settings');
     },
 
+    getSystemSettings: (): Promise<SystemSettings> => {
+      return fetchJsonAuth<SystemSettings>('/admin/settings');
+    },
+
+    updateSystemSettings: (settings: Partial<SystemSettings>): Promise<{ message: string }> => {
+      return fetchJsonAuth<{ message: string }>('/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify(settings)
+      });
+    },
+
     updateSettings: (settings: Partial<SystemSettings>): Promise<{ message: string }> => {
       return fetchJsonAuth<{ message: string }>('/admin/settings', {
         method: 'PATCH',
         body: JSON.stringify(settings)
       });
+    }
+  },
+
+  // Public appearance settings (no auth required)
+  appearance: {
+    getPublicSettings: (): Promise<{ websiteBackgroundColor: string }> => {
+      return fetchJson<{ websiteBackgroundColor: string }>('/admin/settings/public/appearance');
     }
   },
 

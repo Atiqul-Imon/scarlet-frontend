@@ -221,6 +221,7 @@ export interface SystemSettings {
     cost: number;
     freeShippingThreshold?: number;
   }>;
+  websiteBackgroundColor?: string; // Hex color code (e.g., "#FFFFFF")
 }
 
 export interface AdminActivityLog {

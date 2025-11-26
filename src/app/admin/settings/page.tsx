@@ -9,18 +9,20 @@ import {
   BellIcon,
   ShieldCheckIcon,
   EnvelopeIcon,
-  GlobeAltIcon
+  GlobeAltIcon,
+  SwatchIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
 import { adminApi } from '@/lib/api';
 import type { SystemSettings } from '@/lib/admin-types';
+import ColorPicker from '@/components/admin/ColorPicker';
 
 export default function SettingsPage() {
   const { addToast } = useToast();
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'store' | 'payment' | 'shipping' | 'notifications' | 'security'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'store' | 'payment' | 'shipping' | 'notifications' | 'security' | 'appearance'>('general');
 
   useEffect(() => {
     fetchSettings();
@@ -91,6 +93,7 @@ export default function SettingsPage() {
     { id: 'shipping', label: 'Shipping', icon: TruckIcon },
     { id: 'notifications', label: 'Notifications', icon: BellIcon },
     { id: 'security', label: 'Security', icon: ShieldCheckIcon },
+    { id: 'appearance', label: 'Appearance', icon: SwatchIcon },
   ] as const;
 
   if (loading) {
@@ -558,6 +561,33 @@ export default function SettingsPage() {
                 placeholder="60"
               />
             </div>
+          </div>
+        )}
+
+        {/* Appearance */}
+        {activeTab === 'appearance' && (
+          <div className="space-y-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Appearance Settings</h2>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start space-x-3">
+                <SwatchIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-sm font-medium text-blue-900 mb-1">
+                    Website Background Color
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    Customize the background color of your website. Changes will be applied immediately after saving.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <ColorPicker
+              value={settings?.websiteBackgroundColor || '#FFFFFF'}
+              onChange={(color) => updateSetting('websiteBackgroundColor', color)}
+              label="Website Background Color"
+            />
           </div>
         )}
       </div>
