@@ -46,6 +46,44 @@ interface OrderNote {
   createdAt: string;
 }
 
+// Backend order format (what we receive from API)
+interface BackendOrder {
+  _id: string;
+  orderNumber: string;
+  status: string;
+  userId?: string;
+  guestId?: string;
+  items: any[];
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  discount: number;
+  total: number;
+  currency: string;
+  shippingAddress: {
+    firstName: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    address: string;
+    city: string;
+    area?: string;
+    postalCode?: string;
+  };
+  paymentInfo?: {
+    method: string;
+    status: string;
+    preorderPaymentAmount?: number;
+    preorderRemainingAmount?: number;
+  };
+  notes?: string;
+  trackingNumber?: string;
+  estimatedDelivery?: string;
+  isPreorder?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function OrderDetailPage() {
   const params = useParams();
   const { addToast } = useToast();
@@ -65,20 +103,20 @@ export default function OrderDetailPage() {
       setLoading(true);
       setError(null);
       
-      const orderData = await adminApi.orders.getOrderById(params['id'] as string);
+      const orderData = await adminApi.orders.getOrderById(params['id'] as string) as unknown as BackendOrder;
       
       // Transform backend order format to frontend AdminOrder format
       const transformedOrder: AdminOrder = {
         _id: orderData._id,
         orderNumber: orderData.orderNumber,
-        status: orderData.status,
-        paymentStatus: orderData.paymentInfo?.status || 'pending',
-        paymentMethod: orderData.paymentInfo?.method || 'cod',
+        status: orderData.status as AdminOrder['status'],
+        paymentStatus: (orderData.paymentInfo?.status || 'pending') as AdminOrder['paymentStatus'],
+        paymentMethod: (orderData.paymentInfo?.method || 'cod') as AdminOrder['paymentMethod'],
         customer: {
           _id: orderData.userId || orderData.guestId || 'unknown',
           name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName || ''}`.trim(),
           email: orderData.shippingAddress.email || 'N/A',
-          phone: orderData.shippingAddress.phone,
+          phone: orderData.shippingAddress.phone || '',
         },
         items: orderData.items.map((item: any) => ({
           _id: `${orderData._id}-${item.productId}`,
@@ -101,25 +139,32 @@ export default function OrderDetailPage() {
         currency: orderData.currency,
         shippingAddress: {
           name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName || ''}`.trim(),
-          phone: orderData.shippingAddress.phone,
+          phone: orderData.shippingAddress.phone || '',
           address: orderData.shippingAddress.address,
           city: orderData.shippingAddress.city,
-          state: orderData.shippingAddress.area,
-          postalCode: orderData.shippingAddress.postalCode,
+          state: orderData.shippingAddress.area || '',
+          postalCode: orderData.shippingAddress.postalCode || '',
           country: 'Bangladesh',
         },
         billingAddress: {
           name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName || ''}`.trim(),
-          phone: orderData.shippingAddress.phone,
+          phone: orderData.shippingAddress.phone || '',
           address: orderData.shippingAddress.address,
           city: orderData.shippingAddress.city,
-          state: orderData.shippingAddress.area,
-          postalCode: orderData.shippingAddress.postalCode,
+          state: orderData.shippingAddress.area || '',
+          postalCode: orderData.shippingAddress.postalCode || '',
           country: 'Bangladesh',
         },
         notes: orderData.notes || '',
-        trackingNumber: orderData.trackingNumber || null,
-        estimatedDelivery: orderData.estimatedDelivery || null,
+        ...(orderData.trackingNumber && { trackingNumber: orderData.trackingNumber }),
+        ...(orderData.estimatedDelivery && { estimatedDelivery: orderData.estimatedDelivery }),
+        isPreorder: orderData.isPreorder || orderData.status === 'preorder',
+        ...(orderData.paymentInfo?.preorderPaymentAmount !== undefined && { 
+          preorderPaymentAmount: orderData.paymentInfo.preorderPaymentAmount 
+        }),
+        ...(orderData.paymentInfo?.preorderRemainingAmount !== undefined && { 
+          preorderRemainingAmount: orderData.paymentInfo.preorderRemainingAmount 
+        }),
         createdAt: orderData.createdAt,
         updatedAt: orderData.updatedAt,
       };
@@ -243,6 +288,7 @@ export default function OrderDetailPage() {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: ClockIcon },
+      preorder: { bg: 'bg-purple-100', text: 'text-purple-800', icon: ClockIcon },
       confirmed: { bg: 'bg-blue-100', text: 'text-blue-800', icon: CheckCircleIcon },
       processing: { bg: 'bg-indigo-100', text: 'text-indigo-800', icon: ArrowPathIcon },
       delivered: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircleIcon },
@@ -264,6 +310,7 @@ export default function OrderDetailPage() {
   const getPaymentStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+      partial: { bg: 'bg-purple-100', text: 'text-purple-800' },
       processing: { bg: 'bg-blue-100', text: 'text-blue-800' },
       completed: { bg: 'bg-green-100', text: 'text-green-800' },
       failed: { bg: 'bg-red-100', text: 'text-red-800' },
@@ -360,6 +407,28 @@ export default function OrderDetailPage() {
       <div className="max-w-7xl mx-auto px-4 py-6 print:hidden">
         {/* Header */}
         <div className="mb-8">
+          {/* Preorder Notice */}
+          {order.isPreorder && order.status === 'preorder' && (
+            <div className="mb-6 bg-purple-50 border-l-4 border-purple-500 rounded-lg p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-semibold text-purple-900 mb-1">
+                    Preorder - 50% Advance Payment Received
+                  </h3>
+                  <p className="text-sm text-purple-700">
+                    This is a preorder. Customer has paid 50% advance ({order.preorderPaymentAmount ? `৳${order.preorderPaymentAmount.toLocaleString()}` : 'N/A'}). 
+                    Remaining 50% ({order.preorderRemainingAmount ? `৳${order.preorderRemainingAmount.toLocaleString()}` : 'N/A'}) will be collected when the product arrives.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
@@ -476,9 +545,31 @@ export default function OrderDetailPage() {
                         <span className="text-gray-900">৳{order.tax.toLocaleString()}</span>
                       </div>
                     )}
+                    {order.isPreorder && order.status === 'preorder' && (
+                      <>
+                        <div className="flex justify-between text-sm pt-3 border-t border-gray-200">
+                          <span className="text-gray-600">Total Order Amount</span>
+                          <span className="text-gray-900">৳{order.total.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-purple-700">
+                          <span>Advance Payment (50%)</span>
+                          <span className="font-medium">৳{order.preorderPaymentAmount?.toLocaleString() || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Remaining Balance (50%)</span>
+                          <span className="font-medium">৳{order.preorderRemainingAmount?.toLocaleString() || 'N/A'}</span>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
-                      <span className="text-gray-900">Total</span>
-                      <span className="text-gray-900">৳{order.total.toLocaleString()}</span>
+                      <span className="text-gray-900">
+                        {order.isPreorder && order.status === 'preorder' ? 'Paid Now (50%)' : 'Total'}
+                      </span>
+                      <span className="text-gray-900">
+                        ৳{order.isPreorder && order.status === 'preorder' 
+                          ? (order.preorderPaymentAmount?.toLocaleString() || order.total.toLocaleString())
+                          : order.total.toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -600,6 +691,19 @@ export default function OrderDetailPage() {
                 <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
               </div>
               <div className="p-6 space-y-3">
+                {order.isPreorder && order.status === 'preorder' && (
+                  <button
+                    onClick={() => {
+                      if (confirm(`Fulfill preorder for ${order.orderNumber}? This will change the status to "confirmed" and notify the customer to pay the remaining 50%.`)) {
+                        handleStatusUpdate('confirmed');
+                      }
+                    }}
+                    className="w-full flex items-center px-4 py-2 text-left text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors font-medium"
+                  >
+                    <CheckCircleIcon className="w-4 h-4 mr-3" />
+                    Fulfill Preorder
+                  </button>
+                )}
                 <button
                   onClick={() => setShowStatusModal(true)}
                   className="w-full flex items-center px-4 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"

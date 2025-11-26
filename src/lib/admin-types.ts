@@ -88,8 +88,8 @@ export interface AdminOrderAddress {
 export interface AdminOrder {
   _id: string;
   orderNumber: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'delivered' | 'cancelled' | 'refunded';
-  paymentStatus: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+  status: 'pending' | 'preorder' | 'confirmed' | 'processing' | 'delivered' | 'cancelled' | 'refunded';
+  paymentStatus: 'pending' | 'partial' | 'processing' | 'completed' | 'failed' | 'refunded';
   paymentMethod: 'bkash' | 'nagad' | 'rocket' | 'card' | 'cod';
   customer: AdminOrderCustomer;
   items: AdminOrderItem[];
@@ -102,6 +102,11 @@ export interface AdminOrder {
   shippingAddress: AdminOrderAddress;
   billingAddress: AdminOrderAddress;
   notes?: string;
+  trackingNumber?: string | null;
+  estimatedDelivery?: string | null;
+  isPreorder?: boolean;
+  preorderPaymentAmount?: number;
+  preorderRemainingAmount?: number;
   createdAt: string;
   updatedAt: string;
 }

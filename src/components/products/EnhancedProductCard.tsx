@@ -36,11 +36,19 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
     ? Math.round(((product.price.originalAmount - product.price.amount) / product.price.originalAmount) * 100)
     : 0;
 
-  const isOutOfStock = product.stock !== undefined && product.stock <= 0;
-  const isLowStock = product.stock !== undefined && product.stock <= 5 && product.stock > 0;
+  const isComingSoon = product.isComingSoon || product.homepageSection === 'coming-soon';
+  const isOutOfStock = !isComingSoon && product.stock !== undefined && product.stock <= 0;
+  const isLowStock = !isComingSoon && product.stock !== undefined && product.stock <= 5 && product.stock > 0;
 
   // Determine if product has multiple images for hover effect
   const hasMultipleImages = product.images && product.images.length > 1;
+
+  const handlePreorder = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsNavigating(true);
+    router.push(`/products/${product.slug}`);
+  };
 
   return (
     <div
@@ -107,12 +115,17 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
                 -{discountPercentage}%
               </span>
             )}
-            {isOutOfStock && (
+            {isComingSoon && (
+              <span className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                Coming Soon
+              </span>
+            )}
+            {!isComingSoon && isOutOfStock && (
               <span className="bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                 Out of Stock
               </span>
             )}
-            {isLowStock && (
+            {!isComingSoon && isLowStock && (
               <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                 Only {product.stock} left
               </span>
@@ -120,33 +133,50 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
           </div>
 
 
-          {/* Add to Cart Button */}
+          {/* Add to Cart / Preorder Button */}
           <div className={`
             absolute bottom-0 left-0 right-0 p-3 transition-all duration-300
             ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}
           `}>
-            <button
-              onClick={handleAddToCart}
-              disabled={isOutOfStock || isNavigating}
-              className={`
-                w-full py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200
-                ${isOutOfStock 
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-red-700 hover:bg-red-800 text-white shadow-lg'
-                }
-              `}
-            >
-              {isNavigating ? (
-                <div className="flex items-center justify-center">
-                  <LoadingSpinner />
-                  <span className="ml-2">Loading...</span>
-                </div>
-              ) : isOutOfStock ? (
-                'Out of Stock'
-              ) : (
-                'View Details'
-              )}
-            </button>
+            {isComingSoon ? (
+              <button
+                onClick={handlePreorder}
+                disabled={isNavigating}
+                className="w-full py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-purple-700 hover:bg-purple-800 text-white shadow-lg"
+              >
+                {isNavigating ? (
+                  <div className="flex items-center justify-center">
+                    <LoadingSpinner />
+                    <span className="ml-2">Loading...</span>
+                  </div>
+                ) : (
+                  'Preorder'
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                disabled={isOutOfStock || isNavigating}
+                className={`
+                  w-full py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200
+                  ${isOutOfStock 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-red-700 hover:bg-red-800 text-white shadow-lg'
+                  }
+                `}
+              >
+                {isNavigating ? (
+                  <div className="flex items-center justify-center">
+                    <LoadingSpinner />
+                    <span className="ml-2">Loading...</span>
+                  </div>
+                ) : isOutOfStock ? (
+                  'Out of Stock'
+                ) : (
+                  'View Details'
+                )}
+              </button>
+            )}
           </div>
         </div>
 

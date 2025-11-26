@@ -44,6 +44,7 @@ interface OrderFilters {
 const ORDER_STATUSES = [
   { value: '', label: 'All Orders', color: 'gray' },
   { value: 'pending', label: 'Pending', color: 'yellow' },
+  { value: 'preorder', label: 'Preorder', color: 'purple' },
   { value: 'confirmed', label: 'Confirmed', color: 'blue' },
   { value: 'processing', label: 'Processing', color: 'indigo' },
   { value: 'delivered', label: 'Delivered', color: 'green' },
@@ -54,6 +55,7 @@ const ORDER_STATUSES = [
 const PAYMENT_STATUSES = [
   { value: '', label: 'All Payments', color: 'gray' },
   { value: 'pending', label: 'Pending', color: 'yellow' },
+  { value: 'partial', label: 'Partial (Preorder)', color: 'purple' },
   { value: 'processing', label: 'Processing', color: 'blue' },
   { value: 'completed', label: 'Completed', color: 'green' },
   { value: 'failed', label: 'Failed', color: 'red' },

@@ -60,6 +60,7 @@ interface CartItemData {
   stock?: number;
   selectedSize?: string;
   selectedColor?: string;
+  isComingSoon?: boolean;
 }
 
 export default function CheckoutPage() {
@@ -67,6 +68,14 @@ export default function CheckoutPage() {
   const { cart, clearCart, sessionId, refreshCart } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
+  
+  // Check for preorder query param
+  const [isPreorder, setIsPreorder] = React.useState(false);
+  
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setIsPreorder(params.get('preorder') === 'true');
+  }, []);
 
   // Helper function to handle SSLCommerz payment flow
   const handleSSLCommerzPayment = async () => {
@@ -79,9 +88,13 @@ export default function CheckoutPage() {
       const { paymentApi } = await import('../../lib/api');
       const { orderApi } = await import('../../lib/api');
       
-      // Calculate payment amount for outside Dhaka orders
+      // Calculate payment amount
       let paymentAmount = total;
-      if (values.deliveryArea === 'outside_dhaka') {
+      
+      // For preorders, charge 50% advance payment
+      if (isPreorder) {
+        paymentAmount = preorderPaymentAmount;
+      } else if (values.deliveryArea === 'outside_dhaka') {
         if (values.payFullAmount) {
           paymentAmount = total; // Pay full amount
         } else {
@@ -107,6 +120,9 @@ export default function CheckoutPage() {
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
         creditsToRedeem: user && creditsToRedeem > 0 && creditValidation?.valid ? creditsToRedeem : undefined,
+        isPreorder: isPreorder || undefined,
+        preorderPaymentAmount: isPreorder ? preorderPaymentAmount : undefined,
+        preorderRemainingAmount: isPreorder ? preorderRemainingAmount : undefined,
       };
       
       // Store pending order (order will be created in IPN handler after payment success)
@@ -205,6 +221,9 @@ export default function CheckoutPage() {
         payFullAmount: values.payFullAmount || false,
         notes: values.notes,
         creditsToRedeem: user && creditsToRedeem > 0 && creditValidation?.valid ? creditsToRedeem : undefined,
+        isPreorder: isPreorder || undefined,
+        preorderPaymentAmount: isPreorder ? preorderPaymentAmount : undefined,
+        preorderRemainingAmount: isPreorder ? preorderRemainingAmount : undefined,
       };
 
       // Create the order (authenticated or guest)
@@ -519,6 +538,7 @@ export default function CheckoutPage() {
               quantity: item.quantity,
               brand: 'Test Brand',
               stock: 10,
+              isComingSoon: false,
               ...(item.selectedSize && { selectedSize: item.selectedSize }),
               ...(item.selectedColor && { selectedColor: item.selectedColor })
             };
@@ -533,12 +553,15 @@ export default function CheckoutPage() {
               image: '/placeholder-product.jpg',
               price: { currency: 'BDT', amount: 0 },
               quantity: item.quantity,
-              brand: undefined,
               stock: 0,
+              isComingSoon: false,
               ...(item.selectedSize && { selectedSize: item.selectedSize }),
               ...(item.selectedColor && { selectedColor: item.selectedColor })
             };
           }
+          
+          // Check if product is coming soon
+          const isComingSoon = product?.isComingSoon || product?.homepageSection === 'coming-soon';
           
           return {
             productId: item.productId,
@@ -549,10 +572,17 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             brand: product?.brand,
             stock: product?.stock,
+            isComingSoon: isComingSoon,
             ...(item.selectedSize && { selectedSize: item.selectedSize }),
             ...(item.selectedColor && { selectedColor: item.selectedColor })
           };
         });
+        
+        // Check if any items are coming soon (preorder)
+        const hasComingSoonItems = enrichedItems.some(item => (item as any).isComingSoon);
+        if (hasComingSoonItems) {
+          setIsPreorder(true);
+        }
 
         // Filter out only items that are completely invalid (no productId)
         const validItems = enrichedItems.filter(item => {
@@ -609,7 +639,7 @@ export default function CheckoutPage() {
   }, [user]);
 
   // PERFORMANCE: Memoize calculations to avoid recalculation on every render
-  const { subtotal, shipping, total, itemCount } = React.useMemo(() => {
+  const { subtotal, shipping, total, itemCount, preorderPaymentAmount, preorderRemainingAmount } = React.useMemo(() => {
     const deliveryChargeInsideDhaka = 80;
     const deliveryChargeOutsideDhaka = 150;
     
@@ -628,13 +658,23 @@ export default function CheckoutPage() {
     const calculatedTotal = Math.max(0, calculatedSubtotal + calculatedShipping - creditDiscount);
     const calculatedItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     
+    // For preorders, calculate 50% payment
+    let preorderPayment = 0;
+    let preorderRemaining = 0;
+    if (isPreorder) {
+      preorderPayment = Math.ceil(calculatedTotal * 0.5); // 50% advance payment
+      preorderRemaining = calculatedTotal - preorderPayment; // Remaining 50%
+    }
+    
     return {
       subtotal: calculatedSubtotal,
       shipping: calculatedShipping,
       total: calculatedTotal,
-      itemCount: calculatedItemCount
+      itemCount: calculatedItemCount,
+      preorderPaymentAmount: preorderPayment,
+      preorderRemainingAmount: preorderRemaining
     };
-  }, [cartItems, values.deliveryArea, creditDiscount]);
+  }, [cartItems, values.deliveryArea, creditDiscount, isPreorder]);
 
   // Validate credit redemption when credits change (after subtotal/shipping are calculated)
   React.useEffect(() => {
@@ -1577,8 +1617,49 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 
+                {/* Preorder Notice and Payment Breakdown */}
+                {isPreorder && (
+                  <>
+                    <div className="border-t pt-3 mt-3">
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3">
+                        <div className="flex items-start gap-2">
+                          <svg className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-semibold text-purple-900 mb-1">Preorder - 50% Advance Payment</p>
+                            <p className="text-xs text-purple-700">
+                              You'll pay the remaining 50% when the product arrives and is ready to ship.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-gray-600">Total Order Amount</span>
+                        <span className="font-medium text-gray-900">{formatPrice(total)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-purple-700 mb-1">
+                        <span>Advance Payment (50%)</span>
+                        <span className="font-medium">{formatPrice(preorderPaymentAmount)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Remaining Balance (50%)</span>
+                        <span className="font-medium">{formatPrice(preorderRemainingAmount)}</span>
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-purple-900">Pay now:</span>
+                        <span className="text-lg font-bold text-purple-900">
+                          {formatPrice(preorderPaymentAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                
                 {/* Payment Breakdown for Outside Dhaka */}
-                {values.deliveryArea === 'outside_dhaka' && (
+                {!isPreorder && values.deliveryArea === 'outside_dhaka' && (
                   <>
                     <div className="border-t pt-3">
                       <div className="flex justify-between text-sm mb-2">
@@ -1611,12 +1692,14 @@ export default function CheckoutPage() {
                   </>
                 )}
                 
-                <div className="border-t pt-4">
-                  <div className="flex justify-between">
-                    <span className="text-lg font-semibold text-gray-900">Total</span>
-                    <span className="text-lg font-semibold text-gray-900">{formatPrice(total)}</span>
+                {!isPreorder && (
+                  <div className="border-t pt-4">
+                    <div className="flex justify-between">
+                      <span className="text-lg font-semibold text-gray-900">Total</span>
+                      <span className="text-lg font-semibold text-gray-900">{formatPrice(total)}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

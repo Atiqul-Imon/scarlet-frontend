@@ -346,6 +346,12 @@ export default function ProductDetailPage() {
     router.push('/cart');
   };
 
+  const handlePreorder = async () => {
+    // For preorder, add to cart and redirect to checkout with preorder flag
+    await handleAddToCart();
+    router.push('/cart?preorder=true');
+  };
+
   const handleWishlistToggle = async () => {
     if (!user) {
       addToast({
@@ -428,6 +434,10 @@ export default function ProductDetailPage() {
     // Fallback to single stock
     return product.stock || 0;
   }, [product, selectedSize, selectedColor, variantSelections.length, totalVariantStock, getVariantKey]);
+
+  const isComingSoon = React.useMemo(() => {
+    return product?.isComingSoon || product?.homepageSection === 'coming-soon';
+  }, [product?.isComingSoon, product?.homepageSection]);
 
   const isInStock = React.useMemo(() => {
     return currentStock > 0;
@@ -583,8 +593,16 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Out of Stock Badge - Only show when out of stock */}
-            {!isInStock && (
+            {/* Coming Soon Badge */}
+            {isComingSoon && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 border border-purple-300 rounded-lg mb-4">
+                <span className="text-sm font-semibold text-purple-800">
+                  🎉 Coming Soon - Preorder Available
+                </span>
+              </div>
+            )}
+            {/* Out of Stock Badge - Only show when out of stock and not coming soon */}
+            {!isComingSoon && !isInStock && (
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-sm font-semibold text-red-700">
@@ -638,8 +656,29 @@ export default function ProductDetailPage() {
               initialSelections={variantSelections}
             />
 
-            {/* Out of Stock Notice - Only show when out of stock */}
-            {!isInStock && (
+            {/* Coming Soon Notice */}
+            {isComingSoon && (
+              <div className="bg-purple-50 border-l-4 border-purple-500 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-semibold text-purple-800 mb-1">
+                      Preorder Available
+                    </h3>
+                    <p className="text-sm text-purple-700">
+                      This product is coming soon! Reserve yours now with a 50% advance payment. 
+                      You'll pay the remaining 50% when the product arrives and is ready to ship.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Out of Stock Notice - Only show when out of stock and not coming soon */}
+            {!isComingSoon && !isInStock && (
               <div className="bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 rounded-lg p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -654,7 +693,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity Selector - Only show if no variants at all (no sizes, no colors) */}
-            {isInStock && 
+            {(isInStock || isComingSoon) && 
              variantSelections.length === 0 && 
              !product.sizes && 
              !product.colors && (
@@ -675,15 +714,15 @@ export default function ProductDetailPage() {
                     id="quantity"
                     type="number"
                     min="1"
-                    max={product.stock || 999}
+                    max={isComingSoon ? 999 : (product.stock || 999)}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                     className="w-24 text-center border-0 focus:ring-0 py-3 text-lg font-bold text-gray-900 bg-white"
                   />
                   <button
-                    onClick={() => setQuantity(Math.min(product.stock || 999, quantity + 1))}
+                    onClick={() => setQuantity(Math.min(isComingSoon ? 999 : (product.stock || 999), quantity + 1))}
                     className="px-5 py-3 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-gray-700 font-semibold border-l border-gray-200"
-                    disabled={quantity >= (product.stock || 999)}
+                    disabled={!isComingSoon && quantity >= (product.stock || 999)}
                     aria-label="Increase quantity"
                   >
                     <PlusIcon />
@@ -694,50 +733,81 @@ export default function ProductDetailPage() {
 
             {/* Action Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <button
-                onClick={handleAddToCart}
-                disabled={
-                  !isInStock || 
-                  isAddingToCart || 
-                  // Only disable if product has variants but none selected
-                  (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
-                   variantSelections.length === 0 && 
-                   !selectedSize && 
-                   !selectedColor)
-                }
-                className="group w-full h-14 px-6 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg hover:shadow-xl hover:from-red-700 hover:to-rose-700 transform hover:-translate-y-0.5 disabled:transform-none"
-              >
-                {isAddingToCart ? (
-                  <div className="flex items-center gap-2">
-                    <LoadingSpinner />
-                    <span>Adding...</span>
-                  </div>
-                ) : !isInStock ? (
-                  <span>Out of Stock</span>
-                ) : (
-                  <>
-                    <CartIcon />
-                    <span>Add to Cart</span>
-                  </>
-                )}
-              </button>
+              {isComingSoon ? (
+                <button
+                  onClick={handlePreorder}
+                  disabled={
+                    isAddingToCart || 
+                    // Only disable if product has variants but none selected
+                    (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
+                     variantSelections.length === 0 && 
+                     !selectedSize && 
+                     !selectedColor)
+                  }
+                  className="group w-full h-14 px-6 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg hover:shadow-xl hover:from-purple-700 hover:to-purple-800 transform hover:-translate-y-0.5 disabled:transform-none md:col-span-2"
+                >
+                  {isAddingToCart ? (
+                    <div className="flex items-center gap-2">
+                      <LoadingSpinner />
+                      <span>Adding...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Preorder Now (50% Advance Payment)</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={
+                      !isInStock || 
+                      isAddingToCart || 
+                      // Only disable if product has variants but none selected
+                      (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
+                       variantSelections.length === 0 && 
+                       !selectedSize && 
+                       !selectedColor)
+                    }
+                    className="group w-full h-14 px-6 text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg hover:shadow-xl hover:from-red-700 hover:to-rose-700 transform hover:-translate-y-0.5 disabled:transform-none"
+                  >
+                    {isAddingToCart ? (
+                      <div className="flex items-center gap-2">
+                        <LoadingSpinner />
+                        <span>Adding...</span>
+                      </div>
+                    ) : !isInStock ? (
+                      <span>Out of Stock</span>
+                    ) : (
+                      <>
+                        <CartIcon />
+                        <span>Add to Cart</span>
+                      </>
+                    )}
+                  </button>
 
-              <Button
-                onClick={handleBuyNow}
-                disabled={
-                  !isInStock || 
-                  isAddingToCart || 
-                  // Only disable if product has variants but none selected
-                  (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
-                   variantSelections.length === 0 && 
-                   !selectedSize && 
-                   !selectedColor)
-                }
-                className="w-full h-14 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:transform-none"
-                size="lg"
-              >
-                {!isInStock ? 'Out of Stock' : 'Buy Now'}
-              </Button>
+                  <Button
+                    onClick={handleBuyNow}
+                    disabled={
+                      !isInStock || 
+                      isAddingToCart || 
+                      // Only disable if product has variants but none selected
+                      (((product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)) && 
+                       variantSelections.length === 0 && 
+                       !selectedSize && 
+                       !selectedColor)
+                    }
+                    className="w-full h-14 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:transform-none"
+                    size="lg"
+                  >
+                    {!isInStock ? 'Out of Stock' : 'Buy Now'}
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Wishlist & Share */}
