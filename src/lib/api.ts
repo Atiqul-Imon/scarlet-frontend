@@ -316,7 +316,7 @@ export async function fetchJson<T = unknown>(
   }
   
   // Determine if this is dynamic content that should never be cached
-  const isDynamicContent = /^\/(cart|orders|auth|users|checkout|wishlist|payments|addresses|cart-abandonment)/.test(path);
+  const isDynamicContent = /^\/(cart|orders|auth|users|checkout|wishlist|payments|addresses|cart-abandonment|admin\/settings\/public\/appearance)/.test(path);
   
   const config: RequestInit = getUnifiedFetchConfig({
     ...init,

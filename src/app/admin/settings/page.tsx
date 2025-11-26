@@ -8,8 +8,6 @@ import {
   TruckIcon,
   BellIcon,
   ShieldCheckIcon,
-  EnvelopeIcon,
-  GlobeAltIcon,
   SwatchIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
@@ -45,12 +43,60 @@ export default function SettingsPage() {
     }
   };
 
+  const applyBackgroundColor = (color: string) => {
+    // Apply immediately to current page
+    document.documentElement.style.setProperty('--background', color);
+    document.body.style.backgroundColor = color;
+    
+    // Convert hex to HSL for Tailwind compatibility
+    const hexToHsl = (hex: string): string | null => {
+      try {
+        const cleanHex = hex.replace('#', '');
+        const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
+        const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
+        const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h = 0;
+        let s = 0;
+        const l = (max + min) / 2;
+        if (max !== min) {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+          }
+        }
+        return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+      } catch {
+        return null;
+      }
+    };
+    
+    const hsl = hexToHsl(color);
+    if (hsl) {
+      document.documentElement.style.setProperty('--color-background', hsl);
+    }
+  };
+
   const handleSave = async () => {
     if (!settings) return;
 
     try {
       setSaving(true);
       await adminApi.settings.updateSystemSettings(settings);
+      
+      // Apply background color immediately if it was changed
+      if (settings.websiteBackgroundColor) {
+        applyBackgroundColor(settings.websiteBackgroundColor);
+      }
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('background-color-changed', {
+        detail: { color: settings.websiteBackgroundColor || '#FFFFFF' }
+      }));
       
       addToast({
         type: 'success',
@@ -174,7 +220,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings?.siteName || ''}
                 onChange={(e) => updateSetting('siteName', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="Scarlet Unlimited"
               />
             </div>
@@ -187,7 +233,7 @@ export default function SettingsPage() {
                 rows={3}
                 value={settings?.siteDescription || ''}
                 onChange={(e) => updateSetting('siteDescription', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="Your premier destination for beauty and cosmetics"
               />
             </div>
@@ -200,7 +246,7 @@ export default function SettingsPage() {
                 type="email"
                 value={settings?.contactEmail || ''}
                 onChange={(e) => updateSetting('contactEmail', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="info@scarletunlimited.net"
               />
             </div>
@@ -213,7 +259,7 @@ export default function SettingsPage() {
                 type="tel"
                 value={settings?.contactPhone || ''}
                 onChange={(e) => updateSetting('contactPhone', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="+880 1234-567890"
               />
             </div>
@@ -247,7 +293,7 @@ export default function SettingsPage() {
                 rows={3}
                 value={settings?.storeAddress || ''}
                 onChange={(e) => updateSetting('storeAddress', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="123 Beauty Street, Dhaka, Bangladesh"
               />
             </div>
@@ -260,7 +306,7 @@ export default function SettingsPage() {
                 <select
                   value={settings?.currency || 'BDT'}
                   onChange={(e) => updateSetting('currency', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   <option value="BDT">BDT (৳)</option>
                   <option value="USD">USD ($)</option>
@@ -275,7 +321,7 @@ export default function SettingsPage() {
                 <select
                   value={settings?.timezone || 'Asia/Dhaka'}
                   onChange={(e) => updateSetting('timezone', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   <option value="Asia/Dhaka">Asia/Dhaka (GMT+6)</option>
                   <option value="Asia/Kolkata">Asia/Kolkata (GMT+5:30)</option>
@@ -385,7 +431,7 @@ export default function SettingsPage() {
                 type="number"
                 value={settings?.defaultShippingCost || 0}
                 onChange={(e) => updateSetting('defaultShippingCost', Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="100"
               />
             </div>
@@ -398,7 +444,7 @@ export default function SettingsPage() {
                 type="number"
                 value={settings?.freeShippingThreshold || 0}
                 onChange={(e) => updateSetting('freeShippingThreshold', Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="1000"
               />
               <p className="text-sm text-gray-500 mt-1">
@@ -414,7 +460,7 @@ export default function SettingsPage() {
                 type="number"
                 value={settings?.estimatedDeliveryDays || 3}
                 onChange={(e) => updateSetting('estimatedDeliveryDays', Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="3-5"
               />
             </div>
@@ -484,7 +530,7 @@ export default function SettingsPage() {
                 type="email"
                 value={settings?.adminEmail || ''}
                 onChange={(e) => updateSetting('adminEmail', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="info@scarletunlimited.net"
               />
             </div>
@@ -557,7 +603,7 @@ export default function SettingsPage() {
                 type="number"
                 value={settings?.security?.sessionTimeout || 60}
                 onChange={(e) => updateSetting('security.sessionTimeout', Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
                 placeholder="60"
               />
             </div>

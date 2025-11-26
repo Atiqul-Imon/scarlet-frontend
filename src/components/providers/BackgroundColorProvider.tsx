@@ -11,34 +11,47 @@ import { adminApi } from '@/lib/api';
  * server-side rendering.
  */
 export default function BackgroundColorProvider({ children }: { children: React.ReactNode }) {
+  const applyColor = (color: string) => {
+    const bgColor = color || '#FFFFFF';
+    
+    // Apply to CSS custom property
+    document.documentElement.style.setProperty('--background', bgColor);
+    
+    // Apply directly to body element
+    document.body.style.backgroundColor = bgColor;
+
+    // Also update the Tailwind color variable if needed
+    const hsl = hexToHsl(bgColor);
+    if (hsl) {
+      document.documentElement.style.setProperty('--color-background', hsl);
+    }
+  };
+
   useEffect(() => {
-    const applyBackgroundColor = async () => {
+    const fetchAndApplyColor = async () => {
       try {
         // Fetch public appearance settings (no auth required)
         const settings = await adminApi.appearance.getPublicSettings();
-        const bgColor = settings.websiteBackgroundColor || '#FFFFFF';
-
-        // Apply to CSS custom property
-        document.documentElement.style.setProperty('--background', bgColor);
-        
-        // Apply directly to body element
-        document.body.style.backgroundColor = bgColor;
-
-        // Also update the Tailwind color variable if needed
-        // Convert hex to HSL for Tailwind compatibility
-        const hsl = hexToHsl(bgColor);
-        if (hsl) {
-          document.documentElement.style.setProperty('--color-background', hsl);
-        }
+        applyColor(settings.websiteBackgroundColor);
       } catch (error) {
         console.error('Failed to load background color settings:', error);
         // Fallback to default white
-        document.documentElement.style.setProperty('--background', '#FFFFFF');
-        document.body.style.backgroundColor = '#FFFFFF';
+        applyColor('#FFFFFF');
       }
     };
 
-    applyBackgroundColor();
+    fetchAndApplyColor();
+
+    // Listen for color changes from admin panel
+    const handleColorChange = (event: CustomEvent) => {
+      applyColor(event.detail.color);
+    };
+
+    window.addEventListener('background-color-changed', handleColorChange as EventListener);
+
+    return () => {
+      window.removeEventListener('background-color-changed', handleColorChange as EventListener);
+    };
   }, []);
 
   // Render children immediately - color will be applied asynchronously
