@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCart, useToast } from '../../lib/context';
+import { useRouter } from 'next/navigation';
 import type { Product } from '../../lib/types';
 
 interface EnhancedProductCardProps {
@@ -12,35 +12,16 @@ interface EnhancedProductCardProps {
 const EnhancedProductCard = React.memo(function EnhancedProductCard({ 
   product
 }: EnhancedProductCardProps) {
-  const { addItem } = useCart();
-  const { addToast } = useToast();
-  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter();
   const [isNavigating, setIsNavigating] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (isLoading) return;
-    
-    setIsLoading(true);
-    try {
-      await addItem(product._id!, 1);
-      addToast({
-        type: 'success',
-        title: 'Added to Cart',
-        message: `${product.title} added to cart!`
-      });
-    } catch (error) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to add to cart'
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    setIsNavigating(true);
+    router.push(`/products/${product.slug}`);
   };
 
 
@@ -146,7 +127,7 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
           `}>
             <button
               onClick={handleAddToCart}
-              disabled={isOutOfStock || isLoading}
+              disabled={isOutOfStock || isNavigating}
               className={`
                 w-full py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200
                 ${isOutOfStock 
@@ -155,15 +136,15 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
                 }
               `}
             >
-              {isLoading ? (
+              {isNavigating ? (
                 <div className="flex items-center justify-center">
                   <LoadingSpinner />
-                  <span className="ml-2">Adding...</span>
+                  <span className="ml-2">Loading...</span>
                 </div>
               ) : isOutOfStock ? (
                 'Out of Stock'
               ) : (
-                'Add to Cart'
+                'View Details'
               )}
             </button>
           </div>
