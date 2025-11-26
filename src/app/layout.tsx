@@ -9,7 +9,6 @@ import { ChatProvider } from "../lib/chat-context";
 import StructuredData from "../components/seo/StructuredData";
 import ConditionalLayout from "../components/layout/ConditionalLayout";
 import GoogleAnalytics from "../components/analytics/GoogleAnalytics";
-import BackgroundColorProvider from "../components/providers/BackgroundColorProvider";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -158,21 +157,19 @@ export default function RootLayout({
         className={`${roboto.variable} ${playfairDisplay.variable} ${belleza.variable} antialiased h-full`}
       >
         <GoogleAnalytics />
-        <BackgroundColorProvider>
-          <SWRProvider>
-            <AppProvider>
-              <ClientSearchProvider>
-                <ChatProvider>
-                  <ServiceWorkerProvider>
-                    <ConditionalLayout>
-                      {children}
-                    </ConditionalLayout>
-                  </ServiceWorkerProvider>
-                </ChatProvider>
-              </ClientSearchProvider>
-            </AppProvider>
-          </SWRProvider>
-        </BackgroundColorProvider>
+        <SWRProvider>
+          <AppProvider>
+            <ClientSearchProvider>
+              <ChatProvider>
+                <ServiceWorkerProvider>
+                  <ConditionalLayout>
+                    {children}
+                  </ConditionalLayout>
+                </ServiceWorkerProvider>
+              </ChatProvider>
+            </ClientSearchProvider>
+          </AppProvider>
+        </SWRProvider>
       </body>
     </html>
   );

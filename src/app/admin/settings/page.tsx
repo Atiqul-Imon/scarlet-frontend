@@ -7,20 +7,18 @@ import {
   CurrencyDollarIcon,
   TruckIcon,
   BellIcon,
-  ShieldCheckIcon,
-  SwatchIcon
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { useToast } from '@/lib/context';
 import { adminApi } from '@/lib/api';
 import type { SystemSettings } from '@/lib/admin-types';
-import ColorPicker from '@/components/admin/ColorPicker';
 
 export default function SettingsPage() {
   const { addToast } = useToast();
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'store' | 'payment' | 'shipping' | 'notifications' | 'security' | 'appearance'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'store' | 'payment' | 'shipping' | 'notifications' | 'security'>('general');
 
   useEffect(() => {
     fetchSettings();
@@ -43,140 +41,12 @@ export default function SettingsPage() {
     }
   };
 
-  const applyBackgroundColor = (color: string, retryCount = 0) => {
-    const bgColor = color || '#FFFFFF';
-    const maxRetries = 5;
-    
-    // Apply to CSS custom property (used by globals.css)
-    document.documentElement.style.setProperty('--background', bgColor);
-    
-    // Apply directly to body and html elements
-    document.body.style.backgroundColor = bgColor;
-    document.documentElement.style.backgroundColor = bgColor;
-
-    // Add class to body for CSS targeting
-    document.body.classList.add('custom-background-applied');
-
-    // Inject a global style to apply background to all page-level containers
-    let styleElement = document.getElementById('dynamic-background-style');
-    if (!styleElement) {
-      styleElement = document.createElement('style');
-      styleElement.id = 'dynamic-background-style';
-      document.head.appendChild(styleElement);
-    }
-    
-    // Comprehensive CSS to apply background to entire website
-    styleElement.textContent = `
-      /* Apply website background globally */
-      html,
-      body,
-      body > div:first-child,
-      body > div:first-child > div:first-child,
-      body > div:first-child > div:first-child > div,
-      body main,
-      body [role="main"],
-      body .flex.flex-col.min-h-screen,
-      body .flex.flex-col.min-h-screen > div,
-      body .flex.flex-col.min-h-screen main,
-      body [style*="background-color: var(--background"] {
-        background-color: ${bgColor} !important;
-      }
-      
-      /* Override all bg-white, bg-gray, and other background classes on page containers */
-      body > div:first-child.bg-white,
-      body > div:first-child > div:first-child.bg-white,
-      body > div:first-child > div:first-child > div.bg-white,
-      body main.bg-white,
-      body [role="main"].bg-white,
-      body .flex.flex-col.min-h-screen.bg-white,
-      body .flex.flex-col.min-h-screen > div.bg-white {
-        background-color: ${bgColor} !important;
-      }
-      
-      /* Target homepage and other page containers */
-      body > div:first-child > div:first-child > div[style*="var(--background"],
-      body > div:first-child > div:first-child > div[style*="backgroundColor"] {
-        background-color: ${bgColor} !important;
-      }
-    `;
-
-    // Directly apply to elements
-    const applyToElements = () => {
-      const rootDivs = document.querySelectorAll('body > div:first-child > div:first-child > div');
-      rootDivs.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        if (htmlEl.children.length > 0 || htmlEl.textContent) {
-          htmlEl.style.backgroundColor = bgColor;
-        }
-      });
-
-      const mainElements = document.querySelectorAll('main, [role="main"]');
-      mainElements.forEach((el) => {
-        (el as HTMLElement).style.backgroundColor = bgColor;
-      });
-    };
-
-    applyToElements();
-
-    // Retry after delays to handle Next.js hydration
-    if (retryCount < maxRetries) {
-      setTimeout(() => {
-        applyToElements();
-        if (retryCount < maxRetries - 1) {
-          applyBackgroundColor(color, retryCount + 1);
-        }
-      }, 100 * (retryCount + 1));
-    }
-    
-    // Convert hex to HSL for Tailwind compatibility
-    const hexToHsl = (hex: string): string | null => {
-      try {
-        const cleanHex = hex.replace('#', '');
-        const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
-        const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
-        const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        let h = 0;
-        let s = 0;
-        const l = (max + min) / 2;
-        if (max !== min) {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-            case g: h = ((b - r) / d + 2) / 6; break;
-            case b: h = ((r - g) / d + 4) / 6; break;
-          }
-        }
-        return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-      } catch {
-        return null;
-      }
-    };
-    
-    const hsl = hexToHsl(bgColor);
-    if (hsl) {
-      document.documentElement.style.setProperty('--color-background', hsl);
-    }
-  };
-
   const handleSave = async () => {
     if (!settings) return;
 
     try {
       setSaving(true);
       await adminApi.settings.updateSystemSettings(settings);
-      
-      // Apply background color immediately if it was changed
-      if (settings.websiteBackgroundColor) {
-        applyBackgroundColor(settings.websiteBackgroundColor);
-      }
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('background-color-changed', {
-        detail: { color: settings.websiteBackgroundColor || '#FFFFFF' }
-      }));
       
       addToast({
         type: 'success',
@@ -219,7 +89,6 @@ export default function SettingsPage() {
     { id: 'shipping', label: 'Shipping', icon: TruckIcon },
     { id: 'notifications', label: 'Notifications', icon: BellIcon },
     { id: 'security', label: 'Security', icon: ShieldCheckIcon },
-    { id: 'appearance', label: 'Appearance', icon: SwatchIcon },
   ] as const;
 
   if (loading) {
@@ -690,36 +559,6 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Appearance */}
-        {activeTab === 'appearance' && (
-          <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Appearance Settings</h2>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start space-x-3">
-                <SwatchIcon className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-sm font-medium text-blue-900 mb-1">
-                    Website Background Color
-                  </h4>
-                  <p className="text-sm text-blue-700">
-                    Customize the background color of your website. Changes will be applied immediately after saving.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <ColorPicker
-              value={settings?.websiteBackgroundColor || '#FFFFFF'}
-              onChange={(color) => {
-                updateSetting('websiteBackgroundColor', color);
-                // Apply color immediately for preview (before saving)
-                applyBackgroundColor(color);
-              }}
-              label="Website Background Color"
-            />
-          </div>
-        )}
       </div>
     </div>
   );

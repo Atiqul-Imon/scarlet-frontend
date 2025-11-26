@@ -316,7 +316,7 @@ export async function fetchJson<T = unknown>(
   }
   
   // Determine if this is dynamic content that should never be cached
-  const isDynamicContent = /^\/(cart|orders|auth|users|checkout|wishlist|payments|addresses|cart-abandonment|admin\/settings\/public\/appearance)/.test(path);
+  const isDynamicContent = /^\/(cart|orders|auth|users|checkout|wishlist|payments|addresses|cart-abandonment)/.test(path);
   
   // Merge cache settings - init.cache takes precedence, then isDynamicContent
   const cacheOption = init?.cache || (isDynamicContent ? 'no-store' : undefined);
@@ -1428,22 +1428,6 @@ export const adminApi = {
       return fetchJsonAuth<{ message: string }>('/admin/settings', {
         method: 'PATCH',
         body: JSON.stringify(settings)
-      });
-    }
-  },
-
-  // Public appearance settings (no auth required)
-  appearance: {
-    getPublicSettings: (): Promise<{ websiteBackgroundColor: string }> => {
-      // Add cache-busting timestamp to ensure fresh data
-      const timestamp = Date.now();
-      return fetchJson<{ websiteBackgroundColor: string }>(`/admin/settings/public/appearance?t=${timestamp}`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
       });
     }
   },
