@@ -11,8 +11,9 @@ import { adminApi } from '@/lib/api';
  * server-side rendering.
  */
 export default function BackgroundColorProvider({ children }: { children: React.ReactNode }) {
-  const applyColor = (color: string) => {
+  const applyColor = (color: string, retryCount = 0) => {
     const bgColor = color || '#FFFFFF';
+    const maxRetries = 5;
     
     // Apply to CSS custom property (used by globals.css)
     document.documentElement.style.setProperty('--background', bgColor);
@@ -25,7 +26,6 @@ export default function BackgroundColorProvider({ children }: { children: React.
     document.body.classList.add('custom-background-applied');
 
     // Inject a global style to apply background to all page-level containers
-    // This ensures the background applies to the entire website
     let styleElement = document.getElementById('dynamic-background-style');
     if (!styleElement) {
       styleElement = document.createElement('style');
@@ -33,31 +33,73 @@ export default function BackgroundColorProvider({ children }: { children: React.
       document.head.appendChild(styleElement);
     }
     
-    // Apply background to root containers and page wrappers
-    // Use !important to override Tailwind's bg-white classes on page-level elements
+    // Comprehensive CSS to apply background to entire website
+    // This targets all possible page structures
     styleElement.textContent = `
-      /* Apply website background to root containers */
-      body.custom-background-applied > div:first-child,
-      body.custom-background-applied > div:first-child > div:first-child,
-      body.custom-background-applied main,
-      body.custom-background-applied [role="main"],
-      body.custom-background-applied .flex.flex-col.min-h-screen {
+      /* Apply website background globally */
+      html,
+      body,
+      body > div:first-child,
+      body > div:first-child > div:first-child,
+      body > div:first-child > div:first-child > div,
+      body main,
+      body [role="main"],
+      body .flex.flex-col.min-h-screen,
+      body .flex.flex-col.min-h-screen > div,
+      body .flex.flex-col.min-h-screen main,
+      body [style*="background-color: var(--background"] {
         background-color: ${bgColor} !important;
       }
       
-      /* Override bg-white on page-level containers only */
-      body.custom-background-applied > div:first-child.bg-white,
-      body.custom-background-applied > div:first-child > div:first-child.bg-white,
-      body.custom-background-applied main.bg-white,
-      body.custom-background-applied [role="main"].bg-white {
+      /* Override all bg-white, bg-gray, and other background classes on page containers */
+      body > div:first-child.bg-white,
+      body > div:first-child > div:first-child.bg-white,
+      body > div:first-child > div:first-child > div.bg-white,
+      body main.bg-white,
+      body [role="main"].bg-white,
+      body .flex.flex-col.min-h-screen.bg-white,
+      body .flex.flex-col.min-h-screen > div.bg-white {
         background-color: ${bgColor} !important;
       }
       
-      /* Apply to page content wrappers */
-      body.custom-background-applied > div:first-child > div:first-child > div {
+      /* Target homepage and other page containers */
+      body > div:first-child > div:first-child > div[style*="var(--background"],
+      body > div:first-child > div:first-child > div[style*="backgroundColor"] {
         background-color: ${bgColor} !important;
       }
     `;
+
+    // Directly apply to elements that might have inline styles
+    const applyToElements = () => {
+      // Apply to all divs that are direct children of main or root containers
+      const rootDivs = document.querySelectorAll('body > div:first-child > div:first-child > div');
+      rootDivs.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        // Check if it's a page-level container (not a component)
+        if (htmlEl.children.length > 0 || htmlEl.textContent) {
+          htmlEl.style.backgroundColor = bgColor;
+        }
+      });
+
+      // Apply to main elements
+      const mainElements = document.querySelectorAll('main, [role="main"]');
+      mainElements.forEach((el) => {
+        (el as HTMLElement).style.backgroundColor = bgColor;
+      });
+    };
+
+    // Apply immediately
+    applyToElements();
+
+    // Retry after a short delay to handle Next.js hydration
+    if (retryCount < maxRetries) {
+      setTimeout(() => {
+        applyToElements();
+        if (retryCount < maxRetries - 1) {
+          applyColor(color, retryCount + 1);
+        }
+      }, 100 * (retryCount + 1));
+    }
 
     // Also update the Tailwind color variable if needed
     const hsl = hexToHsl(bgColor);
@@ -71,6 +113,7 @@ export default function BackgroundColorProvider({ children }: { children: React.
       try {
         // Fetch public appearance settings (no auth required)
         const settings = await adminApi.appearance.getPublicSettings();
+        // Apply with retry to handle Next.js hydration
         applyColor(settings.websiteBackgroundColor);
       } catch (error) {
         console.error('Failed to load background color settings:', error);
@@ -79,7 +122,18 @@ export default function BackgroundColorProvider({ children }: { children: React.
       }
     };
 
-    fetchAndApplyColor();
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fetchAndApplyColor);
+    } else {
+      // DOM is already ready, but wait a bit for Next.js hydration
+      setTimeout(fetchAndApplyColor, 100);
+    }
+
+    // Also try after a longer delay to catch any late-rendering elements
+    const delayedApply = setTimeout(() => {
+      fetchAndApplyColor();
+    }, 500);
 
     // Listen for color changes from admin panel
     const handleColorChange = (event: CustomEvent) => {
@@ -88,8 +142,30 @@ export default function BackgroundColorProvider({ children }: { children: React.
 
     window.addEventListener('background-color-changed', handleColorChange as EventListener);
 
+    // Use MutationObserver to watch for DOM changes and reapply
+    const observer = new MutationObserver(() => {
+      // Reapply color when DOM changes (handles dynamic content)
+      const styleElement = document.getElementById('dynamic-background-style');
+      if (styleElement?.textContent) {
+        const match = styleElement.textContent.match(/background-color:\s*([^;!]+)/);
+        if (match && match[1]) {
+          const currentColor = match[1].trim();
+          if (currentColor && currentColor !== '#FFFFFF') {
+            applyColor(currentColor, 0);
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
     return () => {
+      clearTimeout(delayedApply);
       window.removeEventListener('background-color-changed', handleColorChange as EventListener);
+      observer.disconnect();
     };
   }, []);
 

@@ -43,8 +43,9 @@ export default function SettingsPage() {
     }
   };
 
-  const applyBackgroundColor = (color: string) => {
+  const applyBackgroundColor = (color: string, retryCount = 0) => {
     const bgColor = color || '#FFFFFF';
+    const maxRetries = 5;
     
     // Apply to CSS custom property (used by globals.css)
     document.documentElement.style.setProperty('--background', bgColor);
@@ -64,30 +65,68 @@ export default function SettingsPage() {
       document.head.appendChild(styleElement);
     }
     
-    // Apply background to root containers and page wrappers
+    // Comprehensive CSS to apply background to entire website
     styleElement.textContent = `
-      /* Apply website background to root containers */
-      body.custom-background-applied > div:first-child,
-      body.custom-background-applied > div:first-child > div:first-child,
-      body.custom-background-applied main,
-      body.custom-background-applied [role="main"],
-      body.custom-background-applied .flex.flex-col.min-h-screen {
+      /* Apply website background globally */
+      html,
+      body,
+      body > div:first-child,
+      body > div:first-child > div:first-child,
+      body > div:first-child > div:first-child > div,
+      body main,
+      body [role="main"],
+      body .flex.flex-col.min-h-screen,
+      body .flex.flex-col.min-h-screen > div,
+      body .flex.flex-col.min-h-screen main,
+      body [style*="background-color: var(--background"] {
         background-color: ${bgColor} !important;
       }
       
-      /* Override bg-white on page-level containers only */
-      body.custom-background-applied > div:first-child.bg-white,
-      body.custom-background-applied > div:first-child > div:first-child.bg-white,
-      body.custom-background-applied main.bg-white,
-      body.custom-background-applied [role="main"].bg-white {
+      /* Override all bg-white, bg-gray, and other background classes on page containers */
+      body > div:first-child.bg-white,
+      body > div:first-child > div:first-child.bg-white,
+      body > div:first-child > div:first-child > div.bg-white,
+      body main.bg-white,
+      body [role="main"].bg-white,
+      body .flex.flex-col.min-h-screen.bg-white,
+      body .flex.flex-col.min-h-screen > div.bg-white {
         background-color: ${bgColor} !important;
       }
       
-      /* Apply to page content wrappers */
-      body.custom-background-applied > div:first-child > div:first-child > div {
+      /* Target homepage and other page containers */
+      body > div:first-child > div:first-child > div[style*="var(--background"],
+      body > div:first-child > div:first-child > div[style*="backgroundColor"] {
         background-color: ${bgColor} !important;
       }
     `;
+
+    // Directly apply to elements
+    const applyToElements = () => {
+      const rootDivs = document.querySelectorAll('body > div:first-child > div:first-child > div');
+      rootDivs.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.children.length > 0 || htmlEl.textContent) {
+          htmlEl.style.backgroundColor = bgColor;
+        }
+      });
+
+      const mainElements = document.querySelectorAll('main, [role="main"]');
+      mainElements.forEach((el) => {
+        (el as HTMLElement).style.backgroundColor = bgColor;
+      });
+    };
+
+    applyToElements();
+
+    // Retry after delays to handle Next.js hydration
+    if (retryCount < maxRetries) {
+      setTimeout(() => {
+        applyToElements();
+        if (retryCount < maxRetries - 1) {
+          applyBackgroundColor(color, retryCount + 1);
+        }
+      }, 100 * (retryCount + 1));
+    }
     
     // Convert hex to HSL for Tailwind compatibility
     const hexToHsl = (hex: string): string | null => {
