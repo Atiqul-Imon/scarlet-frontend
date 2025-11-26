@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 
 /**
@@ -17,8 +17,25 @@ export default function BackgroundColorProvider({ children }: { children: React.
     // Apply to CSS custom property
     document.documentElement.style.setProperty('--background', bgColor);
     
-    // Apply directly to body element
+    // Apply directly to body and html elements
     document.body.style.backgroundColor = bgColor;
+    document.documentElement.style.backgroundColor = bgColor;
+
+    // Apply to all elements with bg-white class (override Tailwind's bg-white)
+    const elementsWithBgWhite = document.querySelectorAll('.bg-white');
+    elementsWithBgWhite.forEach((el) => {
+      (el as HTMLElement).style.backgroundColor = bgColor;
+    });
+
+    // Apply to main content areas
+    const mainElements = document.querySelectorAll('main, [role="main"]');
+    mainElements.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      // Only apply if it has bg-white or no explicit background
+      if (htmlEl.classList.contains('bg-white') || !htmlEl.style.backgroundColor) {
+        htmlEl.style.backgroundColor = bgColor;
+      }
+    });
 
     // Also update the Tailwind color variable if needed
     const hsl = hexToHsl(bgColor);

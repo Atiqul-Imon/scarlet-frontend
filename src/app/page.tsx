@@ -33,7 +33,7 @@ export const metadata = {
 
 export default function Home() {
   return (
-    <div className="bg-white">
+    <div style={{ backgroundColor: 'var(--background, #ffffff)' }}>
       <Hero />
       
       {/* Category Section (previously Brand Showcase) */}

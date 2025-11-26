@@ -44,9 +44,30 @@ export default function SettingsPage() {
   };
 
   const applyBackgroundColor = (color: string) => {
-    // Apply immediately to current page
-    document.documentElement.style.setProperty('--background', color);
-    document.body.style.backgroundColor = color;
+    const bgColor = color || '#FFFFFF';
+    
+    // Apply to CSS custom property
+    document.documentElement.style.setProperty('--background', bgColor);
+    
+    // Apply directly to body and html elements
+    document.body.style.backgroundColor = bgColor;
+    document.documentElement.style.backgroundColor = bgColor;
+
+    // Apply to all elements with bg-white class (override Tailwind's bg-white)
+    const elementsWithBgWhite = document.querySelectorAll('.bg-white');
+    elementsWithBgWhite.forEach((el) => {
+      (el as HTMLElement).style.backgroundColor = bgColor;
+    });
+
+    // Apply to main content areas
+    const mainElements = document.querySelectorAll('main, [role="main"]');
+    mainElements.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      // Only apply if it has bg-white or no explicit background
+      if (htmlEl.classList.contains('bg-white') || !htmlEl.style.backgroundColor) {
+        htmlEl.style.backgroundColor = bgColor;
+      }
+    });
     
     // Convert hex to HSL for Tailwind compatibility
     const hexToHsl = (hex: string): string | null => {
@@ -75,7 +96,7 @@ export default function SettingsPage() {
       }
     };
     
-    const hsl = hexToHsl(color);
+    const hsl = hexToHsl(bgColor);
     if (hsl) {
       document.documentElement.style.setProperty('--color-background', hsl);
     }
@@ -631,7 +652,11 @@ export default function SettingsPage() {
 
             <ColorPicker
               value={settings?.websiteBackgroundColor || '#FFFFFF'}
-              onChange={(color) => updateSetting('websiteBackgroundColor', color)}
+              onChange={(color) => {
+                updateSetting('websiteBackgroundColor', color);
+                // Apply color immediately for preview (before saving)
+                applyBackgroundColor(color);
+              }}
               label="Website Background Color"
             />
           </div>
