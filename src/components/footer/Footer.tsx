@@ -3,18 +3,80 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  EnvelopeIcon, 
+import {
+  EnvelopeIcon,
   MapPinIcon,
   ClockIcon,
   ShieldCheckIcon,
   ArrowPathIcon,
   CreditCardIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const SOCIAL_LINKS = [
+    {
+      name: 'TikTok',
+      href: 'https://www.tiktok.com/@scarlet.unlimited6',
+      bg: 'bg-black hover:bg-neutral-800',
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-5 h-5 text-white"
+          aria-hidden="true"
+        >
+          <path d="M23.5 7.3a6.6 6.6 0 0 1-4.8-2.1v7.5c0 4.1-3.3 7.4-7.4 7.4S3.9 16.8 3.9 12.7c0-3.9 3-7 6.9-7.3v3.9a3.4 3.4 0 0 0-3 3.4c0 1.9 1.5 3.4 3.4 3.4s3.4-1.5 3.4-3.4V1h3.3c.3 1.8 1.6 3.4 3.3 3.8v2.5Z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Instagram',
+      href: 'https://www.instagram.com/scarletunlimited.n',
+      bg: 'bg-[#E1306C] hover:bg-[#c02657]',
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-5 h-5 text-white"
+          aria-hidden="true"
+        >
+          <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9Zm9.75 1.5a1.25 1.25 0 1 1-1.25 1.25 1.25 1.25 0 0 1 1.25-1.25ZM12 7a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 2a3 3 0 1 0 3 3 3 3 0 0 0-3-3Z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'YouTube',
+      href: 'https://youtube.com/@scarlet.unlimited',
+      bg: 'bg-[#FF0000] hover:bg-[#cc0000]',
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-5 h-5 text-white"
+          aria-hidden="true"
+        >
+          <path d="M23.498 6.186a2.974 2.974 0 0 0-2.1-2.1C19.675 3.5 12 3.5 12 3.5s-7.675 0-9.398.586a2.974 2.974 0 0 0-2.1 2.1A31.412 31.412 0 0 0 0 12a31.412 31.412 0 0 0 .502 5.814 2.974 2.974 0 0 0 2.1 2.1C4.325 20.5 12 20.5 12 20.5s7.675 0 9.398-.586a2.974 2.974 0 0 0 2.1-2.1A31.412 31.412 0 0 0 24 12a31.412 31.412 0 0 0-.502-5.814ZM9.545 15.568V8.432L15.818 12l-6.273 3.568Z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Facebook',
+      href: 'https://www.facebook.com/ScarletUnlimited',
+      bg: 'bg-[#1877F2] hover:bg-[#0f5cbd]',
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-5 h-5 text-white"
+          aria-hidden="true"
+        >
+          <path d="M22.675 0H1.326A1.326 1.326 0 0 0 0 1.326v21.348A1.326 1.326 0 0 0 1.326 24h11.494v-9.294H9.692V11.09h3.128V8.414c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24h-1.918c-1.504 0-1.796.715-1.796 1.764v2.315h3.59l-.467 3.616h-3.123V24h6.125A1.326 1.326 0 0 0 24 22.674V1.326A1.326 1.326 0 0 0 22.675 0Z" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -43,34 +105,18 @@ export default function Footer() {
               
               {/* Social Media */}
               <div className="flex space-x-3">
-                <a 
-                  href="#" 
-                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
-                  aria-label="Facebook"
-                >
-                  <span className="text-white font-bold text-xs">f</span>
-                </a>
-                <a 
-                  href="#" 
-                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
-                  aria-label="Instagram"
-                >
-                  <span className="text-white font-bold text-xs">ig</span>
-                </a>
-                <a 
-                  href="#" 
-                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
-                  aria-label="YouTube"
-                >
-                  <span className="text-white font-bold text-xs">yt</span>
-                </a>
-                <a 
-                  href="#" 
-                  className="w-9 h-9 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800 transition-colors"
-                  aria-label="TikTok"
-                >
-                  <span className="text-white font-bold text-xs">tt</span>
-                </a>
+                {SOCIAL_LINKS.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${link.bg}`}
+                    aria-label={link.name}
+                  >
+                    {link.icon}
+                  </a>
+                ))}
               </div>
             </div>
           </div>
