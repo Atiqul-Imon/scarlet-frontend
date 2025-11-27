@@ -301,10 +301,11 @@ export default function OTPVerification({
       const result = await otpApi.generateOTP(request, sessionId);
       
       if (result.success) {
+        const identifierLabel = actualType === 'email' ? 'email address' : 'phone number';
         addToast({
           type: 'success',
           title: 'OTP Sent',
-          message: 'A new OTP has been sent to your phone number'
+          message: `A new OTP has been sent to your ${identifierLabel}`
         });
         setTimeLeft(60); // 1 minute cooldown
         setAttemptsRemaining(result.attemptsRemaining || 5);
@@ -443,7 +444,9 @@ export default function OTPVerification({
       {/* Production notice */}
       <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
         <p className="text-xs text-green-800 text-center">
-          📱 OTP has been sent to your phone via SMS
+          {actualType === 'email'
+            ? '📧 OTP has been sent to your email inbox'
+            : '📱 OTP has been sent to your phone via SMS'}
         </p>
       </div>
     </div>
