@@ -14,14 +14,26 @@ export default function AdminLayout({
   const { user, loading, isRefreshing } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [redirectingToLogin, setRedirectingToLogin] = useState(false);
 
   useEffect(() => {
     // Only redirect if loading is complete and user is not authenticated or not admin/staff
-    if (!loading && (!user || (user.role !== 'admin' && user.role !== 'staff'))) {
-      console.log('Admin layout: Redirecting to login', { loading, user: user?.role });
-      router.push('/login');
+    if (loading) {
+      return;
     }
-  }, [user, loading, router]);
+
+    const lacksAccess = !user || (user.role !== 'admin' && user.role !== 'staff');
+
+    if (lacksAccess) {
+      if (!redirectingToLogin) {
+        setRedirectingToLogin(true);
+      }
+      router.replace('/login');
+    } else if (redirectingToLogin) {
+      // User regained access (e.g., token refresh) - remove redirecting state
+      setRedirectingToLogin(false);
+    }
+  }, [user, loading, router, redirectingToLogin]);
 
   if (loading) {
     return (
@@ -31,6 +43,20 @@ export default function AdminLayout({
           <p className="mt-4 text-red-700 font-medium">Loading admin dashboard...</p>
           <p className="mt-2 text-sm text-gray-500">Please wait while we verify your access...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (redirectingToLogin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 flex flex-col items-center justify-center text-center px-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-lg border border-red-100 mb-6">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-red-500 border-r-transparent" />
+        </div>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Signing you out…</h2>
+        <p className="text-gray-600 max-w-md">
+          For security, we&apos;re redirecting you to the login page. Please hold on for a second.
+        </p>
       </div>
     );
   }
