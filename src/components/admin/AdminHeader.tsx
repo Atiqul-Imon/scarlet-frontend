@@ -2,19 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
+import {
   Bars3Icon,
-  BellIcon,
   MagnifyingGlassIcon,
   UserCircleIcon,
   CogIcon,
   ArrowRightOnRectangleIcon,
-  SparklesIcon,
-  SunIcon,
-  MoonIcon
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/lib/context';
 import type { User } from '@/lib/types';
+import { adminApi } from '@/lib/api';
+import type { AdminStats } from '@/lib/admin-types';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -24,21 +23,47 @@ interface AdminHeaderProps {
 export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState(3); // Mock notification count
+  const [quickStats, setQuickStats] = useState<Pick<AdminStats, 'revenueToday' | 'ordersToday'> | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const router = useRouter();
 
-  // Close user menu when clicking outside
+  // Close user menu when clicking outside + load quick stats
   useEffect(() => {
+    let isMounted = true;
+
+    async function fetchQuickStats() {
+      try {
+        setStatsLoading(true);
+        const stats = await adminApi.dashboard.getStats();
+        if (!isMounted) return;
+        setQuickStats({
+          revenueToday: stats.revenueToday,
+          ordersToday: stats.ordersToday
+        });
+      } catch (error) {
+        console.error('Failed to load quick stats:', error);
+      } finally {
+        if (isMounted) {
+          setStatsLoading(false);
+        }
+      }
+    }
+
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setUserMenuOpen(false);
       }
     }
 
+    fetchQuickStats();
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      isMounted = false;
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -106,24 +131,22 @@ export function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
             {/* Quick stats */}
             <div className="hidden md:flex items-center space-x-4 text-sm">
               <div className="text-center px-3 py-1 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg border border-red-100">
-                <div className="text-red-700 font-semibold">৳25,750</div>
+                <div className="text-red-700 font-semibold">
+                  {statsLoading
+                    ? <span className="animate-pulse text-xs">Loading…</span>
+                    : `৳${(quickStats?.revenueToday ?? 0).toLocaleString()}`}
+                </div>
                 <div className="text-gray-600 text-xs">Today's Sales</div>
               </div>
               <div className="text-center px-3 py-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
-                <div className="text-green-600 font-semibold">12</div>
+                <div className="text-green-600 font-semibold">
+                  {statsLoading
+                    ? <span className="animate-pulse text-xs">…</span>
+                    : (quickStats?.ordersToday ?? 0).toLocaleString()}
+                </div>
                 <div className="text-gray-600 text-xs">New Orders</div>
               </div>
             </div>
-
-            {/* Notifications */}
-            <button className="relative p-2 text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-200">
-              <BellIcon className="w-6 h-6" />
-              {notifications > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
-                  {notifications}
-                </span>
-              )}
-            </button>
 
             {/* User menu */}
             <div className="relative" ref={userMenuRef}>
