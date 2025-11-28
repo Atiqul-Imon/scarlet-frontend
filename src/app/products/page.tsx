@@ -149,17 +149,6 @@ function ProductsPageContent() {
     }
   }, [buildQueryParams, filters.category, sortBy]); // Include filters/sort in deps but use refs to prevent loops
 
-  // Fetch categories
-  const fetchCategories = React.useCallback(async () => {
-    try {
-      const categoriesData = await fetchJson<Category[]>('/catalog/categories');
-      sessionStorage.setItem('cachedCategories', JSON.stringify(categoriesData));
-      setCategories(categoriesData);
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-    }
-  }, []);
-
   // Fetch categories in background (for cache refresh)
   const fetchCategoriesInBackground = React.useCallback(async () => {
     try {
@@ -179,22 +168,55 @@ function ProductsPageContent() {
   const prevSortBy = React.useRef<string>('featured');
   const categoriesLoaded = React.useRef(false);
 
-  // Get initial category from URL params
+  // Get initial category and filter from URL params
   const categoryParam = searchParams.get('category');
+  const filterParam = searchParams.get('filter');
 
+  // Set initial filters from URL params immediately
   React.useEffect(() => {
+    const initialFilters: FilterState = {};
     if (categoryParam) {
-      setFilters(prev => ({ ...prev, category: categoryParam }));
+      initialFilters.category = categoryParam;
     }
-  }, [categoryParam]);
+    if (filterParam) {
+      // Handle filter param (for homepage sections)
+      // These are homepage sections, not category filters
+      // Don't set as category filter - they use special API endpoints
+      if (filterParam === 'new' || filterParam === 'new-arrivals' || 
+          filterParam === 'coming-soon' || filterParam === 'skincare-essentials' || 
+          filterParam === 'makeup-collection') {
+        // These are homepage sections - handled by special API endpoints
+        // Don't set as category filter
+      }
+    }
+    if (Object.keys(initialFilters).length > 0) {
+      setFilters(initialFilters);
+    }
+  }, [categoryParam, filterParam]);
 
   // Check for cached categories first and initial data load
   React.useEffect(() => {
     const loadInitialData = async () => {
+      // Reset state when URL params change (treat as new page load)
+      const currentCategory = categoryParam || filterParam;
+      const categoryChanged = prevCategoryFilter.current !== currentCategory;
+      
+      if (categoryChanged) {
+        // Reset pagination and state for new category
+        setCurrentPage(1);
+        setHasMore(true);
+        setProducts([]);
+        isInitialLoad.current = true; // Treat as initial load for new category
+      }
+      
+      let categoriesData: Category[] = [];
+      
+      // Load categories first - CRITICAL: We need categories before building query params
       const cachedCategories = sessionStorage.getItem('cachedCategories');
       if (cachedCategories) {
         try {
           const parsedCategories = JSON.parse(cachedCategories);
+          categoriesData = parsedCategories;
           setCategories(parsedCategories);
           categoriesLoaded.current = true;
           // Fetch fresh categories in background
@@ -207,19 +229,71 @@ function ProductsPageContent() {
       
       // Load categories if not cached
       if (!categoriesLoaded.current) {
-        await fetchCategories();
+        categoriesData = await fetchJson<Category[]>('/catalog/categories');
+        setCategories(categoriesData);
+        sessionStorage.setItem('cachedCategories', JSON.stringify(categoriesData));
         categoriesLoaded.current = true;
       }
       
-      // Load initial products - use inline to avoid dependency issues
+      // Wait a tick to ensure filters state is set from URL params
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      // Load initial products - use category from URL directly
       setLoading(true);
-      setCurrentPage(1);
-      setHasMore(true);
       try {
-        const queryParams = buildQueryParams(1, filters.category, sortBy);
-        const productsData = await fetchJson<Product[]>(`/catalog/products?${queryParams}`);
-        setProducts(productsData);
-        setHasMore(productsData.length === 20);
+        // Handle special filter endpoints (homepage sections)
+        if (filterParam === 'new' || filterParam === 'new-arrivals') {
+          const productsData = await fetchJson<Product[]>(`/catalog/products/homepage/new-arrivals`);
+          setProducts(productsData);
+          setHasMore(false); // Homepage sections don't use pagination
+        } else if (filterParam === 'coming-soon') {
+          const productsData = await fetchJson<Product[]>(`/catalog/products/homepage/coming-soon`);
+          setProducts(productsData);
+          setHasMore(false); // Homepage sections don't use pagination
+        } else if (filterParam === 'skincare-essentials') {
+          const productsData = await fetchJson<Product[]>(`/catalog/products/homepage/skincare-essentials`);
+          setProducts(productsData);
+          setHasMore(false); // Homepage sections don't use pagination
+        } else if (filterParam === 'makeup-collection') {
+          const productsData = await fetchJson<Product[]>(`/catalog/products/homepage/makeup-collection`);
+          setProducts(productsData);
+          setHasMore(false); // Homepage sections don't use pagination
+        } else {
+          // Regular category filtering - use categoriesData directly instead of state
+          const params = new URLSearchParams();
+          params.set('page', '1');
+          params.set('limit', '20');
+          params.set('isActive', 'true');
+          
+          // Add category filter - use categoriesData directly (not state)
+          if (currentCategory && categoriesData.length > 0) {
+            const category = categoriesData.find(cat => 
+              cat.slug === currentCategory || cat.name.toLowerCase() === currentCategory?.toLowerCase()
+            );
+            if (category?._id) {
+              params.set('category', category._id);
+            }
+          }
+          
+          // Add sort
+          if (sortBy) {
+            params.set('sort', sortBy);
+          }
+          
+          const queryParams = params.toString();
+          console.log('🔍 Fetching products with params:', {
+            currentCategory,
+            queryParams,
+            fullUrl: `/catalog/products?${queryParams}`,
+            categoriesLoaded: categoriesLoaded.current,
+            categoriesCount: categoriesData.length,
+            categoryFound: currentCategory ? categoriesData.find(cat => cat.slug === currentCategory || cat.name.toLowerCase() === currentCategory?.toLowerCase()) : null
+          });
+          const productsData = await fetchJson<Product[]>(`/catalog/products?${queryParams}`);
+          console.log('✅ Products fetched:', productsData.length, 'products');
+          setProducts(productsData);
+          setHasMore(productsData.length === 20);
+        }
       } catch (err) {
         setError('Failed to load products. Please try again.');
         console.error('Error fetching products:', err);
@@ -230,50 +304,136 @@ function ProductsPageContent() {
       
       isInitialLoad.current = false;
       // Set initial ref values
-      prevCategoryFilter.current = filters.category;
+      prevCategoryFilter.current = currentCategory || filters.category;
       prevSortBy.current = sortBy;
     };
     
     loadInitialData();
-  }, []); // Only run once on mount
+  }, [categoryParam, filterParam]); // Re-run when URL params change
 
   // Reset and refetch when filters or sort change (but not on initial load)
   React.useEffect(() => {
     // Skip if initial load or if categories aren't loaded yet
     if (isInitialLoad.current || !categoriesLoaded.current) {
       // Update refs to current values for next check
-      prevCategoryFilter.current = filters.category;
+      prevCategoryFilter.current = categoryParam || filterParam || filters.category;
       prevSortBy.current = sortBy;
       return;
     }
 
+    // Get current filter from URL (preferred) or state
+    // URL params take precedence because they're the source of truth
+    const currentFilter = categoryParam || filterParam || filters.category;
+
     // Only refetch if filter or sort actually changed
-    const categoryChanged = prevCategoryFilter.current !== filters.category;
+    const categoryChanged = prevCategoryFilter.current !== currentFilter;
     const sortChanged = prevSortBy.current !== sortBy;
 
     if (categoryChanged || sortChanged) {
       // Update refs
-      prevCategoryFilter.current = filters.category;
+      prevCategoryFilter.current = currentFilter;
       prevSortBy.current = sortBy;
       
       // Reset pagination when filters change
       setCurrentPage(1);
       setHasMore(true);
-      // Use inline function to avoid dependency on fetchProducts
-      const queryParams = buildQueryParams(1, filters.category, sortBy);
-      fetchJson<Product[]>(`/catalog/products?${queryParams}`)
-        .then(productsData => {
-          setProducts(productsData);
-          setHasMore(productsData.length === 20);
-          setCurrentPage(1);
-        })
-        .catch(err => {
-          setError('Failed to load products. Please try again.');
-          console.error('Error fetching products:', err);
-          setHasMore(false);
+      
+      // Handle special filter endpoints (homepage sections)
+      if (filterParam === 'new' || filterParam === 'new-arrivals') {
+        fetchJson<Product[]>(`/catalog/products/homepage/new-arrivals`)
+          .then(productsData => {
+            setProducts(productsData);
+            setHasMore(false);
+            setCurrentPage(1);
+          })
+          .catch(err => {
+            setError('Failed to load products. Please try again.');
+            console.error('Error fetching products:', err);
+            setHasMore(false);
+          });
+      } else if (filterParam === 'coming-soon') {
+        fetchJson<Product[]>(`/catalog/products/homepage/coming-soon`)
+          .then(productsData => {
+            setProducts(productsData);
+            setHasMore(false);
+            setCurrentPage(1);
+          })
+          .catch(err => {
+            setError('Failed to load products. Please try again.');
+            console.error('Error fetching products:', err);
+            setHasMore(false);
+          });
+      } else if (filterParam === 'skincare-essentials') {
+        fetchJson<Product[]>(`/catalog/products/homepage/skincare-essentials`)
+          .then(productsData => {
+            setProducts(productsData);
+            setHasMore(false);
+            setCurrentPage(1);
+          })
+          .catch(err => {
+            setError('Failed to load products. Please try again.');
+            console.error('Error fetching products:', err);
+            setHasMore(false);
+          });
+      } else if (filterParam === 'makeup-collection') {
+        fetchJson<Product[]>(`/catalog/products/homepage/makeup-collection`)
+          .then(productsData => {
+            setProducts(productsData);
+            setHasMore(false);
+            setCurrentPage(1);
+          })
+          .catch(err => {
+            setError('Failed to load products. Please try again.');
+            console.error('Error fetching products:', err);
+            setHasMore(false);
+          });
+      } else {
+        // Regular category filtering - build query params directly using current categories state
+        const params = new URLSearchParams();
+        params.set('page', '1');
+        params.set('limit', '20');
+        params.set('isActive', 'true');
+        
+        // Add category filter - use current categories state
+        if (currentFilter && categories.length > 0) {
+          const category = categories.find(cat => 
+            cat.slug === currentFilter || cat.name.toLowerCase() === currentFilter?.toLowerCase()
+          );
+          if (category?._id) {
+            params.set('category', category._id);
+          }
+        }
+        
+        // Add sort
+        if (sortBy) {
+          params.set('sort', sortBy);
+        }
+        
+        const queryParams = params.toString();
+        console.log('🔍 Filter changed - Fetching products with params:', {
+          currentFilter,
+          queryParams,
+          fullUrl: `/catalog/products?${queryParams}`,
+          categoryParam,
+          filterParam,
+          categoriesCount: categories.length,
+          categoryFound: currentFilter ? categories.find(cat => cat.slug === currentFilter || cat.name.toLowerCase() === currentFilter?.toLowerCase()) : null
         });
+        fetchJson<Product[]>(`/catalog/products?${queryParams}`)
+          .then(productsData => {
+            console.log('✅ Products fetched after filter change:', productsData.length, 'products');
+            setProducts(productsData);
+            setHasMore(productsData.length === 20);
+            setCurrentPage(1);
+          })
+          .catch(err => {
+            setError('Failed to load products. Please try again.');
+            console.error('Error fetching products:', err);
+            setHasMore(false);
+          });
+      }
     }
-  }, [filters.category, sortBy, buildQueryParams]); // Removed fetchProducts from deps
+  }, [filters.category, sortBy, categoryParam, filterParam, categories]); // Include URL params and categories
 
   // Infinite scroll: Load more products when scroll reaches bottom
   React.useEffect(() => {
@@ -547,11 +707,47 @@ function ProductsPageContent() {
     { value: '5000', label: 'Over ৳5,000' },
   ];
 
+  // Get homepage section title based on filter param
+  const getHomepageSectionTitle = (filter: string | null): string | null => {
+    if (!filter) return null;
+    
+    const sectionTitles: Record<string, string> = {
+      'new': 'New Arrivals',
+      'new-arrivals': 'New Arrivals',
+      'coming-soon': 'Coming Soon',
+      'skincare-essentials': 'Skincare Essentials',
+      'makeup-collection': 'Makeup Collection',
+    };
+    
+    return sectionTitles[filter] || null;
+  };
+
+  // Check if we're viewing a homepage section
+  const isHomepageSection = !!filterParam && !!getHomepageSectionTitle(filterParam);
+  const homepageSectionTitle = getHomepageSectionTitle(filterParam);
+
   const handleFilterChange = (filterType: string, value: string | null) => {
+    // Update filters state
     setFilters(prev => ({
       ...prev,
       [filterType]: value
     }));
+    
+    // Update URL to reflect filter change (for category filter)
+    if (filterType === 'category' && value) {
+      // Clear filter param if it exists (homepage sections)
+      const newSearchParams = new URLSearchParams(window.location.search);
+      newSearchParams.delete('filter'); // Remove filter param for homepage sections
+      newSearchParams.set('category', value);
+      router.push(`/products?${newSearchParams.toString()}`, { scroll: false });
+    } else if (filterType === 'category' && !value) {
+      // Clear category from URL
+      const newSearchParams = new URLSearchParams(window.location.search);
+      newSearchParams.delete('category');
+      newSearchParams.delete('filter');
+      router.push(`/products?${newSearchParams.toString()}`, { scroll: false });
+    }
+    // Brand and price filters don't need URL updates (client-side filtering)
   };
 
   const handleClearFilters = () => {
@@ -646,9 +842,9 @@ function ProductsPageContent() {
     <div className="min-h-screen bg-gray-50">
       <div className="container-herlan py-4 sm:py-6 lg:py-8">
         {/* Mobile-First Page Header */}
-        <div className="mb-4 sm:mb-6 lg:mb-8">
+        <div className={`mb-4 sm:mb-6 lg:mb-8 ${isHomepageSection ? 'text-center' : ''}`}>
           {/* Breadcrumbs for category pages */}
-          {filters.category && (
+          {filters.category && !isHomepageSection && (
             <nav className="mb-3 sm:mb-4">
               <ol className="flex items-center space-x-2 text-sm text-gray-500">
                 <li>
@@ -677,18 +873,23 @@ function ProductsPageContent() {
           )}
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-            {filters.category ? 
-              categories.find(cat => cat.slug === filters.category)?.name || 'Products' 
-              : 'All Products'
+            {homepageSectionTitle ? 
+              homepageSectionTitle
+              : filters.category ? 
+                categories.find(cat => cat.slug === filters.category)?.name || 'Products' 
+                : 'All Products'
             }
           </h1>
           <p className="text-sm sm:text-base text-gray-700 font-medium">
-            Discover our carefully curated collection of premium beauty and skincare products
+            {homepageSectionTitle ? 
+              'Discover our carefully curated selection of premium products'
+              : 'Discover our carefully curated collection of premium beauty and skincare products'
+            }
           </p>
         </div>
 
-        {/* Child Categories Section - Only show when viewing a main category */}
-        {currentCategory && childCategories.length > 0 && (
+        {/* Child Categories Section - Only show when viewing a main category (not homepage sections) */}
+        {!isHomepageSection && currentCategory && childCategories.length > 0 && (
           <div className="mb-6 sm:mb-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
@@ -737,17 +938,19 @@ function ProductsPageContent() {
 
         {/* Mobile-First Layout */}
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-          {/* Filters Sidebar - Hidden on mobile, shown on desktop */}
-          <div className="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0">
-            <ProductFilters
-              categories={categoryOptions}
-              brands={brands}
-              priceRanges={priceRanges}
-              selectedFilters={filters}
-              onFilterChange={handleFilterChange}
-              onClearFilters={handleClearFilters}
-            />
-          </div>
+          {/* Filters Sidebar - Hidden on mobile, shown on desktop, and hidden for homepage sections */}
+          {!isHomepageSection && (
+            <div className="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0">
+              <ProductFilters
+                categories={categoryOptions}
+                brands={brands}
+                priceRanges={priceRanges}
+                selectedFilters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+              />
+            </div>
+          )}
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
@@ -767,17 +970,19 @@ function ProductsPageContent() {
               />
             </div>
 
-            {/* Mobile Filters - Show on mobile */}
-            <div className="lg:hidden mb-6">
-              <ProductFilters
-                categories={categoryOptions}
-                brands={brands}
-                priceRanges={priceRanges}
-                selectedFilters={filters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={handleClearFilters}
-              />
-            </div>
+            {/* Mobile Filters - Show on mobile, hidden for homepage sections */}
+            {!isHomepageSection && (
+              <div className="lg:hidden mb-6">
+                <ProductFilters
+                  categories={categoryOptions}
+                  brands={brands}
+                  priceRanges={priceRanges}
+                  selectedFilters={filters}
+                  onFilterChange={handleFilterChange}
+                  onClearFilters={handleClearFilters}
+                />
+              </div>
+            )}
 
             {/* Products Grid */}
             <ProductGrid

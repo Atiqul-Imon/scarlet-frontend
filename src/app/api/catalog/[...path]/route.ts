@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:4000';
 
+// Force dynamic rendering for this route to ensure query params are properly handled
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable static generation
+
 /**
  * Determine cache duration based on endpoint type
  * SAFE TO CACHE: All GET requests are read-only display data
@@ -32,15 +36,22 @@ export async function GET(
     const path = resolvedParams.path.join('/');
     const queryString = searchParams.toString();
     
+    // Build backend URL with query parameters
     const backendUrl = `${BACKEND_URL}/api/catalog/${path}${queryString ? `?${queryString}` : ''}`;
+    
+    // CRITICAL FIX: Disable Next.js fetch cache entirely
+    // Next.js fetch cache with revalidate doesn't properly differentiate query params
+    // We'll rely on Vercel Edge cache headers instead which properly handle query params
+    const hasQueryParams = queryString.length > 0;
     
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Use Next.js fetch cache for Edge optimization
-      next: { revalidate: getCacheDuration(path) },
+      // Disable Next.js fetch cache - it doesn't properly handle query params
+      // Vercel Edge will cache based on full URL (including query params) via Cache-Control headers
+      cache: 'no-store',
     });
     
     if (!response.ok) {
@@ -50,9 +61,18 @@ export async function GET(
     const data = await response.json();
     
     // Set cache headers for Vercel Edge caching
+    // Vercel Edge cache properly handles query params in the cache key
     const cacheDuration = getCacheDuration(path);
     const headers = new Headers();
+    
+    // Vercel Edge cache uses the full URL (including query params) as cache key
+    // This ensures different query params get different cache entries
     headers.set('Cache-Control', `public, s-maxage=${cacheDuration}, stale-while-revalidate=${cacheDuration * 2}`);
+    
+    // Add Vary header to ensure proper cache differentiation
+    if (hasQueryParams) {
+      headers.set('Vary', 'Accept, Accept-Encoding');
+    }
     
     return NextResponse.json(data, { headers });
   } catch (error) {

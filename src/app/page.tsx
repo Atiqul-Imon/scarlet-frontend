@@ -62,7 +62,7 @@ export default function Home() {
         title="Skincare Essentials"
         subtitle="Nourish and protect your skin"
         category="skincare-essentials"
-        viewAllLink="/skincare"
+        viewAllLink="/products?filter=skincare-essentials"
         limit={30}
       />
       
@@ -71,7 +71,7 @@ export default function Home() {
         title="Makeup Collection"
         subtitle="Enhance your natural beauty"
         category="makeup-collection"
-        viewAllLink="/makeup"
+        viewAllLink="/products?filter=makeup-collection"
         limit={30}
       />
     </div>
