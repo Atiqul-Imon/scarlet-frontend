@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+const BACKEND_URL = process.env['BACKEND_URL'] || 'http://localhost:4000';
 
 export async function GET(
   request: NextRequest,
@@ -22,6 +22,8 @@ export async function GET(
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      // Blog content is static - cache longer
+      next: { revalidate: 3600 }, // 1 hour
     });
 
     if (!response.ok) {
@@ -33,7 +35,12 @@ export async function GET(
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    // Set cache headers for Vercel Edge caching (blog is static content)
+    const headers = new Headers();
+    headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
+    
+    return NextResponse.json(data, { headers });
   } catch (error) {
     console.error('Blog API Proxy Error:', error);
     return NextResponse.json(
@@ -65,6 +72,8 @@ export async function POST(
         'Authorization': request.headers.get('Authorization') || '',
       },
       body: JSON.stringify(body),
+      // NO CACHING for write operations
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -76,7 +85,12 @@ export async function POST(
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    // Ensure no caching for POST requests
+    const headers = new Headers();
+    headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    
+    return NextResponse.json(data, { headers });
   } catch (error) {
     console.error('Blog API Proxy Error:', error);
     return NextResponse.json(
@@ -108,6 +122,8 @@ export async function PUT(
         'Authorization': request.headers.get('Authorization') || '',
       },
       body: JSON.stringify(body),
+      // NO CACHING for write operations
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -119,7 +135,12 @@ export async function PUT(
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    // Ensure no caching for PUT requests
+    const headers = new Headers();
+    headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    
+    return NextResponse.json(data, { headers });
   } catch (error) {
     console.error('Blog API Proxy Error:', error);
     return NextResponse.json(
@@ -149,6 +170,8 @@ export async function DELETE(
         'Accept': 'application/json',
         'Authorization': request.headers.get('Authorization') || '',
       },
+      // NO CACHING for write operations
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -160,7 +183,12 @@ export async function DELETE(
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    // Ensure no caching for DELETE requests
+    const headers = new Headers();
+    headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    
+    return NextResponse.json(data, { headers });
   } catch (error) {
     console.error('Blog API Proxy Error:', error);
     return NextResponse.json(
