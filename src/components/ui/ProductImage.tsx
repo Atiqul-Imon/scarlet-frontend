@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { useState } from 'react';
+import { getOptimizedImageKitUrl, isImageKitUrl } from '@/lib/imagekit-config';
 
 interface ProductImageProps {
   src?: string;
@@ -9,6 +10,7 @@ interface ProductImageProps {
   className?: string;
   sizes?: string;
   priority?: boolean;
+  quality?: number;
 }
 
 export default function ProductImage({ 
@@ -18,7 +20,8 @@ export default function ProductImage({
   height = 200, 
   className = '',
   sizes = '200px',
-  priority = false
+  priority = false,
+  quality = 80
 }: ProductImageProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
@@ -31,6 +34,11 @@ export default function ProductImage({
   const handleImageLoad = () => {
     setImageLoading(false);
   };
+
+  // Apply ImageKit transformations if it's an ImageKit URL
+  const optimizedSrc = src && isImageKitUrl(src) 
+    ? getOptimizedImageKitUrl(src, width, height, quality)
+    : src;
 
   if (imageError || !src) {
     return (
@@ -64,7 +72,7 @@ export default function ProductImage({
         </div>
       )}
       <Image
-        src={src}
+        src={optimizedSrc || src}
         alt={alt}
         width={width}
         height={height}
@@ -76,6 +84,7 @@ export default function ProductImage({
           imageLoading ? 'opacity-0' : 'opacity-100'
         }`}
         style={{ width, height }}
+        unoptimized={src ? isImageKitUrl(src) : false}
       />
     </div>
   );

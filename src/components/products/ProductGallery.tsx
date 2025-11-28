@@ -2,6 +2,7 @@
 "use client";
 import * as React from 'react';
 import Image from 'next/image';
+import { getOptimizedImageKitUrl, isImageKitUrl } from '@/lib/imagekit-config';
 
 interface ProductGalleryProps {
   images: string[];
@@ -37,7 +38,21 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
     if (imageErrors.has(selectedImageIndex)) {
       return getPlaceholderImage(selectedImageIndex);
     }
+    // Apply ImageKit transformations for main product image (large size for product detail page)
+    if (currentImage && isImageKitUrl(currentImage)) {
+      // Use large size for main product image - typically 1200px width for product detail pages
+      return getOptimizedImageKitUrl(currentImage, 1200, 1200, 85);
+    }
     return currentImage;
+  };
+
+  const getThumbnailImage = (imageUrl: string) => {
+    if (!imageUrl) return imageUrl;
+    // Apply ImageKit transformations for thumbnails (small size)
+    if (isImageKitUrl(imageUrl)) {
+      return getOptimizedImageKitUrl(imageUrl, 160, 160, 75);
+    }
+    return imageUrl;
   };
 
   // Detect mobile device
@@ -225,6 +240,7 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority={selectedImageIndex === 0}
             quality={85}
+            unoptimized={isImageKitUrl(getCurrentImage() || '')}
           />
           
           {/* Zoom Indicator */}
@@ -285,12 +301,13 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                   }`}
                 >
                     <Image
-                      src={imageErrors.has(index) ? getPlaceholderImage(index) : image}
+                      src={imageErrors.has(index) ? getPlaceholderImage(index) : getThumbnailImage(image)}
                       alt={`${productTitle} - Thumbnail ${index + 1}`}
                       fill
                       className="object-cover"
                       sizes="80px"
                       quality={75}
+                      unoptimized={isImageKitUrl(image)}
                     />
                   {index === selectedImageIndex && (
                     <div className="absolute inset-0 bg-red-500/20" />

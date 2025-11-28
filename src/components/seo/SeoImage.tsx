@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { getOptimizedImageKitUrl, isImageKitUrl } from '@/lib/imagekit-config';
 
 interface SeoImageProps {
   src: string;
@@ -50,6 +51,11 @@ export default function SeoImage({
   // Generate a simple blur placeholder if none provided
   const defaultBlurDataURL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
 
+  // Apply ImageKit transformations if it's an ImageKit URL
+  const optimizedSrc = isImageKitUrl(src)
+    ? getOptimizedImageKitUrl(src, width, height, quality)
+    : src;
+
   if (imageError) {
     return (
       <div 
@@ -69,7 +75,7 @@ export default function SeoImage({
   return (
     <div className={`relative overflow-hidden ${className}`}>
       <Image
-        src={src}
+        src={optimizedSrc}
         alt={alt}
         width={width}
         height={height}
@@ -87,6 +93,7 @@ export default function SeoImage({
         style={{
           objectFit: 'cover',
         }}
+        unoptimized={isImageKitUrl(src)}
       />
       
       {/* Loading placeholder */}

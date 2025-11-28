@@ -72,6 +72,10 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Custom loader to bypass Next.js optimization for ImageKit URLs
+    // ImageKit handles transformations via URL parameters
+    loader: 'custom',
+    loaderFile: './src/lib/imagekit-loader.ts',
   },
 
   // Environment variables

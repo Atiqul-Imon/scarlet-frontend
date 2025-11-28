@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Product } from '../../lib/types';
+import { getOptimizedImageKitUrl, isImageKitUrl } from '@/lib/imagekit-config';
 
 interface EnhancedProductCardProps {
   product: Product;
@@ -63,7 +64,11 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
             <>
               {/* First Image - Always visible */}
               <Image
-                src={product.images[0] || '/images/placeholder.jpg'}
+                src={
+                  product.images[0] && isImageKitUrl(product.images[0])
+                    ? getOptimizedImageKitUrl(product.images[0], 600, 600, 80)
+                    : (product.images[0] || '/images/placeholder.jpg')
+                }
                 alt={product.title}
                 fill
                 className={`object-cover group-hover:scale-110 transition-all duration-300 ease-out ${
@@ -74,11 +79,16 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
                 loading="lazy"
                 placeholder="blur"
                 blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                unoptimized={product.images[0] ? isImageKitUrl(product.images[0]) : false}
               />
               {/* Second Image - Only shown on hover if available */}
               {hasMultipleImages && product.images[1] && (
                 <Image
-                  src={product.images[1]}
+                  src={
+                    isImageKitUrl(product.images[1])
+                      ? getOptimizedImageKitUrl(product.images[1], 600, 600, 80)
+                      : product.images[1]
+                  }
                   alt={`${product.title} - Alternative view`}
                   fill
                   className={`object-cover group-hover:scale-110 transition-all duration-300 ease-out absolute inset-0 ${
@@ -89,6 +99,7 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
                   loading="lazy"
                   placeholder="blur"
                   blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                  unoptimized={isImageKitUrl(product.images[1])}
                 />
               )}
             </>
