@@ -820,7 +820,7 @@ function ProductsPageContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-24 h-24 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <ErrorIcon />
@@ -839,7 +839,7 @@ function ProductsPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
       <div className="container-herlan py-4 sm:py-6 lg:py-8">
         {/* Mobile-First Page Header */}
         <div className={`mb-4 sm:mb-6 lg:mb-8 ${isHomepageSection ? 'text-center' : ''}`}>
@@ -891,7 +891,7 @@ function ProductsPageContent() {
         {/* Child Categories Section - Only show when viewing a main category (not homepage sections) */}
         {!isHomepageSection && currentCategory && childCategories.length > 0 && (
           <div className="mb-6 sm:mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div className="bg-stone-50 rounded-xl shadow-sm border border-rose-200 p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
                 Explore {currentCategory.name} Categories
               </h2>
@@ -955,7 +955,7 @@ function ProductsPageContent() {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Mobile Sort and Results - Sticky on mobile */}
-            <div className="sticky top-0 bg-gray-50 z-10 pb-4 mb-4 lg:pb-0 lg:mb-6">
+            <div className="sticky top-0 bg-gradient-to-br from-rose-50 to-rose-100 z-10 pb-4 mb-4 lg:pb-0 lg:mb-6">
               <ProductSort
                 sortOptions={[
                   { value: 'featured', label: 'Featured' },

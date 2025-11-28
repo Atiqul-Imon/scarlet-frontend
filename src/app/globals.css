@@ -68,7 +68,7 @@ html {
 
 body {
   min-height: 100vh;
-  background: var(--background);
+  background: linear-gradient(to bottom right, rgb(255 241 242), rgb(255 228 230));
   font-family: var(--font-roboto);
   color: var(--foreground);
   margin: 0;

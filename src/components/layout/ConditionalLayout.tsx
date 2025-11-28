@@ -31,9 +31,9 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
   
   // For all other pages, show the full layout with header and footer
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
       <Header />
-      <main className="flex-1 pb-16 lg:pb-0 bg-white">
+      <main className="flex-1 pb-16 lg:pb-0 bg-gradient-to-br from-rose-50 to-rose-100">
         {children}
       </main>
       <Footer />

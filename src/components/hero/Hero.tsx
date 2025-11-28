@@ -125,7 +125,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="bg-gray-50 py-0 md:py-8">
+    <section className="bg-gradient-to-br from-rose-50 to-rose-100 py-0 md:py-8">
       <div className="container-herlan">
         {/* Main Banner Carousel */}
         <div 
@@ -147,7 +147,7 @@ export default function Hero() {
             >
               <div className="w-full h-full relative rounded-xl overflow-hidden">
                 {/* Desktop Large Image - 1440px+ */}
-                <div className="hidden 2xl:block absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                <div className="hidden 2xl:block absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-rose-50 to-rose-100">
                   <div className="w-full h-full flex items-center justify-center">
                     <Image
                       src={slide.backgroundImage.desktopLarge}
@@ -163,7 +163,7 @@ export default function Hero() {
                 </div>
                 
                 {/* Desktop Small Image - 1200px-1439px */}
-                <div className="hidden xl:block 2xl:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                <div className="hidden xl:block 2xl:hidden absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-rose-50 to-rose-100">
                   <div className="w-full h-full flex items-center justify-center">
                     <Image
                       src={slide.backgroundImage.desktopSmall}
@@ -179,7 +179,7 @@ export default function Hero() {
                 </div>
                 
                 {/* Tablet Large Image - 1024px-1199px */}
-                <div className="hidden lg:block xl:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                <div className="hidden lg:block xl:hidden absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-rose-50 to-rose-100">
                   <div className="w-full h-full flex items-center justify-center">
                     <Image
                       src={slide.backgroundImage.tabletLarge}
@@ -195,7 +195,7 @@ export default function Hero() {
                 </div>
                 
                 {/* Tablet Small Image - 768px-1023px */}
-                <div className="hidden md:block lg:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                <div className="hidden md:block lg:hidden absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-rose-50 to-rose-100">
                   <div className="w-full h-full flex items-center justify-center">
                     <Image
                       src={slide.backgroundImage.tabletSmall}
@@ -211,7 +211,7 @@ export default function Hero() {
                 </div>
                 
                 {/* Mobile Large Image - 480px-767px */}
-                <div className="hidden sm:block md:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                <div className="hidden sm:block md:hidden absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-rose-50 to-rose-100">
                   <div className="w-full h-full flex items-center justify-center">
                     <Image
                       src={slide.backgroundImage.mobileLarge}
@@ -227,7 +227,7 @@ export default function Hero() {
                 </div>
                 
                 {/* Mobile Small Image - 320px-479px */}
-                <div className="sm:hidden absolute inset-0 rounded-xl overflow-hidden bg-gray-100">
+                <div className="sm:hidden absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br from-rose-50 to-rose-100">
                   <div className="w-full h-full flex items-center justify-center">
                     <Image
                       src={slide.backgroundImage.mobileSmall}

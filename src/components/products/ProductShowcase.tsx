@@ -94,7 +94,7 @@ export default function ProductShowcase({
 
   if (error) {
     return (
-      <section className="bg-gray-50">
+      <section className="bg-gradient-to-br from-rose-50 to-rose-100">
         <SectionContainer>
           <div className="text-center">
             <p className="responsive-text text-gray-600">Unable to load products at the moment.</p>
@@ -105,7 +105,7 @@ export default function ProductShowcase({
   }
 
   return (
-    <section className="bg-gray-50">
+    <section className="bg-gradient-to-br from-rose-50 to-rose-100">
       <div className="container-herlan py-12 sm:py-16 lg:py-20">
         {/* Section Header */}
         <ResponsiveFlex

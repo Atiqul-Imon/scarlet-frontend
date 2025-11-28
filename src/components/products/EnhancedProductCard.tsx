@@ -53,13 +53,13 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
 
   return (
     <div
-      className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out transform hover:-translate-y-1"
+      className="group relative bg-stone-50 rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out transform hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link href={`/products/${product.slug}`} onClick={handleNavigation} prefetch={true}>
         {/* Product Image */}
-        <div className="aspect-square relative overflow-hidden bg-gray-50">
+        <div className="aspect-square relative overflow-hidden bg-rose-50">
           {product.images && product.images.length > 0 ? (
             <>
               {/* First Image - Always visible */}

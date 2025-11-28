@@ -38,7 +38,7 @@ export default function ProductFilters({
       <div className="lg:hidden mb-4">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg hover:border-red-300 transition-colors bg-white shadow-sm"
+          className="flex items-center justify-between w-full px-4 py-3 border border-rose-300 rounded-lg hover:border-red-300 transition-colors bg-stone-50 shadow-sm"
         >
           <div className="flex items-center gap-2">
             <FilterIcon />
@@ -59,12 +59,12 @@ export default function ProductFilters({
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-xl shadow-xl max-h-[80vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="fixed bottom-0 left-0 right-0 bg-stone-50 rounded-t-xl shadow-xl max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-rose-200">
               <h3 className="text-lg font-bold text-gray-900">Filters</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-rose-100 rounded-lg transition-colors"
                 aria-label="Close filters"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,11 +101,11 @@ export default function ProductFilters({
               </div>
             </div>
 
-            <div className="p-4 border-t border-gray-200 bg-gray-50">
+            <div className="p-4 border-t border-rose-200 bg-rose-50">
               <div className="flex gap-3">
                 <button
                   onClick={onClearFilters}
-                  className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 text-gray-700 border border-rose-300 rounded-lg hover:bg-rose-50 transition-colors"
                 >
                   Clear All
                 </button>
@@ -123,7 +123,7 @@ export default function ProductFilters({
 
       {/* Desktop Filters */}
       <div className="hidden lg:block w-64 flex-shrink-0">
-        <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-24">
+        <div className="bg-stone-50 rounded-lg border border-rose-200 p-6 sticky top-24">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-gray-900">Filters</h3>
             {hasActiveFilters && (
@@ -163,7 +163,7 @@ export default function ProductFilters({
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="fixed inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg p-6 max-h-[80vh] overflow-y-auto">
+          <div className="fixed bottom-0 left-0 right-0 bg-stone-50 rounded-t-lg p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
               <button
@@ -199,7 +199,7 @@ export default function ProductFilters({
               {hasActiveFilters && (
                 <button
                   onClick={onClearFilters}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-3 border border-rose-300 text-gray-700 rounded-lg font-medium hover:bg-rose-50 transition-colors"
                 >
                   Clear All
                 </button>
@@ -261,7 +261,7 @@ function FilterSection({
               <div className={`w-4 h-4 border-2 rounded-full mr-3 transition-colors ${
                 selectedValue === option.value 
                   ? 'border-red-500 bg-red-500' 
-                  : 'border-gray-300 group-hover:border-red-300'
+                  : 'border-rose-300 group-hover:border-red-300'
               }`}>
                 {selectedValue === option.value && (
                   <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5" />

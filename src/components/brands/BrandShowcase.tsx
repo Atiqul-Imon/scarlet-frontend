@@ -119,7 +119,7 @@ export default function BrandShowcase() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gradient-to-br from-rose-50 to-rose-100">
         <div className="container-herlan">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -139,7 +139,7 @@ export default function BrandShowcase() {
 
   if (error || categories.length === 0) {
     return (
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gradient-to-br from-rose-50 to-rose-100">
         <div className="container-herlan">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -157,7 +157,7 @@ export default function BrandShowcase() {
     );
   }
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-rose-50 to-rose-100">
       <div className="container-herlan">
         {/* Section Header */}
         <div className="text-center mb-12 sm:mb-16">
@@ -175,9 +175,9 @@ export default function BrandShowcase() {
               className="group block"
               prefetch={true}
             >
-              <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 ease-out border border-gray-200 hover:border-red-300">
+              <div className="bg-stone-50 rounded-xl overflow-hidden shadow-md hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 ease-out border border-rose-200 hover:border-red-300">
                 {/* Image Container - Full Width */}
-                <div className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
+                <div className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-amber-100 to-amber-50">
                   {category.image ? (
                     <img 
                       src={category.image} 

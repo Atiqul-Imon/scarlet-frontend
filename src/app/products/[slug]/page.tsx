@@ -699,7 +699,7 @@ export default function ProductDetailPage() {
   // Show loading skeleton while fetching data
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
         <div className="container-herlan py-8">
           <ProductDetailSkeleton />
         </div>
@@ -710,7 +710,7 @@ export default function ProductDetailPage() {
   // Only show error state if we have an actual error AND we're not loading
   if (error && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="container-herlan text-center py-16">
           <div className="w-24 h-24 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <ErrorIcon />
@@ -731,7 +731,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
       {/* Structured Data */}
       <StructuredData type="product" data={product} />
       <StructuredData 
@@ -823,7 +823,7 @@ export default function ProductDetailPage() {
 
             {/* Quick Description */}
             {product.description && (
-              <div className="bg-gray-50 rounded-r-xl py-5 pl-0 pr-5 border-l-0 border-t border-r border-b border-gray-100">
+              <div className="py-5 pl-0 pr-5">
                 <p className="text-gray-700 leading-relaxed text-base">
                   {product.description.substring(0, 200)}
                   {product.description.length > 200 && '...'}
@@ -1037,8 +1037,8 @@ export default function ProductDetailPage() {
 
         {/* Product Details Tabs */}
         <div className="mb-20">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="border-b border-gray-200 bg-gray-50/50">
+          <div className="overflow-hidden">
+            <div className="border-b border-amber-200">
               <nav className="flex space-x-1 px-6">
                 {[
                   { id: 'description', label: 'Description' },
@@ -1063,7 +1063,7 @@ export default function ProductDetailPage() {
               </nav>
             </div>
 
-            <div className="prose prose-sm max-w-none p-8">
+            <div className="prose prose-sm max-w-none p-8 bg-transparent">
             {activeTab === 'description' && (
               <div className="space-y-6">
                 <p className="text-gray-700 leading-relaxed text-base">{product.description}</p>
@@ -1438,7 +1438,7 @@ function ErrorIcon() {
 
 function ProductDetailSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
       <div className="container-herlan py-8">
         <div className="animate-pulse">
           {/* Breadcrumb skeleton */}

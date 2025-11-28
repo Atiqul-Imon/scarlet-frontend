@@ -203,7 +203,7 @@ function SearchPageContent() {
   
   if (!query.trim()) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100 py-8">
         <div className="container mx-auto px-4">
           <div className="text-center py-16">
             <MagnifyingGlassIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -222,7 +222,7 @@ function SearchPageContent() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
       <div className="w-full max-w-7xl mx-auto px-4 py-4 md:py-8">
         {/* Header */}
         <div className="mb-4 md:mb-6">

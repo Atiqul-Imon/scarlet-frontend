@@ -33,7 +33,7 @@ export const metadata = {
 
 export default function Home() {
   return (
-    <div className="bg-white">
+    <div className="bg-gradient-to-br from-rose-50 to-rose-100">
       <Hero />
       
       {/* Category Section (previously Brand Showcase) */}

@@ -36,7 +36,7 @@ export default function ProductSort({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:border-red-300 transition-colors bg-white shadow-sm"
+          className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 sm:px-4 py-2 border border-rose-300 rounded-lg hover:border-red-300 transition-colors bg-stone-50 shadow-sm"
         >
           <span className="text-sm font-semibold text-gray-900">
             <span className="hidden sm:inline">Sort by: </span>
@@ -54,7 +54,7 @@ export default function ProductSort({
             />
             
             {/* Dropdown Menu - Mobile optimized */}
-            <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+            <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-stone-50 border border-rose-200 rounded-lg shadow-lg z-20">
               <div className="py-2">
                 {sortOptions.map((option) => (
                   <button

@@ -404,7 +404,7 @@ export default function CartPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-24 h-24 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <ErrorIcon />
@@ -440,7 +440,7 @@ export default function CartPage() {
   
   if (!loading && enrichedItems.length === 0 && !hasItemsInContext && !hasItemsInLocalStorage) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
         <div className="container-herlan py-16">
           <div className="text-center">
             <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
@@ -474,7 +474,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
       <div className="container-herlan py-8">
         {/* Page Header */}
         <div className="mb-6 sm:mb-8">
@@ -584,7 +584,7 @@ export default function CartPage() {
 
 function CartPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100">
       <div className="container-herlan py-8">
         <div className="animate-pulse">
           {/* Header skeleton */}
