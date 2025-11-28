@@ -10,7 +10,6 @@ interface ProductSortProps {
   sortOptions: SortOption[];
   currentSort: string;
   onSortChange: (sortValue: string) => void;
-  totalResults?: number;
 }
 
 const defaultSortOptions: SortOption[] = [
@@ -25,8 +24,7 @@ const defaultSortOptions: SortOption[] = [
 export default function ProductSort({
   sortOptions = defaultSortOptions,
   currentSort,
-  onSortChange,
-  totalResults
+  onSortChange
 }: ProductSortProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   
@@ -34,18 +32,6 @@ export default function ProductSort({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-      {/* Results Count */}
-      <div className="text-sm font-medium text-gray-800">
-        {totalResults !== undefined && (
-          <span>
-            {totalResults === 1 
-              ? '1 product' 
-              : `${totalResults.toLocaleString()} products`
-            }
-          </span>
-        )}
-      </div>
-
       {/* Sort Dropdown */}
       <div className="relative">
         <button

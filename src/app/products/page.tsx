@@ -59,11 +59,20 @@ function ProductsPageContent() {
   const [products, setProducts] = React.useState<Product[]>([]);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [hasMore, setHasMore] = React.useState(true);
+  const [currentPage, setCurrentPage] = React.useState(1);
   
   // Filter and sort state
   const [filters, setFilters] = React.useState<FilterState>({});
   const [sortBy, setSortBy] = React.useState('featured');
+  
+  // Ref for infinite scroll trigger
+  const loadMoreRef = React.useRef<HTMLDivElement>(null);
+  
+  // Lazy load child categories (show 6 initially)
+  const [showAllChildCategories, setShowAllChildCategories] = React.useState(false);
   
   // Get current category and its children
   const currentCategory = React.useMemo(() => {
@@ -80,34 +89,79 @@ function ProductsPageContent() {
     );
   }, [categories, currentCategory]);
   
-  // Get initial category from URL params
-  const categoryParam = searchParams.get('category');
-
-  React.useEffect(() => {
-    if (categoryParam) {
-      setFilters(prev => ({ ...prev, category: categoryParam }));
-    }
-  }, [categoryParam]);
-
-  // Check for cached categories first
-  React.useEffect(() => {
-    const cachedCategories = sessionStorage.getItem('cachedCategories');
-    if (cachedCategories) {
-      try {
-        const parsedCategories = JSON.parse(cachedCategories);
-        setCategories(parsedCategories);
-        // Fetch fresh categories in background
-        fetchCategoriesInBackground();
-      } catch (error) {
-        // Invalid cached data, continue with normal fetch
-        sessionStorage.removeItem('cachedCategories');
+  // Build query parameters for API call - use function instead of useCallback to avoid dependency issues
+  const buildQueryParams = React.useCallback((page: number = 1, categorySlug?: string, sort?: string) => {
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    params.set('limit', '20'); // Load 20 products per page
+    params.set('isActive', 'true');
+    
+    // Add category filter - use current categories state
+    if (categorySlug && categories.length > 0) {
+      const category = categories.find(cat => 
+        cat.slug === categorySlug || cat.name.toLowerCase() === categorySlug?.toLowerCase()
+      );
+      if (category?._id) {
+        params.set('category', category._id);
       }
     }
     
-    fetchData();
+    // Add sort
+    if (sort) {
+      params.set('sort', sort);
+    }
+    
+    return params.toString();
+  }, [categories]); // Only depend on categories array
+
+  // Fetch products with pagination
+  const fetchProducts = React.useCallback(async (page: number = 1, append: boolean = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setError(null);
+    }
+    
+    try {
+      // Pass current filter/sort values directly instead of relying on closure
+      const queryParams = buildQueryParams(page, filters.category, sortBy);
+      const productsData = await fetchJson<Product[]>(`/catalog/products?${queryParams}`);
+      
+      if (append) {
+        // Append new products to existing list
+        setProducts(prev => [...prev, ...productsData]);
+      } else {
+        // Replace products (new search/filter)
+        setProducts(productsData);
+      }
+      
+      // Check if there are more products to load
+      setHasMore(productsData.length === 20); // If we got 20, there might be more
+      setCurrentPage(page);
+    } catch (err) {
+      setError('Failed to load products. Please try again.');
+      console.error('Error fetching products:', err);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [buildQueryParams, filters.category, sortBy]); // Include filters/sort in deps but use refs to prevent loops
+
+  // Fetch categories
+  const fetchCategories = React.useCallback(async () => {
+    try {
+      const categoriesData = await fetchJson<Category[]>('/catalog/categories');
+      sessionStorage.setItem('cachedCategories', JSON.stringify(categoriesData));
+      setCategories(categoriesData);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
   }, []);
 
-  const fetchCategoriesInBackground = async () => {
+  // Fetch categories in background (for cache refresh)
+  const fetchCategoriesInBackground = React.useCallback(async () => {
     try {
       const categoriesData = await fetchJson<Category[]>('/catalog/categories');
       
@@ -117,32 +171,137 @@ function ProductsPageContent() {
     } catch (error) {
       console.error('Background category fetch failed:', error);
     }
-  };
+  }, []);
 
-  // Fetch products and categories with optimized query parameters
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Optimize: Add limit and pagination to reduce data transfer
-      // Fetch only active products with essential fields
-      const [productsData, categoriesData] = await Promise.all([
-        fetchJson<Product[]>(`/catalog/products?limit=100&isActive=true`),
-        fetchJson<Category[]>('/catalog/categories')
-      ]);
-      
-      // Cache categories
-      sessionStorage.setItem('cachedCategories', JSON.stringify(categoriesData));
-      setProducts(productsData);
-      setCategories(categoriesData);
-    } catch (err) {
-      setError('Failed to load products. Please try again.');
-      console.error('Error fetching data:', err);
-    } finally {
-      setLoading(false);
+  // Track if initial load is done to prevent recursion
+  const isInitialLoad = React.useRef(true);
+  const prevCategoryFilter = React.useRef<string | undefined>(undefined);
+  const prevSortBy = React.useRef<string>('featured');
+  const categoriesLoaded = React.useRef(false);
+
+  // Get initial category from URL params
+  const categoryParam = searchParams.get('category');
+
+  React.useEffect(() => {
+    if (categoryParam) {
+      setFilters(prev => ({ ...prev, category: categoryParam }));
     }
-  };
+  }, [categoryParam]);
+
+  // Check for cached categories first and initial data load
+  React.useEffect(() => {
+    const loadInitialData = async () => {
+      const cachedCategories = sessionStorage.getItem('cachedCategories');
+      if (cachedCategories) {
+        try {
+          const parsedCategories = JSON.parse(cachedCategories);
+          setCategories(parsedCategories);
+          categoriesLoaded.current = true;
+          // Fetch fresh categories in background
+          fetchCategoriesInBackground();
+        } catch (error) {
+          // Invalid cached data, continue with normal fetch
+          sessionStorage.removeItem('cachedCategories');
+        }
+      }
+      
+      // Load categories if not cached
+      if (!categoriesLoaded.current) {
+        await fetchCategories();
+        categoriesLoaded.current = true;
+      }
+      
+      // Load initial products - use inline to avoid dependency issues
+      setLoading(true);
+      setCurrentPage(1);
+      setHasMore(true);
+      try {
+        const queryParams = buildQueryParams(1, filters.category, sortBy);
+        const productsData = await fetchJson<Product[]>(`/catalog/products?${queryParams}`);
+        setProducts(productsData);
+        setHasMore(productsData.length === 20);
+      } catch (err) {
+        setError('Failed to load products. Please try again.');
+        console.error('Error fetching products:', err);
+        setHasMore(false);
+      } finally {
+        setLoading(false);
+      }
+      
+      isInitialLoad.current = false;
+      // Set initial ref values
+      prevCategoryFilter.current = filters.category;
+      prevSortBy.current = sortBy;
+    };
+    
+    loadInitialData();
+  }, []); // Only run once on mount
+
+  // Reset and refetch when filters or sort change (but not on initial load)
+  React.useEffect(() => {
+    // Skip if initial load or if categories aren't loaded yet
+    if (isInitialLoad.current || !categoriesLoaded.current) {
+      // Update refs to current values for next check
+      prevCategoryFilter.current = filters.category;
+      prevSortBy.current = sortBy;
+      return;
+    }
+
+    // Only refetch if filter or sort actually changed
+    const categoryChanged = prevCategoryFilter.current !== filters.category;
+    const sortChanged = prevSortBy.current !== sortBy;
+
+    if (categoryChanged || sortChanged) {
+      // Update refs
+      prevCategoryFilter.current = filters.category;
+      prevSortBy.current = sortBy;
+      
+      // Reset pagination when filters change
+      setCurrentPage(1);
+      setHasMore(true);
+      // Use inline function to avoid dependency on fetchProducts
+      const queryParams = buildQueryParams(1, filters.category, sortBy);
+      fetchJson<Product[]>(`/catalog/products?${queryParams}`)
+        .then(productsData => {
+          setProducts(productsData);
+          setHasMore(productsData.length === 20);
+          setCurrentPage(1);
+        })
+        .catch(err => {
+          setError('Failed to load products. Please try again.');
+          console.error('Error fetching products:', err);
+          setHasMore(false);
+        });
+    }
+  }, [filters.category, sortBy, buildQueryParams]); // Removed fetchProducts from deps
+
+  // Infinite scroll: Load more products when scroll reaches bottom
+  React.useEffect(() => {
+    if (!hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !loading && !loadingMore) {
+          const nextPage = currentPage + 1;
+          fetchProducts(nextPage, true);
+        }
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '100px' // Start loading 100px before reaching the element
+      }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, loading, loadingMore, currentPage, fetchProducts]);
 
   // Helper function to get all descendant category IDs (including the category itself)
   const getAllDescendantCategoryIds = React.useCallback((categoryId: string): string[] => {
@@ -169,31 +328,19 @@ function ProductsPageContent() {
     return Array.from(allCategoryIds);
   }, [categories]);
 
-  // Filter and sort products
+  // Filter products client-side (for brand and price filters that aren't server-side yet)
   const filteredAndSortedProducts = React.useMemo(() => {
     let filtered = [...products];
 
-    // Apply filters
-    if (filters.category) {
-      // Find category by slug or name
-      const category = categories.find(cat => 
-        cat.slug === filters.category || cat.name.toLowerCase() === filters.category?.toLowerCase()
-      );
-      if (category) {
-        // Get all descendant category IDs (including the category itself)
-        const allCategoryIds = getAllDescendantCategoryIds(category._id!);
-        filtered = filtered.filter(product => 
-          product.categoryIds?.some(categoryId => allCategoryIds.includes(categoryId))
-        );
-      }
-    }
-
+    // Category filtering is done server-side, but we keep this for brand/price
+    // Brand filter (client-side)
     if (filters.brand) {
       filtered = filtered.filter(product => 
         product.brand?.toLowerCase() === filters.brand?.toLowerCase()
       );
     }
 
+    // Price range filter (client-side)
     if (filters.priceRange) {
       const [min, max] = filters.priceRange.split('-').map(Number);
       filtered = filtered.filter(product => {
@@ -208,41 +355,44 @@ function ProductsPageContent() {
       });
     }
 
-    // Apply sorting
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price.amount - b.price.amount);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price.amount - a.price.amount);
-        break;
-      case 'name-asc':
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-desc':
-        filtered.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case 'newest':
-        filtered.sort((a, b) => 
-          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-        );
-        break;
-      default: // featured
-        // Keep original order or implement featured logic
-        break;
-    }
+    // Sorting is done server-side, but we keep this as fallback
+    // Most sorting is handled by the backend now
 
     return filtered;
-  }, [products, categories, filters, sortBy]);
+  }, [products, filters.brand, filters.priceRange]);
 
   // Get unique brands for filter
   const brands = React.useMemo(() => {
-    const uniqueBrands = [...new Set(products.map(p => p.brand).filter(Boolean))];
-    return uniqueBrands.map(brand => ({
-      value: brand!.toLowerCase(),
-      label: brand!,
-      count: products.filter(p => p.brand === brand).length
-    }));
+    // Use Map to deduplicate brands by lowercase value while preserving original casing
+    const brandMap = new Map<string, { original: string; count: number }>();
+    
+    products.forEach(product => {
+      if (product.brand) {
+        const normalized = product.brand.toLowerCase().trim();
+        if (normalized) {
+          if (brandMap.has(normalized)) {
+            // Increment count for existing brand
+            const existing = brandMap.get(normalized)!;
+            existing.count += 1;
+          } else {
+            // Add new brand with original casing
+            brandMap.set(normalized, {
+              original: product.brand.trim(),
+              count: 1
+            });
+          }
+        }
+      }
+    });
+    
+    // Convert map to array, sorted by count (most popular first)
+    return Array.from(brandMap.entries())
+      .map(([normalized, data]) => ({
+        value: normalized, // Use normalized lowercase as value for filtering
+        label: data.original, // Use original casing for display
+        count: data.count
+      }))
+      .sort((a, b) => (b.count || 0) - (a.count || 0)); // Sort by count descending
   }, [products]);
 
   // Get all descendant categories recursively
@@ -545,7 +695,7 @@ function ProductsPageContent() {
                 Explore {currentCategory.name} Categories
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                {childCategories.map((childCategory) => (
+                {(showAllChildCategories ? childCategories : childCategories.slice(0, 6)).map((childCategory) => (
                   <Link
                     key={childCategory._id}
                     href={`/products?category=${childCategory.slug}`}
@@ -570,6 +720,17 @@ function ProductsPageContent() {
                   </Link>
                 ))}
               </div>
+              {/* Show More button if there are more than 6 child categories */}
+              {childCategories.length > 6 && !showAllChildCategories && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => setShowAllChildCategories(true)}
+                    className="text-red-700 hover:text-red-800 font-medium text-sm underline"
+                  >
+                    Show {childCategories.length - 6} More Categories
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -603,7 +764,6 @@ function ProductsPageContent() {
                 ]}
                 currentSort={sortBy}
                 onSortChange={setSortBy}
-                totalResults={filteredAndSortedProducts.length}
               />
             </div>
 
@@ -626,6 +786,23 @@ function ProductsPageContent() {
               onAddToCart={handleAddToCart}
               onAddToWishlist={handleAddToWishlist}
             />
+
+            {/* Infinite Scroll Trigger */}
+            {!loading && (
+              <div ref={loadMoreRef} className="py-8">
+                {loadingMore && (
+                  <div className="flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
+                    <span className="ml-3 text-gray-600">Loading more products...</span>
+                  </div>
+                )}
+                {!hasMore && filteredAndSortedProducts.length > 0 && (
+                  <div className="text-center text-gray-500 py-4">
+                    <p>No more products to load</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

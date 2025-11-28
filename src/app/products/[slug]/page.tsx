@@ -35,6 +35,8 @@ export default function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
   const [recommendedProducts, setRecommendedProducts] = React.useState<Product[]>([]);
   const [loadingRecommended, setLoadingRecommended] = React.useState(false);
+  const recommendedSectionRef = React.useRef<HTMLDivElement>(null);
+  const hasLoadedRecommended = React.useRef(false);
 
   // Fetch product data with optimized loading
   React.useEffect(() => {
@@ -81,6 +83,7 @@ export default function ProductDetailPage() {
         setSelectedSize(''); // Reset size selection when product changes
         setSelectedColor(''); // Reset color selection when product changes
         setLoading(false);
+        hasLoadedRecommended.current = false; // Reset for new product
         
         // Fetch related products asynchronously after main product loads
         // Optimized: Use dedicated related products endpoint instead of fetching entire category
@@ -125,101 +128,22 @@ export default function ProductDetailPage() {
               // Silently fail for related products - not critical for page functionality
             });
           
-          // Fetch recommended products (best sellers/featured from same category)
-          // Optimized: Only fetch if not in cache and load in background
+          // Check cache for recommended products (load from cache immediately if available)
           const recommendedCacheKey = `recommended_products_${product.categoryIds[0]}`;
           const recommendedCached = sessionStorage.getItem(recommendedCacheKey);
           const recommendedCacheTime = sessionStorage.getItem(`${recommendedCacheKey}_time`);
           const recommendedCacheAge = recommendedCacheTime ? Date.now() - parseInt(recommendedCacheTime) : Infinity;
           
-          if (!recommendedCached || recommendedCacheAge >= CACHE_DURATION) {
-            setLoadingRecommended(true);
-            // Fetch featured products from same category (limit 4)
-            fetch(`/api/proxy/catalog/products?category=${product.categoryIds[0]}&isFeatured=true&limit=4&sort=popularity`, {
-              headers: {
-                'Cache-Control': 'max-age=300',
-              },
-            })
-              .then(recResponse => {
-                if (recResponse.ok) {
-                  return recResponse.json();
-                }
-                console.error('Recommended products fetch failed:', recResponse.status, recResponse.statusText);
-                return null;
-              })
-              .then(recData => {
-                // Handle both wrapped response { success: true, data: [...] } and direct array
-                let products: Product[] = [];
-                
-                if (recData?.success && recData.data) {
-                  // Wrapped response format
-                  products = Array.isArray(recData.data) ? recData.data : [];
-                } else if (Array.isArray(recData)) {
-                  // Direct array response (fallback)
-                  products = recData;
-                } else {
-                  console.warn('Recommended products response format unexpected:', recData);
-                  return;
-                }
-                
-                if (products.length > 0) {
-                  // Filter out current product and limit to 4
-                  const filtered = products
-                    .filter((p: Product) => p._id !== product._id)
-                    .slice(0, 4);
-                  setRecommendedProducts(filtered);
-                  // Cache in sessionStorage
-                  sessionStorage.setItem(recommendedCacheKey, JSON.stringify(filtered));
-                  sessionStorage.setItem(`${recommendedCacheKey}_time`, Date.now().toString());
-                } else {
-                  // Fallback: If no featured products, try fetching any products from the category
-                  console.log('No featured products found, trying non-featured products from category:', product.categoryIds[0]);
-                  fetch(`/api/proxy/catalog/products?category=${product.categoryIds[0]}&limit=4&sort=popularity`)
-                    .then(fallbackResponse => {
-                      if (fallbackResponse.ok) {
-                        return fallbackResponse.json();
-                      }
-                      return null;
-                    })
-                    .then(fallbackData => {
-                      let fallbackProducts: Product[] = [];
-                      
-                      if (fallbackData?.success && fallbackData.data) {
-                        fallbackProducts = Array.isArray(fallbackData.data) ? fallbackData.data : [];
-                      } else if (Array.isArray(fallbackData)) {
-                        fallbackProducts = fallbackData;
-                      }
-                      
-                      if (fallbackProducts.length > 0) {
-                        const filtered = fallbackProducts
-                          .filter((p: Product) => p._id !== product._id)
-                          .slice(0, 4);
-                        setRecommendedProducts(filtered);
-                        // Cache the fallback results
-                        sessionStorage.setItem(recommendedCacheKey, JSON.stringify(filtered));
-                        sessionStorage.setItem(`${recommendedCacheKey}_time`, Date.now().toString());
-                      }
-                    })
-                    .catch((error) => {
-                      console.error('Error fetching fallback recommended products:', error);
-                    });
-                }
-              })
-              .catch((error) => {
-                console.error('Error fetching recommended products:', error);
-              })
-              .finally(() => {
-                setLoadingRecommended(false);
-              });
-          } else {
-            // Use cached recommended products
+          if (recommendedCached && recommendedCacheAge < CACHE_DURATION) {
+            // Use cached recommended products immediately
             try {
               const cachedRecommended = JSON.parse(recommendedCached);
               setRecommendedProducts(cachedRecommended);
             } catch (e) {
-              // Invalid cache
+              // Invalid cache, will load when section is visible
             }
           }
+          // Note: Fresh fetch will happen via Intersection Observer when section is near viewport
         }
         
       } catch (err) {
@@ -231,6 +155,124 @@ export default function ProductDetailPage() {
 
     fetchProduct();
   }, [slug]);
+
+  // Fetch recommended products function (extracted for reuse)
+  const fetchRecommendedProducts = React.useCallback(async () => {
+    if (!product || !product.categoryIds || product.categoryIds.length === 0 || hasLoadedRecommended.current) {
+      return;
+    }
+
+    hasLoadedRecommended.current = true;
+    setLoadingRecommended(true);
+
+    const recommendedCacheKey = `recommended_products_${product.categoryIds[0]}`;
+    const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes cache
+    
+    // Check cache first
+    const recommendedCached = sessionStorage.getItem(recommendedCacheKey);
+    const recommendedCacheTime = sessionStorage.getItem(`${recommendedCacheKey}_time`);
+    const recommendedCacheAge = recommendedCacheTime ? Date.now() - parseInt(recommendedCacheTime) : Infinity;
+    
+    if (recommendedCached && recommendedCacheAge < CACHE_DURATION) {
+      try {
+        const cachedRecommended = JSON.parse(recommendedCached);
+        setRecommendedProducts(cachedRecommended);
+        setLoadingRecommended(false);
+        return;
+      } catch (e) {
+        // Invalid cache, continue to fetch
+      }
+    }
+
+    try {
+      // Fetch featured products from same category (limit 4)
+      const recResponse = await fetch(`/api/proxy/catalog/products?category=${product.categoryIds[0]}&isFeatured=true&limit=4&sort=popularity`, {
+        headers: {
+          'Cache-Control': 'max-age=300',
+        },
+      });
+
+      if (!recResponse.ok) {
+        throw new Error(`HTTP ${recResponse.status}`);
+      }
+
+      const recData = await recResponse.json();
+      
+      // Handle both wrapped response { success: true, data: [...] } and direct array
+      let products: Product[] = [];
+      
+      if (recData?.success && recData.data) {
+        products = Array.isArray(recData.data) ? recData.data : [];
+      } else if (Array.isArray(recData)) {
+        products = recData;
+      }
+      
+      if (products.length > 0) {
+        // Filter out current product and limit to 4
+        const filtered = products
+          .filter((p: Product) => p._id !== product._id)
+          .slice(0, 4);
+        setRecommendedProducts(filtered);
+        // Cache in sessionStorage
+        sessionStorage.setItem(recommendedCacheKey, JSON.stringify(filtered));
+        sessionStorage.setItem(`${recommendedCacheKey}_time`, Date.now().toString());
+      } else {
+        // Fallback: If no featured products, try fetching any products from the category
+        const fallbackResponse = await fetch(`/api/proxy/catalog/products?category=${product.categoryIds[0]}&limit=4&sort=popularity`);
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          let fallbackProducts: Product[] = [];
+          
+          if (fallbackData?.success && fallbackData.data) {
+            fallbackProducts = Array.isArray(fallbackData.data) ? fallbackData.data : [];
+          } else if (Array.isArray(fallbackData)) {
+            fallbackProducts = fallbackData;
+          }
+          
+          if (fallbackProducts.length > 0) {
+            const filtered = fallbackProducts
+              .filter((p: Product) => p._id !== product._id)
+              .slice(0, 4);
+            setRecommendedProducts(filtered);
+            // Cache the fallback results
+            sessionStorage.setItem(recommendedCacheKey, JSON.stringify(filtered));
+            sessionStorage.setItem(`${recommendedCacheKey}_time`, Date.now().toString());
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching recommended products:', error);
+    } finally {
+      setLoadingRecommended(false);
+    }
+  }, [product]);
+
+  // Intersection Observer: Load recommended products only when section is near viewport
+  React.useEffect(() => {
+    if (!recommendedSectionRef.current || !product || hasLoadedRecommended.current) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !hasLoadedRecommended.current) {
+          // Start loading when section is 300px before viewport
+          fetchRecommendedProducts();
+        }
+      },
+      { 
+        rootMargin: '300px', // Start loading 300px before section is visible
+        threshold: 0.01
+      }
+    );
+
+    observer.observe(recommendedSectionRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [product, fetchRecommendedProducts]);
 
   const handleAddToCart = async () => {
     if (!product || isAddingToCart) return;
@@ -1163,9 +1205,10 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Recommended Products - Optimized with caching */}
-        {(recommendedProducts.length > 0 || loadingRecommended) && (
-          <div className="mb-12">
+        {/* Recommended Products - Optimized with lazy loading via Intersection Observer */}
+        <div ref={recommendedSectionRef} className="mb-12">
+          {(recommendedProducts.length > 0 || loadingRecommended) && (
+            <>
             <h3 className="text-3xl font-bold text-gray-900 mb-6">Recommended for You</h3>
             {loadingRecommended ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1220,8 +1263,9 @@ export default function ProductDetailPage() {
                 ))}
               </div>
             )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (

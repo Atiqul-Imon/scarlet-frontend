@@ -245,9 +245,9 @@ function FilterSection({
       
       {isExpanded && (
         <div className="space-y-2">
-          {options.map((option) => (
+          {options.map((option, index) => (
             <label
-              key={option.value}
+              key={`${title}-${option.value}-${index}`}
               className="flex items-center cursor-pointer group"
             >
               <input
@@ -270,9 +270,6 @@ function FilterSection({
               <span className="text-sm font-medium text-gray-800 group-hover:text-gray-900 flex-1">
                 {option.label}
               </span>
-              {option.count !== undefined && (
-                <span className="text-xs font-medium text-gray-600">({option.count})</span>
-              )}
             </label>
           ))}
         </div>
