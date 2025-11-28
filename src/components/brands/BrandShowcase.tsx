@@ -175,32 +175,35 @@ export default function BrandShowcase() {
               className="group block"
               prefetch={true}
             >
-              <div className="bg-gradient-to-br from-red-100 via-pink-50 to-red-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 ease-out border border-red-200 hover:border-red-400 hover:from-red-200 hover:via-pink-100 hover:to-red-100">
-                {/* Content Container */}
-                <div className="p-4 sm:p-6 flex flex-col items-center justify-center h-[180px] sm:h-[200px] md:h-[220px]">
-                  {/* Image/Icon Container - Rounded */}
-                  <div className="mb-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg overflow-hidden border-2 border-red-100 hover:border-red-300 hover:scale-105 transition-all duration-300 ease-out group-hover:rotate-3">
-                      {category.image ? (
-                        <img 
-                          src={category.image} 
-                          alt={category.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : category.icon ? (
-                        <span className="text-3xl sm:text-4xl md:text-5xl group-hover:animate-pulse">
-                          {category.icon}
-                        </span>
-                      ) : (
-                        <span className="text-3xl sm:text-4xl md:text-5xl group-hover:animate-pulse">
-                          {getCategoryIcon(category.name)}
-                        </span>
-                      )}
+              <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 ease-out border border-gray-200 hover:border-red-300">
+                {/* Image Container - Full Width */}
+                <div className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
+                  {category.image ? (
+                    <img 
+                      src={category.image} 
+                      alt={category.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+                    />
+                  ) : category.icon ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-6xl sm:text-7xl md:text-8xl group-hover:scale-110 transition-transform duration-300">
+                        {category.icon}
+                      </span>
                     </div>
-                  </div>
-                  
-                  {/* Category Name */}
-                  <h3 className="font-semibold text-gray-900 group-hover:text-red-700 text-base sm:text-lg md:text-xl text-center leading-tight px-2 transition-colors duration-300 ease-out">
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-6xl sm:text-7xl md:text-8xl group-hover:scale-110 transition-transform duration-300">
+                        {getCategoryIcon(category.name)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300"></div>
+                </div>
+                
+                {/* Category Name - Below Image */}
+                <div className="p-4 sm:p-5 text-center">
+                  <h3 className="font-semibold text-gray-900 group-hover:text-red-700 text-sm sm:text-base md:text-lg leading-tight transition-colors duration-300">
                     {category.name}
                   </h3>
                 </div>
