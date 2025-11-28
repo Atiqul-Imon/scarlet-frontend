@@ -20,6 +20,15 @@ export default function imagekitLoader({ src, width, quality }: { src: string; w
     // This bypasses Next.js optimization, saving Vercel transformation costs
     return src;
   }
+
+  // Check if this is a Cloudinary URL - Cloudinary already handles optimization
+  const isCloudinary = src.includes('res.cloudinary.com') || src.includes('cloudinary.com');
+  
+  if (isCloudinary) {
+    // Cloudinary URLs - return as-is (Cloudinary already optimizes images)
+    // This prevents double optimization and ensures logos load correctly
+    return src;
+  }
   
   // For non-ImageKit URLs (placeholders, data URIs, relative paths, etc.), use Next.js default optimization
   // Skip Next.js optimization for data URIs and relative paths (they're already optimized)
@@ -27,7 +36,7 @@ export default function imagekitLoader({ src, width, quality }: { src: string; w
     return src;
   }
   
-  // For external URLs, use Next.js default optimization
+  // For other external URLs, use Next.js default optimization
   const params = new URLSearchParams();
   params.set('url', src);
   params.set('w', width.toString());
