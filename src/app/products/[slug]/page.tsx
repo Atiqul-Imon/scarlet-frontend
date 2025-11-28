@@ -144,22 +144,69 @@ export default function ProductDetailPage() {
                 if (recResponse.ok) {
                   return recResponse.json();
                 }
+                console.error('Recommended products fetch failed:', recResponse.status, recResponse.statusText);
                 return null;
               })
               .then(recData => {
+                // Handle both wrapped response { success: true, data: [...] } and direct array
+                let products: Product[] = [];
+                
                 if (recData?.success && recData.data) {
+                  // Wrapped response format
+                  products = Array.isArray(recData.data) ? recData.data : [];
+                } else if (Array.isArray(recData)) {
+                  // Direct array response (fallback)
+                  products = recData;
+                } else {
+                  console.warn('Recommended products response format unexpected:', recData);
+                  return;
+                }
+                
+                if (products.length > 0) {
                   // Filter out current product and limit to 4
-                  const filtered = recData.data
+                  const filtered = products
                     .filter((p: Product) => p._id !== product._id)
                     .slice(0, 4);
                   setRecommendedProducts(filtered);
                   // Cache in sessionStorage
                   sessionStorage.setItem(recommendedCacheKey, JSON.stringify(filtered));
                   sessionStorage.setItem(`${recommendedCacheKey}_time`, Date.now().toString());
+                } else {
+                  // Fallback: If no featured products, try fetching any products from the category
+                  console.log('No featured products found, trying non-featured products from category:', product.categoryIds[0]);
+                  fetch(`/api/proxy/catalog/products?category=${product.categoryIds[0]}&limit=4&sort=popularity`)
+                    .then(fallbackResponse => {
+                      if (fallbackResponse.ok) {
+                        return fallbackResponse.json();
+                      }
+                      return null;
+                    })
+                    .then(fallbackData => {
+                      let fallbackProducts: Product[] = [];
+                      
+                      if (fallbackData?.success && fallbackData.data) {
+                        fallbackProducts = Array.isArray(fallbackData.data) ? fallbackData.data : [];
+                      } else if (Array.isArray(fallbackData)) {
+                        fallbackProducts = fallbackData;
+                      }
+                      
+                      if (fallbackProducts.length > 0) {
+                        const filtered = fallbackProducts
+                          .filter((p: Product) => p._id !== product._id)
+                          .slice(0, 4);
+                        setRecommendedProducts(filtered);
+                        // Cache the fallback results
+                        sessionStorage.setItem(recommendedCacheKey, JSON.stringify(filtered));
+                        sessionStorage.setItem(`${recommendedCacheKey}_time`, Date.now().toString());
+                      }
+                    })
+                    .catch((error) => {
+                      console.error('Error fetching fallback recommended products:', error);
+                    });
                 }
               })
-              .catch(() => {
-                // Silently fail - not critical
+              .catch((error) => {
+                console.error('Error fetching recommended products:', error);
               })
               .finally(() => {
                 setLoadingRecommended(false);
