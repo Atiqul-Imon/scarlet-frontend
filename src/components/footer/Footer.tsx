@@ -248,9 +248,6 @@ export default function Footer() {
                 <p className="text-gray-400 text-xs mb-2">
                   <strong>Trade License:</strong> TRAD/DNCC/050622/2023
                 </p>
-                <p className="text-gray-400 text-xs">
-                  <strong>License Valid Until:</strong> June 30, 2026
-                </p>
               </div>
             </div>
           </div>
