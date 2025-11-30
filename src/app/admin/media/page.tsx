@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
 import { fetchJsonAuth } from '@/lib/api';
+import { uploadMultipleImages, validateMultipleImageFiles } from '@/lib/image-upload';
 import { 
   CloudArrowUpIcon, 
   MagnifyingGlassIcon,
@@ -135,53 +136,61 @@ export default function MediaGalleryPage() {
     }
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (files: File[]) => {
     try {
       setUploading(true);
       setUploadProgress(0);
+      setError(null);
       
-      // Create simple form data for ImageKit upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('productSlug', 'media-gallery'); // Use a generic slug for media gallery
-      
-      // Upload to ImageKit
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || 'Upload failed');
+      // Validate all files
+      const validation = validateMultipleImageFiles(files);
+      if (!validation.valid) {
+        setError(validation.errors.join('\n'));
+        setUploading(false);
+        return;
       }
-      
-      const uploadResult = await uploadResponse.json();
-      
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error || 'Upload failed');
+
+      // Upload all files
+      const { results, errors } = await uploadMultipleImages(
+        files,
+        'media-gallery',
+        (progress) => {
+          const percent = Math.round((progress.completed / progress.total) * 100);
+          setUploadProgress(percent);
+        }
+      );
+
+      // Save successful uploads to media library
+      const successfulUploads: any[] = [];
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        const file = files[i];
+        
+        if (result && result.success && result.url && file) {
+          const mediaData = {
+            filename: result.data?.filename || file.name,
+            originalName: file.name,
+            url: result.url,
+            thumbnailUrl: result.data?.thumbnailUrl,
+            size: result.data?.size || file.size,
+            mimeType: file.type,
+            alt: file.name,
+            caption: '',
+            category: 'general'
+          };
+          
+          try {
+            await fetchJsonAuth('/media', {
+              method: 'POST',
+              body: JSON.stringify(mediaData)
+            });
+            successfulUploads.push(mediaData);
+          } catch (err) {
+            console.error('Failed to save to media library:', err);
+            errors.push(`${file.name}: Failed to save to database`);
+          }
+        }
       }
-      
-      // Save to media gallery database with minimal data
-      const mediaData = {
-        filename: uploadResult.data.filename,
-        originalName: file.name,
-        url: uploadResult.data.url,
-        thumbnailUrl: uploadResult.data.thumbnailUrl,
-        size: uploadResult.data.size,
-        mimeType: file.type,
-        width: uploadResult.data.width,
-        height: uploadResult.data.height,
-        alt: file.name, // Use filename as alt text
-        caption: '',
-        category: 'general'
-      };
-      
-      // Save to backend media collection
-      await fetchJsonAuth('/media', {
-        method: 'POST',
-        body: JSON.stringify(mediaData)
-      });
       
       // Refresh the media list
       fetchMediaFiles();
@@ -189,9 +198,15 @@ export default function MediaGalleryPage() {
       setShowUploadModal(false);
       setUploadProgress(100);
       
+      if (errors.length > 0 && successfulUploads.length === 0) {
+        setError(`All uploads failed:\n${errors.join('\n')}`);
+      } else if (errors.length > 0) {
+        setError(`Uploaded ${successfulUploads.length} file(s). Some failed:\n${errors.join('\n')}`);
+      }
+      
     } catch (error) {
       console.error('Upload error:', error);
-      setError('Failed to upload file: ' + (error as Error).message);
+      setError('Failed to upload files: ' + (error as Error).message);
     } finally {
       setUploading(false);
     }
@@ -443,17 +458,24 @@ function UploadModal({
   progress 
 }: { 
   onClose: () => void; 
-  onUpload: (file: File) => void;
+  onUpload: (files: File[]) => void;
   uploading: boolean;
   progress: number;
 }) {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (files.length === 0) return;
 
-    await onUpload(file);
+    await onUpload(files);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length > 0) {
+      setFiles(selectedFiles);
+    }
   };
 
   return (
@@ -477,25 +499,31 @@ function UploadModal({
             {/* File Input */}
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Select Image File
+                Select Image Files (Multiple selection supported)
               </label>
               <div className="relative">
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  multiple
+                  onChange={handleFileSelect}
                   className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                   required
                 />
               </div>
-              {file && (
+              {files.length > 0 && (
                 <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm font-medium text-green-800">
-                    ✓ {file.name}
+                  <p className="text-sm font-medium text-green-800 mb-2">
+                    ✓ {files.length} file{files.length > 1 ? 's' : ''} selected
                   </p>
-                  <p className="text-xs text-green-600 mt-1">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {files.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between text-xs text-green-700 bg-green-100 p-2 rounded">
+                        <span className="truncate flex-1">{file.name}</span>
+                        <span className="ml-2">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -531,7 +559,7 @@ function UploadModal({
               </button>
               <button
                 type="submit"
-                disabled={!file || uploading}
+                disabled={files.length === 0 || uploading}
                 className="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 {uploading ? (
@@ -543,7 +571,7 @@ function UploadModal({
                     Uploading...
                   </span>
                 ) : (
-                  'Upload File'
+                  `Upload ${files.length > 0 ? `${files.length} ` : ''}File${files.length > 1 ? 's' : ''}`
                 )}
               </button>
             </div>

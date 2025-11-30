@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { PhotoIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { fetchJsonAuth } from '@/lib/api';
-import { uploadImage, validateImageFile } from '@/lib/image-upload';
+import { uploadImage, uploadMultipleImages, validateImageFile, validateMultipleImageFiles } from '@/lib/image-upload';
 
 interface MediaFile {
   _id: string;
@@ -18,7 +18,7 @@ interface MediaFile {
 }
 
 interface ImageSelectorProps {
-  onImageSelect: (url: string) => void;
+  onImageSelect: (url: string | string[]) => void; // Support both single and multiple
   productSlug?: string;
   buttonText?: string;
   multiple?: boolean;
@@ -35,7 +35,8 @@ export default function ImageSelector({
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number; current?: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchMediaFiles = async () => {
@@ -63,25 +64,52 @@ export default function ImageSelector({
   const handleCloseModal = () => {
     setShowModal(false);
     setActiveTab('media');
-    setSelectedFile(null);
+    setSelectedFiles([]);
+    setUploadProgress(null);
     setSearchTerm('');
   };
 
   const handleSelectFromMedia = (url: string) => {
-    onImageSelect(url);
-    handleCloseModal();
+    if (multiple) {
+      // In multiple mode, allow selecting multiple from gallery
+      // For now, just select one at a time (can be enhanced later)
+      onImageSelect([url]);
+    } else {
+      onImageSelect(url);
+    }
+    if (!multiple) {
+      handleCloseModal();
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    const file = e.target.files?.[0];
-    if (file) {
-      const validation = validateImageFile(file);
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length === 0) return;
+
+    if (multiple) {
+      // Validate all files
+      const validation = validateMultipleImageFiles(files);
       if (!validation.valid) {
-        alert(validation.error || 'Invalid file');
+        alert(validation.errors.join('\n'));
+        // Clear input
+        e.target.value = '';
         return;
       }
-      setSelectedFile(file);
+      setSelectedFiles(files);
+    } else {
+      // Single file mode - backward compatible
+      const file = files[0];
+      if (file) {
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+          alert(validation.error || 'Invalid file');
+          e.target.value = '';
+          return;
+        }
+        setSelectedFiles([file]);
+      }
     }
   };
 
@@ -90,44 +118,109 @@ export default function ImageSelector({
       e.preventDefault();
       e.stopPropagation();
     }
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
 
     try {
       setUploading(true);
-      const result = await uploadImage(selectedFile, productSlug);
-      
-      if (result.success && result.url) {
-        // Also save to media library
-        try {
-          await fetchJsonAuth('/media', {
-            method: 'POST',
-            body: JSON.stringify({
-              filename: result.data?.filename || selectedFile.name,
-              originalName: selectedFile.name,
-              url: result.url,
-              thumbnailUrl: result.data?.thumbnailUrl,
-              size: selectedFile.size,
-              mimeType: selectedFile.type,
-              alt: selectedFile.name,
-              caption: '',
-              tags: [],
-              category: 'product'
-            })
-          });
-        } catch (err) {
-          console.error('Failed to save to media library:', err);
+      setUploadProgress({ completed: 0, total: selectedFiles.length });
+
+      if (multiple && selectedFiles.length > 1) {
+        // Multiple file upload
+        const { results, errors } = await uploadMultipleImages(
+          selectedFiles,
+          productSlug,
+          (progress) => {
+            setUploadProgress({
+              completed: progress.completed,
+              total: progress.total,
+              ...(progress.current && { current: progress.current })
+            });
+          }
+        );
+
+        const successfulUploads: string[] = [];
+        
+        // Save successful uploads to media library and collect URLs
+        for (let i = 0; i < results.length; i++) {
+          const result = results[i];
+          const file = selectedFiles[i];
+          
+          if (result && result.success && result.url && file) {
+            successfulUploads.push(result.url);
+            
+            // Save to media library
+            try {
+              await fetchJsonAuth('/media', {
+                method: 'POST',
+                body: JSON.stringify({
+                  filename: result.data?.filename || file.name,
+                  originalName: file.name,
+                  url: result.url,
+                  thumbnailUrl: result.data?.thumbnailUrl,
+                  size: file.size,
+                  mimeType: file.type,
+                  alt: file.name,
+                  caption: '',
+                  tags: [],
+                  category: 'product'
+                })
+              });
+            } catch (err) {
+              console.error('Failed to save to media library:', err);
+            }
+          }
         }
 
-        onImageSelect(result.url);
-        handleCloseModal();
+        if (successfulUploads.length > 0) {
+          onImageSelect(successfulUploads);
+          if (errors.length > 0) {
+            alert(`Uploaded ${successfulUploads.length} image(s). Some failed:\n${errors.join('\n')}`);
+          }
+          handleCloseModal();
+        } else {
+          alert(`Upload failed:\n${errors.join('\n')}`);
+        }
       } else {
-        alert('Upload failed');
+        // Single file upload (backward compatible)
+        const file = selectedFiles[0];
+        if (!file) return;
+        
+        const result = await uploadImage(file, productSlug);
+        
+        if (result.success && result.url) {
+          // Also save to media library
+          try {
+            await fetchJsonAuth('/media', {
+              method: 'POST',
+              body: JSON.stringify({
+                filename: result.data?.filename || file.name,
+                originalName: file.name,
+                url: result.url,
+                thumbnailUrl: result.data?.thumbnailUrl,
+                size: file.size,
+                mimeType: file.type,
+                alt: file.name,
+                caption: '',
+                tags: [],
+                category: 'product'
+              })
+            });
+          } catch (err) {
+            console.error('Failed to save to media library:', err);
+          }
+
+          onImageSelect(result.url);
+          handleCloseModal();
+        } else {
+          alert(result.error || 'Upload failed');
+        }
       }
     } catch (error) {
       console.error('Upload error:', error);
       alert('Upload failed');
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -300,6 +393,7 @@ export default function ImageSelector({
                       }}
                       type="file"
                       accept="image/*"
+                      multiple={multiple}
                       onChange={handleFileSelect}
                       className="hidden"
                       id="file-upload"
@@ -315,27 +409,74 @@ export default function ImageSelector({
                       }}
                       className="cursor-pointer inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
                     >
-                      Choose File
+                      Choose {multiple ? 'Files' : 'File'}
                     </button>
                     <p className="mt-2 text-sm text-gray-500">
-                      PNG, JPG, WEBP up to 5MB
+                      PNG, JPG, WEBP up to 5MB {multiple ? '(Max 10 files)' : ''}
                     </p>
                   </div>
 
-                  {/* Selected File */}
-                  {selectedFile && (
-                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-sm font-medium text-green-800">
-                        ✓ {selectedFile.name}
-                      </p>
-                      <p className="text-xs text-green-600 mt-1">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+                  {/* Selected Files */}
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-6 space-y-3">
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm font-medium text-green-800 mb-3">
+                          ✓ {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected
+                        </p>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {selectedFiles.map((file, index) => {
+                            if (!file) return null;
+                            return (
+                              <div key={index} className="flex items-center justify-between text-xs text-green-700 bg-green-100 p-2 rounded">
+                                <span className="truncate flex-1">{file.name}</span>
+                                <span className="ml-2">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                {multiple && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                                    }}
+                                    className="ml-2 text-red-600 hover:text-red-800"
+                                  >
+                                    <XMarkIcon className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Upload Progress */}
+                      {uploadProgress && (
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-blue-800">
+                              Uploading {uploadProgress.completed} of {uploadProgress.total}
+                            </span>
+                            <span className="text-sm font-bold text-blue-600">
+                              {Math.round((uploadProgress.completed / uploadProgress.total) * 100)}%
+                            </span>
+                          </div>
+                          {uploadProgress.current && (
+                            <p className="text-xs text-blue-600 mb-2 truncate">
+                              Current: {uploadProgress.current}
+                            </p>
+                          )}
+                          <div className="w-full bg-blue-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${(uploadProgress.completed / uploadProgress.total) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
                       <button
                         type="button"
                         onClick={(e) => handleUploadFromComputer(e)}
                         disabled={uploading}
-                        className="mt-4 w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {uploading ? (
                           <span className="flex items-center justify-center">
@@ -346,7 +487,7 @@ export default function ImageSelector({
                             Uploading...
                           </span>
                         ) : (
-                          'Upload & Select'
+                          `Upload ${selectedFiles.length} ${selectedFiles.length > 1 ? 'Images' : 'Image'}`
                         )}
                       </button>
                     </div>

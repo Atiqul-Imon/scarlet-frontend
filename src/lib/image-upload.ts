@@ -11,6 +11,14 @@ export interface UploadResult {
   };
   url?: string;
   error?: string;
+  fileName?: string; // For tracking which file failed
+}
+
+export interface MultipleUploadProgress {
+  completed: number;
+  total: number;
+  current?: string; // Current file being uploaded
+  results: UploadResult[];
 }
 
 export async function uploadImage(file: File, productSlug?: string): Promise<UploadResult> {
@@ -32,22 +40,75 @@ export async function uploadImage(file: File, productSlug?: string): Promise<Upl
     if (!response.ok) {
       return {
         success: false,
-        error: result.error || 'Upload failed'
+        error: result.error || 'Upload failed',
+        fileName: file.name
       };
     }
 
     return {
       success: true,
       data: result.data,
-      url: result.data.url
+      url: result.data.url,
+      fileName: file.name
     };
   } catch (error) {
     console.error('Upload error:', error);
     return {
       success: false,
-      error: 'Network error during upload'
+      error: 'Network error during upload',
+      fileName: file.name
     };
   }
+}
+
+/**
+ * Upload multiple images sequentially with progress tracking
+ * Uses the same ImageKit upload endpoint to maintain transformation compatibility
+ */
+export async function uploadMultipleImages(
+  files: File[],
+  productSlug?: string,
+  onProgress?: (progress: MultipleUploadProgress) => void
+): Promise<{ success: boolean; results: UploadResult[]; errors: string[] }> {
+  const results: UploadResult[] = [];
+  const errors: string[] = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    
+    // Update progress
+    if (onProgress) {
+      onProgress({
+        completed: i,
+        total: files.length,
+        current: file.name,
+        results: [...results]
+      });
+    }
+
+    // Upload file using the same endpoint (maintains ImageKit compatibility)
+    const result = await uploadImage(file, productSlug);
+    results.push(result);
+
+    if (!result.success) {
+      errors.push(`${file.name}: ${result.error || 'Upload failed'}`);
+    }
+  }
+
+  // Final progress update
+  if (onProgress) {
+    onProgress({
+      completed: files.length,
+      total: files.length,
+      results: results
+    });
+  }
+
+  return {
+    success: errors.length === 0,
+    results,
+    errors
+  };
 }
 
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
@@ -70,4 +131,43 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
   }
 
   return { valid: true };
+}
+
+/**
+ * Validate multiple image files with limits
+ */
+export function validateMultipleImageFiles(
+  files: File[],
+  maxFiles: number = 10,
+  maxTotalSize: number = 50 * 1024 * 1024 // 50MB total
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  // Check file count
+  if (files.length > maxFiles) {
+    errors.push(`Maximum ${maxFiles} files allowed. You selected ${files.length} files.`);
+    return { valid: false, errors };
+  }
+
+  // Check total size
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+  if (totalSize > maxTotalSize) {
+    const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+    const maxSizeMB = (maxTotalSize / (1024 * 1024)).toFixed(0);
+    errors.push(`Total file size (${totalSizeMB}MB) exceeds maximum allowed (${maxSizeMB}MB).`);
+    return { valid: false, errors };
+  }
+
+  // Validate each file
+  for (const file of files) {
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      errors.push(`${file.name}: ${validation.error || 'Invalid file'}`);
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
 }

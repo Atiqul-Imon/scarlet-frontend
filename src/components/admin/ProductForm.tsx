@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/context';
 import { adminApi, categoryApi } from '@/lib/api';
-import { uploadImage, validateImageFile } from '@/lib/image-upload';
+import { uploadImage, uploadMultipleImages, validateImageFile, validateMultipleImageFiles } from '@/lib/image-upload';
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { Category } from '@/lib/types';
 import { ExtendedAdminProduct } from '@/lib/admin-types';
@@ -101,7 +101,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
 
   const [images, setImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(mode === 'edit');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -370,25 +369,71 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     }
   }, [formData.slug, addToast]);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0 && files[0]) {
-      handleImageUpload(files[0]);
+  const handleMultipleImageUpload = useCallback(async (files: File[]) => {
+    // Validate all files first
+    const validation = validateMultipleImageFiles(files);
+    if (!validation.valid) {
+      addToast({
+        type: 'error',
+        title: 'Invalid files',
+        message: validation.errors.join('\n')
+      });
+      return;
     }
-  };
+
+    if (!getImageKitStatus().configured) {
+      addToast({
+        type: 'error',
+        title: 'ImageKit Not Configured',
+        message: 'ImageKit is not properly configured. Please check your environment variables.'
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const { results, errors } = await uploadMultipleImages(
+        files,
+        formData.slug || 'temp',
+        (progress) => {
+          // Optional: Could show progress toast here
+          console.log(`Uploading ${progress.completed}/${progress.total}: ${progress.current}`);
+        }
+      );
+
+      const successfulUrls: string[] = [];
+      for (const result of results) {
+        if (result.success && result.url) {
+          successfulUrls.push(result.url);
+        }
+      }
+
+      if (successfulUrls.length > 0) {
+        setImages(prev => [...prev, ...successfulUrls]);
+        addToast({
+          type: 'success',
+          title: 'Images uploaded',
+          message: `Successfully uploaded ${successfulUrls.length} of ${files.length} image(s)${errors.length > 0 ? `. ${errors.length} failed.` : ''}`
+        });
+      } else {
+        throw new Error('All uploads failed');
+      }
+
+      if (errors.length > 0) {
+        console.error('Upload errors:', errors);
+      }
+    } catch (error) {
+      console.error('Multiple image upload failed:', error);
+      addToast({
+        type: 'error',
+        title: 'Upload failed',
+        message: 'Failed to upload images. Please try again.'
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }, [formData.slug, addToast]);
+
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
@@ -878,19 +923,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         
         <div className="mb-4">
           <ImageSelector
-            onImageSelect={(url) => {
-              setImages(prev => [...prev, url]);
+            onImageSelect={(urls) => {
+              // Handle both single URL (string) and multiple URLs (array)
+              const urlsArray = Array.isArray(urls) ? urls : [urls];
+              setImages(prev => [...prev, ...urlsArray]);
               addToast({
                 type: 'success',
-                title: 'Image added',
-                message: 'Image added successfully!'
+                title: 'Image(s) added',
+                message: `Successfully added ${urlsArray.length} image(s)!`
               });
             }}
             productSlug={formData.slug || 'temp'}
-            buttonText="Add Image"
+            buttonText="Add Images"
+            multiple={true}
           />
           <p className="mt-2 text-sm text-gray-500">
-            Select from media gallery or upload from your computer
+            Select from media gallery or upload multiple images from your computer (up to 10 files)
           </p>
         </div>
 
