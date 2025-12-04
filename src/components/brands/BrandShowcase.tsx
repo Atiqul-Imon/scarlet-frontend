@@ -42,24 +42,44 @@ export default function BrandShowcase() {
     return categoryIcons[categoryName.toLowerCase()] || '🌟';
   };
 
-  // Check for cached categories first
+  // Optimized: Use homepage-specific cache key + show loading first to prevent flash
   React.useEffect(() => {
-    const cachedCategories = sessionStorage.getItem('cachedCategories');
-    if (cachedCategories) {
-      try {
-        const parsedCategories = JSON.parse(cachedCategories);
-        setCategories(parsedCategories);
-        setLoading(false);
-        // Fetch fresh data in background
-        fetchCategoriesInBackground();
-        return;
-      } catch (error) {
-        // Invalid cached data, continue with normal fetch
-        sessionStorage.removeItem('cachedCategories');
-      }
-    }
+    // Always show loading state first to prevent flash of cached data
+    setLoading(true);
     
-    fetchCategories();
+    // Check for homepage-specific cache (prevents cross-contamination with category page)
+    const cachedHomepageCategories = sessionStorage.getItem('cachedHomepageCategories');
+    
+    if (cachedHomepageCategories) {
+      try {
+        const parsedCategories = JSON.parse(cachedHomepageCategories);
+        // Use cached data after brief delay to prevent flash, but still use cache for optimization
+        // This ensures loading state is shown first, then cached data appears smoothly
+        const showCachedData = () => {
+          setCategories(parsedCategories);
+          setLoading(false);
+        };
+        
+        // Small delay to ensure loading state is visible first (prevents flash)
+        // But still fast enough for good UX
+        const timeoutId = setTimeout(showCachedData, 50);
+        
+        // Fetch fresh data in background (doesn't block UI)
+        fetchCategoriesInBackground();
+        
+        // Cleanup timeout if component unmounts
+        return () => clearTimeout(timeoutId);
+      } catch (error) {
+        // Invalid cached data, remove it and fetch fresh
+        sessionStorage.removeItem('cachedHomepageCategories');
+        fetchCategories();
+        return undefined;
+      }
+    } else {
+      // No cache available, fetch fresh data
+      fetchCategories();
+      return undefined;
+    }
   }, []);
 
   const fetchCategoriesInBackground = async () => {
@@ -76,11 +96,13 @@ export default function BrandShowcase() {
       // Limit to maximum 8 categories for homepage display
       const limitedCategories = topLevelCategories.slice(0, 8);
       
-      // Update cache and state
-      sessionStorage.setItem('cachedCategories', JSON.stringify(limitedCategories));
+      // Update homepage-specific cache and state
+      sessionStorage.setItem('cachedHomepageCategories', JSON.stringify(limitedCategories));
       setCategories(limitedCategories);
+      setLoading(false);
     } catch (error) {
       console.error('Background category fetch failed:', error);
+      // Don't update state on error - keep cached data if available
     }
   };
 
@@ -106,8 +128,8 @@ export default function BrandShowcase() {
       console.log('Showing categories:', limitedCategories.length);
       console.log('Category names:', limitedCategories.map(c => c.name));
       
-      // Cache the results
-      sessionStorage.setItem('cachedCategories', JSON.stringify(limitedCategories));
+      // Cache the results with homepage-specific key
+      sessionStorage.setItem('cachedHomepageCategories', JSON.stringify(limitedCategories));
       setCategories(limitedCategories);
     } catch (err) {
       console.error('Error fetching categories:', err);

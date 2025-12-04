@@ -2197,8 +2197,10 @@ const clearCategoryCaches = () => {
   }
 
   try {
+    // Clear all category-related caches to ensure fresh data after admin changes
     sessionStorage.removeItem('cachedCategories');
     sessionStorage.removeItem('cachedHeaderCategories');
+    sessionStorage.removeItem('cachedHomepageCategories'); // Homepage category showcase cache
   } catch (error) {
     console.warn('Failed to clear category cache storage', error);
   }

@@ -243,6 +243,7 @@ export default function AdminCategoriesPage() {
 
       sessionStorage.removeItem('cachedCategories');
       sessionStorage.removeItem('cachedHeaderCategories');
+      sessionStorage.removeItem('cachedHomepageCategories'); // Clear homepage cache too
 
       setMessage({ 
         type: 'success', 
@@ -294,6 +295,7 @@ export default function AdminCategoriesPage() {
       // Clear session storage cache to force refresh
       sessionStorage.removeItem('cachedCategories');
       sessionStorage.removeItem('cachedHeaderCategories');
+      sessionStorage.removeItem('cachedHomepageCategories'); // Clear homepage cache too
     } catch (error) {
       console.error('Error updating category order:', error);
       setMessage({ type: 'error', text: 'Failed to update category order' });
@@ -328,6 +330,7 @@ export default function AdminCategoriesPage() {
 
       sessionStorage.removeItem('cachedCategories');
       sessionStorage.removeItem('cachedHeaderCategories');
+      sessionStorage.removeItem('cachedHomepageCategories'); // Clear homepage cache too
       
       setMessage({ type: 'success', text: 'Category deleted successfully' });
       setTimeout(() => setMessage(null), 3000);
