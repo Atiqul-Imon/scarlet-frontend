@@ -12,6 +12,7 @@ import { useToast } from '@/lib/context';
 import { adminApi, categoryApi } from '@/lib/api';
 import type { Category, CategoryTree as CategoryTreeType } from '@/lib/types';
 import ImageSelector from '@/components/admin/ImageSelector';
+import logger from '@/lib/logger';
 
 const categoryIcons = [
   '💇‍♀️', '🧪', '💧', '🧼', '🌊', '✨', '☀️', '💄', '🌿', 
@@ -43,14 +44,7 @@ export default function EditCategoryPage() {
 
   const categoryId = params['id'] as string;
 
-  useEffect(() => {
-    if (categoryId) {
-      loadCategory();
-      loadHierarchy();
-    }
-  }, [categoryId]);
-
-  const loadCategory = async () => {
+  const loadCategory = useCallback(async () => {
     try {
       setLoading(true);
       const categoryData = await adminApi.categories.getCategory(categoryId);
@@ -91,7 +85,7 @@ export default function EditCategoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast, categoryId]);
 
   const buildHierarchyFromFlatData = (categories: Category[]): CategoryTreeType[] => {
     const categoryMap = new Map<string, CategoryTreeType>();
@@ -126,7 +120,7 @@ export default function EditCategoryPage() {
     return rootCategories;
   };
 
-  const loadHierarchy = async () => {
+  const loadHierarchy = useCallback(async () => {
     try {
       setLoadingHierarchy(true);
       
@@ -144,7 +138,7 @@ export default function EditCategoryPage() {
       const hasHierarchy = hierarchyData.some(cat => cat.children && cat.children.length > 0);
       
       if (!hasHierarchy && categoriesData.length > 0) {
-        console.log('Tree API returned flat data, building hierarchy from flat data');
+        logger.info('Tree API returned flat data, building hierarchy from flat data');
         processedTreeData = buildHierarchyFromFlatData(categoriesData);
       }
       
@@ -159,7 +153,14 @@ export default function EditCategoryPage() {
     } finally {
       setLoadingHierarchy(false);
     }
-  };
+  }, [addToast]);
+
+  useEffect(() => {
+    if (categoryId) {
+      loadCategory();
+      loadHierarchy();
+    }
+  }, [categoryId, loadCategory, loadHierarchy]);
 
   const generateSlug = (name: string) => {
     return name

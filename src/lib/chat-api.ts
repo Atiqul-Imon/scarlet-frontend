@@ -1,4 +1,5 @@
 import { fetchJson, fetchJsonAuth } from './api';
+import logger from './logger';
 import type { 
   ChatConversation, 
   ChatMessage, 
@@ -36,11 +37,11 @@ export const chatApi = {
   },
 
   async getActiveConversations(): Promise<ChatConversation[]> {
-    console.log('Chat API: Getting user conversations...');
+    logger.info('Chat API: Getting user conversations...');
     try {
       // Use the user-specific endpoint instead of admin endpoint
       const result = await fetchJsonAuth<ChatConversation[]>('/chat/conversations');
-      console.log('Chat API: Got conversations:', result);
+      logger.info('Chat API: Got conversations', { count: result.length });
       return result;
     } catch (error) {
       console.error('Chat API: Failed to get conversations:', error);

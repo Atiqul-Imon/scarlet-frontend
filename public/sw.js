@@ -34,16 +34,12 @@ const STATIC_API_PATTERNS = [
 
 // Install event - cache static files
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
-  
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('Caching static files...');
         return cache.addAll(STATIC_FILES);
       })
       .then(() => {
-        console.log('Static files cached successfully');
         return self.skipWaiting();
       })
       .catch((error) => {
@@ -54,24 +50,18 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
-  
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-              console.log('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
-      .then(() => {
-        console.log('Service Worker activated');
-        return self.clients.claim();
-      })
+      .then(() => self.clients.claim())
   );
 });
 
@@ -103,7 +93,6 @@ async function handleRequest(request) {
     if (url.pathname.startsWith('/api/')) {
       // Check if it's dynamic content - never cache
       if (isDynamicApiRequest(request)) {
-        console.log('Dynamic API request - no caching:', url.pathname);
         return await fetch(request);  // Always fetch fresh
       }
       

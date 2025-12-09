@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { creditApi } from '@/lib/api';
 import type { CreditWallet, CreditTransaction, ReferralStats } from '@/lib/types';
 import { useToast } from '@/lib/context';
@@ -18,11 +18,7 @@ export default function CreditsPage() {
   const [hasMore, setHasMore] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
         const [walletData, codeData, statsData, transactionsData] = await Promise.all([
@@ -48,7 +44,11 @@ export default function CreditsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const loadMoreTransactions = async () => {
     if (!nextCursor || transactionsLoading) return;

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/context';
 import { adminApi, categoryApi } from '@/lib/api';
+import logger from '@/lib/logger';
 import { uploadImage, uploadMultipleImages, validateImageFile, validateMultipleImageFiles } from '@/lib/image-upload';
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { Category } from '@/lib/types';
@@ -397,7 +398,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         formData.slug || 'temp',
         (progress) => {
           // Optional: Could show progress toast here
-          console.log(`Uploading ${progress.completed}/${progress.total}: ${progress.current}`);
+          logger.info('Uploading images', {
+            completed: progress.completed,
+            total: progress.total,
+            current: progress.current,
+          });
         }
       );
 

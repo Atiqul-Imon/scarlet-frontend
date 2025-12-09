@@ -9,6 +9,7 @@ import ProductSort from '../../components/products/ProductSort';
 import { fetchJson } from '../../lib/api';
 import { Product, Category } from '../../lib/types';
 import { useCart, useToast, useAuth } from '../../lib/context';
+import logger from '../../lib/logger';
 
 // Category icon mapping
 const categoryIcons: Record<string, string> = {
@@ -281,7 +282,7 @@ function ProductsPageContent() {
           }
           
           const queryParams = params.toString();
-          console.log('🔍 Fetching products with params:', {
+          logger.info('Fetching products with params', {
             currentCategory,
             queryParams,
             fullUrl: `/catalog/products?${queryParams}`,
@@ -290,7 +291,7 @@ function ProductsPageContent() {
             categoryFound: currentCategory ? categoriesData.find(cat => cat.slug === currentCategory || cat.name.toLowerCase() === currentCategory?.toLowerCase()) : null
           });
           const productsData = await fetchJson<Product[]>(`/catalog/products?${queryParams}`);
-          console.log('✅ Products fetched:', productsData.length, 'products');
+          logger.info('Products fetched', { count: productsData.length });
           setProducts(productsData);
           setHasMore(productsData.length === 20);
         }
@@ -410,7 +411,7 @@ function ProductsPageContent() {
         }
         
         const queryParams = params.toString();
-        console.log('🔍 Filter changed - Fetching products with params:', {
+        logger.info('Filter changed - fetching products', {
           currentFilter,
           queryParams,
           fullUrl: `/catalog/products?${queryParams}`,
@@ -421,7 +422,7 @@ function ProductsPageContent() {
         });
         fetchJson<Product[]>(`/catalog/products?${queryParams}`)
           .then(productsData => {
-            console.log('✅ Products fetched after filter change:', productsData.length, 'products');
+            logger.info('Products fetched after filter change', { count: productsData.length });
             setProducts(productsData);
             setHasMore(productsData.length === 20);
             setCurrentPage(1);

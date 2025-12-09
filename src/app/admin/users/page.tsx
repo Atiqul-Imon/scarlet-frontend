@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   UserGroupIcon,
   TrashIcon,
@@ -24,6 +24,7 @@ import { AdminDataTable, type Column } from '@/components/admin/AdminDataTable';
 import { adminApi } from '@/lib/api';
 import type { AdminUser, AdminUserFilters } from '@/lib/admin-types';
 import { useToast } from '@/lib/context';
+import logger from '@/lib/logger';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -44,7 +45,7 @@ export default function AdminUsersPage() {
 
   const itemsPerPage = 20;
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await adminApi.users.getUsers({
@@ -53,14 +54,14 @@ export default function AdminUsersPage() {
         limit: itemsPerPage
       });
       
-      console.log('🔍 Users API Response:', response);
+      logger.info('Users API response', { page: currentPage, limit: itemsPerPage });
       
       // Handle different response structures
       const usersData = response.data || (response as any).users || (response as any) || [];
       const totalPages = response.totalPages || (response as any).pages || 1;
       const totalItems = response.total || (response as any).count || usersData.length;
       
-      console.log('📊 Processed Data:', { usersData, totalPages, totalItems });
+      logger.info('Processed user data', { totalPages, totalItems, count: usersData.length });
       
       setUsers(Array.isArray(usersData) ? usersData : []);
       setTotalPages(totalPages);
@@ -75,11 +76,11 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addToast, currentPage, filters]);
 
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, filters]);
+  }, [fetchUsers]);
 
   const handleSearch = (query: string) => {
     setFilters({ ...filters, search: query });

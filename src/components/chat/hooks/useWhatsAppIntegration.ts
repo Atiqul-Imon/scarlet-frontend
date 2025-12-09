@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { ChatLanguage } from '../types';
 import { whatsappService, WhatsAppMessageOptions } from '../utils/whatsappUtils';
+import logger from '@/lib/logger';
 
 export interface UseWhatsAppIntegrationOptions {
   defaultLanguage?: ChatLanguage;
@@ -40,7 +41,7 @@ export function useWhatsAppIntegration(options: UseWhatsAppIntegrationOptions = 
         };
         
         // Send to your analytics service
-        console.log('WhatsApp Analytics:', eventData);
+        logger.info('WhatsApp Analytics', eventData);
       }
       
     } catch (error) {

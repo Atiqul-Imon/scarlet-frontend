@@ -202,6 +202,7 @@ export default function Hero() {
                       alt={slide.title}
                       width={768}
                       height={400}
+                      style={{ width: 'auto', height: 'auto' }}
                       priority={index === 0}
                       className="max-w-full max-h-full object-contain rounded-xl"
                       sizes="(min-width: 768px) and (max-width: 1023px) 768px"

@@ -16,6 +16,7 @@ import {
   ClockIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
+import logger from '@/lib/logger';
 
 export default function EnhancedNewBlogPostPage() {
   const router = useRouter();
@@ -82,7 +83,7 @@ export default function EnhancedNewBlogPostPage() {
         
         // For now, we'll just log the auto-save
         // In a real implementation, you'd save to a drafts API
-        console.log('Auto-saving draft:', draftData);
+        logger.info('Auto-saving draft', { hasTitle: !!draftData.title });
         setLastSaved(new Date());
         setHasUnsavedChanges(false);
       } catch (error) {

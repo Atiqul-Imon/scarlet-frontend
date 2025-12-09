@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from 'react';
+import logger from '@/lib/logger';
 
 // Hook for debouncing values
 export function useDebounce<T>(value: T, delay: number): T {
@@ -84,9 +85,7 @@ export function usePerformanceMonitor(componentName: string) {
     return () => {
       const renderTime = performance.now() - renderStart.current;
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`${componentName} render #${renderCount.current}: ${renderTime.toFixed(2)}ms`);
-      }
+      logger.info('Component render timing', { component: componentName, render: renderCount.current, ms: Number(renderTime.toFixed(2)) });
     };
   });
 

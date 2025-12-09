@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 
 const BACKEND_URL = process.env['BACKEND_URL'] || 'http://localhost:4000';
 
@@ -14,7 +15,7 @@ export async function GET(
     // Construct the backend URL
     const backendUrl = `${BACKEND_URL}/api/blog/${path}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     
-    console.log('Blog API Proxy - GET:', backendUrl);
+    logger.info('Blog API Proxy - GET', { url: backendUrl });
     
     const response = await fetch(backendUrl, {
       method: 'GET',
@@ -62,7 +63,7 @@ export async function POST(
     // Construct the backend URL
     const backendUrl = `${BACKEND_URL}/api/blog/${path}`;
     
-    console.log('Blog API Proxy - POST:', backendUrl);
+    logger.info('Blog API Proxy - POST', { url: backendUrl });
     
     const response = await fetch(backendUrl, {
       method: 'POST',
@@ -112,7 +113,7 @@ export async function PUT(
     // Construct the backend URL
     const backendUrl = `${BACKEND_URL}/api/blog/${path}`;
     
-    console.log('Blog API Proxy - PUT:', backendUrl);
+    logger.info('Blog API Proxy - PUT', { url: backendUrl });
     
     const response = await fetch(backendUrl, {
       method: 'PUT',
@@ -161,7 +162,7 @@ export async function DELETE(
     // Construct the backend URL
     const backendUrl = `${BACKEND_URL}/api/blog/${path}`;
     
-    console.log('Blog API Proxy - DELETE:', backendUrl);
+    logger.info('Blog API Proxy - DELETE', { url: backendUrl });
     
     const response = await fetch(backendUrl, {
       method: 'DELETE',

@@ -10,6 +10,7 @@ import { useCart, useToast, useAuth } from '../../lib/context';
 import { useForm } from '../../lib/hooks';
 import { productApi, creditApi } from '../../lib/api';
 import type { CreditRedemptionValidation } from '../../lib/types';
+import logger from '../../lib/logger';
 import { 
   bangladeshDivisions, 
   getDivisionById, 
@@ -80,9 +81,7 @@ export default function CheckoutPage() {
   // Helper function to handle SSLCommerz payment flow
   const handleSSLCommerzPayment = async () => {
     try {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Initiating SSLCommerz payment...');
-      }
+      logger.info('Initiating SSLCommerz payment...');
       
       // Import the payment API
       const { paymentApi } = await import('../../lib/api');
@@ -746,9 +745,7 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Form submission started', { values, errors, isValid });
-    }
+    logger.info('Form submission started', { values, errors, isValid });
     
     if (!isValid) {
       addToast({
@@ -761,9 +758,7 @@ export default function CheckoutPage() {
 
     // Prevent double submission
     if (submitting) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Order submission already in progress, ignoring duplicate request');
-      }
+      logger.warn('Order submission already in progress - ignoring duplicate request');
       return;
     }
 
@@ -921,9 +916,7 @@ export default function CheckoutPage() {
       if (Object.keys(fieldErrors).length > 0) {
         Object.entries(fieldErrors).forEach(([field, message]) => {
           // Set field error if the form supports it
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`Setting error for field ${field}: ${message}`);
-          }
+          logger.info('Setting field error', { field, message });
         });
       }
       

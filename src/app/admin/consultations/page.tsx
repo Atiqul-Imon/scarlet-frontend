@@ -10,6 +10,7 @@ import {
 import { adminApi } from '@/lib/api';
 import { useAuth } from '@/lib/context';
 import Image from 'next/image';
+import logger from '@/lib/logger';
 
 interface Consultation {
   _id: string;
@@ -90,7 +91,7 @@ export default function AdminConsultationsPage() {
         page: 1,
         limit: 100
       });
-      console.log('Loaded consultations:', response.data);
+      logger.info('Loaded consultations', { count: response.data?.length || 0 });
       setConsultations(response.data || []);
     } catch (error) {
       console.error('Failed to load consultations:', error);
@@ -454,7 +455,7 @@ export default function AdminConsultationsPage() {
                                   target.onerror = null;
                                 }}
                                 onLoad={() => {
-                                  console.log('Image loaded successfully:', imageUrl);
+                                  logger.info('Consultation image loaded', { src: imageUrl });
                                 }}
                               />
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">

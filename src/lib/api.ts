@@ -172,6 +172,16 @@ export const API_BASE = process.env['NEXT_PUBLIC_API_URL']
   ? `${process.env['NEXT_PUBLIC_API_URL']}/api`
   : process.env['NEXT_PUBLIC_API_BASE'] || '/api/proxy';
 
+const isDevLogging = process.env.NODE_ENV !== 'production';
+
+/* eslint-disable no-console */
+const devLog = (...args: unknown[]) => {
+  if (isDevLogging) {
+    console.log(...args);
+  }
+};
+/* eslint-enable no-console */
+
 // Unified API configuration - works for all devices
 export const API_CONFIG = {
   baseURL: API_BASE,
@@ -288,7 +298,7 @@ export async function retryWithBackoff<T>(
       
       // Calculate delay with exponential backoff
       const delay = initialDelay * Math.pow(backoffMultiplier, attempt);
-      console.log(`⚠️ Request failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms...`);
+      devLog(`⚠️ Request failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms...`);
       
       await new Promise(resolve => setTimeout(resolve, delay));
     }
@@ -304,9 +314,9 @@ export async function fetchJson<T = unknown>(
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
   
-  // Debug logging for chat API calls
-  if (path.includes('/chat/')) {
-    console.log('Fetch Debug:', {
+  // Debug logging for chat API calls (dev only)
+  if (isDevLogging && path.includes('/chat/')) {
+    devLog('Fetch Debug:', {
       path,
       url,
       API_BASE,
@@ -328,7 +338,9 @@ export async function fetchJson<T = unknown>(
   });
 
   try {
-    console.log(`🌐 API Call: ${config.method || 'GET'} ${url}`);
+    if (isDevLogging) {
+      devLog(`🌐 API Call: ${config.method || 'GET'} ${url}`);
+    }
     
     const response = await fetch(url, config);
     const body: ApiResponse<T> = await response.json();
@@ -357,7 +369,9 @@ export async function fetchJson<T = unknown>(
       );
     }
 
-    console.log(`✅ API Success: ${config.method || 'GET'} ${url}`);
+    if (isDevLogging) {
+      devLog(`✅ API Success: ${config.method || 'GET'} ${url}`);
+    }
     return body.data as T;
   } catch (error) {
     if (error instanceof ApiError) {
@@ -405,12 +419,16 @@ function isTokenExpired(token: string): boolean {
 async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) {
-    console.log('❌ No refresh token available');
+    if (isDevLogging) {
+      devLog('❌ No refresh token available');
+    }
     return null;
   }
 
   try {
-    console.log('🔄 Attempting to refresh access token...');
+    if (isDevLogging) {
+      devLog('🔄 Attempting to refresh access token...');
+    }
     const response = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
       headers: {
@@ -420,14 +438,20 @@ async function refreshAccessToken(): Promise<string | null> {
     });
 
     if (!response.ok) {
-      console.log('❌ Token refresh failed:', response.status, response.statusText);
+      if (isDevLogging) {
+        devLog('❌ Token refresh failed:', response.status, response.statusText);
+      }
       
       // Try to get error details
       try {
         const errorData = await response.json();
-        console.log('❌ Error details:', errorData);
+        if (isDevLogging) {
+          devLog('❌ Error details:', errorData);
+        }
       } catch (e) {
-        console.log('❌ Could not parse error response');
+        if (isDevLogging) {
+          devLog('❌ Could not parse error response');
+        }
       }
       
       // Clear invalid tokens
@@ -449,7 +473,9 @@ async function refreshAccessToken(): Promise<string | null> {
         localStorage.setItem('refreshToken', newRefreshToken);
       }
       
-      console.log('✅ Access token refreshed successfully');
+      if (isDevLogging) {
+        devLog('✅ Access token refreshed successfully');
+      }
       return accessToken;
     }
     
@@ -470,17 +496,19 @@ export async function fetchJsonAuth<T = unknown>(
 ): Promise<T> {
   let token = localStorage.getItem('accessToken');
   
-  console.log('🔐 Auth Debug:', {
-    hasToken: !!token,
-    tokenLength: token?.length,
-    tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token',
-    path,
-    method: init?.method || 'GET'
-  });
+  if (isDevLogging) {
+    devLog('🔐 Auth Debug:', {
+      hasToken: !!token,
+      path,
+      method: init?.method || 'GET'
+    });
+  }
   
   // Check if token is expired and refresh proactively
   if (token && apiUtils.isTokenExpired(token)) {
-    console.log('⏰ Token is expired, refreshing proactively...');
+    if (isDevLogging) {
+      devLog('⏰ Token is expired, refreshing proactively...');
+    }
     const newToken = await refreshAccessToken();
     if (newToken) {
       token = newToken;
@@ -504,11 +532,15 @@ export async function fetchJsonAuth<T = unknown>(
   } catch (error: unknown) {
     // If we get a 401 and have a refresh token, try to refresh
     if (error instanceof ApiError && error.status === 401 && localStorage.getItem('refreshToken')) {
-      console.log('🔄 Got 401, attempting token refresh...');
+      if (isDevLogging) {
+        devLog('🔄 Got 401, attempting token refresh...');
+      }
       
       const newToken = await refreshAccessToken();
       if (newToken) {
-        console.log('🔄 Retrying request with new token...');
+        if (isDevLogging) {
+          devLog('🔄 Retrying request with new token...');
+        }
         // Retry the original request with the new token
         return await fetchJson<T>(path, {
           ...init,
@@ -2083,7 +2115,9 @@ export function startTokenRefreshScheduler(): void {
   tokenRefreshInterval = setInterval(async () => {
     const token = localStorage.getItem('accessToken');
     if (token && isTokenExpired(token)) {
-      console.log('🔄 Proactive token refresh triggered');
+      if (isDevLogging) {
+        devLog('🔄 Proactive token refresh triggered');
+      }
       await refreshAccessToken();
     }
   }, 10 * 60 * 1000); // 10 minutes

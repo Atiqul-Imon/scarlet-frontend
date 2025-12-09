@@ -15,6 +15,7 @@ import {
   Globe
 } from 'lucide-react';
 import type { ChatConversation } from '@/lib/chat-types';
+import logger from '@/lib/logger';
 
 interface AdminChatDashboardProps {
   adminId: string;
@@ -54,7 +55,7 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
 
   // Load conversations directly from API (admin is already authenticated via admin panel)
   useEffect(() => {
-    console.log('🔧 Admin Chat Debug:', {
+    logger.info('Admin Chat Debug', {
       isAuthenticated,
       adminId,
       adminName,
@@ -64,14 +65,13 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
     
     // Load conversations immediately since admin is already authenticated via admin panel
     if (adminId) {
-      console.log('📡 Loading conversations for admin:', adminId);
+      logger.info('Loading conversations for admin', { adminId });
       setIsLoadingConversations(true);
       
       chatApi.getActiveConversations()
         .then(convos => {
-          console.log('✅ Loaded conversations:', {
-            count: convos?.length || 0,
-            conversations: convos
+          logger.info('Loaded conversations', {
+            count: convos?.length || 0
           });
           setLocalConversations(convos || []);
         })
@@ -85,13 +85,13 @@ export default function AdminChatDashboard({ adminId, adminName }: AdminChatDash
         })
         .finally(() => {
           setIsLoadingConversations(false);
-          console.log('🏁 Finished loading conversations');
+          logger.info('Finished loading conversations');
         });
     }
   }, [adminId]);
 
   const handleSelectConversation = (conversation: ChatConversation) => {
-    console.log('👤 Admin selecting conversation:', conversation._id);
+    logger.info('Admin selecting conversation', { id: conversation._id });
     setSelectedConversation(conversation);
     
     // Ensure admin joins the conversation room

@@ -8,6 +8,7 @@ import { useToast } from '../../../lib/context';
 import { useCart } from '../../../lib/context';
 import OrderReceipt from '../../../components/orders/OrderReceipt';
 import { generateReceiptPDF, generateDetailedReceiptPDF, generateSimpleReceiptPDF } from '../../../lib/receipt-generator';
+import logger from '../../../lib/logger';
 
 type ReceiptData = Parameters<typeof generateReceiptPDF>[1];
 
@@ -62,7 +63,7 @@ function OrderSuccessPageContent() {
       const clearCartOnOrderSuccess = async () => {
         try {
           await clearCart();
-          console.log('✅ Cart cleared on order success page');
+          logger.info('Cart cleared on order success page');
           setCartCleared(true);
           
           // Clear any pending order data
@@ -100,7 +101,7 @@ function OrderSuccessPageContent() {
         }
         
         const order = orderData.data;
-        console.log('Order data from API:', order);
+        logger.info('Order data from API', { id: order?._id });
         
         // Transform API data to match component interface
         const orderDetails: OrderDetails = {

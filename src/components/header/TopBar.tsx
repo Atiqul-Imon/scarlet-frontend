@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useAuth, useCart, useWishlist, useToast } from '@/lib/context';
 import InstantSearch from '../search/InstantSearch';
+import logger from '@/lib/logger';
 
 export default function TopBar() {
   const router = useRouter();
@@ -94,7 +95,7 @@ export default function TopBar() {
               <button
                 onClick={() => {
                   // Mobile search functionality can be added here if needed
-                  console.log('Mobile search clicked');
+                  logger.info('Mobile search clicked');
                 }}
                 className="hover:text-red-700 inline-flex items-center justify-center transition-colors p-2 min-w-[32px] min-h-[32px]"
                 aria-label="Search"

@@ -20,6 +20,7 @@ import { useToast } from '@/lib/context';
 import type { AdminProduct } from '@/lib/admin-types';
 import AdminPageWrapper, { useAdminPageState } from '../../../components/admin/AdminPageWrapper';
 import EmptyState, { EmptyProductsState } from '../../../components/admin/EmptyState';
+import logger from '@/lib/logger';
 
 interface ProductFilters {
   search: string;
@@ -99,7 +100,7 @@ export default function ProductsPage() {
       if (filters.priceRange[0] > 0) queryFilters.priceMin = filters.priceRange[0];
       if (filters.priceRange[1] < 10000) queryFilters.priceMax = filters.priceRange[1];
 
-      console.log('🔍 Fetching products with filters:', queryFilters);
+      logger.info('Fetching admin products with filters', queryFilters);
       const response = await adminApi.products.getProducts(queryFilters);
       
       if (response) {
@@ -173,7 +174,7 @@ export default function ProductsPage() {
       // Update each product individually (could be optimized with bulk update endpoint)
       for (const productId of selectedProducts) {
         // Note: We'll need to implement status update endpoint in backend
-        console.log(`Updating product ${productId} status to ${status}`);
+        logger.info('Updating product status', { productId, status });
       }
       
       // Refresh the product list  

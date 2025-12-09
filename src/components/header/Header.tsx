@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TopStrip from './TopStrip';
 import TopBar from './TopBar';
 import { MegaMenu } from './MegaMenu';
@@ -8,6 +8,7 @@ import MobileNavigation from './mobile/MobileNavigation';
 import type { MegaItem } from './MegaMenu';
 import { categoryApi } from '../../lib/api';
 import type { Category, CategoryTree } from '../../lib/types';
+import logger from '../../lib/logger';
 
 // Transform API categories to MegaMenu format - Only parent and child categories (no grandchildren)
 const transformCategoriesToMegaItems = (categories: Category[]): MegaItem[] => {
@@ -76,6 +77,67 @@ export default function Header() {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
+  const fetchCategoriesInBackground = useCallback(async () => {
+    try {
+      const categories = await categoryApi.getCategories();
+      const transformedCategories = transformCategoriesToMegaItems(categories);
+      const tree = buildCategoryTree(categories);
+      
+      // Update cache and state
+      sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
+      setCategoryItems(transformedCategories);
+      setCategoryTree(tree);
+    } catch (error) {
+      console.error('Background category fetch failed:', error);
+    }
+  }, []);
+
+  // Fetch categories from API with retry logic
+  const fetchCategories = useCallback(async (retryCount = 0) => {
+    const maxRetries = 2;
+    
+    try {
+      setIsLoadingCategories(true);
+      setCategoriesError(null);
+      
+      logger.info('Fetching categories from API', { attempt: retryCount + 1 });
+      const categories = await categoryApi.getCategories();
+      logger.info('Categories fetched successfully', { count: categories.length });
+      
+      const transformedCategories = transformCategoriesToMegaItems(categories);
+      const tree = buildCategoryTree(categories);
+      
+      // Cache the results
+      sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
+      setCategoryItems(transformedCategories);
+      setCategoryTree(tree);
+    } catch (error) {
+      console.error(`❌ Failed to fetch categories (attempt ${retryCount + 1}):`, error);
+      
+      // Retry logic for network errors
+      if (retryCount < maxRetries && error instanceof Error && error.message.includes('Network error')) {
+        logger.info('Retrying category fetch', { nextAttemptInMs: 1000, attempt: retryCount + 1, maxRetries });
+        setTimeout(() => fetchCategories(retryCount + 1), 1000);
+        return;
+      }
+      
+      setCategoriesError('Failed to load categories');
+      
+      // Fallback to mock categories for development
+      const mockCategories = [
+        { label: 'Skincare', href: '/products?category=skincare', icon: '🧴' },
+        { label: 'Makeup', href: '/products?category=makeup', icon: '💄' },
+        { label: 'Hair Care', href: '/products?category=hair', icon: '💇‍♀️' },
+        { label: 'Body Care', href: '/products?category=body-care', icon: '🧴' },
+      ];
+      
+      logger.warn('Using mock categories as fallback', { count: mockCategories.length });
+      setCategoryItems(mockCategories);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  }, []);
+
   // Check for cached categories first
   useEffect(() => {
     const cachedCategories = sessionStorage.getItem('cachedHeaderCategories');
@@ -94,68 +156,7 @@ export default function Header() {
     }
     
     fetchCategories();
-  }, []);
-
-  const fetchCategoriesInBackground = async () => {
-    try {
-      const categories = await categoryApi.getCategories();
-      const transformedCategories = transformCategoriesToMegaItems(categories);
-      const tree = buildCategoryTree(categories);
-      
-      // Update cache and state
-      sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
-      setCategoryItems(transformedCategories);
-      setCategoryTree(tree);
-    } catch (error) {
-      console.error('Background category fetch failed:', error);
-    }
-  };
-
-  // Fetch categories from API with retry logic
-  const fetchCategories = async (retryCount = 0) => {
-    const maxRetries = 2;
-    
-    try {
-      setIsLoadingCategories(true);
-      setCategoriesError(null);
-      
-      console.log(`🔄 Fetching categories from API... (attempt ${retryCount + 1})`);
-      const categories = await categoryApi.getCategories();
-      console.log('✅ Categories fetched successfully:', categories);
-      
-      const transformedCategories = transformCategoriesToMegaItems(categories);
-      const tree = buildCategoryTree(categories);
-      
-      // Cache the results
-      sessionStorage.setItem('cachedHeaderCategories', JSON.stringify(transformedCategories));
-      setCategoryItems(transformedCategories);
-      setCategoryTree(tree);
-    } catch (error) {
-      console.error(`❌ Failed to fetch categories (attempt ${retryCount + 1}):`, error);
-      
-      // Retry logic for network errors
-      if (retryCount < maxRetries && error instanceof Error && error.message.includes('Network error')) {
-        console.log(`🔄 Retrying in 1 second... (${retryCount + 1}/${maxRetries})`);
-        setTimeout(() => fetchCategories(retryCount + 1), 1000);
-        return;
-      }
-      
-      setCategoriesError('Failed to load categories');
-      
-      // Fallback to mock categories for development
-      const mockCategories = [
-        { label: 'Skincare', href: '/products?category=skincare', icon: '🧴' },
-        { label: 'Makeup', href: '/products?category=makeup', icon: '💄' },
-        { label: 'Hair Care', href: '/products?category=hair', icon: '💇‍♀️' },
-        { label: 'Body Care', href: '/products?category=body-care', icon: '🧴' },
-      ];
-      
-      console.log('🔄 Using mock categories as fallback:', mockCategories);
-      setCategoryItems(mockCategories);
-    } finally {
-      setIsLoadingCategories(false);
-    }
-  };
+  }, [fetchCategories, fetchCategoriesInBackground]);
 
   const handleMobileMenuClose = () => {
     setIsMobileMenuOpen(false);

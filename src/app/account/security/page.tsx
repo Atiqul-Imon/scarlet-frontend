@@ -8,6 +8,7 @@ import { Input } from '../../../components/ui/input';
 import { useForm } from '../../../lib/hooks';
 import { validators, formatters } from '../../../lib/utils';
 import { authApi, SecuritySession } from '../../../lib/api';
+import logger from '../../../lib/logger';
 
 interface PasswordChangeFormData {
   currentPassword: string;
@@ -97,7 +98,7 @@ export default function SecurityPage(): React.JSX.Element {
   const handlePasswordSubmit = async (values: PasswordChangeFormData) => {
     try {
       // TODO: Implement actual password change API call
-      console.log('Changing password:', values);
+      logger.info('Password change submitted');
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));

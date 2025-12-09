@@ -1,5 +1,6 @@
 import { ChatLanguage } from '../types';
 import { chatConfig, messengerTemplates } from '../config/chatConfig';
+import logger from '@/lib/logger';
 
 export interface MessengerMessageOptions {
   language: ChatLanguage;
@@ -70,7 +71,7 @@ export class MessengerService {
             }
             
             this.isSDKLoaded = true;
-            console.log('Facebook SDK initialized successfully');
+            logger.info('Facebook SDK initialized successfully');
             resolve();
           } catch (error) {
             console.error('Error initializing Facebook SDK:', error);
@@ -88,7 +89,7 @@ export class MessengerService {
           script.crossOrigin = 'anonymous';
           
           script.onload = () => {
-            console.log('Facebook SDK loaded successfully');
+            logger.info('Facebook SDK loaded successfully');
             // Initialize after script loads
             if (window.fbAsyncInit) {
               window.fbAsyncInit();
@@ -247,7 +248,7 @@ export class MessengerService {
       const locale = language === 'bn' ? 'bn_BD' : 'en_US';
       chatDiv.setAttribute('locale', locale);
 
-      console.log('Customer Chat configured for language:', language);
+      logger.info('Customer Chat configured for language', { language });
     } catch (error) {
       console.error('Error configuring Customer Chat:', error);
     }
@@ -278,10 +279,10 @@ export class MessengerService {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(contextData)
-        }).catch(err => console.log('Context tracking failed:', err));
+        }).catch(err => logger.warn('Context tracking failed', err));
       }
     } catch (error) {
-      console.log('Failed to send context:', error);
+      logger.warn('Failed to send context', error);
     }
   }
 
@@ -322,9 +323,9 @@ export class MessengerService {
             },
             timestamp: new Date().toISOString()
           })
-        }).catch(err => console.log('Analytics tracking failed:', err));
+        }).catch(err => logger.warn('Analytics tracking failed', err));
       } catch (error) {
-        console.log('Analytics tracking error:', error);
+        logger.error('Analytics tracking error', error);
       }
     }
   }

@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useChat } from '@/lib/chat-context';
 import { useAuth } from '@/lib/context';
 import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
+import logger from '@/lib/logger';
 
 interface ChatWidgetProps {
   userId?: string;
@@ -81,17 +82,17 @@ export default function ChatWidget({
         const { chatApi } = await import('@/lib/chat-api');
         
         // First check if customer already has an active conversation
-        console.log('🔍 Checking for existing conversation for customer:', currentUserId);
+        logger.info('Checking for existing conversation', { userId: currentUserId });
         const existingConversation = await chatApi.getConversationByCustomer(currentUserId);
         
         if (existingConversation) {
-          console.log('✅ Found existing conversation:', existingConversation._id);
+          logger.info('Found existing conversation', { id: existingConversation._id });
           joinConversation(existingConversation._id);
           return;
         }
         
         // No existing conversation, create new one
-        console.log('🆕 Creating new conversation for customer:', currentUserId);
+        logger.info('Creating new conversation for customer', { userId: currentUserId });
         const conversation = await chatApi.startConversation(currentUserId, {
           ...currentUserInfo,
           currentPage: window.location.pathname,
@@ -99,7 +100,7 @@ export default function ChatWidget({
         });
         
         if (conversation) {
-          console.log('✅ Conversation created, joining:', conversation._id);
+          logger.info('Conversation created, joining', { id: conversation._id });
           joinConversation(conversation._id);
         }
       } catch (error) {

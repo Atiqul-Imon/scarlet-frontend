@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../../../lib/context';
+import logger from '../../../lib/logger';
 
 interface PaymentSuccessData {
   tran_id?: string;
@@ -47,7 +48,7 @@ function PaymentSuccessContent() {
       const clearCartOnSuccess = async () => {
         try {
           await clearCart();
-          console.log('✅ Cart cleared after successful payment');
+          logger.info('Cart cleared after successful payment');
           setCartCleared(true);
           
           // Also clear any pending order ID from session storage

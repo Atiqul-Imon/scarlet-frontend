@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { brandApi } from '../../lib/api';
 import type { Brand, BrandStats } from '../../lib/types';
+import logger from '../../lib/logger';
 
 export default function BrandsPage() {
   const [brands, setBrands] = React.useState<Brand[]>([]);
@@ -27,8 +28,8 @@ export default function BrandsPage() {
           brandApi.getBrandStats()
         ]);
         
-        console.log('Brands fetched:', brandsData);
-        console.log('Stats fetched:', statsData);
+        logger.info('Brands fetched', { count: brandsData.length });
+        logger.info('Brand stats fetched', { categories: statsData.categories?.length || 0 });
         
         setBrands(brandsData);
         setStats(statsData);

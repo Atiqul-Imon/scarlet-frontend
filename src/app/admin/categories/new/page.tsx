@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -11,6 +11,7 @@ import { useToast } from '@/lib/context';
 import { categoryApi } from '@/lib/api';
 import { CategoryTree as CategoryTreeType, Category } from '@/lib/types';
 import ImageSelector from '@/components/admin/ImageSelector';
+import logger from '@/lib/logger';
 
 const categoryIcons = [
   '💇‍♀️', '🧪', '💧', '🧼', '🌊', '✨', '☀️', '💄', '🌿', 
@@ -44,7 +45,7 @@ export default function NewCategoryPage() {
 
   useEffect(() => {
     loadHierarchy();
-  }, []);
+  }, [loadHierarchy]);
 
   useEffect(() => {
     if (parentIdFromUrl) {
@@ -87,7 +88,7 @@ export default function NewCategoryPage() {
     return rootCategories;
   };
 
-  const loadHierarchy = async () => {
+  const loadHierarchy = useCallback(async () => {
     try {
       setLoadingHierarchy(true);
       
@@ -100,16 +101,16 @@ export default function NewCategoryPage() {
       const categoriesData = Array.isArray(categoriesResponse) ? categoriesResponse : [];
       const hierarchyData = Array.isArray(treeResponse) ? treeResponse : [];
       
-      console.log('Category tree data received:', hierarchyData);
-      console.log('Flat categories data:', categoriesData);
-      console.log('Number of root categories:', hierarchyData.length);
+      logger.info('Category tree data received', { count: hierarchyData.length });
+      logger.info('Flat categories data count', { count: categoriesData.length });
+      logger.info('Number of root categories', { count: hierarchyData.length });
       
       // Check if tree data has proper hierarchy, if not build it from flat data
       let processedTreeData = hierarchyData;
       const hasHierarchy = hierarchyData.some(cat => cat.children && cat.children.length > 0);
       
       if (!hasHierarchy && categoriesData.length > 0) {
-        console.log('Tree API returned flat data, building hierarchy from flat data');
+        logger.info('Tree API returned flat data, building hierarchy from flat data');
         processedTreeData = buildHierarchyFromFlatData(categoriesData);
       }
       
@@ -126,7 +127,7 @@ export default function NewCategoryPage() {
       };
       
       const basicCare = findCategory(processedTreeData, 'Basic Care');
-      console.log('Basic Care found:', basicCare);
+      logger.info('Basic Care found', { exists: !!basicCare });
       
       setHierarchy(processedTreeData);
     } catch (error) {
@@ -139,7 +140,7 @@ export default function NewCategoryPage() {
     } finally {
       setLoadingHierarchy(false);
     }
-  };
+  }, [addToast]);
 
   const loadParentCategory = async (parentId: string) => {
     try {

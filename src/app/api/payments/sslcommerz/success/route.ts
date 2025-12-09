@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 
 // Helper function to extract data from request
 async function extractCallbackData(request: Request): Promise<{ [key: string]: string }> {
@@ -37,7 +38,7 @@ async function extractCallbackData(request: Request): Promise<{ [key: string]: s
 export async function GET(request: Request) {
   try {
     const data = await extractCallbackData(request);
-    console.log('SSLCommerz Success Callback (GET) received:', data);
+    logger.info('SSLCommerz Success Callback (GET) received', { hasData: Object.keys(data).length > 0 });
 
     // Extract relevant data from SSLCommerz response
     const tran_id = data['tran_id'];
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await extractCallbackData(request);
-    console.log('SSLCommerz Success Callback (POST) received:', data);
+    logger.info('SSLCommerz Success Callback (POST) received', { hasData: Object.keys(data).length > 0 });
 
     // Extract relevant data from SSLCommerz response
     const tran_id = data['tran_id'];

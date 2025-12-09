@@ -18,11 +18,6 @@ export default function MobileHeader({ isMenuOpen, onMenuToggle }: MobileHeaderP
   const { isOpen: isSearchOpen, openSearch, closeSearch } = useMobileSearch();
   const [isClient, setIsClient] = useState(false);
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log('Mobile search state:', { isSearchOpen });
-  }, [isSearchOpen]);
-
   // Ensure we're on the client side to prevent hydration issues
   React.useEffect(() => {
     setIsClient(true);
@@ -66,7 +61,6 @@ export default function MobileHeader({ isMenuOpen, onMenuToggle }: MobileHeaderP
           {/* Search */}
           <button
             onClick={() => {
-              console.log('Search button clicked');
               openSearch();
             }}
             className="p-2 text-gray-700 hover:text-red-700 transition-colors"

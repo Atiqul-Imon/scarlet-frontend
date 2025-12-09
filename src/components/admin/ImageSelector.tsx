@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { PhotoIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { fetchJsonAuth } from '@/lib/api';
+import logger from '@/lib/logger';
 import { uploadImage, uploadMultipleImages, validateImageFile, validateMultipleImageFiles } from '@/lib/image-upload';
 
 interface MediaFile {
@@ -47,7 +48,7 @@ export default function ImageSelector({
         pages: number;
         total: number;
       }>('/media?limit=50');
-      console.log('Media files fetched:', response.files);
+      logger.info('Media files fetched', { count: response.files.length });
       setMediaFiles(response.files);
     } catch (error) {
       console.error('Error fetching media files:', error);
@@ -361,11 +362,8 @@ export default function ImageSelector({
                             alt={file.alt || file.originalName}
                             className="w-full h-full object-cover"
                             loading="lazy"
-                            onLoad={() => {
-                              console.log('Image loaded successfully:', file.thumbnailUrl || file.url);
-                            }}
                             onError={(e) => {
-                              console.log('Image failed to load:', file.thumbnailUrl || file.url);
+                              logger.warn('Image failed to load', { src: file.thumbnailUrl || file.url });
                               const target = e.target as HTMLImageElement;
                               target.src = `data:image/svg+xml;base64,${btoa(`
                                 <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">

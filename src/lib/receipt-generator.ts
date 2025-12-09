@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import logger from './logger';
 
 interface OrderReceiptData {
   orderId: string;
@@ -140,7 +141,7 @@ export async function generateReceiptPDF(
   } catch (error) {
     console.error('Error generating visual PDF:', error);
     // Fallback to detailed PDF generation
-    console.log('Falling back to detailed PDF generation...');
+    logger.info('Falling back to detailed PDF generation...');
     generateDetailedReceiptPDF(orderData);
   }
 }

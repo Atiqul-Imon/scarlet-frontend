@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context';
 import { fetchJsonAuth } from '@/lib/api';
 import { uploadMultipleImages, validateMultipleImageFiles } from '@/lib/image-upload';
+import logger from '@/lib/logger';
 import { 
   CloudArrowUpIcon, 
   MagnifyingGlassIcon,
@@ -65,8 +66,8 @@ export default function MediaGalleryPage() {
         total: number;
       }>(`/media?${queryParams}`);
       
-      console.log('📁 Media API Response:', response);
-      console.log('📊 Pagination Info:', { 
+      logger.info('Media API response', response);
+      logger.info('Media pagination', { 
         currentPage, 
         totalPages: response.pages, 
         totalFiles: response.total,

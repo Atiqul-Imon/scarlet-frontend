@@ -72,7 +72,7 @@ export default function BlogPostPage() {
           url: window.location.href,
         });
       } catch (err) {
-        console.log('Error sharing:', err);
+        console.error('Error sharing:', err);
       }
     } else {
       // Fallback: copy to clipboard

@@ -123,11 +123,6 @@ export default function BrandShowcase() {
       // Limit to maximum 8 categories for homepage display
       const limitedCategories = topLevelCategories.slice(0, 8);
       
-      console.log('Total categories:', categoriesData.length);
-      console.log('Top-level categories:', topLevelCategories.length);
-      console.log('Showing categories:', limitedCategories.length);
-      console.log('Category names:', limitedCategories.map(c => c.name));
-      
       // Cache the results with homepage-specific key
       sessionStorage.setItem('cachedHomepageCategories', JSON.stringify(limitedCategories));
       setCategories(limitedCategories);

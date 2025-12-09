@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { ChatLanguage } from '../types';
 import { messengerService } from '../utils/messengerUtils';
 import { MessengerMessageOptions } from '../utils/messengerUtils';
+import logger from '@/lib/logger';
 
 export interface UseMessengerIntegrationOptions {
   defaultLanguage?: ChatLanguage;
@@ -59,7 +60,7 @@ export function useMessengerIntegration(options: UseMessengerIntegrationOptions 
         };
         
         // Send to your analytics service
-        console.log('Messenger Analytics:', eventData);
+        logger.info('Messenger Analytics', eventData);
       }
       
     } catch (error) {

@@ -2,6 +2,7 @@
 
 import { SWRConfig } from 'swr';
 import { ReactNode } from 'react';
+import logger from '@/lib/logger';
 
 interface SWRProviderProps {
   children: ReactNode;
@@ -21,9 +22,7 @@ export function SWRProvider({ children }: SWRProviderProps) {
         // Success/Error handlers
         onSuccess: (data, key, config) => {
           // Optional: Log successful fetches in development
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`[SWR] ✅ Fetched: ${key}`);
-          }
+          logger.info('[SWR] Fetched', { key });
         },
         
         onError: (error, key, config) => {

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import logger from '@/lib/logger';
 
 interface ServiceWorkerState {
   isSupported: boolean;
@@ -41,7 +42,7 @@ export function useServiceWorker() {
           error: null,
         }));
 
-        console.log('Service Worker registered successfully:', registration);
+        logger.info('Service Worker registered successfully');
 
         // Listen for updates
         registration.addEventListener('updatefound', () => {
@@ -50,7 +51,7 @@ export function useServiceWorker() {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New content is available, notify user
-                console.log('New content is available, please refresh.');
+                logger.info('New content is available, please refresh.');
                 // You can show a notification to the user here
               }
             });
@@ -87,7 +88,7 @@ export function useServiceWorker() {
 
     try {
       await state.registration.update();
-      console.log('Service Worker updated');
+      logger.info('Service Worker updated');
     } catch (error) {
       console.error('Failed to update Service Worker:', error);
     }
@@ -100,7 +101,7 @@ export function useServiceWorker() {
     try {
       await state.registration.unregister();
       setState(prev => ({ ...prev, isRegistered: false, registration: null }));
-      console.log('Service Worker unregistered');
+      logger.info('Service Worker unregistered');
     } catch (error) {
       console.error('Failed to unregister Service Worker:', error);
     }

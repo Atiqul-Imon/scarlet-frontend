@@ -1,5 +1,6 @@
 import { ChatLanguage } from '../types';
 import { chatConfig, whatsappTemplates } from '../config/chatConfig';
+import logger from '@/lib/logger';
 
 export interface WhatsAppMessageOptions {
   language: ChatLanguage;
@@ -174,9 +175,9 @@ export class WhatsAppService {
             },
             timestamp: new Date().toISOString()
           })
-        }).catch(err => console.log('Analytics tracking failed:', err));
+        }).catch(err => logger.warn('Analytics tracking failed', err));
       } catch (error) {
-        console.log('Analytics tracking error:', error);
+        logger.error('Analytics tracking error', error);
       }
     }
   }
