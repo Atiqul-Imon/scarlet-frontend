@@ -3,10 +3,21 @@
 import { usePathname } from 'next/navigation';
 import Header from '../header/Header';
 import Footer from '../footer/Footer';
-import StickyCartButton from '../cart/StickyCartButton';
-import UnifiedFloatingChatWidget from '../chat/UnifiedFloatingChatWidget';
-import ChatWidget from '../chat/ChatWidget';
+import dynamic from 'next/dynamic';
 import MobileBottomNav from '../navigation/MobileBottomNav';
+import React from 'react';
+
+const StickyCartButton = dynamic(() => import('../cart/StickyCartButton'), {
+  ssr: false,
+});
+
+const ChatWidget = dynamic(() => import('../chat/ChatWidget'), {
+  ssr: false,
+});
+
+const UnifiedFloatingChatWidget = dynamic(() => import('../chat/UnifiedFloatingChatWidget'), {
+  ssr: false,
+});
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;
@@ -14,6 +25,16 @@ interface ConditionalLayoutProps {
 
 export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
+  const [renderDeferredUi, setRenderDeferredUi] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(() => setRenderDeferredUi(true), { timeout: 2000 });
+    } else {
+      window.setTimeout(() => setRenderDeferredUi(true), 50);
+    }
+  }, []);
   
   // Check if current path is admin pages
   const isAdminPage = pathname.startsWith('/admin');
@@ -39,12 +60,16 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       <Footer />
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
-      {/* Sticky Cart Button */}
-      <StickyCartButton />
-      {/* Chat Widget */}
-      <ChatWidget />
-      {/* Unified Floating Chat Widget */}
-      <UnifiedFloatingChatWidget />
+      {renderDeferredUi && (
+        <>
+          {/* Sticky Cart Button */}
+          <StickyCartButton />
+          {/* Chat Widget */}
+          <ChatWidget />
+          {/* Unified Floating Chat Widget */}
+          <UnifiedFloatingChatWidget />
+        </>
+      )}
     </div>
   );
 }

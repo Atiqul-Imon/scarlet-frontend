@@ -1,14 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogApi } from '@/lib/api';
 import { BlogCategory } from '@/lib/types';
-import SimpleRichTextEditor from '@/components/editor/SimpleRichTextEditor';
 import ImageUpload from '@/components/ui/ImageUpload';
 import { ArrowLeftIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { parseApiError, getFieldDisplayName } from '@/lib/admin-error-utils';
+
+const SimpleRichTextEditor = dynamic(() => import('@/components/editor/SimpleRichTextEditor'), {
+  ssr: false,
+});
 
 export default function NewBlogPostPage() {
   const router = useRouter();

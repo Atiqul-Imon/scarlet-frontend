@@ -3,13 +3,16 @@ import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import ProductGallery from '../../../components/products/ProductGallery';
+import dynamic from 'next/dynamic';
 import { Button } from '../../../components/ui/button';
 import { Product } from '../../../lib/types';
 import { useAuth, useCart, useToast, useWishlist } from '../../../lib/context';
-import OutOfStockWishlistModal from '../../../components/wishlist/OutOfStockWishlistModal';
 import StructuredData from '../../../components/seo/StructuredData';
-import MultipleVariantSelector, { VariantSelection } from '../../../components/products/MultipleVariantSelector';
+import { VariantSelection } from '../../../components/products/MultipleVariantSelector';
+
+const ProductGallery = dynamic(() => import('../../../components/products/ProductGallery'));
+const MultipleVariantSelector = dynamic(() => import('../../../components/products/MultipleVariantSelector'));
+const OutOfStockWishlistModal = dynamic(() => import('../../../components/wishlist/OutOfStockWishlistModal'));
 
 
 

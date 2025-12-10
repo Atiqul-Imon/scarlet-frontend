@@ -13,15 +13,17 @@ import GoogleAnalytics from "../components/analytics/GoogleAnalytics";
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700", "900"],
+  weight: ["400", "500", "700"], // reduced weights to shrink font payload
   display: 'swap',
+  preload: true,
 });
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700"], // reduced weights to shrink font payload
   display: 'swap',
+  preload: true,
 });
 
 const belleza = Belleza({

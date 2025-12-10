@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/lib/context';
@@ -10,9 +11,12 @@ import { uploadImage, uploadMultipleImages, validateImageFile, validateMultipleI
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { Category } from '@/lib/types';
 import { ExtendedAdminProduct } from '@/lib/admin-types';
-import ImageSelector from '@/components/admin/ImageSelector';
 import CategoryCheckboxSelector from '@/components/admin/CategoryCheckboxSelector';
 import VariantStockManager from '@/components/admin/VariantStockManager';
+
+const ImageSelector = dynamic(() => import('@/components/admin/ImageSelector'), {
+  ssr: false,
+});
 
 interface ProductFormProps {
   productId?: string;

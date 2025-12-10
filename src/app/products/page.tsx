@@ -2,14 +2,16 @@
 import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import ProductGrid from '../../components/products/ProductGrid';
-import ProductFilters from '../../components/products/ProductFilters';
-import ProductSort from '../../components/products/ProductSort';
 import { fetchJson } from '../../lib/api';
 import { Product, Category } from '../../lib/types';
 import { useCart, useToast, useAuth } from '../../lib/context';
 import logger from '../../lib/logger';
+
+const ProductGrid = dynamic(() => import('../../components/products/ProductGrid'));
+const ProductFilters = dynamic(() => import('../../components/products/ProductFilters'));
+const ProductSort = dynamic(() => import('../../components/products/ProductSort'));
 
 // Category icon mapping
 const categoryIcons: Record<string, string> = {

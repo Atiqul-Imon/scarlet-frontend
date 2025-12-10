@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { blogApi } from '@/lib/api';
 import { BlogCategory } from '@/lib/types';
-import SimpleRichTextEditor from '@/components/editor/SimpleRichTextEditor';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { parseApiError, getFieldDisplayName } from '@/lib/admin-error-utils';
 import { 
@@ -17,6 +17,10 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import logger from '@/lib/logger';
+
+const SimpleRichTextEditor = dynamic(() => import('@/components/editor/SimpleRichTextEditor'), {
+  ssr: false,
+});
 
 export default function EnhancedNewBlogPostPage() {
   const router = useRouter();

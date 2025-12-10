@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -10,8 +11,11 @@ import {
 import { useToast } from '@/lib/context';
 import { categoryApi } from '@/lib/api';
 import { CategoryTree as CategoryTreeType, Category } from '@/lib/types';
-import ImageSelector from '@/components/admin/ImageSelector';
 import logger from '@/lib/logger';
+
+const ImageSelector = dynamic(() => import('@/components/admin/ImageSelector'), {
+  ssr: false,
+});
 
 const categoryIcons = [
   '💇‍♀️', '🧪', '💧', '🧼', '🌊', '✨', '☀️', '💄', '🌿', 

@@ -2,10 +2,8 @@
 import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import SearchFilters from '../../components/search/SearchFilters';
-import MobileSearchFilters from '../../components/search/MobileSearchFilters';
-import SearchResults from '../../components/search/SearchResults';
 import { fetchJson } from '../../lib/api';
 import { Product } from '../../lib/types';
 import { useCart, useToast } from '../../lib/context';
@@ -13,6 +11,10 @@ import {
   MagnifyingGlassIcon, 
   FunnelIcon
 } from '@heroicons/react/24/outline';
+
+const SearchFilters = dynamic(() => import('../../components/search/SearchFilters'));
+const MobileSearchFilters = dynamic(() => import('../../components/search/MobileSearchFilters'));
+const SearchResults = dynamic(() => import('../../components/search/SearchResults'));
 
 interface SearchFilters {
   brand?: string[];
