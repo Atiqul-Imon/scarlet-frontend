@@ -34,7 +34,7 @@ export function generateMetadata({
   keywords?: string[];
   image?: string;
   url?: string;
-  type?: 'website' | 'article' | 'product';
+  type?: 'website' | 'article';
   publishedTime?: string;
   modifiedTime?: string;
   authors?: string[];
@@ -125,13 +125,16 @@ export function generateProductMetadata(product: Product): Metadata {
     'cosmetics',
   ].filter(Boolean);
 
+  // Use 'website' as Open Graph type (valid types: 'website', 'article', 'book', 'profile')
+  // 'product' is not a valid OG type, but 'website' works perfectly for product pages
+  // Product-specific data is handled via JSON-LD structured data in the component
   return generateMetadata({
     title: product.title,
     description: product.description || `Buy ${product.title} from ${product.brand || 'Scarlet'}. ${product.price.currency} ${product.price.amount}.`,
     keywords,
     image: product.images?.[0] || `${seoConfig.siteUrl}/images/products/${product.slug}.jpg`,
     url: `/products/${product.slug}`,
-    type: 'product',
+    type: 'website', // Valid OG type - Facebook will still show product correctly with proper image/title/description
   });
 }
 

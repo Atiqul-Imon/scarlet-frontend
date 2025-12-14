@@ -64,6 +64,42 @@ export default function MultipleVariantSelector({
     stockCheckCache.current.clear();
   }, [variantStock]);
 
+  // Track if component has mounted to avoid unnecessary initial sync
+  const isMountedRef = React.useRef(false);
+
+  // Sync selections to parent component (prevents setState during render)
+  React.useEffect(() => {
+    // Only sync after initial mount to avoid unnecessary parent updates
+    if (isMountedRef.current) {
+      onSelectionsChange(selections);
+    } else {
+      isMountedRef.current = true;
+      // Sync initial state on mount
+      if (selections.length > 0) {
+        onSelectionsChange(selections);
+      }
+    }
+  }, [selections, onSelectionsChange]);
+
+  // Sync initialSelections from parent when they change
+  const prevInitialSelectionsRef = React.useRef<string>('');
+  React.useEffect(() => {
+    // Only update if initialSelections actually changed
+    if (initialSelections && initialSelections.length > 0) {
+      const initialIds = initialSelections.map(s => s.id).sort().join(',');
+      if (prevInitialSelectionsRef.current !== initialIds) {
+        prevInitialSelectionsRef.current = initialIds;
+        setSelections(initialSelections);
+      }
+    } else if (initialSelections && initialSelections.length === 0) {
+      // Handle empty initial selections
+      if (prevInitialSelectionsRef.current !== '') {
+        prevInitialSelectionsRef.current = '';
+        setSelections([]);
+      }
+    }
+  }, [initialSelections]);
+
   // Add a new variant combination
   const addVariant = React.useCallback((size: string, color: string) => {
     // Check if variant is in stock
@@ -83,11 +119,9 @@ export default function MultipleVariantSelector({
         const newQuantity = Math.min(existing.quantity + 1, variantStockLimit);
         if (newQuantity < 1) return prevSelections;
         
-        const updated = prevSelections.map(s => 
+        return prevSelections.map(s => 
           s.id === existing.id ? { ...s, quantity: newQuantity } : s
         );
-        onSelectionsChange(updated);
-        return updated;
       } else {
         // Add new combination with quantity 1
         const newSelection: VariantSelection = {
@@ -96,12 +130,10 @@ export default function MultipleVariantSelector({
           quantity: 1,
           id: getVariantId(size, color)
         };
-        const updated = [...prevSelections, newSelection];
-        onSelectionsChange(updated);
-        return updated;
+        return [...prevSelections, newSelection];
       }
     });
-  }, [maxStock, onSelectionsChange, variantStock]);
+  }, [isVariantInStock, maxStock, variantStock]);
 
   // Auto-add combination when both size and color are selected
   React.useEffect(() => {
@@ -129,18 +161,18 @@ export default function MultipleVariantSelector({
       }
     }
     
-    const updated = selections.map(s => 
-      s.id === id ? { ...s, quantity: newQuantity } : s
+    setSelections(prevSelections => 
+      prevSelections.map(s => 
+        s.id === id ? { ...s, quantity: newQuantity } : s
+      )
     );
-    setSelections(updated);
-    onSelectionsChange(updated);
   };
 
   // Remove a variant combination
   const removeVariant = (id: string) => {
-    const updated = selections.filter(s => s.id !== id);
-    setSelections(updated);
-    onSelectionsChange(updated);
+    setSelections(prevSelections => 
+      prevSelections.filter(s => s.id !== id)
+    );
   };
 
   // Get total quantity across all selections
@@ -185,67 +217,91 @@ export default function MultipleVariantSelector({
       <div className="space-y-4">
         {/* Size Selection - Only show individual selectors when both exist */}
         {normalizedSizes.length > 0 && normalizedColors.length === 0 && (
-          <div className="space-y-2">
-            <label className="text-base font-semibold text-gray-900">
-              Select Size <span className="text-red-600">*</span>
+          <div className="space-y-3">
+            <label className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <span>Select Size</span>
+              <span className="text-rose-600 text-sm">*</span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {normalizedSizes.map((size: string, index: number) => (
-                <button
-                  key={`size-${size}-${index}`}
-                  type="button"
-                  onClick={() => addVariant(size, '')}
-                  className={`px-4 py-2 border-2 font-medium transition-all ${
-                    selections.some(s => s.size === size && !s.color)
-                      ? 'border-red-600 bg-red-50 text-red-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2.5 sm:gap-3">
+              {normalizedSizes.map((size: string, index: number) => {
+                const isSelected = selections.some(s => s.size === size && !s.color);
+                return (
+                  <button
+                    key={`size-${size}-${index}`}
+                    type="button"
+                    onClick={() => addVariant(size, '')}
+                    className={`group relative px-5 py-2.5 sm:px-6 sm:py-3 border-2 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                      isSelected
+                        ? 'border-rose-500 bg-gradient-to-br from-rose-50 to-pink-50 text-rose-700 shadow-md shadow-rose-200/50'
+                        : 'border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50/50 hover:to-pink-50/50 hover:shadow-sm'
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                    <span className="relative z-10">{size}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Color Selection - Only show individual selectors when both exist */}
         {normalizedColors.length > 0 && normalizedSizes.length === 0 && (
-          <div className="space-y-2">
-            <label className="text-base font-semibold text-gray-900">
-              Select Color <span className="text-red-600">*</span>
+          <div className="space-y-3">
+            <label className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <span>Select Color</span>
+              <span className="text-rose-600 text-sm">*</span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {normalizedColors.map((color: string, index: number) => (
-                <button
-                  key={`color-${color}-${index}`}
-                  type="button"
-                  onClick={() => addVariant('', color)}
-                  className={`px-4 py-2 border-2 font-medium transition-all ${
-                    selections.some(s => s.color === color && !s.size)
-                      ? 'border-red-600 bg-red-50 text-red-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
-                  }`}
-                >
-                  {color}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2.5 sm:gap-3">
+              {normalizedColors.map((color: string, index: number) => {
+                const isSelected = selections.some(s => s.color === color && !s.size);
+                return (
+                  <button
+                    key={`color-${color}-${index}`}
+                    type="button"
+                    onClick={() => addVariant('', color)}
+                    className={`group relative px-5 py-2.5 sm:px-6 sm:py-3 border-2 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                      isSelected
+                        ? 'border-rose-500 bg-gradient-to-br from-rose-50 to-pink-50 text-rose-700 shadow-md shadow-rose-200/50'
+                        : 'border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50/50 hover:to-pink-50/50 hover:shadow-sm'
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                    <span className="relative z-10">{color}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Combination Builder - When both size and color exist */}
         {(normalizedSizes.length > 0 && normalizedColors.length > 0) && (
-          <div className="space-y-4 pt-4 border-t border-gray-200">
-            <label className="text-base font-semibold text-gray-900">
-              Select Size and Color Combination
+          <div className="space-y-5 pt-5 border-t border-rose-100">
+            <label className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <span>Select Size and Color</span>
+              <span className="text-rose-600 text-sm">*</span>
             </label>
             
-            {/* Size Selection for Combination - Multiple selection allowed */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Step 1: Select Size(s) <span className="text-red-600">*</span>
+            {/* Size Selection for Combination */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span>Select Size</span>
+                <span className="text-rose-600 text-xs">*</span>
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5 sm:gap-3">
                 {normalizedSizes.map((size: string, index: number) => {
                   const isSelected = selectedSizeForCombination === size;
                   // Check if any color combination with this size is in stock
@@ -264,28 +320,36 @@ export default function MultipleVariantSelector({
                         }
                       }}
                       disabled={!hasStock}
-                      className={`px-4 py-2 border-2 font-medium transition-all ${
+                      className={`group relative px-5 py-2.5 sm:px-6 sm:py-3 border-2 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                         !hasStock
-                          ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                          ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
                           : isSelected
-                          ? 'border-red-600 bg-red-50 text-red-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
+                          ? 'border-rose-500 bg-gradient-to-br from-rose-50 to-pink-50 text-rose-700 shadow-md shadow-rose-200/50'
+                          : 'border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50/50 hover:to-pink-50/50 hover:shadow-sm'
                       }`}
                       title={!hasStock ? 'Out of stock' : ''}
                     >
-                      {size}
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                      <span className="relative z-10">{size}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Color Selection for Combination - Multiple selection allowed */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Step 2: Select Color(s) <span className="text-red-600">*</span>
+            {/* Color Selection for Combination */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span>Select Color</span>
+                <span className="text-rose-600 text-xs">*</span>
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5 sm:gap-3">
                 {normalizedColors.map((color: string, index: number) => {
                   const isSelected = selectedColorForCombination === color;
                   // Check if any size combination with this color is in stock
@@ -304,16 +368,23 @@ export default function MultipleVariantSelector({
                         }
                       }}
                       disabled={!hasStock}
-                      className={`px-4 py-2 border-2 font-medium transition-all ${
+                      className={`group relative px-5 py-2.5 sm:px-6 sm:py-3 border-2 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                         !hasStock
-                          ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                          ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
                           : isSelected
-                          ? 'border-red-600 bg-red-50 text-red-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50'
+                          ? 'border-rose-500 bg-gradient-to-br from-rose-50 to-pink-50 text-rose-700 shadow-md shadow-rose-200/50'
+                          : 'border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50/50 hover:to-pink-50/50 hover:shadow-sm'
                       }`}
                       title={!hasStock ? 'Out of stock' : ''}
                     >
-                      {color}
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-sm">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                      <span className="relative z-10">{color}</span>
                     </button>
                   );
                 })}
@@ -322,35 +393,42 @@ export default function MultipleVariantSelector({
 
             {/* Auto-add info message */}
             {selectedSizeForCombination && !selectedColorForCombination && (
-              <div className="pt-2">
-                <p className="text-sm text-gray-600">
-                  Size <span className="font-medium text-red-600">{selectedSizeForCombination}</span> selected. Select a color to add the combination automatically.
+              <div className="pt-3 px-4 py-2.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-xl">
+                <p className="text-sm text-rose-700 flex items-center gap-2">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Size <span className="font-semibold">{selectedSizeForCombination}</span> selected. Now select a color to add the combination.</span>
                 </p>
               </div>
             )}
             {!selectedSizeForCombination && selectedColorForCombination && (
-              <div className="pt-2">
-                <p className="text-sm text-gray-600">
-                  Color <span className="font-medium text-red-600">{selectedColorForCombination}</span> selected. Select a size to add the combination automatically.
+              <div className="pt-3 px-4 py-2.5 bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-xl">
+                <p className="text-sm text-rose-700 flex items-center gap-2">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Color <span className="font-semibold">{selectedColorForCombination}</span> selected. Now select a size to add the combination.</span>
                 </p>
               </div>
             )}
 
             {/* Quick Add: Multiple sizes for selected color */}
             {selectedColorForCombination && !selectedSizeForCombination && (
-              <div className="pt-2 border-t border-gray-200">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Or: Add multiple sizes for <span className="font-semibold text-red-600">{selectedColorForCombination}</span>
+              <div className="pt-4 border-t border-rose-100">
+                <label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2">
+                  <span>Or add multiple sizes for</span>
+                  <span className="px-2.5 py-1 bg-gradient-to-br from-rose-100 to-pink-100 text-rose-700 rounded-lg font-bold">{selectedColorForCombination}</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5 sm:gap-3">
                   {normalizedSizes.map((size: string, index: number) => (
                     <button
                       key={`quick-size-${size}-${index}`}
                       type="button"
                       onClick={() => addVariant(size, selectedColorForCombination)}
-                      className="px-4 py-2 border-2 border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50 font-medium transition-all"
+                      className="group px-4 py-2 sm:px-5 sm:py-2.5 border-2 border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50 hover:to-pink-50 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
                     >
-                      {size} <span className="text-xs text-gray-500">+</span>
+                      {size} <span className="text-xs text-rose-500 ml-1">+</span>
                     </button>
                   ))}
                 </div>
@@ -359,19 +437,20 @@ export default function MultipleVariantSelector({
 
             {/* Quick Add: Multiple colors for selected size */}
             {selectedSizeForCombination && !selectedColorForCombination && (
-              <div className="pt-2 border-t border-gray-200">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Or: Add multiple colors for <span className="font-semibold text-red-600">{selectedSizeForCombination}</span>
+              <div className="pt-4 border-t border-rose-100">
+                <label className="text-sm font-semibold text-gray-700 mb-3 block flex items-center gap-2">
+                  <span>Or add multiple colors for</span>
+                  <span className="px-2.5 py-1 bg-gradient-to-br from-rose-100 to-pink-100 text-rose-700 rounded-lg font-bold">{selectedSizeForCombination}</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5 sm:gap-3">
                   {normalizedColors.map((color: string, index: number) => (
                     <button
                       key={`quick-color-${color}-${index}`}
                       type="button"
                       onClick={() => addVariant(selectedSizeForCombination, color)}
-                      className="px-4 py-2 border-2 border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:bg-red-50 font-medium transition-all"
+                      className="group px-4 py-2 sm:px-5 sm:py-2.5 border-2 border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50 hover:to-pink-50 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
                     >
-                      {color} <span className="text-xs text-gray-500">+</span>
+                      {color} <span className="text-xs text-rose-500 ml-1">+</span>
                     </button>
                   ))}
                 </div>
@@ -383,11 +462,14 @@ export default function MultipleVariantSelector({
 
       {/* Selected Variants List */}
       {selections.length > 0 && (
-        <div className="space-y-3 pt-4 border-t border-gray-200">
-          <label className="text-base font-semibold text-gray-900">
-            Selected Items ({getTotalQuantity()} total)
+        <div className="space-y-4 pt-5 border-t border-rose-100">
+          <label className="text-base font-semibold text-gray-900 flex items-center gap-2">
+            <span>Selected Items</span>
+            <span className="px-2.5 py-1 bg-gradient-to-br from-rose-100 to-pink-100 text-rose-700 rounded-lg text-sm font-bold">
+              {getTotalQuantity()} {getTotalQuantity() === 1 ? 'item' : 'items'}
+            </span>
           </label>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {selections.map((selection) => {
               const variantStock = getVariantStock(selection.size, selection.color);
               const variantStockLimit = variantStock || maxStock;
@@ -395,56 +477,55 @@ export default function MultipleVariantSelector({
               return (
                 <div
                   key={selection.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-br from-rose-50/50 to-pink-50/50 border-2 border-rose-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 text-sm sm:text-base text-gray-800">
                       {selection.size && (
-                        <span className="font-medium">Size: {selection.size}</span>
+                        <span className="px-2.5 sm:px-3 py-1 bg-white border border-rose-200 rounded-lg font-semibold text-rose-700 whitespace-nowrap text-xs sm:text-sm">
+                          Size: {selection.size}
+                        </span>
                       )}
-                      {selection.size && selection.color && <span>•</span>}
+                      {selection.size && selection.color && (
+                        <span className="text-rose-300 hidden sm:inline">•</span>
+                      )}
                       {selection.color && (
-                        <span className="font-medium">Color: {selection.color}</span>
+                        <span className="px-2.5 sm:px-3 py-1 bg-white border border-rose-200 rounded-lg font-semibold text-rose-700 whitespace-nowrap text-xs sm:text-sm">
+                          Color: {selection.color}
+                        </span>
                       )}
                       {!selection.size && !selection.color && (
-                        <span className="text-gray-500 italic">No variants</span>
+                        <span className="text-gray-500 italic text-xs sm:text-sm">No variants</span>
                       )}
                     </div>
-                    {variantStock !== undefined && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Stock: <span className={variantStock > 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                          {variantStock} {variantStock === 1 ? 'unit' : 'units'} available
-                        </span>
-                      </div>
-                    )}
                   </div>
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     {/* Quantity Controls */}
-                    <div className="flex items-center border border-gray-300 bg-white rounded">
+                    <div className="flex items-center border-2 border-rose-200 bg-white rounded-xl overflow-hidden shadow-sm">
                       <button
                         type="button"
                         onClick={() => updateQuantity(selection.id, selection.quantity - 1)}
-                        className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-700"
+                        className="px-2.5 sm:px-3 py-2 hover:bg-rose-50 transition-colors text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
                         disabled={selection.quantity <= 1}
                         aria-label="Decrease quantity"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
                         </svg>
                       </button>
-                      <span className="w-10 text-center text-sm font-semibold text-gray-900">
+                      <span className="w-10 sm:w-12 text-center text-sm font-bold text-gray-900 bg-white flex-shrink-0">
                         {selection.quantity}
                       </span>
                       <button
                         type="button"
                         onClick={() => updateQuantity(selection.id, selection.quantity + 1)}
-                        className="px-2 py-1 hover:bg-gray-100 transition-colors text-gray-700"
+                        className="px-2.5 sm:px-3 py-2 hover:bg-rose-50 transition-colors text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
                         disabled={selection.quantity >= variantStockLimit || getTotalQuantity() >= maxStock}
                         aria-label="Increase quantity"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                         </svg>
                       </button>
                     </div>
@@ -453,12 +534,12 @@ export default function MultipleVariantSelector({
                   <button
                     type="button"
                     onClick={() => removeVariant(selection.id)}
-                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 transition-colors rounded"
+                    className="p-2 sm:p-2.5 text-rose-600 hover:text-rose-800 hover:bg-rose-100 transition-all duration-300 rounded-xl flex-shrink-0"
                     aria-label="Remove variant"
                     title="Remove this combination"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
