@@ -572,7 +572,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
       addToast({
         type: 'info',
         title: 'Wishlist Information',
-        message: 'Wishlist is only available for out-of-stock products'
+        message: 'Wishlist out of stock only'
       });
     }
   };
@@ -828,6 +828,38 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
               )}
             </div>
 
+            {/* Mobile: Wishlist & Share Buttons (below price) */}
+            <div className="flex items-center gap-3 md:hidden pt-3 pb-4">
+              <button
+                onClick={handleWishlistToggle}
+                className={`flex items-center justify-center p-3 border-2 rounded-xl transition-all duration-300 bg-white shadow-sm hover:shadow-md ${
+                  product && (product.stock === 0 || product.stock === undefined)
+                    ? (isInWishlist(product._id!) 
+                        ? 'border-red-300 bg-red-50 hover:border-red-400 hover:bg-red-100' 
+                        : 'border-gray-200 hover:border-red-300 hover:bg-red-50')
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+                title={product && (product.stock === 0 || product.stock === undefined) 
+                  ? (isInWishlist(product._id!) ? 'In Wishlist' : 'Add to Wishlist') 
+                  : 'Wishlist out of stock only'}
+              >
+                <HeartIcon filled={product && isInWishlist(product._id!)} />
+              </button>
+              
+              {product && (
+                <ShareButton 
+                  product={{
+                    title: product.title,
+                    slug: product.slug,
+                    description: product.description,
+                    images: product.images,
+                    price: product.price,
+                  }}
+                  className="flex-1"
+                />
+              )}
+            </div>
+
             {/* Stock Quantity Display - SSLCommerz Compliance */}
             <div className="mb-4 space-y-2">
               {stockDisplay}
@@ -1007,8 +1039,8 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
               )}
             </div>
 
-            {/* Wishlist & Share */}
-            <div className="flex items-center gap-4 pt-8 border-t border-gray-200">
+            {/* Desktop: Wishlist & Share (below action buttons) */}
+            <div className="hidden md:flex items-center gap-4 pt-8 border-t border-gray-200">
               <button
                 onClick={handleWishlistToggle}
                 className={`flex items-center gap-3 px-6 py-3.5 border-2 rounded-xl transition-all duration-300 bg-white shadow-sm hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none ${
