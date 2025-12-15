@@ -223,6 +223,16 @@ export default function Footer() {
                 </div>
               </div>
               
+              <div className="flex items-start space-x-3">
+                <MapPinIcon className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
+                <div>
+                  <p className="text-gray-300 text-sm">
+                    Shop No: 341, Khulshi Town Center<br />
+                    Khulshi, Chittagong
+                  </p>
+                </div>
+              </div>
+              
               <div className="flex items-center space-x-3">
                 <EnvelopeIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
                 <a 

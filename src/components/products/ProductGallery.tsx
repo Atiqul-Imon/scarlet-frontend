@@ -69,6 +69,8 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   React.useEffect(() => {
     // Reset image errors when images change
     setImageErrors(new Set());
+    // Reset to first image when images array changes (e.g., variant selection changes)
+    setSelectedImageIndex(0);
   }, [images]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

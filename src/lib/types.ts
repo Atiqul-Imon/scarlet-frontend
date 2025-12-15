@@ -241,6 +241,7 @@ export interface Product extends BaseEntity {
   brand?: string;
   stock?: number;
   variantStock?: Record<string, number>; // Stock per variant combination: "size_color" format
+  variantImages?: Record<string, string[]>; // Images per variant combination: "size_color" format (e.g., "Large_Red" -> ["image1.jpg", "image2.jpg"])
   categoryIds: string[];
   attributes?: ProductAttribute[];
   tags?: string[];

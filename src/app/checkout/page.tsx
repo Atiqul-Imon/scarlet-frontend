@@ -11,6 +11,7 @@ import { useForm } from '../../lib/hooks';
 import { productApi, creditApi } from '../../lib/api';
 import type { CreditRedemptionValidation } from '../../lib/types';
 import logger from '../../lib/logger';
+import { getVariantImage } from '../../lib/product-utils';
 import { 
   bangladeshDivisions, 
   getDivisionById, 
@@ -562,11 +563,14 @@ export default function CheckoutPage() {
           // Check if product is coming soon
           const isComingSoon = product?.isComingSoon || product?.homepageSection === 'coming-soon';
           
+          // Get variant-specific image, fallback to main product image
+          const variantImage = product ? getVariantImage(product, item.selectedSize, item.selectedColor) : '';
+          
           return {
             productId: item.productId,
             title: product?.title || 'Product not found',
             slug: product?.slug || '',
-            image: product?.images?.[0] || '/placeholder-product.jpg',
+            image: variantImage || product?.images?.[0] || '/placeholder-product.jpg',
             price: product?.price || { currency: 'BDT', amount: 0 },
             quantity: item.quantity,
             brand: product?.brand,

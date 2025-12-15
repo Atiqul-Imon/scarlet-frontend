@@ -13,6 +13,7 @@ import { Category } from '@/lib/types';
 import { ExtendedAdminProduct } from '@/lib/admin-types';
 import CategoryCheckboxSelector from '@/components/admin/CategoryCheckboxSelector';
 import VariantStockManager from '@/components/admin/VariantStockManager';
+import VariantImageManager from '@/components/admin/VariantImageManager';
 
 const ImageSelector = dynamic(() => import('@/components/admin/ImageSelector'), {
   ssr: false,
@@ -56,6 +57,7 @@ interface ProductFormData {
   seoKeywords: string[];
   homepageSection: string;
   variantStock: Record<string, string>; // Values as strings for form inputs
+  variantImages: Record<string, string[]>; // Variant-specific images
   variants: Array<{
     id: string;
     name: string;
@@ -101,6 +103,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     seoKeywords: [],
     homepageSection: '',
     variantStock: {},
+    variantImages: {},
     variants: []
   });
 
@@ -222,6 +225,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
               ])
             )
           : {},
+        variantImages: (product as any).variantImages || {},
         variants: (((product as any).variants as Array<{ id?: string; name: string; sku: string; stock: number; price: number; }>) || []).map(v => ({
           id: (v.id ?? Date.now().toString()) as string,
           name: v.name,
@@ -493,6 +497,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         sizes: formData.sizes.filter(s => s.trim() !== '').length > 0 ? formData.sizes.filter(s => s.trim() !== '') : undefined,
         colors: formData.colors.filter(c => c.trim() !== '').length > 0 ? formData.colors.filter(c => c.trim() !== '') : undefined,
         variantStock: Object.keys(formData.variantStock).length > 0 ? formData.variantStock : undefined,
+        variantImages: Object.keys(formData.variantImages).length > 0 ? formData.variantImages : undefined,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         dimensions: {
@@ -882,6 +887,19 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
                 variantStock={formData.variantStock}
                 onChange={(variantStock) => handleInputChange('variantStock', variantStock)}
               />
+
+              {/* Variant Images Manager */}
+              {(formData.sizes.length > 0 || formData.colors.length > 0) && (
+                <div className="mt-6">
+                  <VariantImageManager
+                    sizes={formData.sizes}
+                    colors={formData.colors}
+                    variantImages={formData.variantImages}
+                    onChange={(variantImages) => handleInputChange('variantImages', variantImages)}
+                    mainImages={images}
+                  />
+                </div>
+              )}
             </div>
           )}
 

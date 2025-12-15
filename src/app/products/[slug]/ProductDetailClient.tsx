@@ -10,6 +10,7 @@ import { useAuth, useCart, useToast, useWishlist } from '../../../lib/context';
 import StructuredData from '../../../components/seo/StructuredData';
 import { VariantSelection } from '../../../components/products/MultipleVariantSelector';
 import ShareButton from '../../../components/products/ShareButton';
+import { getVariantImages } from '../../../lib/product-utils';
 
 const ProductGallery = dynamic(() => import('../../../components/products/ProductGallery'));
 const MultipleVariantSelector = dynamic(() => import('../../../components/products/MultipleVariantSelector'));
@@ -35,6 +36,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
   const [selectedSize, setSelectedSize] = React.useState<string>('');
   const [selectedColor, setSelectedColor] = React.useState<string>('');
   const [variantSelections, setVariantSelections] = React.useState<VariantSelection[]>([]);
+  const [displayedImages, setDisplayedImages] = React.useState<string[]>([]);
   const [isAddingToCart, setIsAddingToCart] = React.useState(false);
   const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
@@ -94,6 +96,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
         setProduct(product);
         setSelectedSize(''); // Reset size selection when product changes
         setSelectedColor(''); // Reset color selection when product changes
+        setDisplayedImages(product.images || []); // Initialize with main product images
         setLoading(false);
         hasLoadedRecommended.current = false; // Reset for new product
         
@@ -259,6 +262,43 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
       setLoadingRecommended(false);
     }
   }, [product]);
+
+  // Track preview variant for image display
+  const [previewSize, setPreviewSize] = React.useState<string>('');
+  const [previewColor, setPreviewColor] = React.useState<string>('');
+
+  // Handle variant preview callback
+  const handleVariantPreview = React.useCallback((size: string, color: string) => {
+    setPreviewSize(size);
+    setPreviewColor(color);
+  }, []);
+
+  // Update displayed images when variant selections or preview changes
+  React.useEffect(() => {
+    if (!product) {
+      setDisplayedImages([]);
+      return;
+    }
+
+    // If there are variant selections, use images from the first selected variant
+    // This allows users to see variant-specific images when they select a combination
+    if (variantSelections.length > 0) {
+      const firstSelection = variantSelections[0];
+      const variantImages = getVariantImages(product, firstSelection.size, firstSelection.color);
+      setDisplayedImages(variantImages);
+    } else if (previewSize || previewColor) {
+      // If variant is being previewed (selected but not yet added), show those images
+      const variantImages = getVariantImages(product, previewSize, previewColor);
+      setDisplayedImages(variantImages);
+    } else if (selectedSize || selectedColor) {
+      // If individual size/color is selected (but not yet in variantSelections), show those images
+      const variantImages = getVariantImages(product, selectedSize, selectedColor);
+      setDisplayedImages(variantImages);
+    } else {
+      // No variant selected, show main product images
+      setDisplayedImages(product.images || []);
+    }
+  }, [product, variantSelections, previewSize, previewColor, selectedSize, selectedColor]);
 
   // Intersection Observer: Load recommended products only when section is near viewport
   React.useEffect(() => {
@@ -769,7 +809,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
           {/* Product Images */}
           <div className="relative">
             <div className="sticky top-8">
-              <ProductGallery images={product.images} productTitle={product.title} />
+              <ProductGallery images={displayedImages.length > 0 ? displayedImages : (product?.images || [])} productTitle={product.title} />
             </div>
           </div>
 
@@ -832,18 +872,19 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
             <div className="flex items-center gap-3 md:hidden pt-3 pb-4">
               <button
                 onClick={handleWishlistToggle}
-                className={`flex items-center justify-center p-3 border-2 rounded-xl transition-all duration-300 bg-white shadow-sm hover:shadow-md ${
+                className={`group relative flex items-center justify-center w-12 h-12 border-2 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95 shadow-sm hover:shadow-lg ${
                   product && (product.stock === 0 || product.stock === undefined)
                     ? (isInWishlist(product._id!) 
-                        ? 'border-red-300 bg-red-50 hover:border-red-400 hover:bg-red-100' 
-                        : 'border-gray-200 hover:border-red-300 hover:bg-red-50')
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'border-rose-400 bg-gradient-to-br from-rose-100 to-pink-100 hover:from-rose-200 hover:to-pink-200 shadow-rose-200/50' 
+                        : 'border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50 hover:border-rose-300 hover:from-rose-100 hover:to-pink-100')
+                    : 'border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 hover:border-gray-300 hover:from-gray-100 hover:to-gray-150'
                 }`}
                 title={product && (product.stock === 0 || product.stock === undefined) 
                   ? (isInWishlist(product._id!) ? 'In Wishlist' : 'Add to Wishlist') 
                   : 'Wishlist out of stock only'}
               >
-                <HeartIcon filled={product && isInWishlist(product._id!)} />
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-400/20 to-pink-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+                <HeartIcon filled={product && isInWishlist(product._id!)} className="relative z-10" />
               </button>
               
               {product && (
@@ -883,6 +924,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
               {...(product.variantStock && { variantStock: product.variantStock })}
               onSelectionsChange={setVariantSelections}
               initialSelections={variantSelections}
+              onVariantPreview={handleVariantPreview}
             />
 
             {/* Coming Soon Notice */}
@@ -1257,16 +1299,16 @@ function CartIcon() {
   );
 }
 
-function HeartIcon({ filled = false }: { filled?: boolean }) {
+function HeartIcon({ filled = false, className = "" }: { filled?: boolean; className?: string }) {
   return (
     <svg 
-      width="20" 
-      height="20" 
+      width="22" 
+      height="22" 
       viewBox="0 0 24 24" 
       fill={filled ? "currentColor" : "none"} 
       stroke="currentColor" 
-      strokeWidth="2"
-      className={filled ? "text-red-700" : "text-gray-700"}
+      strokeWidth="2.5"
+      className={`transition-all duration-300 ${filled ? "text-rose-600" : "text-rose-500"} ${className}`}
     >
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 22l7.8-8.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
     </svg>

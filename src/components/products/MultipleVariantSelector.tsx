@@ -15,6 +15,7 @@ interface MultipleVariantSelectorProps {
   variantStock?: Record<string, number>; // Stock per variant combination
   onSelectionsChange: (selections: VariantSelection[]) => void;
   initialSelections?: VariantSelection[];
+  onVariantPreview?: (size: string, color: string) => void; // Callback when variant is being previewed (selected but not yet added)
 }
 
 export default function MultipleVariantSelector({
@@ -23,7 +24,8 @@ export default function MultipleVariantSelector({
   maxStock = 999,
   variantStock,
   onSelectionsChange,
-  initialSelections = []
+  initialSelections = [],
+  onVariantPreview
 }: MultipleVariantSelectorProps) {
   const [selections, setSelections] = React.useState<VariantSelection[]>(initialSelections);
   const [selectedSizeForCombination, setSelectedSizeForCombination] = React.useState<string>('');
@@ -316,7 +318,12 @@ export default function MultipleVariantSelector({
                       onClick={() => {
                         if (hasStock) {
                           // Toggle selection - allow only one size at a time for combination
-                          setSelectedSizeForCombination(isSelected ? '' : size);
+                          const newSize = isSelected ? '' : size;
+                          setSelectedSizeForCombination(newSize);
+                          // Notify parent for image preview
+                          if (onVariantPreview) {
+                            onVariantPreview(newSize, selectedColorForCombination);
+                          }
                         }
                       }}
                       disabled={!hasStock}
@@ -364,7 +371,12 @@ export default function MultipleVariantSelector({
                       onClick={() => {
                         if (hasStock) {
                           // Toggle selection - allow only one color at a time for combination
-                          setSelectedColorForCombination(isSelected ? '' : color);
+                          const newColor = isSelected ? '' : color;
+                          setSelectedColorForCombination(newColor);
+                          // Notify parent for image preview
+                          if (onVariantPreview) {
+                            onVariantPreview(selectedSizeForCombination, newColor);
+                          }
                         }
                       }}
                       disabled={!hasStock}

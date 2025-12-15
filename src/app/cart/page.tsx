@@ -12,6 +12,7 @@ import { productApi } from '../../lib/api';
 import OTPRequestModal from '../../components/auth/OTPRequestModal';
 import OTPVerification from '../../components/auth/OTPVerification';
 import { logger } from '../../lib/logger';
+import { getVariantImage } from '../../lib/product-utils';
 
 interface CartItemData {
   productId: string;
@@ -139,27 +140,43 @@ export default function CartPage() {
         }
         
         // Enrich cart items with product details from real API
-        const enrichedItems: CartItemData[] = [];
+        // First, deduplicate cart items by productId + size + color
+        const seenItems = new Map<string, CartItemData>();
         
         for (const item of cart.items) {
           logger.log('Processing cart item:', item);
+          // Create a unique key for this item combination
+          const itemKey = `${item.productId}_${item.selectedSize || ''}_${item.selectedColor || ''}`;
+          
+          // If we've seen this combination before, merge quantities
+          if (seenItems.has(itemKey)) {
+            const existingItem = seenItems.get(itemKey)!;
+            existingItem.quantity += item.quantity;
+            logger.log('Merged duplicate item:', itemKey, 'new quantity:', existingItem.quantity);
+            continue;
+          }
+          
           const product = products.find(p => p._id === item.productId);
           logger.log('Found product in API:', product);
           
           if (product) {
+            // Get variant-specific image, fallback to main product image
+            const variantImage = getVariantImage(product, item.selectedSize, item.selectedColor);
+            
             // Use real product data from the API
-            enrichedItems.push({
+            const enrichedItem: CartItemData = {
               productId: item.productId,
               title: product.title || 'Unknown Product',
               slug: product.slug || item.productId,
-              image: product.images?.[0] || '/placeholder-product.jpg',
+              image: variantImage || product.images?.[0] || '/placeholder-product.jpg',
               price: product.price || { currency: 'BDT', amount: 0 },
               quantity: item.quantity,
               brand: product.brand,
               stock: product.stock,
               selectedSize: item.selectedSize,
               selectedColor: item.selectedColor
-            });
+            };
+            seenItems.set(itemKey, enrichedItem);
           } else {
             // Product not found in API - try to fetch individual product
             try {
@@ -169,17 +186,28 @@ export default function CartPage() {
                 const productData = await productResponse.json();
                 if (productData.success && productData.data) {
                   const individualProduct = productData.data;
-                  enrichedItems.push({
-                    productId: item.productId,
-                    title: individualProduct.title || 'Unknown Product',
-                    slug: individualProduct.slug || item.productId,
-                    image: individualProduct.images?.[0] || '/placeholder-product.jpg',
-                    price: individualProduct.price || { currency: 'BDT', amount: 0 },
-                    quantity: item.quantity,
-                    brand: individualProduct.brand,
-                    stock: individualProduct.stock,
-                    selectedSize: item.selectedSize
-                  });
+                  const itemKey = `${item.productId}_${item.selectedSize || ''}_${item.selectedColor || ''}`;
+                  
+                  // Check if we already have this item
+                  if (seenItems.has(itemKey)) {
+                    const existingItem = seenItems.get(itemKey)!;
+                    existingItem.quantity += item.quantity;
+                    logger.log('Merged duplicate item from individual fetch:', itemKey);
+                  } else {
+                    const enrichedItem: CartItemData = {
+                      productId: item.productId,
+                      title: individualProduct.title || 'Unknown Product',
+                      slug: individualProduct.slug || item.productId,
+                      image: individualProduct.images?.[0] || '/placeholder-product.jpg',
+                      price: individualProduct.price || { currency: 'BDT', amount: 0 },
+                      quantity: item.quantity,
+                      brand: individualProduct.brand,
+                      stock: individualProduct.stock,
+                      selectedSize: item.selectedSize,
+                      selectedColor: item.selectedColor
+                    };
+                    seenItems.set(itemKey, enrichedItem);
+                  }
                 } else {
                   logger.warn('Failed to fetch individual product:', item.productId);
                 }
@@ -193,7 +221,9 @@ export default function CartPage() {
           }
         }
 
-        logger.log('Enriched items:', enrichedItems);
+        // Convert map to array
+        const enrichedItems = Array.from(seenItems.values());
+        logger.log('Enriched items (after deduplication):', enrichedItems);
         logger.log('Enriched items length:', enrichedItems.length);
         setEnrichedItems(enrichedItems);
 
@@ -513,15 +543,19 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items - 2/3 width on desktop */}
           <div className="lg:col-span-2 space-y-4">
-            {enrichedItems.map((item) => (
-              <CartItem
-                key={item.productId}
-                item={item}
-                onUpdateQuantity={handleUpdateQuantity}
-                onRemove={handleRemoveItem}
-                isUpdating={isUpdating || removingItems.has(item.productId)}
-              />
-            ))}
+            {enrichedItems.map((item, index) => {
+              // Generate unique key that includes productId, size, and color
+              const uniqueKey = `${item.productId}_${item.selectedSize || 'no-size'}_${item.selectedColor || 'no-color'}_${index}`;
+              return (
+                <CartItem
+                  key={uniqueKey}
+                  item={item}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemove={handleRemoveItem}
+                  isUpdating={isUpdating || removingItems.has(item.productId)}
+                />
+              );
+            })}
 
             {/* Recommended Products - Hidden on mobile to save space */}
             <div className="hidden md:block mt-12">

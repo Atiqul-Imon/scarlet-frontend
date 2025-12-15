@@ -9,6 +9,7 @@ import { orderApi } from '@/lib/api';
 import PaymentForm from '@/components/payment/PaymentForm';
 import type { PaymentMethod } from '@/lib/payment-types';
 import { paymentUtils } from '@/lib/payment-api';
+import { getVariantImage } from '@/lib/product-utils';
 
 interface CheckoutFormData {
   // Shipping Information
@@ -478,11 +479,13 @@ export default function CheckoutPage() {
                   const product = item.product;
                   const price = product?.price?.amount || 0;
                   const totalPrice = price * item.quantity;
+                  // Get variant-specific image, fallback to main product image
+                  const variantImage = product ? getVariantImage(product, item.selectedSize, item.selectedColor) : '';
                   
                   return (
                     <div key={item.productId} className="flex items-center space-x-3">
                       <img
-                        src={product?.images?.[0] || '/placeholder-product.jpg'}
+                        src={variantImage || product?.images?.[0] || '/placeholder-product.jpg'}
                         alt={product?.title || 'Product'}
                         className="w-12 h-12 object-cover rounded"
                       />
