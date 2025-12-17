@@ -18,9 +18,89 @@ export function getVariantKey(size?: string, color?: string): string {
  * @param color - Selected color (optional)
  * @returns Array of image URLs for the variant, or main product images as fallback
  */
+/**
+ * Get all unique images from all variants (used as fallback when no main images)
+ */
+function getAllVariantImages(product: Product): string[] {
+  if (!product.variantImages || typeof product.variantImages !== 'object') {
+    return [];
+  }
+  
+  const allImages: string[] = [];
+  Object.values(product.variantImages).forEach((variantImageArray: any) => {
+    if (Array.isArray(variantImageArray)) {
+      variantImageArray.forEach((img: any) => {
+        if (img && typeof img === 'string' && img.trim() !== '' && !allImages.includes(img)) {
+          allImages.push(img);
+        }
+      });
+    }
+  });
+  
+  return allImages;
+}
+
+/**
+ * Get images from variants matching a specific size (when only size is selected)
+ */
+function getVariantImagesBySize(product: Product, size: string): string[] {
+  if (!product.variantImages || typeof product.variantImages !== 'object' || !size) {
+    return [];
+  }
+  
+  const matchingImages: string[] = [];
+  Object.entries(product.variantImages).forEach(([key, variantImageArray]: [string, any]) => {
+    // Key format: "size_color" or "size_no-color"
+    if (key.startsWith(`${size}_`)) {
+      if (Array.isArray(variantImageArray)) {
+        variantImageArray.forEach((img: any) => {
+          if (img && typeof img === 'string' && img.trim() !== '' && !matchingImages.includes(img)) {
+            matchingImages.push(img);
+          }
+        });
+      }
+    }
+  });
+  
+  return matchingImages;
+}
+
+/**
+ * Get images from variants matching a specific color (when only color is selected)
+ */
+function getVariantImagesByColor(product: Product, color: string): string[] {
+  if (!product.variantImages || typeof product.variantImages !== 'object' || !color) {
+    return [];
+  }
+  
+  const matchingImages: string[] = [];
+  Object.entries(product.variantImages).forEach(([key, variantImageArray]: [string, any]) => {
+    // Key format: "size_color" or "no-size_color"
+    if (key.endsWith(`_${color}`)) {
+      if (Array.isArray(variantImageArray)) {
+        variantImageArray.forEach((img: any) => {
+          if (img && typeof img === 'string' && img.trim() !== '' && !matchingImages.includes(img)) {
+            matchingImages.push(img);
+          }
+        });
+      }
+    }
+  });
+  
+  return matchingImages;
+}
+
 export function getVariantImages(product: Product, size?: string, color?: string): string[] {
-  // If product has variantImages and size/color provided, try to get variant-specific images
-  if (product.variantImages && (size || color)) {
+  // Get main images
+  const mainImages = product.images && Array.isArray(product.images) && product.images.length > 0 
+    ? product.images 
+    : [];
+  
+  // Get all variant images as fallback (if no main images)
+  const allVariantImages = mainImages.length === 0 ? getAllVariantImages(product) : [];
+  
+  // If BOTH size and color are provided, try to get exact variant-specific images
+  if (product.variantImages && typeof product.variantImages === 'object' && size && color) {
     const variantKey = getVariantKey(size, color);
     const variantImages = product.variantImages[variantKey];
     
@@ -30,12 +110,48 @@ export function getVariantImages(product: Product, size?: string, color?: string
     }
   }
   
-  // Fallback to main product images
-  if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-    return product.images;
+  // If ONLY size is provided (no color), get images from all variants with that size
+  if (product.variantImages && typeof product.variantImages === 'object' && size && !color) {
+    const sizeImages = getVariantImagesBySize(product, size);
+    if (sizeImages.length > 0) {
+      return sizeImages;
+    }
   }
   
-  // Last resort: return empty array (caller should handle placeholder)
+  // If ONLY color is provided (no size), get images from all variants with that color
+  if (product.variantImages && typeof product.variantImages === 'object' && !size && color) {
+    const colorImages = getVariantImagesByColor(product, color);
+    if (colorImages.length > 0) {
+      return colorImages;
+    }
+  }
+  
+  // Debug: Log when variant images not found
+  if (size || color) {
+    console.log('Variant images lookup:', {
+      size,
+      color,
+      hasExactMatch: !!(size && color && product.variantImages?.[getVariantKey(size, color)]),
+      hasSizeMatch: size ? getVariantImagesBySize(product, size).length > 0 : false,
+      hasColorMatch: color ? getVariantImagesByColor(product, color).length > 0 : false,
+      availableKeys: Object.keys(product.variantImages || {}),
+      fallingBackToMain: mainImages.length > 0,
+      fallingBackToAllVariants: allVariantImages.length > 0
+    });
+  }
+  
+  // Fallback priority:
+  // 1. Main product images (if they exist)
+  // 2. All variant images combined (if no main images)
+  if (mainImages.length > 0) {
+    return mainImages;
+  }
+  
+  if (allVariantImages.length > 0) {
+    return allVariantImages;
+  }
+  
+  // Last resort: return empty array
   return [];
 }
 

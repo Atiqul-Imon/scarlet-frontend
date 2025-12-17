@@ -269,6 +269,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
 
   // Handle variant preview callback
   const handleVariantPreview = React.useCallback((size: string, color: string) => {
+    console.log('Variant preview:', { size, color });
     setPreviewSize(size);
     setPreviewColor(color);
   }, []);
@@ -280,24 +281,86 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
       return;
     }
 
+    // Get main product images
+    const mainImages = product.images && Array.isArray(product.images) && product.images.length > 0 
+      ? product.images 
+      : [];
+
+    // Get all variant images (fallback when no main images)
+    const getAllVariantImages = () => {
+      if (!product.variantImages || typeof product.variantImages !== 'object') {
+        return [];
+      }
+      const allImages: string[] = [];
+      Object.values(product.variantImages).forEach((variantImageArray: any) => {
+        if (Array.isArray(variantImageArray)) {
+          variantImageArray.forEach((img: any) => {
+            if (img && typeof img === 'string' && img.trim() !== '' && !allImages.includes(img)) {
+              allImages.push(img);
+            }
+          });
+        }
+      });
+      return allImages;
+    };
+    
+    const allVariantImages = mainImages.length === 0 ? getAllVariantImages() : [];
+
+    let imagesToDisplay: string[] = [];
+
     // If there are variant selections, use images from the first selected variant
     // This allows users to see variant-specific images when they select a combination
     if (variantSelections.length > 0) {
       const firstSelection = variantSelections[0];
-      const variantImages = getVariantImages(product, firstSelection.size, firstSelection.color);
-      setDisplayedImages(variantImages);
+      imagesToDisplay = getVariantImages(product, firstSelection.size, firstSelection.color);
+      console.log('Variant selection images:', {
+        size: firstSelection.size,
+        color: firstSelection.color,
+        variantImagesCount: imagesToDisplay.length,
+        hasVariantImages: imagesToDisplay.length > 0
+      });
     } else if (previewSize || previewColor) {
       // If variant is being previewed (selected but not yet added), show those images
-      const variantImages = getVariantImages(product, previewSize, previewColor);
-      setDisplayedImages(variantImages);
+      // Can show images even if only size OR color is selected (will show matching variants)
+      imagesToDisplay = getVariantImages(product, previewSize, previewColor);
+      console.log('Variant preview images:', {
+        previewSize,
+        previewColor,
+        variantImagesCount: imagesToDisplay.length,
+        hasVariantImages: imagesToDisplay.length > 0,
+        partialSelection: (previewSize && !previewColor) || (!previewSize && previewColor)
+      });
+      
+      // If preview returns empty and we have fallback images, use them
+      if (imagesToDisplay.length === 0) {
+        imagesToDisplay = mainImages.length > 0 ? mainImages : allVariantImages;
+      }
     } else if (selectedSize || selectedColor) {
       // If individual size/color is selected (but not yet in variantSelections), show those images
-      const variantImages = getVariantImages(product, selectedSize, selectedColor);
-      setDisplayedImages(variantImages);
+      imagesToDisplay = getVariantImages(product, selectedSize, selectedColor);
     } else {
-      // No variant selected, show main product images
-      setDisplayedImages(product.images || []);
+      // No variant selected: show main images if available, otherwise show all variant images
+      imagesToDisplay = mainImages.length > 0 ? mainImages : allVariantImages;
+      if (allVariantImages.length > 0 && mainImages.length === 0) {
+        console.log('No main images, showing all variant images:', {
+          variantImageCount: allVariantImages.length,
+          variantKeys: Object.keys(product.variantImages || {})
+        });
+      }
     }
+
+    // Final fallback: ensure we always have images if any exist
+    if (imagesToDisplay.length === 0) {
+      if (mainImages.length > 0) {
+        console.log('Falling back to main images');
+        imagesToDisplay = mainImages;
+      } else if (allVariantImages.length > 0) {
+        console.log('Falling back to all variant images');
+        imagesToDisplay = allVariantImages;
+      }
+    }
+
+    setDisplayedImages(imagesToDisplay);
   }, [product, variantSelections, previewSize, previewColor, selectedSize, selectedColor]);
 
   // Intersection Observer: Load recommended products only when section is near viewport
