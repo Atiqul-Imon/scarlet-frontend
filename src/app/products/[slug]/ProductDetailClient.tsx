@@ -270,8 +270,14 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
   // Handle variant preview callback
   const handleVariantPreview = React.useCallback((size: string, color: string) => {
     console.log('Variant preview:', { size, color });
-    setPreviewSize(size);
-    setPreviewColor(color);
+    // Clear preview if both are empty (variant was removed)
+    if (!size && !color) {
+      setPreviewSize('');
+      setPreviewColor('');
+    } else {
+      setPreviewSize(size);
+      setPreviewColor(color);
+    }
   }, []);
 
   // Update displayed images when variant selections or preview changes
@@ -308,9 +314,14 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
 
     let imagesToDisplay: string[] = [];
 
-    // If there are variant selections, use images from the first selected variant
-    // This allows users to see variant-specific images when they select a combination
+    // Priority order:
+    // 1. Variant selections (when variants are added to cart)
+    // 2. Preview (when selecting but not yet added)
+    // 3. Individual selections (legacy single selection)
+    // 4. Default (main images or all variant images)
+    
     if (variantSelections.length > 0) {
+      // If there are variant selections, use images from the first selected variant
       const firstSelection = variantSelections[0];
       imagesToDisplay = getVariantImages(product, firstSelection.size, firstSelection.color);
       console.log('Variant selection images:', {

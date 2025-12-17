@@ -172,9 +172,16 @@ export default function MultipleVariantSelector({
 
   // Remove a variant combination
   const removeVariant = (id: string) => {
+    const removedSelection = selections.find(s => s.id === id);
     setSelections(prevSelections => 
       prevSelections.filter(s => s.id !== id)
     );
+    
+    // Clear preview when variant is removed
+    if (removedSelection && onVariantPreview) {
+      // Clear preview by passing empty strings
+      onVariantPreview('', '');
+    }
   };
 
   // Get total quantity across all selections
