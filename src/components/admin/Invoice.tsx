@@ -132,9 +132,9 @@ export default function Invoice({ order }: InvoiceProps) {
             {order.items.map((item, index) => (
               <tr key={item._id} className={`border-b border-gray-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                 <td className="py-2 px-2 print:py-1 print:px-1">
-                  {item.image ? (
+                  {item.productImage ? (
                     <img 
-                      src={item.image} 
+                      src={item.productImage} 
                       alt={item.productName}
                       className="w-12 h-12 object-cover rounded border border-gray-200 print:w-10 print:h-10"
                       onError={(e) => {

@@ -3,6 +3,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { uploadImage } from '@/lib/image-upload';
+import { fetchJsonAuth } from '@/lib/api';
 import dynamic from 'next/dynamic';
 
 const ImageSelector = dynamic(() => import('@/components/admin/ImageSelector'), {
@@ -69,6 +70,29 @@ export default function VariantImageManager({
     try {
       const result = await uploadImage(file);
       if (result.success && result.url) {
+        // Save to media library
+        try {
+          await fetchJsonAuth('/media', {
+            method: 'POST',
+            body: JSON.stringify({
+              filename: result.data?.filename || file.name,
+              originalName: file.name,
+              url: result.url,
+              thumbnailUrl: result.data?.thumbnailUrl,
+              size: file.size,
+              mimeType: file.type,
+              alt: file.name,
+              caption: '',
+              tags: [],
+              category: 'product'
+            })
+          });
+        } catch (err) {
+          // Log error but don't block the upload - image is already uploaded to ImageKit
+          console.error('Failed to save to media library:', err);
+        }
+
+        // Add to variant images
         const currentImages = variantImages[variantKey] || [];
         onChange({
           ...variantImages,
