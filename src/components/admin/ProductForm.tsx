@@ -236,7 +236,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
       };
 
       setFormData(transformedData);
-      setImages(product.images || []);
+      const productImages = product.images || [];
+      console.log('Loading product images:', {
+        productId: product._id,
+        imagesCount: productImages.length,
+        images: productImages,
+        hasImages: productImages.length > 0
+      });
+      setImages(productImages);
     } catch (error) {
       console.error('Failed to load product:', error);
       addToast({

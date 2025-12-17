@@ -33,6 +33,13 @@ export default function ProductDetailPage() {
         setLoading(true);
         setError(null);
         const productData = await adminApi.products.getProduct(params.id as string);
+        console.log('Product data received:', {
+          id: productData._id,
+          title: productData.title,
+          imagesCount: productData.images?.length || 0,
+          images: productData.images,
+          hasImages: productData.images && productData.images.length > 0
+        });
         setProduct(productData);
       } catch (err) {
         console.error('Error fetching product:', err);
