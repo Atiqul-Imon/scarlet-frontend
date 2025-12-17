@@ -71,14 +71,19 @@ export default function ImageSelector({
   };
 
   const handleSelectFromMedia = (url: string) => {
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+      console.error('Invalid image URL selected:', url);
+      return;
+    }
+    
     if (multiple) {
       // In multiple mode, allow selecting multiple from gallery
-      // For now, just select one at a time (can be enhanced later)
+      // Modal stays open so user can select more images
       onImageSelect([url]);
+      // Show a brief success indicator without closing modal
+      // User can manually close when done
     } else {
       onImageSelect(url);
-    }
-    if (!multiple) {
       handleCloseModal();
     }
   };

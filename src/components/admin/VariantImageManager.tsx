@@ -3,6 +3,11 @@ import * as React from 'react';
 import Image from 'next/image';
 import { getImageKitStatus } from '@/lib/imagekit-test';
 import { uploadImage } from '@/lib/image-upload';
+import dynamic from 'next/dynamic';
+
+const ImageSelector = dynamic(() => import('@/components/admin/ImageSelector'), {
+  ssr: false,
+});
 
 interface VariantImageManagerProps {
   sizes: string[];
@@ -178,24 +183,46 @@ export default function VariantImageManager({
                 </div>
               )}
 
-              {/* Upload Button */}
-              <div>
-                <label className="block">
-                  <span className="sr-only">Upload image for {displayLabel}</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleImageUpload(variantKey, file);
+              {/* Upload Options */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <ImageSelector
+                    onImageSelect={(urls) => {
+                      const urlsArray = Array.isArray(urls) ? urls : [urls];
+                      const validUrls = urlsArray.filter(url => url && typeof url === 'string' && url.trim() !== '');
+                      
+                      if (validUrls.length > 0) {
+                        const currentImages = variantImages[variantKey] || [];
+                        onChange({
+                          ...variantImages,
+                          [variantKey]: [...currentImages, ...validUrls]
+                        });
                       }
                     }}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    productSlug="variant-images"
+                    buttonText="Select from Gallery"
+                    multiple={true}
                   />
-                </label>
+                  <span className="text-xs text-gray-500">or</span>
+                  <label className="inline-block">
+                    <span className="sr-only">Upload image for {displayLabel}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleImageUpload(variantKey, file);
+                        }
+                        // Reset input so same file can be selected again
+                        e.target.value = '';
+                      }}
+                      className="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                    />
+                  </label>
+                </div>
                 {images.length === 0 && (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400">
                     No images set. Main product images will be used.
                   </p>
                 )}

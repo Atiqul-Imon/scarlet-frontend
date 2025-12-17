@@ -487,9 +487,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     setIsSubmitting(true);
 
     try {
+      // Validate images array
+      const validImages = Array.isArray(images) ? images.filter(img => img && typeof img === 'string' && img.trim() !== '') : [];
+      
+      console.log('Submitting product with images:', {
+        imagesCount: validImages.length,
+        images: validImages,
+        variantImages: formData.variantImages
+      });
+
       const productData = {
         ...formData,
-        images,
+        images: validImages,
         price: parseFloat(formData.price),
         comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : undefined,
         cost: formData.cost ? parseFloat(formData.cost) : undefined,
@@ -946,19 +955,45 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
 
       {/* Images */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-6">Product Images</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-medium text-gray-900">Product Images</h2>
+          {images.length > 0 && (
+            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+              {images.length} image{images.length !== 1 ? 's' : ''} added
+            </span>
+          )}
+        </div>
         
         <div className="mb-4">
           <ImageSelector
             onImageSelect={(urls) => {
               // Handle both single URL (string) and multiple URLs (array)
               const urlsArray = Array.isArray(urls) ? urls : [urls];
-              setImages(prev => [...prev, ...urlsArray]);
-              addToast({
-                type: 'success',
-                title: 'Image(s) added',
-                message: `Successfully added ${urlsArray.length} image(s)!`
-              });
+              const validUrls = urlsArray.filter(url => url && typeof url === 'string' && url.trim() !== '');
+              
+              if (validUrls.length > 0) {
+                setImages(prev => {
+                  const newImages = [...prev, ...validUrls];
+                  console.log('Images updated:', { 
+                    previousCount: prev.length, 
+                    added: validUrls.length, 
+                    total: newImages.length,
+                    urls: validUrls 
+                  });
+                  return newImages;
+                });
+                addToast({
+                  type: 'success',
+                  title: 'Image(s) added',
+                  message: `Successfully added ${validUrls.length} image(s)!`
+                });
+              } else {
+                addToast({
+                  type: 'error',
+                  title: 'No valid images',
+                  message: 'No valid image URLs were provided.'
+                });
+              }
             }}
             productSlug={formData.slug || 'temp'}
             buttonText="Add Images"
