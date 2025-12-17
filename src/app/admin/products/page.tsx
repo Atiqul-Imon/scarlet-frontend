@@ -275,7 +275,7 @@ export default function ProductsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Products</p>
-                <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{pagination.total || 0}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
                 <Squares2X2Icon className="w-6 h-6 text-blue-600" />
@@ -290,6 +290,7 @@ export default function ProductsPage() {
                 <p className="text-2xl font-bold text-amber-600">
                   {products.filter(p => (p.stock || 0) <= 10 && (p.stock || 0) > 0).length}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">On this page</p>
               </div>
               <div className="p-3 bg-amber-100 rounded-lg">
                 <ExclamationTriangleIcon className="w-6 h-6 text-amber-600" />
@@ -304,6 +305,7 @@ export default function ProductsPage() {
                 <p className="text-2xl font-bold text-red-600">
                   {products.filter(p => (p.stock || 0) === 0).length}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">On this page</p>
               </div>
               <div className="p-3 bg-red-100 rounded-lg">
                 <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
@@ -314,10 +316,11 @@ export default function ProductsPage() {
           <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Products</p>
+                <p className="text-sm font-medium text-gray-600">Showing</p>
                 <p className="text-2xl font-bold text-green-600">
                   {products.length}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">On this page</p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
                 <EyeIcon className="w-6 h-6 text-green-600" />

@@ -1,25 +1,17 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   HomeIcon,
-  UsersIcon,
-  ShoppingBagIcon,
-  CubeIcon,
   HeartIcon,
-  ChartBarIcon,
   Cog6ToothIcon,
   ClipboardDocumentListIcon,
   SparklesIcon,
-  StarIcon,
   GiftIcon,
   ShoppingCartIcon,
   UserGroupIcon,
   DocumentTextIcon,
-  BellIcon,
-  ExclamationTriangleIcon,
   ChatBubbleLeftRightIcon,
   PhotoIcon
 } from '@heroicons/react/24/outline';
@@ -107,26 +99,6 @@ const navigationItems: AdminNavItem[] = [
     label: 'Credit Management',
     href: '/admin/credits',
     icon: GiftIcon,
-  },
-  {
-    id: 'analytics',
-    label: 'Beauty Analytics',
-    href: '/admin/analytics',
-    icon: ChartBarIcon,
-    children: [
-      {
-        id: 'analytics-overview',
-        label: 'Overview',
-        href: '/admin/analytics',
-        icon: ChartBarIcon,
-      },
-      {
-        id: 'analytics-realtime',
-        label: 'Real-Time',
-        href: '/admin/analytics/realtime',
-        icon: ChartBarIcon,
-      },
-    ],
   },
   {
     id: 'wishlist',
