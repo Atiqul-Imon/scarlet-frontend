@@ -517,22 +517,45 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
       });
 
       // Validate images array
-      const validImages = Array.isArray(images) ? images.filter(img => img && typeof img === 'string' && img.trim() !== '') : [];
+      let validImages = Array.isArray(images) ? images.filter(img => img && typeof img === 'string' && img.trim() !== '') : [];
+      
+      // If main images are empty but variant images exist, extract images from variants
+      if (validImages.length === 0 && formData.variantImages && Object.keys(formData.variantImages).length > 0) {
+        console.log('Main images empty, extracting from variant images...');
+        
+        // Collect all unique images from all variants
+        const allVariantImages: string[] = [];
+        Object.values(formData.variantImages).forEach((variantImageArray) => {
+          if (Array.isArray(variantImageArray)) {
+            variantImageArray.forEach((img) => {
+              if (img && typeof img === 'string' && img.trim() !== '' && !allVariantImages.includes(img)) {
+                allVariantImages.push(img);
+              }
+            });
+          }
+        });
+        
+        if (allVariantImages.length > 0) {
+          validImages = allVariantImages;
+          console.log(`✅ Auto-populated ${validImages.length} main images from variant images`);
+        }
+      }
       
       console.log('Submitting product with images:', {
         imagesCount: validImages.length,
         images: validImages,
         variantImages: formData.variantImages,
         productId: productId,
-        mode: mode
+        mode: mode,
+        autoPopulated: validImages.length > 0 && images.length === 0 && Object.keys(formData.variantImages || {}).length > 0
       });
 
-      // Warn if images are missing
-      if (validImages.length === 0 && mode === 'edit') {
-        console.warn('⚠️ WARNING: Submitting product with NO images! This will clear existing images from the database.');
+      // Only warn if both main images AND variant images are empty
+      if (validImages.length === 0 && (!formData.variantImages || Object.keys(formData.variantImages).length === 0)) {
+        console.warn('⚠️ WARNING: Submitting product with NO images at all!');
         const confirmClear = window.confirm(
-          '⚠️ WARNING: You are about to save this product with NO images. This will remove all existing images from the database.\n\n' +
-          'If you want to keep existing images, please add them before saving.\n\n' +
+          '⚠️ WARNING: You are about to save this product with NO images (no main images and no variant images).\n\n' +
+          'This will remove all existing images from the database.\n\n' +
           'Click OK to continue (images will be cleared) or Cancel to go back and add images.'
         );
         if (!confirmClear) {
