@@ -21,6 +21,7 @@ interface OrderReceiptData {
     title: string;
     quantity: number;
     price: number;
+    image?: string;
   }>;
   subtotal: number;
   shipping: number;

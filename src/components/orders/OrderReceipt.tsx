@@ -199,7 +199,8 @@ export default function OrderReceipt({
             {/* Desktop Header - Hidden on mobile */}
             <div className="hidden sm:block px-4 py-3" style={{backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb'}}>
               <div className="grid grid-cols-12 gap-4 text-sm font-medium" style={{color: '#374151'}}>
-                <div className="col-span-6">Item</div>
+                <div className="col-span-1">Image</div>
+                <div className="col-span-5">Item</div>
                 <div className="col-span-2 text-center">Qty</div>
                 <div className="col-span-2 text-right">Price</div>
                 <div className="col-span-2 text-right">Total</div>
@@ -210,9 +211,26 @@ export default function OrderReceipt({
                 <div key={index} className="px-3 sm:px-4 py-3" style={{borderBottom: index < items.length - 1 ? '1px solid #e5e7eb' : 'none'}}>
                   {/* Mobile Layout */}
                   <div className="sm:hidden space-y-2">
-                    <div>
-                      <p className="font-medium text-sm" style={{color: '#000000'}}>{item.title}</p>
-                      <p className="text-xs" style={{color: '#6b7280'}}>SKU: {item.productId}</p>
+                    <div className="flex gap-3">
+                      {item.image ? (
+                        <img 
+                          src={item.image} 
+                          alt={item.title}
+                          className="w-16 h-16 object-cover rounded border border-gray-200 flex-shrink-0"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo/scarletlogo.png';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 rounded border border-gray-200 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs text-gray-400">IMG</span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-medium text-sm" style={{color: '#000000'}}>{item.title}</p>
+                        <p className="text-xs" style={{color: '#6b7280'}}>SKU: {item.productId}</p>
+                      </div>
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span style={{color: '#6b7280'}}>Quantity: {item.quantity}</span>
@@ -226,7 +244,24 @@ export default function OrderReceipt({
                   
                   {/* Desktop Layout */}
                   <div className="hidden sm:grid grid-cols-12 gap-4 items-center text-sm">
-                    <div className="col-span-6">
+                    <div className="col-span-1">
+                      {item.image ? (
+                        <img 
+                          src={item.image} 
+                          alt={item.title}
+                          className="w-12 h-12 object-cover rounded border border-gray-200"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/logo/scarletlogo.png';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-100 rounded border border-gray-200 flex items-center justify-center">
+                          <span className="text-xs text-gray-400">IMG</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="col-span-5">
                       <p className="font-medium" style={{color: '#000000'}}>{item.title}</p>
                       <p className="text-xs" style={{color: '#6b7280'}}>SKU: {item.productId}</p>
                     </div>

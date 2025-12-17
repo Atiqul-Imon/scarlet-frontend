@@ -1030,12 +1030,26 @@ export default function OrderDetailPage() {
             print-color-adjust: exact;
           }
 
-          /* Ensure logo prints correctly */
+          /* Ensure all images print correctly */
           .invoice-container img {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
             max-width: 100%;
             height: auto;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+          }
+
+          /* Ensure product images in table print correctly */
+          .invoice-items img {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            width: 40px !important;
+            height: 40px !important;
+            object-fit: cover;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
           }
         }
 

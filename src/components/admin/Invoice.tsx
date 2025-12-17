@@ -119,6 +119,7 @@ export default function Invoice({ order }: InvoiceProps) {
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr className="bg-gray-100 border-b-2 border-gray-800">
+              <th className="text-left py-2 px-2 text-xs font-bold text-gray-900 uppercase print:py-1 print:px-1">Image</th>
               <th className="text-left py-2 px-2 text-xs font-bold text-gray-900 uppercase print:py-1 print:px-1">Item</th>
               <th className="text-left py-2 px-2 text-xs font-bold text-gray-900 uppercase print:py-1 print:px-1">SKU</th>
               <th className="text-center py-2 px-2 text-xs font-bold text-gray-900 uppercase print:py-1 print:px-1">Variant</th>
@@ -130,6 +131,23 @@ export default function Invoice({ order }: InvoiceProps) {
           <tbody>
             {order.items.map((item, index) => (
               <tr key={item._id} className={`border-b border-gray-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                <td className="py-2 px-2 print:py-1 print:px-1">
+                  {item.image ? (
+                    <img 
+                      src={item.image} 
+                      alt={item.productName}
+                      className="w-12 h-12 object-cover rounded border border-gray-200 print:w-10 print:h-10"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/logo/scarletlogo.png';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-100 rounded border border-gray-200 flex items-center justify-center print:w-10 print:h-10">
+                      <span className="text-xs text-gray-400">IMG</span>
+                    </div>
+                  )}
+                </td>
                 <td className="py-2 px-2 print:py-1 print:px-1">
                   <div className="font-medium text-gray-900 text-xs">{item.productName}</div>
                 </td>
