@@ -720,21 +720,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCart(updatedCart);
         // No need to refreshCart() - updatedCart already contains the latest state
         
-        // Track Meta Pixel AddToCart event
-        if (updatedCart?.items && updatedCart.items.length > 0) {
+        // Track Meta Pixel AddToCart event (dynamic import)
+        if (typeof window !== 'undefined' && updatedCart?.items && updatedCart.items.length > 0) {
           const lastItem = updatedCart.items[updatedCart.items.length - 1];
-          if (lastItem.product) {
-            trackAddToCart({
-              content_name: lastItem.product.title,
-              content_ids: [lastItem.product._id!],
-              content_type: 'product',
-              value: lastItem.product.price.amount * lastItem.quantity,
-              currency: lastItem.product.price.currency || 'BDT',
-              contents: [{
-                id: lastItem.product._id!,
-                quantity: lastItem.quantity,
-                item_price: lastItem.product.price.amount,
-              }],
+          const product = lastItem?.product;
+          if (product) {
+            import('./meta-pixel').then(({ trackAddToCart }) => {
+              try {
+                trackAddToCart({
+                  content_name: product.title,
+                  content_ids: [product._id!],
+                  content_type: 'product',
+                  value: product.price.amount * lastItem.quantity,
+                  currency: product.price.currency || 'BDT',
+                  contents: [{
+                    id: product._id!,
+                    quantity: lastItem.quantity,
+                    item_price: product.price.amount,
+                  }],
+                });
+              } catch (error) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('Error tracking AddToCart:', error);
+                }
+              }
+            }).catch(() => {
+              // Silently fail if meta-pixel module can't be loaded
             });
           }
         }
@@ -767,21 +778,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCart(updatedCart);
         // No need to refreshCart() - updatedCart already contains the latest state
         
-        // Track Meta Pixel AddToCart event
-        if (updatedCart.items && updatedCart.items.length > 0) {
+        // Track Meta Pixel AddToCart event (dynamic import)
+        if (typeof window !== 'undefined' && updatedCart.items && updatedCart.items.length > 0) {
           const lastItem = updatedCart.items[updatedCart.items.length - 1];
-          if (lastItem.product) {
-            trackAddToCart({
-              content_name: lastItem.product.title,
-              content_ids: [lastItem.product._id!],
-              content_type: 'product',
-              value: lastItem.product.price.amount * lastItem.quantity,
-              currency: lastItem.product.price.currency || 'BDT',
-              contents: [{
-                id: lastItem.product._id!,
-                quantity: lastItem.quantity,
-                item_price: lastItem.product.price.amount,
-              }],
+          const product = lastItem?.product;
+          if (product) {
+            import('./meta-pixel').then(({ trackAddToCart }) => {
+              try {
+                trackAddToCart({
+                  content_name: product.title,
+                  content_ids: [product._id!],
+                  content_type: 'product',
+                  value: product.price.amount * lastItem.quantity,
+                  currency: product.price.currency || 'BDT',
+                  contents: [{
+                    id: product._id!,
+                    quantity: lastItem.quantity,
+                    item_price: product.price.amount,
+                  }],
+                });
+              } catch (error) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('Error tracking AddToCart:', error);
+                }
+              }
+            }).catch(() => {
+              // Silently fail if meta-pixel module can't be loaded
             });
           }
         }
@@ -804,7 +826,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Remove item if quantity is 0 or less
           // Get product info before removing for tracking
           const itemToRemove = cart?.items?.find(item => 
-            item.product._id === productId &&
+            item.product?._id === productId &&
             item.selectedSize === selectedSize &&
             item.selectedColor === selectedColor
           );
@@ -813,19 +835,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setCart(updatedCart);
           await refreshCart(); // Refresh to ensure sync
           
-          // Track Meta Pixel RemoveFromCart event
-          if (itemToRemove && itemToRemove.product) {
-            trackRemoveFromCart({
-              content_name: itemToRemove.product.title,
-              content_ids: [itemToRemove.product._id!],
-              content_type: 'product',
-              value: itemToRemove.product.price.amount * itemToRemove.quantity,
-              currency: itemToRemove.product.price.currency || 'BDT',
-              contents: [{
-                id: itemToRemove.product._id!,
-                quantity: itemToRemove.quantity,
-                item_price: itemToRemove.product.price.amount,
-              }],
+          // Track Meta Pixel RemoveFromCart event (dynamic import)
+          if (typeof window !== 'undefined' && itemToRemove && itemToRemove.product) {
+            const product = itemToRemove.product;
+            import('./meta-pixel').then(({ trackRemoveFromCart }) => {
+              try {
+                trackRemoveFromCart({
+                  content_name: product.title,
+                  content_ids: [product._id!],
+                  content_type: 'product',
+                  value: product.price.amount * itemToRemove.quantity,
+                  currency: product.price.currency || 'BDT',
+                  contents: [{
+                    id: product._id!,
+                    quantity: itemToRemove.quantity,
+                    item_price: product.price.amount,
+                  }],
+                });
+              } catch (error) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('Error tracking RemoveFromCart:', error);
+                }
+              }
+            }).catch(() => {
+              // Silently fail if meta-pixel module can't be loaded
             });
           }
         } else {
@@ -865,7 +898,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const removeItem = React.useCallback(async (productId: string, selectedSize?: string, selectedColor?: string): Promise<void> => {
     // Get product info before removing for tracking
     const itemToRemove = cart?.items?.find(item => 
-      item.product._id === productId &&
+      item.product?._id === productId &&
       item.selectedSize === selectedSize &&
       item.selectedColor === selectedColor
     );
@@ -879,19 +912,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Refresh cart to ensure sync
         await refreshCart();
         
-        // Track Meta Pixel RemoveFromCart event
-        if (itemToRemove && itemToRemove.product) {
-          trackRemoveFromCart({
-            content_name: itemToRemove.product.title,
-            content_ids: [itemToRemove.product._id!],
-            content_type: 'product',
-            value: itemToRemove.product.price.amount * itemToRemove.quantity,
-            currency: itemToRemove.product.price.currency || 'BDT',
-            contents: [{
-              id: itemToRemove.product._id!,
-              quantity: itemToRemove.quantity,
-              item_price: itemToRemove.product.price.amount,
-            }],
+        // Track Meta Pixel RemoveFromCart event (dynamic import)
+        if (typeof window !== 'undefined' && itemToRemove && itemToRemove.product) {
+          const product = itemToRemove.product;
+          import('./meta-pixel').then(({ trackRemoveFromCart }) => {
+            try {
+              trackRemoveFromCart({
+                content_name: product.title,
+                content_ids: [product._id!],
+                content_type: 'product',
+                value: product.price.amount * itemToRemove.quantity,
+                currency: product.price.currency || 'BDT',
+                contents: [{
+                  id: product._id!,
+                  quantity: itemToRemove.quantity,
+                  item_price: product.price.amount,
+                }],
+              });
+            } catch (error) {
+              if (process.env.NODE_ENV === 'development') {
+                console.error('Error tracking RemoveFromCart:', error);
+              }
+            }
+          }).catch(() => {
+            // Silently fail if meta-pixel module can't be loaded
           });
         }
         
@@ -921,19 +965,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCart(updatedCart);
       await refreshCart(); // Refresh to ensure sync
       
-      // Track Meta Pixel RemoveFromCart event
-      if (itemToRemove && itemToRemove.product) {
-        trackRemoveFromCart({
-          content_name: itemToRemove.product.title,
-          content_ids: [itemToRemove.product._id!],
-          content_type: 'product',
-          value: itemToRemove.product.price.amount * itemToRemove.quantity,
-          currency: itemToRemove.product.price.currency || 'BDT',
-          contents: [{
-            id: itemToRemove.product._id!,
-            quantity: itemToRemove.quantity,
-            item_price: itemToRemove.product.price.amount,
-          }],
+      // Track Meta Pixel RemoveFromCart event (dynamic import)
+      if (typeof window !== 'undefined' && itemToRemove && itemToRemove.product) {
+        const product = itemToRemove.product;
+        import('./meta-pixel').then(({ trackRemoveFromCart }) => {
+          try {
+            trackRemoveFromCart({
+              content_name: product.title,
+              content_ids: [product._id!],
+              content_type: 'product',
+              value: product.price.amount * itemToRemove.quantity,
+              currency: product.price.currency || 'BDT',
+              contents: [{
+                id: product._id!,
+                quantity: itemToRemove.quantity,
+                item_price: product.price.amount,
+              }],
+            });
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Error tracking RemoveFromCart:', error);
+            }
+          }
+        }).catch(() => {
+          // Silently fail if meta-pixel module can't be loaded
         });
       }
     }
