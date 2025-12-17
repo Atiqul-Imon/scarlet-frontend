@@ -545,10 +545,24 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         imagesCount: validImages.length,
         images: validImages,
         variantImages: formData.variantImages,
+        variantImageKeys: formData.variantImages ? Object.keys(formData.variantImages) : [],
+        variantImageCount: formData.variantImages ? Object.keys(formData.variantImages).length : 0,
         productId: productId,
         mode: mode,
         autoPopulated: validImages.length > 0 && images.length === 0 && Object.keys(formData.variantImages || {}).length > 0
       });
+      
+      // Debug: Log variant images structure
+      if (formData.variantImages && Object.keys(formData.variantImages).length > 0) {
+        console.log('Variant images structure:', {
+          keys: Object.keys(formData.variantImages),
+          values: Object.entries(formData.variantImages).map(([key, value]) => ({
+            key,
+            images: value,
+            imageCount: Array.isArray(value) ? value.length : 0
+          }))
+        });
+      }
 
       // Only warn if both main images AND variant images are empty
       if (validImages.length === 0 && (!formData.variantImages || Object.keys(formData.variantImages).length === 0)) {
@@ -569,6 +583,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         console.warn('⚠️ WARNING: Submitting product with NO images! This will clear existing images from the database.');
       }
 
+      // Ensure variantImages is properly included
+      const hasVariantImages = formData.variantImages && 
+        typeof formData.variantImages === 'object' && 
+        Object.keys(formData.variantImages).length > 0;
+      
       const productData = {
         ...formData,
         images: validImages,
@@ -579,7 +598,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         sizes: formData.sizes.filter(s => s.trim() !== '').length > 0 ? formData.sizes.filter(s => s.trim() !== '') : undefined,
         colors: formData.colors.filter(c => c.trim() !== '').length > 0 ? formData.colors.filter(c => c.trim() !== '') : undefined,
         variantStock: Object.keys(formData.variantStock).length > 0 ? formData.variantStock : undefined,
-        variantImages: Object.keys(formData.variantImages).length > 0 ? formData.variantImages : undefined,
+        variantImages: hasVariantImages ? formData.variantImages : undefined,
         lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         dimensions: {
