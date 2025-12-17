@@ -36,7 +36,6 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
   const [selectedSize, setSelectedSize] = React.useState<string>('');
   const [selectedColor, setSelectedColor] = React.useState<string>('');
   const [variantSelections, setVariantSelections] = React.useState<VariantSelection[]>([]);
-  const [displayedImages, setDisplayedImages] = React.useState<string[]>([]);
   const [isAddingToCart, setIsAddingToCart] = React.useState(false);
   const [showWishlistModal, setShowWishlistModal] = React.useState(false);
   const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
@@ -96,7 +95,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
         setProduct(product);
         setSelectedSize(''); // Reset size selection when product changes
         setSelectedColor(''); // Reset color selection when product changes
-        setDisplayedImages(product.images || []); // Initialize with main product images
+        // displayedImages is now computed via useMemo, no initialization needed
         setLoading(false);
         hasLoadedRecommended.current = false; // Reset for new product
         
@@ -269,7 +268,9 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
 
   // Handle variant preview callback
   const handleVariantPreview = React.useCallback((size: string, color: string) => {
-    console.log('Variant preview:', { size, color });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Variant preview:', { size, color });
+    }
     // Clear preview if both are empty (variant was removed)
     if (!size && !color) {
       setPreviewSize('');
@@ -280,37 +281,40 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
     }
   }, []);
 
-  // Update displayed images when variant selections or preview changes
-  React.useEffect(() => {
-    if (!product) {
-      setDisplayedImages([]);
-      return;
+  // Memoize all variant images computation (optimized: uses Set internally in getVariantImages)
+  const allVariantImages = React.useMemo(() => {
+    if (!product?.variantImages || typeof product.variantImages !== 'object') {
+      return [];
     }
+    // Use Set for O(1) lookups instead of Array.includes() O(n)
+    const imageSet = new Set<string>();
+    Object.values(product.variantImages).forEach((variantImageArray: any) => {
+      if (Array.isArray(variantImageArray)) {
+        variantImageArray.forEach((img: any) => {
+          if (img && typeof img === 'string' && img.trim() !== '') {
+            imageSet.add(img);
+          }
+        });
+      }
+    });
+    return Array.from(imageSet);
+  }, [product?.variantImages]);
 
-    // Get main product images
-    const mainImages = product.images && Array.isArray(product.images) && product.images.length > 0 
+  // Memoize main images
+  const mainImages = React.useMemo(() => {
+    return product?.images && Array.isArray(product.images) && product.images.length > 0 
       ? product.images 
       : [];
+  }, [product?.images]);
 
-    // Get all variant images (fallback when no main images)
-    const getAllVariantImages = () => {
-      if (!product.variantImages || typeof product.variantImages !== 'object') {
-        return [];
-      }
-      const allImages: string[] = [];
-      Object.values(product.variantImages).forEach((variantImageArray: any) => {
-        if (Array.isArray(variantImageArray)) {
-          variantImageArray.forEach((img: any) => {
-            if (img && typeof img === 'string' && img.trim() !== '' && !allImages.includes(img)) {
-              allImages.push(img);
-            }
-          });
-        }
-      });
-      return allImages;
-    };
-    
-    const allVariantImages = mainImages.length === 0 ? getAllVariantImages() : [];
+  // Memoize displayed images computation (replaces useEffect for better performance)
+  const displayedImages = React.useMemo(() => {
+    if (!product) {
+      return [];
+    }
+
+    // Only compute allVariantImages if main images are empty (lazy evaluation)
+    const computedAllVariantImages = mainImages.length === 0 ? allVariantImages : [];
 
     let imagesToDisplay: string[] = [];
 
@@ -324,37 +328,41 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
       // If there are variant selections, use images from the first selected variant
       const firstSelection = variantSelections[0];
       imagesToDisplay = getVariantImages(product, firstSelection.size, firstSelection.color);
-      console.log('Variant selection images:', {
-        size: firstSelection.size,
-        color: firstSelection.color,
-        variantImagesCount: imagesToDisplay.length,
-        hasVariantImages: imagesToDisplay.length > 0
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Variant selection images:', {
+          size: firstSelection.size,
+          color: firstSelection.color,
+          variantImagesCount: imagesToDisplay.length,
+          hasVariantImages: imagesToDisplay.length > 0
+        });
+      }
     } else if (previewSize || previewColor) {
       // If variant is being previewed (selected but not yet added), show those images
       // Can show images even if only size OR color is selected (will show matching variants)
       imagesToDisplay = getVariantImages(product, previewSize, previewColor);
-      console.log('Variant preview images:', {
-        previewSize,
-        previewColor,
-        variantImagesCount: imagesToDisplay.length,
-        hasVariantImages: imagesToDisplay.length > 0,
-        partialSelection: (previewSize && !previewColor) || (!previewSize && previewColor)
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Variant preview images:', {
+          previewSize,
+          previewColor,
+          variantImagesCount: imagesToDisplay.length,
+          hasVariantImages: imagesToDisplay.length > 0,
+          partialSelection: (previewSize && !previewColor) || (!previewSize && previewColor)
+        });
+      }
       
       // If preview returns empty and we have fallback images, use them
       if (imagesToDisplay.length === 0) {
-        imagesToDisplay = mainImages.length > 0 ? mainImages : allVariantImages;
+        imagesToDisplay = mainImages.length > 0 ? mainImages : computedAllVariantImages;
       }
     } else if (selectedSize || selectedColor) {
       // If individual size/color is selected (but not yet in variantSelections), show those images
       imagesToDisplay = getVariantImages(product, selectedSize, selectedColor);
     } else {
       // No variant selected: show main images if available, otherwise show all variant images
-      imagesToDisplay = mainImages.length > 0 ? mainImages : allVariantImages;
-      if (allVariantImages.length > 0 && mainImages.length === 0) {
+      imagesToDisplay = mainImages.length > 0 ? mainImages : computedAllVariantImages;
+      if (process.env.NODE_ENV === 'development' && computedAllVariantImages.length > 0 && mainImages.length === 0) {
         console.log('No main images, showing all variant images:', {
-          variantImageCount: allVariantImages.length,
+          variantImageCount: computedAllVariantImages.length,
           variantKeys: Object.keys(product.variantImages || {})
         });
       }
@@ -363,16 +371,20 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
     // Final fallback: ensure we always have images if any exist
     if (imagesToDisplay.length === 0) {
       if (mainImages.length > 0) {
-        console.log('Falling back to main images');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Falling back to main images');
+        }
         imagesToDisplay = mainImages;
-      } else if (allVariantImages.length > 0) {
-        console.log('Falling back to all variant images');
-        imagesToDisplay = allVariantImages;
+      } else if (computedAllVariantImages.length > 0) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Falling back to all variant images');
+        }
+        imagesToDisplay = computedAllVariantImages;
       }
     }
 
-    setDisplayedImages(imagesToDisplay);
-  }, [product, variantSelections, previewSize, previewColor, selectedSize, selectedColor]);
+    return imagesToDisplay;
+  }, [product, variantSelections, previewSize, previewColor, selectedSize, selectedColor, mainImages, allVariantImages]);
 
   // Intersection Observer: Load recommended products only when section is near viewport
   React.useEffect(() => {
