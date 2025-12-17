@@ -241,9 +241,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         productId: product._id,
         imagesCount: productImages.length,
         images: productImages,
-        hasImages: productImages.length > 0
+        hasImages: productImages.length > 0,
+        productData: {
+          title: product.title,
+          _id: product._id,
+          rawImages: product.images,
+          imagesType: typeof product.images,
+          isArray: Array.isArray(product.images)
+        }
       });
-      setImages(productImages);
+      
+      // Ensure images is always an array
+      if (!Array.isArray(productImages)) {
+        console.warn('⚠️ Product images is not an array:', productImages, 'Type:', typeof productImages);
+        setImages([]);
+      } else {
+        setImages(productImages);
+      }
     } catch (error) {
       console.error('Failed to load product:', error);
       addToast({
@@ -494,14 +508,43 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     setIsSubmitting(true);
 
     try {
+      // Debug: Check images state before validation
+      console.log('Before submission - images state:', {
+        rawImages: images,
+        imagesLength: images.length,
+        imagesType: typeof images,
+        isArray: Array.isArray(images)
+      });
+
       // Validate images array
       const validImages = Array.isArray(images) ? images.filter(img => img && typeof img === 'string' && img.trim() !== '') : [];
       
       console.log('Submitting product with images:', {
         imagesCount: validImages.length,
         images: validImages,
-        variantImages: formData.variantImages
+        variantImages: formData.variantImages,
+        productId: productId,
+        mode: mode
       });
+
+      // Warn if images are missing
+      if (validImages.length === 0 && mode === 'edit') {
+        console.warn('⚠️ WARNING: Submitting product with NO images! This will clear existing images from the database.');
+        const confirmClear = window.confirm(
+          '⚠️ WARNING: You are about to save this product with NO images. This will remove all existing images from the database.\n\n' +
+          'If you want to keep existing images, please add them before saving.\n\n' +
+          'Click OK to continue (images will be cleared) or Cancel to go back and add images.'
+        );
+        if (!confirmClear) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Warn if images are missing
+      if (validImages.length === 0 && mode === 'edit') {
+        console.warn('⚠️ WARNING: Submitting product with NO images! This will clear existing images from the database.');
+      }
 
       const productData = {
         ...formData,
