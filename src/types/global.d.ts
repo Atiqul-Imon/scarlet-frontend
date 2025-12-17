@@ -18,8 +18,17 @@ declare global {
     gtag?: (...args: any[]) => void;
     dataLayer?: any[];
     Stripe?: any;
-    fbq?: (...args: any[]) => void;
+    fbq?: {
+      (command: 'init', pixelId: string, config?: Record<string, any>): void;
+      (command: 'track', eventName: string, eventData?: Record<string, any>): void;
+      (command: 'trackSingle', pixelId: string, eventName: string, eventData?: Record<string, any>): void;
+      (command: 'trackCustom', eventName: string, eventData?: Record<string, any>): void;
+      queue?: any[];
+      loaded?: boolean;
+      version?: string;
+    };
     gtm?: any;
+    _fbq?: any;
   }
 
   // Custom CSS properties

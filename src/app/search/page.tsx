@@ -11,6 +11,7 @@ import {
   MagnifyingGlassIcon, 
   FunnelIcon
 } from '@heroicons/react/24/outline';
+import { trackSearch } from '../../lib/meta-pixel';
 
 const SearchFilters = dynamic(() => import('../../components/search/SearchFilters'));
 const MobileSearchFilters = dynamic(() => import('../../components/search/MobileSearchFilters'));
@@ -120,6 +121,19 @@ function SearchPageContent() {
       
       const result = await fetchJson<SearchResult>(`/catalog/search?${params.toString()}`);
       setSearchResult(result);
+      
+      // Track Meta Pixel Search event
+      if (query.trim() && result.products) {
+        trackSearch({
+          search_string: query,
+          content_ids: result.products.slice(0, 10).map(p => p._id!),
+          content_type: 'product',
+          contents: result.products.slice(0, 10).map(p => ({
+            id: p._id!,
+            quantity: 1,
+          })),
+        });
+      }
     } catch (error) {
       console.error('Search error:', error);
       setError('Failed to load search results. Please try again.');

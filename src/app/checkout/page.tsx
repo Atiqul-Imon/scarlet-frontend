@@ -12,6 +12,7 @@ import { productApi, creditApi } from '../../lib/api';
 import type { CreditRedemptionValidation } from '../../lib/types';
 import logger from '../../lib/logger';
 import { getVariantImage } from '../../lib/product-utils';
+// Dynamic import for meta-pixel to avoid build-time initialization issues
 import { 
   bangladeshDivisions, 
   getDivisionById, 
@@ -75,9 +76,35 @@ export default function CheckoutPage() {
   const [isPreorder, setIsPreorder] = React.useState(false);
   
   React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const params = new URLSearchParams(window.location.search);
     setIsPreorder(params.get('preorder') === 'true');
-  }, []);
+    
+    // Track Meta Pixel InitiateCheckout event (dynamic import)
+    if (cart && cart.items && cart.items.length > 0) {
+      import('../../lib/meta-pixel').then(({ formatCartItems, trackInitiateCheckout }) => {
+        try {
+          // Filter out items without products for type safety
+          const validItems = cart.items.filter(item => item.product && item.product._id && item.product.price);
+          if (validItems.length > 0) {
+            const cartData = formatCartItems(validItems as any);
+            trackInitiateCheckout({
+              content_name: `${validItems.length} item${validItems.length > 1 ? 's' : ''} in cart`,
+              ...cartData,
+              content_type: 'product',
+            });
+          }
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error tracking InitiateCheckout:', error);
+          }
+        }
+      }).catch(() => {
+        // Silently fail if meta-pixel module can't be loaded
+      });
+    }
+  }, [cart]);
 
   // Helper function to handle SSLCommerz payment flow
   const handleSSLCommerzPayment = async () => {
@@ -230,6 +257,30 @@ export default function CheckoutPage() {
       const order = user 
         ? await orderApi.createOrder(orderData as any)
         : await orderApi.createGuestOrder(sessionId, orderData as any);
+      
+      // Track Meta Pixel Purchase event before clearing cart (dynamic import)
+      if (typeof window !== 'undefined' && cart && cart.items && cart.items.length > 0) {
+        import('../../lib/meta-pixel').then(({ formatCartItems, trackPurchase }) => {
+          try {
+            // Filter out items without products for type safety
+            const validItems = cart.items.filter(item => item.product && item.product._id && item.product.price);
+            if (validItems.length > 0) {
+              const cartData = formatCartItems(validItems as any);
+              trackPurchase({
+                ...cartData,
+                content_type: 'product',
+                order_id: order._id || order.orderNumber,
+              });
+            }
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Error tracking Purchase:', error);
+            }
+          }
+        }).catch(() => {
+          // Silently fail if meta-pixel module can't be loaded
+        });
+      }
       
       addToast({
         type: 'success',

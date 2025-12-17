@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from '@/lib/hooks';
 import { useAuth } from '@/lib/context';
 import type { RegisterFormData } from '@/lib/types';
+import { trackCompleteRegistration } from '@/lib/meta-pixel';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -100,6 +101,12 @@ export default function RegisterPage() {
           acceptTerms: values.acceptTerms,
           referralCode: values.referralCode?.trim() || undefined,
         } as RegisterFormData);
+        
+        // Track Meta Pixel CompleteRegistration event
+        trackCompleteRegistration({
+          status: true,
+          method: values.email ? 'email' : 'phone',
+        });
         
         // Check for redirect parameter first
         const urlParams = new URLSearchParams(window.location.search);

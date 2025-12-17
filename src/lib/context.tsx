@@ -720,6 +720,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCart(updatedCart);
         // No need to refreshCart() - updatedCart already contains the latest state
         
+        // Track Meta Pixel AddToCart event
+        if (updatedCart?.items && updatedCart.items.length > 0) {
+          const lastItem = updatedCart.items[updatedCart.items.length - 1];
+          if (lastItem.product) {
+            trackAddToCart({
+              content_name: lastItem.product.title,
+              content_ids: [lastItem.product._id!],
+              content_type: 'product',
+              value: lastItem.product.price.amount * lastItem.quantity,
+              currency: lastItem.product.price.currency || 'BDT',
+              contents: [{
+                id: lastItem.product._id!,
+                quantity: lastItem.quantity,
+                item_price: lastItem.product.price.amount,
+              }],
+            });
+          }
+        }
+        
         addToast({
           type: 'success',
           title: 'Added to Cart',
@@ -747,6 +766,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logger.log('User cart updated from backend:', updatedCart);
         setCart(updatedCart);
         // No need to refreshCart() - updatedCart already contains the latest state
+        
+        // Track Meta Pixel AddToCart event
+        if (updatedCart.items && updatedCart.items.length > 0) {
+          const lastItem = updatedCart.items[updatedCart.items.length - 1];
+          if (lastItem.product) {
+            trackAddToCart({
+              content_name: lastItem.product.title,
+              content_ids: [lastItem.product._id!],
+              content_type: 'product',
+              value: lastItem.product.price.amount * lastItem.quantity,
+              currency: lastItem.product.price.currency || 'BDT',
+              contents: [{
+                id: lastItem.product._id!,
+                quantity: lastItem.quantity,
+                item_price: lastItem.product.price.amount,
+              }],
+            });
+          }
+        }
       }
     } catch (error) {
       logger.error('Error adding item to user cart:', error);
@@ -764,9 +802,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         if (quantity <= 0) {
           // Remove item if quantity is 0 or less
+          // Get product info before removing for tracking
+          const itemToRemove = cart?.items?.find(item => 
+            item.product._id === productId &&
+            item.selectedSize === selectedSize &&
+            item.selectedColor === selectedColor
+          );
+          
           const updatedCart = await cartApi.removeGuestItem(sessionId, productId, selectedSize, selectedColor);
           setCart(updatedCart);
           await refreshCart(); // Refresh to ensure sync
+          
+          // Track Meta Pixel RemoveFromCart event
+          if (itemToRemove && itemToRemove.product) {
+            trackRemoveFromCart({
+              content_name: itemToRemove.product.title,
+              content_ids: [itemToRemove.product._id!],
+              content_type: 'product',
+              value: itemToRemove.product.price.amount * itemToRemove.quantity,
+              currency: itemToRemove.product.price.currency || 'BDT',
+              contents: [{
+                id: itemToRemove.product._id!,
+                quantity: itemToRemove.quantity,
+                item_price: itemToRemove.product.price.amount,
+              }],
+            });
+          }
         } else {
           // Update existing item
           const updatedCart = await cartApi.updateGuestItem(sessionId, productId, quantity, selectedSize, selectedColor);
@@ -802,6 +863,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
 
   const removeItem = React.useCallback(async (productId: string, selectedSize?: string, selectedColor?: string): Promise<void> => {
+    // Get product info before removing for tracking
+    const itemToRemove = cart?.items?.find(item => 
+      item.product._id === productId &&
+      item.selectedSize === selectedSize &&
+      item.selectedColor === selectedColor
+    );
+    
     if (!isAuthenticated) {
       // Handle guest cart - database-only approach
       try {
@@ -810,6 +878,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Refresh cart to ensure sync
         await refreshCart();
+        
+        // Track Meta Pixel RemoveFromCart event
+        if (itemToRemove && itemToRemove.product) {
+          trackRemoveFromCart({
+            content_name: itemToRemove.product.title,
+            content_ids: [itemToRemove.product._id!],
+            content_type: 'product',
+            value: itemToRemove.product.price.amount * itemToRemove.quantity,
+            currency: itemToRemove.product.price.currency || 'BDT',
+            contents: [{
+              id: itemToRemove.product._id!,
+              quantity: itemToRemove.quantity,
+              item_price: itemToRemove.product.price.amount,
+            }],
+          });
+        }
         
         addToast({
           type: 'success',
@@ -828,6 +912,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    // Handle authenticated user cart removal
     const updatedCart = await executeCartOperation(
       () => cartApi.removeItem(productId, selectedSize, selectedColor),
       'Item removed from cart'
@@ -835,8 +920,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (updatedCart) {
       setCart(updatedCart);
       await refreshCart(); // Refresh to ensure sync
+      
+      // Track Meta Pixel RemoveFromCart event
+      if (itemToRemove && itemToRemove.product) {
+        trackRemoveFromCart({
+          content_name: itemToRemove.product.title,
+          content_ids: [itemToRemove.product._id!],
+          content_type: 'product',
+          value: itemToRemove.product.price.amount * itemToRemove.quantity,
+          currency: itemToRemove.product.price.currency || 'BDT',
+          contents: [{
+            id: itemToRemove.product._id!,
+            quantity: itemToRemove.quantity,
+            item_price: itemToRemove.product.price.amount,
+          }],
+        });
+      }
     }
-  }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart]);
+  }, [isAuthenticated, executeCartOperation, addToast, sessionId, refreshCart, cart]);
 
   const clearCart = React.useCallback(async (): Promise<void> => {
     if (!isAuthenticated) {

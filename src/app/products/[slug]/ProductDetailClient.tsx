@@ -11,6 +11,7 @@ import StructuredData from '../../../components/seo/StructuredData';
 import { VariantSelection } from '../../../components/products/MultipleVariantSelector';
 import ShareButton from '../../../components/products/ShareButton';
 import { getVariantImages } from '../../../lib/product-utils';
+import { trackViewContent, formatProductData } from '../../../lib/meta-pixel';
 
 const ProductGallery = dynamic(() => import('../../../components/products/ProductGallery'));
 const MultipleVariantSelector = dynamic(() => import('../../../components/products/MultipleVariantSelector'));
@@ -98,6 +99,19 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
         // displayedImages is now computed via useMemo, no initialization needed
         setLoading(false);
         hasLoadedRecommended.current = false; // Reset for new product
+        
+        // Track Meta Pixel ViewContent event
+        if (product && product.price) {
+          const productData = formatProductData(product);
+          trackViewContent({
+            ...productData,
+            contents: [{
+              id: product._id!,
+              quantity: 1,
+              item_price: product.price.amount,
+            }],
+          });
+        }
         
         // Fetch related products asynchronously after main product loads
         // Optimized: Use dedicated related products endpoint instead of fetching entire category
