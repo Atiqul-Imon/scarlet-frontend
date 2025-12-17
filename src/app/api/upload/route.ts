@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getImageKitInstance, validateServerImageKitConfig, generateProductImagePath } from '@/lib/imagekit-config';
 
+// Timeout for ImageKit upload (30 seconds)
+const UPLOAD_TIMEOUT = 30000;
+
 export async function POST(request: NextRequest) {
   try {
     // Validate ImageKit configuration
@@ -39,16 +42,26 @@ export async function POST(request: NextRequest) {
     const filename = `product-${timestamp}-${randomString}.${fileExtension}`;
     const filePath = generateProductImagePath(productSlug, filename);
 
-    // Upload to ImageKit
+    // Upload to ImageKit with timeout
     const imagekit = getImageKitInstance();
-    const uploadResponse = await imagekit.upload({
-      file: buffer,
-      fileName: filename,
-      folder: `products/${productSlug}`,
-      tags: ['product', 'scarlet'],
-      useUniqueFileName: true,
-      responseFields: ['url', 'fileId', 'name', 'size', 'thumbnailUrl']
+    
+    // Create a promise that rejects after timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Upload timeout: ImageKit request took too long')), UPLOAD_TIMEOUT);
     });
+
+    // Race between upload and timeout
+    const uploadResponse = await Promise.race([
+      imagekit.upload({
+        file: buffer,
+        fileName: filename,
+        folder: `products/${productSlug}`,
+        tags: ['product', 'scarlet'],
+        useUniqueFileName: true,
+        responseFields: ['url', 'fileId', 'name', 'size', 'thumbnailUrl']
+      }),
+      timeoutPromise
+    ]) as any;
 
     return NextResponse.json({
       success: true,
@@ -63,11 +76,21 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('ImageKit upload error:', error);
+    
+    // Always return JSON, never HTML
+    const errorMessage = error?.message || 'Failed to upload file to ImageKit';
+    const isTimeout = errorMessage.includes('timeout');
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to upload file to ImageKit' },
-      { status: 500 }
+      { 
+        success: false, 
+        error: isTimeout 
+          ? 'Upload timeout: The server took too long to process your image. Please try again with a smaller file.' 
+          : errorMessage
+      },
+      { status: isTimeout ? 504 : 500 }
     );
   }
 }

@@ -517,7 +517,7 @@ export default function ProductsPage() {
                   className="absolute top-3 left-3 w-4 h-4 text-red-700 bg-white border-gray-300 rounded focus:ring-red-500 z-10"
                 />
                 <img
-                  src={product.images[0] || '/api/placeholder/300/300'}
+                  src={product.images[0] || '/logo/scarletlogo.png'}
                   alt={product.title}
                   className="w-full h-full object-cover"
                 />
@@ -660,7 +660,7 @@ export default function ProductsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <img
-                          src={product.images[0] || '/api/placeholder/60/60'}
+                          src={product.images[0] || '/logo/scarletlogo.png'}
                           alt={product.title}
                           className="w-12 h-12 rounded-lg object-cover mr-4"
                         />

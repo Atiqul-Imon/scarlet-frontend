@@ -35,12 +35,35 @@ export async function uploadImage(file: File, productSlug?: string): Promise<Upl
       body: formData,
     });
 
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // Server returned HTML or other non-JSON response (likely an error page)
+      const text = await response.text();
+      console.error('Non-JSON response from upload API:', text.substring(0, 200));
+      return {
+        success: false,
+        error: response.status === 504 
+          ? 'Upload timeout: The server took too long. Please try again with a smaller file.'
+          : `Server error (${response.status}): Please try again later.`,
+        fileName: file.name
+      };
+    }
+
     const result = await response.json();
 
     if (!response.ok) {
       return {
         success: false,
         error: result.error || 'Upload failed',
+        fileName: file.name
+      };
+    }
+
+    if (!result.success || !result.data?.url) {
+      return {
+        success: false,
+        error: result.error || 'Invalid response from server',
         fileName: file.name
       };
     }
@@ -55,7 +78,9 @@ export async function uploadImage(file: File, productSlug?: string): Promise<Upl
     console.error('Upload error:', error);
     return {
       success: false,
-      error: 'Network error during upload',
+      error: error instanceof Error 
+        ? `Network error: ${error.message}` 
+        : 'Network error during upload',
       fileName: file.name
     };
   }

@@ -62,14 +62,20 @@ export default function VariantImageManager({
 
   const handleImageUpload = async (variantKey: string, file: File) => {
     try {
-      const imageUrl = await uploadImage(file);
-      const currentImages = variantImages[variantKey] || [];
-      onChange({
-        ...variantImages,
-        [variantKey]: [...currentImages, imageUrl]
-      });
+      const result = await uploadImage(file);
+      if (result.success && result.url) {
+        const currentImages = variantImages[variantKey] || [];
+        onChange({
+          ...variantImages,
+          [variantKey]: [...currentImages, result.url]
+        });
+      } else {
+        console.error('Error uploading image:', result.error || 'Upload failed');
+        alert(`Failed to upload image: ${result.error || 'Unknown error'}`);
+      }
     } catch (error) {
       console.error('Error uploading image:', error);
+      alert(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

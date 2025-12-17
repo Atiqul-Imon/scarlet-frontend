@@ -146,7 +146,7 @@ export default function OrdersPage() {
           _id: `${order._id}-${item.productId}`,
           productId: item.productId,
           productName: item.title,
-          productImage: item.image || '/api/placeholder/60/60',
+          productImage: item.image || '/logo/scarletlogo.png',
           sku: item.sku || 'N/A',
           variant: item.variant || null,
           quantity: item.quantity,

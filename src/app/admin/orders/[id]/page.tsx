@@ -122,7 +122,7 @@ export default function OrderDetailPage() {
           _id: `${orderData._id}-${item.productId}`,
           productId: item.productId,
           productName: item.title,
-          productImage: item.image || '/api/placeholder/80/80',
+          productImage: item.image || '/logo/scarletlogo.png',
           sku: item.sku || 'N/A',
           variant: item.variant || null,
           size: item.size || undefined,
