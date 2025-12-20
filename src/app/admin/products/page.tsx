@@ -82,20 +82,21 @@ export default function ProductsPage() {
 
   const { addToast } = useToast();
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Debounce search input - update filters after user stops typing for 500ms
+  // Debounce search input - update filters after user stops typing for 800ms
   useEffect(() => {
     // Clear previous timeout
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);
     }
 
-    // Set new timeout to update filters after 500ms of no typing
+    // Set new timeout to update filters after 800ms of no typing
     searchDebounceRef.current = setTimeout(() => {
       setFilters(prev => ({ ...prev, search: searchInput }));
       // Reset to page 1 when search changes
       setPagination(prev => ({ ...prev, page: 1 }));
-    }, 500);
+    }, 800);
 
     // Cleanup timeout on unmount or when searchInput changes
     return () => {
@@ -105,7 +106,7 @@ export default function ProductsPage() {
     };
   }, [searchInput]);
 
-  // Fetch products from backend
+  // Fetch products from backend - always silent to prevent UI reload
   const fetchProducts = React.useCallback(async () => {
     await executeWithErrorHandling(async () => {
       const queryFilters: any = {
@@ -137,9 +138,13 @@ export default function ProductsPage() {
           total: response.total || 0,
           totalPages: response.totalPages || 0
         }));
+        setIsSearching(false);
       } else {
         setProducts([]);
+        setIsSearching(false);
       }
+    }, {
+      showLoading: false // Silent fetch - no page reload, no loading spinner
     });
   }, [pagination.page, pagination.limit, filters, executeWithErrorHandling]);
 
@@ -362,7 +367,12 @@ export default function ProductsPage() {
             {/* Search */}
             <div className="flex-1 max-w-lg">
               <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isSearching ? 'text-red-500' : 'text-gray-400'} transition-colors`} />
+                {isSearching && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-500 border-t-transparent"></div>
+                  </div>
+                )}
                 <input
                   type="text"
                   placeholder="Search products..."
@@ -370,6 +380,7 @@ export default function ProductsPage() {
                   onChange={(e) => {
                     e.preventDefault();
                     setSearchInput(e.target.value);
+                    setIsSearching(true);
                   }}
                   onKeyDown={(e) => {
                     // Prevent form submission on Enter
@@ -377,7 +388,7 @@ export default function ProductsPage() {
                       e.preventDefault();
                     }
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
+                  className={`w-full ${isSearching ? 'pl-10 pr-10' : 'pl-10 pr-4'} py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400 transition-all`}
                 />
               </div>
             </div>
