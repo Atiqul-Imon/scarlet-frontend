@@ -11,8 +11,8 @@ export const chatConfig: ChatConfig = {
     }
   },
   messenger: {
-    pageId: process.env.NEXT_PUBLIC_FACEBOOK_PAGE_ID || 'your-facebook-page-id',
-    appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || 'your-facebook-app-id',
+    pageId: process.env.NEXT_PUBLIC_FACEBOOK_PAGE_ID || process.env.NEXT_PUBLIC_META_PAGE_ID || 'your-facebook-page-id',
+    appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || process.env.NEXT_PUBLIC_META_APP_ID || 'your-facebook-app-id',
     pageName: 'Scarlet Beauty Store',
     themeColor: '#E91E63', // Pink theme to match brand
     loggedInGreeting: {

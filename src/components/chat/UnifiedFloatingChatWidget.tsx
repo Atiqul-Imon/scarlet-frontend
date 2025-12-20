@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { chatConfig } from '@/components/chat/config/chatConfig';
 
 interface UnifiedFloatingChatWidgetProps {
   className?: string;
@@ -73,7 +74,15 @@ export default function UnifiedFloatingChatWidget({ className = '' }: UnifiedFlo
   };
 
   const handleMessengerClick = () => {
-    const facebookPageId = 'yourpageid'; // Update with your Facebook Page ID
+    const facebookPageId = chatConfig.messenger.pageId;
+    
+    // Check if page ID is valid (not placeholder)
+    if (!facebookPageId || facebookPageId === 'your-facebook-page-id' || facebookPageId === 'yourpageid') {
+      console.warn('Facebook Page ID not configured');
+      alert('Facebook Messenger is not configured. Please contact support.');
+      return;
+    }
+    
     const messengerUrl = `https://m.me/${facebookPageId}`;
     window.open(messengerUrl, '_blank');
     setIsExpanded(false);
