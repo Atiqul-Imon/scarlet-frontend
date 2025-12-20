@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   PlusIcon, 
@@ -68,6 +68,8 @@ export default function ProductsPage() {
     total: 0,
     totalPages: 0
   });
+  // Separate search input state from filters to prevent immediate fetch on every keystroke
+  const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState<ProductFilters>({
     search: '',
     category: '',
@@ -79,6 +81,29 @@ export default function ProductsPage() {
   });
 
   const { addToast } = useToast();
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce search input - update filters after user stops typing for 500ms
+  useEffect(() => {
+    // Clear previous timeout
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    // Set new timeout to update filters after 500ms of no typing
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchInput }));
+      // Reset to page 1 when search changes
+      setPagination(prev => ({ ...prev, page: 1 }));
+    }, 500);
+
+    // Cleanup timeout on unmount or when searchInput changes
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, [searchInput]);
 
   // Fetch products from backend
   const fetchProducts = React.useCallback(async () => {
@@ -341,8 +366,17 @@ export default function ProductsPage() {
                 <input
                   type="text"
                   placeholder="Search products..."
-                  value={filters.search}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                  value={searchInput}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setSearchInput(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    // Prevent form submission on Enter
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                    }
+                  }}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 />
               </div>
@@ -806,22 +840,25 @@ export default function ProductsPage() {
 
       {/* Empty State */}
       {products.length === 0 && !loading && (
-        filters.search || filters.category || filters.status || filters.stockStatus ? (
+        filters.search || filters.category || filters.status || filters.stockStatus || searchInput ? (
           <EmptyState
             icon={Squares2X2Icon}
             title="No Products Found"
             description="No products match your current filters. Try adjusting your search criteria to see more products."
             action={{
               label: "Clear Filters",
-              onClick: () => setFilters({
-                search: '',
-                category: '',
-                status: '',
-                stockStatus: '',
-                priceRange: [0, 10000],
-                sortBy: 'updatedAt',
-                sortOrder: 'desc',
-              }),
+              onClick: () => {
+                setSearchInput('');
+                setFilters({
+                  search: '',
+                  category: '',
+                  status: '',
+                  stockStatus: '',
+                  priceRange: [0, 10000],
+                  sortBy: 'updatedAt',
+                  sortOrder: 'desc',
+                });
+              },
               variant: "secondary"
             }}
           />
