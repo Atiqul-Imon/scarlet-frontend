@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PhotoIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { fetchJsonAuth } from '@/lib/api';
 import logger from '@/lib/logger';
@@ -39,17 +39,26 @@ export default function ImageSelector({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ completed: number; total: number; current?: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchMediaFiles = async () => {
+  const fetchMediaFiles = async (page: number = 1, search: string = '') => {
     try {
       setLoading(true);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: '20',
+        ...(search && { search })
+      });
+      
       const response = await fetchJsonAuth<{
         files: MediaFile[];
         pages: number;
         total: number;
-      }>('/media?limit=50');
-      logger.info('Media files fetched', { count: response.files.length });
+      }>(`/media?${queryParams}`);
+      logger.info('Media files fetched', { count: response.files.length, page, totalPages: response.pages });
       setMediaFiles(response.files);
+      setTotalPages(response.pages);
     } catch (error) {
       console.error('Error fetching media files:', error);
     } finally {
@@ -59,7 +68,9 @@ export default function ImageSelector({
 
   const handleOpenModal = () => {
     setShowModal(true);
-    fetchMediaFiles();
+    setCurrentPage(1);
+    setSearchTerm('');
+    fetchMediaFiles(1, '');
   };
 
   const handleCloseModal = () => {
@@ -68,6 +79,7 @@ export default function ImageSelector({
     setSelectedFiles([]);
     setUploadProgress(null);
     setSearchTerm('');
+    setCurrentPage(1);
   };
 
   const handleSelectFromMedia = (url: string) => {
@@ -230,10 +242,25 @@ export default function ImageSelector({
     }
   };
 
-  const filteredFiles = mediaFiles.filter(file =>
-    file.originalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    file.alt?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Debounce search
+  useEffect(() => {
+    if (!showModal || activeTab !== 'media') return;
+    
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1);
+      fetchMediaFiles(1, searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, showModal, activeTab]);
+
+  // Fetch when page changes
+  useEffect(() => {
+    if (!showModal || activeTab !== 'media') return;
+    fetchMediaFiles(currentPage, searchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, showModal, activeTab]);
 
   return (
     <>
@@ -333,14 +360,14 @@ export default function ImageSelector({
                     <div className="flex justify-center items-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-700"></div>
                     </div>
-                  ) : filteredFiles.length === 0 ? (
+                  ) : mediaFiles.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <PhotoIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                       <p className="text-lg font-medium">No images found</p>
                       <p className="text-sm text-gray-400 mt-2">
-                        {mediaFiles.length === 0 ? 'Media gallery is empty. Upload some images first.' : 'No images match your search'}
+                        {searchTerm ? 'No images match your search' : 'Media gallery is empty. Upload some images first.'}
                       </p>
-                      {mediaFiles.length === 0 && (
+                      {!searchTerm && (
                         <div className="mt-4">
                           <button
                             type="button"
@@ -354,33 +381,131 @@ export default function ImageSelector({
                       )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                      {filteredFiles.map((file) => (
-                        <button
-                          key={file._id}
-                          type="button"
-                          onClick={() => handleSelectFromMedia(file.url)}
-                          className="aspect-square bg-white rounded-lg overflow-hidden hover:ring-2 hover:ring-red-500 transition-all border border-gray-200 shadow-sm hover:shadow-md"
-                        >
-                          <img
-                            src={file.thumbnailUrl || file.url}
-                            alt={file.alt || file.originalName}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            onError={(e) => {
-                              logger.warn('Image failed to load', { src: file.thumbnailUrl || file.url });
-                              const target = e.target as HTMLImageElement;
-                              target.src = `data:image/svg+xml;base64,${btoa(`
-                                <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-                                  <rect width="200" height="200" fill="#f3f4f6"/>
-                                  <text x="100" y="100" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14" fill="#6b7280">Image</text>
-                                </svg>
-                              `)}`;
-                            }}
-                          />
-                        </button>
-                      ))}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {mediaFiles.map((file) => (
+                          <button
+                            key={file._id}
+                            type="button"
+                            onClick={() => handleSelectFromMedia(file.url)}
+                            className="aspect-square bg-white rounded-lg overflow-hidden hover:ring-2 hover:ring-red-500 transition-all border border-gray-200 shadow-sm hover:shadow-md"
+                          >
+                            <img
+                              src={file.thumbnailUrl || file.url}
+                              alt={file.alt || file.originalName}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                logger.warn('Image failed to load', { src: file.thumbnailUrl || file.url });
+                                const target = e.target as HTMLImageElement;
+                                target.src = `data:image/svg+xml;base64,${btoa(`
+                                  <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="200" height="200" fill="#f3f4f6"/>
+                                    <text x="100" y="100" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14" fill="#6b7280">Image</text>
+                                  </svg>
+                                `)}`;
+                              }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Smart Pagination */}
+                      {totalPages > 1 && (() => {
+                        const maxVisible = 7;
+                        const getPageNumbers = () => {
+                          if (totalPages <= maxVisible) {
+                            return Array.from({ length: totalPages }, (_, i) => i + 1);
+                          }
+                          
+                          const pages: (number | string)[] = [];
+                          const sidePages = 2;
+                          
+                          pages.push(1);
+                          
+                          if (currentPage - sidePages > 2) {
+                            pages.push('...');
+                          }
+                          
+                          const start = Math.max(2, currentPage - sidePages);
+                          const end = Math.min(totalPages - 1, currentPage + sidePages);
+                          
+                          for (let i = start; i <= end; i++) {
+                            pages.push(i);
+                          }
+                          
+                          if (currentPage + sidePages < totalPages - 1) {
+                            pages.push('...');
+                          }
+                          
+                          if (totalPages > 1) {
+                            pages.push(totalPages);
+                          }
+                          
+                          return pages;
+                        };
+                        
+                        const pageNumbers = getPageNumbers();
+                        
+                        return (
+                          <div className="mt-6 pt-6 border-t border-gray-200">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                              <div className="flex items-center space-x-2 flex-wrap justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                  disabled={currentPage === 1}
+                                  className="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                                >
+                                  Previous
+                                </button>
+                                
+                                <div className="flex items-center space-x-1 flex-wrap justify-center max-w-full overflow-x-auto">
+                                  {pageNumbers.map((page, index) => {
+                                    if (page === '...') {
+                                      return (
+                                        <span key={`ellipsis-${index}`} className="px-2 py-2 text-gray-500 text-sm">
+                                          ...
+                                        </span>
+                                      );
+                                    }
+                                    
+                                    const pageNum = page as number;
+                                    return (
+                                      <button
+                                        key={pageNum}
+                                        type="button"
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`min-w-[2.5rem] px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                                          currentPage === pageNum
+                                            ? 'bg-red-500 text-white shadow-lg'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                      >
+                                        {pageNum}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                
+                                <button
+                                  type="button"
+                                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                  disabled={currentPage === totalPages}
+                                  className="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                                >
+                                  Next
+                                </button>
+                              </div>
+                              
+                              <div className="text-sm text-gray-600 whitespace-nowrap">
+                                Page {currentPage} of {totalPages}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
               ) : (

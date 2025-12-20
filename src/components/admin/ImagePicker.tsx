@@ -166,28 +166,98 @@ export default function ImagePicker({ onSelect, onClose, isOpen, title = "Select
             </div>
           )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center space-x-2 mt-6">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Previous
-              </button>
-              <span className="px-3 py-2 text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Next
-              </button>
-            </div>
-          )}
+          {/* Smart Pagination */}
+          {totalPages > 1 && (() => {
+            const maxVisible = 7;
+            const getPageNumbers = () => {
+              if (totalPages <= maxVisible) {
+                return Array.from({ length: totalPages }, (_, i) => i + 1);
+              }
+              
+              const pages: (number | string)[] = [];
+              const sidePages = 2;
+              
+              pages.push(1);
+              
+              if (currentPage - sidePages > 2) {
+                pages.push('...');
+              }
+              
+              const start = Math.max(2, currentPage - sidePages);
+              const end = Math.min(totalPages - 1, currentPage + sidePages);
+              
+              for (let i = start; i <= end; i++) {
+                pages.push(i);
+              }
+              
+              if (currentPage + sidePages < totalPages - 1) {
+                pages.push('...');
+              }
+              
+              if (totalPages > 1) {
+                pages.push(totalPages);
+              }
+              
+              return pages;
+            };
+            
+            const pageNumbers = getPageNumbers();
+            
+            return (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center space-x-2 flex-wrap justify-center">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    >
+                      Previous
+                    </button>
+                    
+                    <div className="flex items-center space-x-1 flex-wrap justify-center max-w-full overflow-x-auto">
+                      {pageNumbers.map((page, index) => {
+                        if (page === '...') {
+                          return (
+                            <span key={`ellipsis-${index}`} className="px-2 py-2 text-gray-500 text-sm">
+                              ...
+                            </span>
+                          );
+                        }
+                        
+                        const pageNum = page as number;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`min-w-[2.5rem] px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                              currentPage === pageNum
+                                ? 'bg-red-500 text-white shadow-lg'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    >
+                      Next
+                    </button>
+                  </div>
+                  
+                  <div className="text-sm text-gray-600 whitespace-nowrap">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Footer */}
