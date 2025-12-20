@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -149,14 +149,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     loadCategories();
   }, []);
 
-  // Auto-calculate total stock from variants and variantStock
-  useEffect(() => {
+  // Calculate total stock from variants for display only (don't auto-update main stock)
+  // When variantStock exists, the main stock field should be ignored/disabled
+  const calculatedTotalStock = useMemo(() => {
     let totalStock = 0;
-    let hasVariants = false;
 
     // Calculate from variantStock (size/color combinations)
     if (formData.variantStock && Object.keys(formData.variantStock).length > 0) {
-      hasVariants = true;
       totalStock += Object.values(formData.variantStock).reduce((sum, val) => {
         const num = parseInt(String(val), 10);
         return sum + (isNaN(num) ? 0 : num);
@@ -165,21 +164,35 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
 
     // Calculate from variants array (custom variants)
     if (formData.variants && formData.variants.length > 0) {
-      hasVariants = true;
       totalStock += formData.variants.reduce((sum, variant) => {
         const num = parseInt(String(variant.stock), 10);
         return sum + (isNaN(num) ? 0 : num);
       }, 0);
     }
 
-    // Auto-fill the stock field with calculated total if variants exist
-    if (hasVariants) {
-      setFormData(prev => ({
-        ...prev,
-        stock: totalStock.toString()
-      }));
-    }
+    return totalStock;
   }, [formData.variantStock, formData.variants]);
+
+  // Check if product uses variant stock (has sizes/colors and variantStock with non-zero values)
+  // If variantStock exists but all values are 0, fall back to main stock
+  const usesVariantStock = useMemo(() => {
+    const hasSizes = formData.sizes && formData.sizes.length > 0;
+    const hasColors = formData.colors && formData.colors.length > 0;
+    const hasVariantStock = formData.variantStock && Object.keys(formData.variantStock).length > 0;
+    
+    // Check if variant stock has any non-zero values
+    if (hasVariantStock) {
+      const totalVariantStock = Object.values(formData.variantStock).reduce((sum, val) => {
+        const num = parseInt(String(val), 10);
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0);
+      
+      // Only use variant stock if total is > 0, otherwise fall back to main stock
+      return (hasSizes || hasColors) && totalVariantStock > 0;
+    }
+    
+    return false;
+  }, [formData.sizes, formData.colors, formData.variantStock]);
 
   const loadProductData = async () => {
     try {
@@ -588,13 +601,33 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         typeof formData.variantImages === 'object' && 
         Object.keys(formData.variantImages).length > 0;
       
+      // Determine if product uses variant stock
+      // Only use variant stock if it has non-zero values, otherwise fall back to main stock
+      const hasVariantStock = formData.variantStock && Object.keys(formData.variantStock).length > 0;
+      const hasSizesOrColors = (formData.sizes && formData.sizes.filter(s => s.trim() !== '').length > 0) ||
+                                (formData.colors && formData.colors.filter(c => c.trim() !== '').length > 0);
+      
+      // Calculate total variant stock to check if it's > 0
+      let totalVariantStock = 0;
+      if (hasVariantStock) {
+        totalVariantStock = Object.values(formData.variantStock).reduce((sum, val) => {
+          const num = parseInt(String(val), 10);
+          return sum + (isNaN(num) ? 0 : num);
+        }, 0);
+      }
+      
+      // Only use variant stock if sizes/colors exist AND variant stock has non-zero values
+      const usesVariantStock = hasSizesOrColors && hasVariantStock && totalVariantStock > 0;
+
       const productData = {
         ...formData,
         images: validImages,
         price: parseFloat(formData.price),
         comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : undefined,
         cost: formData.cost ? parseFloat(formData.cost) : undefined,
-        stock: parseInt(formData.stock) || 0,
+        // Only include main stock if product doesn't use variant stock
+        // When variantStock exists, set main stock to 0 to avoid confusion
+        stock: usesVariantStock ? 0 : (parseInt(formData.stock) || 0),
         sizes: formData.sizes.filter(s => s.trim() !== '').length > 0 ? formData.sizes.filter(s => s.trim() !== '') : undefined,
         colors: formData.colors.filter(c => c.trim() !== '').length > 0 ? formData.colors.filter(c => c.trim() !== '') : undefined,
         variantStock: Object.keys(formData.variantStock).length > 0 ? formData.variantStock : undefined,
@@ -1126,14 +1159,27 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Stock Quantity
+              {usesVariantStock && (
+                <span className="ml-2 text-xs text-gray-500 font-normal">
+                  (Calculated from variants: {calculatedTotalStock})
+                </span>
+              )}
             </label>
             <input
               type="number"
               min="0"
-              value={formData.stock}
+              value={usesVariantStock ? calculatedTotalStock.toString() : formData.stock}
               onChange={(e) => handleInputChange('stock', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              disabled={usesVariantStock}
+              className={`w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                usesVariantStock ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''
+              }`}
             />
+            {usesVariantStock && (
+              <p className="mt-1 text-xs text-gray-500">
+                Stock is managed through variant stock below. This field is read-only.
+              </p>
+            )}
           </div>
 
           <div>
