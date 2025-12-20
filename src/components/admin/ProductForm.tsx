@@ -473,6 +473,42 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Drag and drop handlers for image reordering
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    setImages(prev => {
+      const newImages = [...prev];
+      const draggedImage = newImages[draggedIndex];
+      newImages.splice(draggedIndex, 1);
+      newImages.splice(dropIndex, 0, draggedImage);
+      return newImages;
+    });
+
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   const addVariant = () => {
     const newVariant = {
       id: Date.now().toString(),
@@ -1097,23 +1133,68 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId, initialData, mode 
         </div>
 
         {images.length > 0 && (
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {images.map((image, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={image}
-                  alt={`Product ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+          <div className="mt-6">
+            <p className="text-sm text-gray-500 mb-3">
+              <span className="inline-flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+                Drag and drop images to reorder
+              </span>
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {images.map((image, index) => (
+                <div
+                  key={`${image}-${index}`}
+                  draggable
+                  onDragStart={(e) => {
+                    handleDragStart(index);
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', image);
+                  }}
+                  onDragOver={(e) => {
+                    handleDragOver(e, index);
+                    if (draggedIndex !== null && draggedIndex !== index) {
+                      e.dataTransfer.dropEffect = 'move';
+                    }
+                  }}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`relative cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                    draggedIndex === index
+                      ? 'opacity-50 scale-95 rotate-2'
+                      : 'opacity-100 hover:scale-105'
+                  } ${
+                    draggedIndex !== null && draggedIndex !== index
+                      ? 'ring-2 ring-red-500 ring-offset-2'
+                      : ''
+                  }`}
                 >
-                  ×
-                </button>
-              </div>
-            ))}
+                  <div className="relative group">
+                    <img
+                      src={image}
+                      alt={`Product ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border-2 border-gray-200 group-hover:border-red-400 transition-colors"
+                    />
+                    <div className="absolute top-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                      #{index + 1}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors z-10"
+                    >
+                      ×
+                    </button>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded text-xs">
+                        Drag to reorder
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
