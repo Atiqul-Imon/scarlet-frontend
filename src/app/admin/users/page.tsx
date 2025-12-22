@@ -127,13 +127,26 @@ export default function AdminUsersPage() {
       setSelectedUser(null);
       setAdminDowngradeConfirmation('');
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update user role:', error);
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to update user role'
-      });
+      
+      // Handle specific error for last admin protection
+      const errorMessage = error?.response?.data?.error?.message || error?.message || 'Failed to update user role';
+      const errorCode = error?.response?.data?.error?.code || error?.code;
+      
+      if (errorCode === 'LAST_ADMIN_PROTECTION') {
+        addToast({
+          type: 'error',
+          title: 'Cannot Downgrade Last Admin',
+          message: 'At least one admin must remain in the system. Please create another admin before downgrading this user.'
+        });
+      } else {
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: errorMessage
+        });
+      }
     } finally {
       setActionLoading(false);
     }
@@ -818,16 +831,27 @@ export default function AdminUsersPage() {
                           bgColor: 'bg-purple-50',
                           borderColor: 'border-purple-200'
                         }
-                      ].map((roleOption) => (
+                      ].map((roleOption) => {
+                        const isLastAdmin = selectedUser.role === 'admin' && 
+                                          roleOption.role !== 'admin' && 
+                                          users.filter(u => u.role === 'admin').length === 1;
+                        const isDisabled = actionLoading || 
+                                          roleOption.role === selectedUser.role || 
+                                          isLastAdmin;
+                        
+                        return (
                         <button
                           key={roleOption.role}
                           onClick={() => handleRoleUpdate(selectedUser._id, roleOption.role as 'admin' | 'staff' | 'customer')}
-                          disabled={actionLoading || roleOption.role === selectedUser.role}
+                          disabled={isDisabled}
                           className={`w-full p-6 rounded-2xl border-2 transition-all duration-200 text-left ${
                             roleOption.role === selectedUser.role
                               ? `${roleOption.bgColor} ${roleOption.borderColor} border-2 shadow-lg`
+                              : isLastAdmin
+                              ? 'bg-gray-100 border-gray-300'
                               : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
-                          } ${actionLoading || roleOption.role === selectedUser.role ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          } ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          title={isLastAdmin ? 'Cannot downgrade the last admin' : ''}
                         >
                           <div className="flex items-center space-x-4">
                             <div className={`w-12 h-12 bg-gradient-to-r ${roleOption.color} rounded-xl flex items-center justify-center shadow-lg`}>
@@ -854,7 +878,8 @@ export default function AdminUsersPage() {
                             )}
                           </div>
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                   
@@ -883,9 +908,21 @@ export default function AdminUsersPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="text-lg font-semibold text-red-800 mb-2">⚠️ Admin Role Downgrade Warning</h4>
-                          <p className="text-sm text-red-700 mb-4">
-                            You are about to downgrade an administrator. This will immediately remove their admin privileges and access to the admin panel.
-                          </p>
+                          {users.filter(u => u.role === 'admin').length === 1 ? (
+                            <div className="bg-red-100 border-2 border-red-300 rounded-xl p-4 mb-4">
+                              <p className="text-sm font-semibold text-red-900 mb-2">
+                                🚨 This is the last admin in the system!
+                              </p>
+                              <p className="text-sm text-red-800">
+                                You cannot downgrade this user because at least one admin must remain in the system. 
+                                Please create another admin account before downgrading this user.
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-red-700 mb-4">
+                              You are about to downgrade an administrator. This will immediately remove their admin privileges and access to the admin panel.
+                            </p>
+                          )}
                           <div className="space-y-3">
                             <label className="block text-sm font-semibold text-red-800">
                               Type "Yes I am sure" to confirm this action:
