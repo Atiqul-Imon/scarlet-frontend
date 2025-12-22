@@ -327,16 +327,13 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
       return [];
     }
 
-    // Only compute allVariantImages if main images are empty (lazy evaluation)
-    const computedAllVariantImages = mainImages.length === 0 ? allVariantImages : [];
-
     let imagesToDisplay: string[] = [];
 
     // Priority order:
     // 1. Variant selections (when variants are added to cart)
     // 2. Preview (when selecting but not yet added)
     // 3. Individual selections (legacy single selection)
-    // 4. Default (main images or all variant images)
+    // 4. Default (combine main images + all variant images when no variant selected)
     
     if (variantSelections.length > 0) {
       // If there are variant selections, use images from the first selected variant
@@ -366,34 +363,60 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
       
       // If preview returns empty and we have fallback images, use them
       if (imagesToDisplay.length === 0) {
-        imagesToDisplay = mainImages.length > 0 ? mainImages : computedAllVariantImages;
+        // Combine main images with variant images (backward compatible)
+        if (mainImages.length > 0 || allVariantImages.length > 0) {
+          const imageSet = new Set<string>();
+          mainImages.forEach(img => imageSet.add(img));
+          allVariantImages.forEach(img => imageSet.add(img));
+          imagesToDisplay = Array.from(imageSet);
+        }
       }
     } else if (selectedSize || selectedColor) {
       // If individual size/color is selected (but not yet in variantSelections), show those images
       imagesToDisplay = getVariantImages(product, selectedSize, selectedColor);
     } else {
-      // No variant selected: show main images if available, otherwise show all variant images
-      imagesToDisplay = mainImages.length > 0 ? mainImages : computedAllVariantImages;
-      if (process.env.NODE_ENV === 'development' && computedAllVariantImages.length > 0 && mainImages.length === 0) {
-        console.log('No main images, showing all variant images:', {
-          variantImageCount: computedAllVariantImages.length,
-          variantKeys: Object.keys(product.variantImages || {})
+      // No variant selected: combine main images + all variant images (remove duplicates)
+      // Backward compatible: if no variant images exist, only main images will be shown
+      if (mainImages.length > 0 || allVariantImages.length > 0) {
+        // Use Set for O(1) deduplication (efficient for large image arrays)
+        const imageSet = new Set<string>();
+        // Add main images first (they take priority in order)
+        mainImages.forEach(img => {
+          if (img && typeof img === 'string' && img.trim() !== '') {
+            imageSet.add(img);
+          }
         });
+        // Add variant images (duplicates automatically ignored by Set)
+        allVariantImages.forEach(img => {
+          if (img && typeof img === 'string' && img.trim() !== '') {
+            imageSet.add(img);
+          }
+        });
+        imagesToDisplay = Array.from(imageSet);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Combined main + variant images:', {
+            mainImageCount: mainImages.length,
+            variantImageCount: allVariantImages.length,
+            totalUniqueImages: imagesToDisplay.length,
+            variantKeys: Object.keys(product.variantImages || {})
+          });
+        }
       }
     }
 
-    // Final fallback: ensure we always have images if any exist
+    // Final fallback: ensure we always have images if any exist (backward compatibility)
     if (imagesToDisplay.length === 0) {
       if (mainImages.length > 0) {
         if (process.env.NODE_ENV === 'development') {
           console.log('Falling back to main images');
         }
         imagesToDisplay = mainImages;
-      } else if (computedAllVariantImages.length > 0) {
+      } else if (allVariantImages.length > 0) {
         if (process.env.NODE_ENV === 'development') {
           console.log('Falling back to all variant images');
         }
-        imagesToDisplay = computedAllVariantImages;
+        imagesToDisplay = allVariantImages;
       }
     }
 
