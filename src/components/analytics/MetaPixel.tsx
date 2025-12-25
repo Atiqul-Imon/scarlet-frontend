@@ -35,23 +35,50 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
 
   console.log('[MetaPixel] Rendering component with Pixel ID:', pixelIdValue);
 
+  // Check if script tag exists after mount
+  useEffect(() => {
+    const checkScript = () => {
+      const scriptTag = document.querySelector('script[id="meta-pixel"]');
+      if (scriptTag) {
+        console.log('[MetaPixel] ✅ Script tag found in DOM');
+      } else {
+        console.warn('[MetaPixel] ❌ Script tag not found in DOM');
+      }
+      
+      // Check for Facebook script
+      const fbScript = Array.from(document.scripts).find(s => 
+        s.src.includes('connect.facebook.net')
+      );
+      if (fbScript) {
+        console.log('[MetaPixel] ✅ Facebook script tag found:', fbScript.src);
+      } else {
+        console.warn('[MetaPixel] ⚠️ Facebook script not yet loaded (may load asynchronously)');
+      }
+      
+      // Check for fbq after delay
+      setTimeout(() => {
+        if (typeof window.fbq === 'function') {
+          console.log('[MetaPixel] ✅ fbq function is available');
+          console.log('[MetaPixel] fbq object:', window.fbq);
+        } else {
+          console.warn('[MetaPixel] ❌ fbq function not available');
+          console.warn('[MetaPixel] window.fbq type:', typeof window.fbq);
+        }
+      }, 2000);
+    };
+    
+    // Check immediately and after a delay
+    checkScript();
+    setTimeout(checkScript, 1000);
+  }, [pixelIdValue]);
+
   return (
     <>
       <Script
         id="meta-pixel"
         strategy="afterInteractive"
         onLoad={() => {
-          console.log('[MetaPixel] ✅ Script loaded successfully');
-          // Verify fbq is available after script loads
-          setTimeout(() => {
-            if (typeof window.fbq === 'function') {
-              console.log('[MetaPixel] ✅ fbq function is available');
-              console.log('[MetaPixel] fbq object:', window.fbq);
-            } else {
-              console.warn('[MetaPixel] ❌ fbq function not available after script load');
-              console.warn('[MetaPixel] window.fbq type:', typeof window.fbq);
-            }
-          }, 1000);
+          console.log('[MetaPixel] ✅ Script tag onLoad callback fired');
         }}
         onError={(e) => {
           console.error('[MetaPixel] ❌ Script failed to load:', e);
