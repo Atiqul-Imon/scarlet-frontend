@@ -11,14 +11,13 @@ interface MetaPixelProps {
 export default function MetaPixel({ pixelId }: MetaPixelProps) {
   const pathname = usePathname();
   // Use provided pixelId or environment variable
-  const pixelIdValue = pixelId || process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const pixelIdValue = pixelId || process.env['NEXT_PUBLIC_META_PIXEL_ID'];
 
-  // Debug logging (only in development)
+  // Debug logging (always enabled for troubleshooting)
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[MetaPixel] Pixel ID Value:', pixelIdValue);
-      console.log('[MetaPixel] Environment Variable:', process.env.NEXT_PUBLIC_META_PIXEL_ID);
-    }
+    console.log('[MetaPixel] Component mounted');
+    console.log('[MetaPixel] Pixel ID Value:', pixelIdValue);
+    console.log('[MetaPixel] Environment Variable:', process.env['NEXT_PUBLIC_META_PIXEL_ID']);
   }, [pixelIdValue]);
 
   useEffect(() => {
@@ -29,11 +28,12 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
   }, [pathname, pixelIdValue]);
 
   if (!pixelIdValue) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[MetaPixel] No Pixel ID found. Component will not render.');
-    }
+    console.warn('[MetaPixel] No Pixel ID found. Component will not render.');
+    console.warn('[MetaPixel] Check if NEXT_PUBLIC_META_PIXEL_ID is set in Vercel environment variables.');
     return null;
   }
+
+  console.log('[MetaPixel] Rendering component with Pixel ID:', pixelIdValue);
 
   return (
     <>
@@ -41,18 +41,20 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
         id="meta-pixel"
         strategy="afterInteractive"
         onLoad={() => {
-          console.log('[MetaPixel] Script loaded successfully');
+          console.log('[MetaPixel] ✅ Script loaded successfully');
           // Verify fbq is available after script loads
           setTimeout(() => {
             if (typeof window.fbq === 'function') {
-              console.log('[MetaPixel] fbq function is available');
+              console.log('[MetaPixel] ✅ fbq function is available');
+              console.log('[MetaPixel] fbq object:', window.fbq);
             } else {
-              console.warn('[MetaPixel] fbq function not available after script load');
+              console.warn('[MetaPixel] ❌ fbq function not available after script load');
+              console.warn('[MetaPixel] window.fbq type:', typeof window.fbq);
             }
           }, 1000);
         }}
         onError={(e) => {
-          console.error('[MetaPixel] Script failed to load:', e);
+          console.error('[MetaPixel] ❌ Script failed to load:', e);
         }}
         dangerouslySetInnerHTML={{
           __html: `
