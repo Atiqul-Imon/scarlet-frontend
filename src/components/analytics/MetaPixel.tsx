@@ -13,6 +13,14 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
   // Use provided pixelId or environment variable
   const pixelIdValue = pixelId || process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
+  // Debug logging (only in development)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[MetaPixel] Pixel ID Value:', pixelIdValue);
+      console.log('[MetaPixel] Environment Variable:', process.env.NEXT_PUBLIC_META_PIXEL_ID);
+    }
+  }, [pixelIdValue]);
+
   useEffect(() => {
     // Track page view on route change (client-side navigation)
     if (typeof window !== 'undefined' && window.fbq && pixelIdValue) {
@@ -21,6 +29,9 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
   }, [pathname, pixelIdValue]);
 
   if (!pixelIdValue) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[MetaPixel] No Pixel ID found. Component will not render.');
+    }
     return null;
   }
 
@@ -29,6 +40,20 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
       <Script
         id="meta-pixel"
         strategy="afterInteractive"
+        onLoad={() => {
+          console.log('[MetaPixel] Script loaded successfully');
+          // Verify fbq is available after script loads
+          setTimeout(() => {
+            if (typeof window.fbq === 'function') {
+              console.log('[MetaPixel] fbq function is available');
+            } else {
+              console.warn('[MetaPixel] fbq function not available after script load');
+            }
+          }, 1000);
+        }}
+        onError={(e) => {
+          console.error('[MetaPixel] Script failed to load:', e);
+        }}
         dangerouslySetInnerHTML={{
           __html: `
             !function(f,b,e,v,n,t,s)
@@ -56,4 +81,3 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
     </>
   );
 }
-
