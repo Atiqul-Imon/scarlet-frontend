@@ -13,11 +13,11 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
   // Use provided pixelId or environment variable
   const pixelIdValue = pixelId || process.env['NEXT_PUBLIC_META_PIXEL_ID'];
 
-  // Debug logging (always enabled for troubleshooting)
+  // Minimal logging (only log if there's an issue)
   useEffect(() => {
-    console.log('[MetaPixel] Component mounted');
-    console.log('[MetaPixel] Pixel ID Value:', pixelIdValue);
-    console.log('[MetaPixel] Environment Variable:', process.env['NEXT_PUBLIC_META_PIXEL_ID']);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[MetaPixel] Component mounted with Pixel ID:', pixelIdValue);
+    }
   }, [pixelIdValue]);
 
   useEffect(() => {
@@ -28,60 +28,19 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
   }, [pathname, pixelIdValue]);
 
   if (!pixelIdValue) {
-    console.warn('[MetaPixel] No Pixel ID found. Component will not render.');
-    console.warn('[MetaPixel] Check if NEXT_PUBLIC_META_PIXEL_ID is set in Vercel environment variables.');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[MetaPixel] No Pixel ID found. Component will not render.');
+    }
     return null;
   }
-
-  console.log('[MetaPixel] Rendering component with Pixel ID:', pixelIdValue);
-
-  // Check if script tag exists after mount
-  useEffect(() => {
-    const checkScript = () => {
-      const scriptTag = document.querySelector('script[id="meta-pixel"]');
-      if (scriptTag) {
-        console.log('[MetaPixel] ✅ Script tag found in DOM');
-      } else {
-        console.warn('[MetaPixel] ❌ Script tag not found in DOM');
-      }
-      
-      // Check for Facebook script
-      const fbScript = Array.from(document.scripts).find(s => 
-        s.src.includes('connect.facebook.net')
-      );
-      if (fbScript) {
-        console.log('[MetaPixel] ✅ Facebook script tag found:', fbScript.src);
-      } else {
-        console.warn('[MetaPixel] ⚠️ Facebook script not yet loaded (may load asynchronously)');
-      }
-      
-      // Check for fbq after delay
-      setTimeout(() => {
-        if (typeof window.fbq === 'function') {
-          console.log('[MetaPixel] ✅ fbq function is available');
-          console.log('[MetaPixel] fbq object:', window.fbq);
-        } else {
-          console.warn('[MetaPixel] ❌ fbq function not available');
-          console.warn('[MetaPixel] window.fbq type:', typeof window.fbq);
-        }
-      }, 2000);
-    };
-    
-    // Check immediately and after a delay
-    checkScript();
-    setTimeout(checkScript, 1000);
-  }, [pixelIdValue]);
 
   return (
     <>
       <Script
         id="meta-pixel"
         strategy="afterInteractive"
-        onLoad={() => {
-          console.log('[MetaPixel] ✅ Script tag onLoad callback fired');
-        }}
         onError={(e) => {
-          console.error('[MetaPixel] ❌ Script failed to load:', e);
+          console.error('[MetaPixel] Script failed to load:', e);
         }}
         dangerouslySetInnerHTML={{
           __html: `
