@@ -7,7 +7,7 @@ import AccountLayout from '../../components/account/AccountLayout';
 import { Button } from '../../components/ui/button';
 import { formatters } from '../../lib/utils';
 import { Order, OrderStatus } from '../../lib/types';
-import { orderApi, creditApi } from '../../lib/api';
+import { orderApi, creditApi, wishlistApi } from '../../lib/api';
 
 interface DashboardStats {
   totalOrders: number;
@@ -47,19 +47,51 @@ export default function AccountDashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // Fetch user's orders
+        // Fetch user's orders - get first page for recent orders display
         const ordersResponse = await orderApi.getOrders(1, 10);
         const orders = Array.isArray(ordersResponse) 
           ? ordersResponse 
           : (ordersResponse.data || []);
         
-        // Calculate stats from real data
-        const totalOrders = orders.length;
-        const pendingOrders = orders.filter((order: Order) => 
+        // Get total orders count from pagination meta
+        const totalOrders = (ordersResponse as any).meta?.total || 
+                          (ordersResponse as any).total || 
+                          orders.length;
+        
+        // Fetch ALL orders to calculate accurate pending orders and total spent
+        // Use a high limit to get all orders in one request (max 1000 to avoid performance issues)
+        let allOrders: Order[] = orders;
+        if (totalOrders > 10 && totalOrders <= 1000) {
+          try {
+            const allOrdersResponse = await orderApi.getOrders(1, totalOrders);
+            allOrders = Array.isArray(allOrdersResponse) 
+              ? allOrdersResponse 
+              : (allOrdersResponse.data || []);
+          } catch (error) {
+            console.error('Error fetching all orders, using first page only:', error);
+            // Fallback to first page if fetching all fails
+            allOrders = orders;
+          }
+        } else if (totalOrders > 1000) {
+          // If user has more than 1000 orders, fetch with a reasonable limit
+          // This is an edge case, but we'll calculate from first 1000 orders
+          try {
+            const allOrdersResponse = await orderApi.getOrders(1, 1000);
+            allOrders = Array.isArray(allOrdersResponse) 
+              ? allOrdersResponse 
+              : (allOrdersResponse.data || []);
+          } catch (error) {
+            console.error('Error fetching orders, using first page only:', error);
+            allOrders = orders;
+          }
+        }
+        
+        // Calculate stats from ALL orders
+        const pendingOrders = allOrders.filter((order: Order) => 
           ['pending', 'confirmed', 'processing', 'shipped'].includes(order.status)
         ).length;
         
-        const totalSpent = orders.reduce((sum: number, order: Order) => 
+        const totalSpent = allOrders.reduce((sum: number, order: Order) => 
           sum + (order.total || 0), 0
         );
         
@@ -74,17 +106,25 @@ export default function AccountDashboard() {
           setCreditBalance(0);
         }
         
-        // For now, we'll use placeholder values for wishlist and rewards
-        // These would need separate API endpoints
+        // Fetch wishlist count
+        let wishlistCount = 0;
+        try {
+          const wishlistStats = await wishlistApi.getWishlistStats();
+          wishlistCount = wishlistStats.count || 0;
+        } catch (error) {
+          console.error('Failed to load wishlist stats:', error);
+          wishlistCount = 0;
+        }
+        
         const stats: DashboardStats = {
           totalOrders,
           pendingOrders,
           totalSpent,
-          wishlistItems: 0, // TODO: Implement wishlist API
-          rewardPoints: credits, // Use actual credit balance
+          wishlistItems: wishlistCount,
+          rewardPoints: credits,
         };
 
-        // Transform orders to RecentOrder format
+        // Transform orders to RecentOrder format (use first page for display)
         const recentOrders: RecentOrder[] = orders.slice(0, 3).map((order: Order) => ({
           _id: order._id || '',
           orderNumber: order.orderNumber,
