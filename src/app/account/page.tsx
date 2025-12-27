@@ -12,7 +12,6 @@ import { orderApi, creditApi, wishlistApi } from '../../lib/api';
 interface DashboardStats {
   totalOrders: number;
   pendingOrders: number;
-  totalSpent: number;
   wishlistItems: number;
   rewardPoints: number;
 }
@@ -91,10 +90,6 @@ export default function AccountDashboard() {
           ['pending', 'confirmed', 'processing', 'shipped'].includes(order.status)
         ).length;
         
-        const totalSpent = allOrders.reduce((sum: number, order: Order) => 
-          sum + (order.total || 0), 0
-        );
-        
         // Fetch credit balance
         let credits = 0;
         try {
@@ -119,7 +114,6 @@ export default function AccountDashboard() {
         const stats: DashboardStats = {
           totalOrders,
           pendingOrders,
-          totalSpent,
           wishlistItems: wishlistCount,
           rewardPoints: credits,
         };
@@ -143,7 +137,6 @@ export default function AccountDashboard() {
         setStats({
           totalOrders: 0,
           pendingOrders: 0,
-          totalSpent: 0,
           wishlistItems: 0,
           rewardPoints: 0,
         });
@@ -198,7 +191,7 @@ export default function AccountDashboard() {
 
         {/* Quick Stats */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-blue-100">
@@ -219,20 +212,6 @@ export default function AccountDashboard() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Pending Orders</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.pendingOrders}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-green-100">
-                  <DollarIcon className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Spent</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatters.formatPrice(stats.totalSpent, 'BDT')}
-                  </p>
                 </div>
               </div>
             </div>
@@ -480,15 +459,6 @@ function PendingIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
-function DollarIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <line x1="12" y1="1" x2="12" y2="23" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
     </svg>
   );
 }
