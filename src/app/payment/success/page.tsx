@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../../../lib/context';
 import logger from '../../../lib/logger';
+import { formatCartItems, trackPurchase } from '../../../lib/meta-pixel';
 
 interface PaymentSuccessData {
   tran_id?: string;
@@ -37,6 +38,7 @@ function PaymentSuccessContent() {
   const [paymentData, setPaymentData] = useState<PaymentSuccessData | null>(null);
   const [loading, setLoading] = useState(true);
   const [cartCleared, setCartCleared] = useState(false);
+  const [purchaseTracked, setPurchaseTracked] = useState(false);
 
   // Clear cart on successful payment (only once)
   useEffect(() => {
@@ -72,6 +74,7 @@ function PaymentSuccessContent() {
     const amount = searchParams.get('amount');
     const currency = searchParams.get('currency');
     const status = searchParams.get('status');
+    const paymentSuccess = searchParams.get('payment_success');
     const bankTranId = searchParams.get('bank_tran_id');
     const cardType = searchParams.get('card_type');
     const cardNo = searchParams.get('card_no');
@@ -114,10 +117,49 @@ function PaymentSuccessContent() {
       data.gw_version = gwVersion || '';
       
       setPaymentData(data);
+      
+      // Track Purchase event for Meta Pixel (only once)
+      if ((paymentSuccess === 'true' || status === 'VALID') && !purchaseTracked && tranId) {
+        const trackPurchaseEvent = async () => {
+          try {
+            // Fetch order details to get items for Purchase event
+            const response = await fetch(`/api/orders/by-number/${tranId}`);
+            if (response.ok) {
+              const order = await response.json();
+              
+              if (order && order.items && order.items.length > 0) {
+                // Format order items for Meta Pixel
+                const validItems = order.items.filter((item: any) => item.product && item.product._id);
+                if (validItems.length > 0) {
+                  const cartData = formatCartItems(validItems.map((item: any) => ({
+                    product: item.product,
+                    quantity: item.quantity,
+                    price: item.price || item.product.price
+                  })));
+                  
+                  trackPurchase({
+                    ...cartData,
+                    content_type: 'product',
+                    order_id: order._id || order.orderNumber || tranId,
+                  });
+                  
+                  logger.info('Purchase event tracked for order:', order.orderNumber || tranId);
+                  setPurchaseTracked(true);
+                }
+              }
+            }
+          } catch (error) {
+            logger.error('Error tracking Purchase event:', error);
+            // Continue anyway - payment was successful
+          }
+        };
+        
+        trackPurchaseEvent();
+      }
     }
     
     setLoading(false);
-  }, [searchParams]);
+  }, [searchParams, purchaseTracked]);
 
   if (loading) {
     return (

@@ -148,6 +148,16 @@ export const trackPurchase = (data: {
   }>;
   order_id?: string;
 }): void => {
+  // Log Purchase event for debugging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[MetaPixel] Tracking Purchase event:', {
+      order_id: data.order_id,
+      value: data.value,
+      currency: data.currency,
+      num_items: data.num_items
+    });
+  }
+  
   trackMetaEvent('Purchase', data);
 };
 
