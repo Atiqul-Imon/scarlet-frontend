@@ -1424,6 +1424,16 @@ export const adminApi = {
         method: 'PATCH',
         body: JSON.stringify({ status })
       });
+    },
+
+    updatePaymentStatus: (
+      orderId: string,
+      paymentStatus: 'pending' | 'partial' | 'processing' | 'completed' | 'failed' | 'refunded'
+    ): Promise<{ message: string }> => {
+      return fetchJsonAuth(`/admin/orders/${orderId}/payment-status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ paymentStatus })
+      });
     }
   },
 

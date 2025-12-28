@@ -124,7 +124,15 @@ export default function OrderDetailsPage(): React.ReactElement {
           trackingNumber: order.trackingNumber,
           customerName: `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim() || 'N/A',
           customerEmail: (order.shippingAddress as any)?.email,
-          customerPhone: order.shippingAddress?.phone
+          customerPhone: order.shippingAddress?.phone,
+          // Payment info for partial payments
+          advancePayment: order.paymentInfo?.advancePayment,
+          remainingBalance: order.paymentInfo?.remainingBalance,
+          isPartialPayment: order.paymentInfo?.isPartialPayment,
+          // Preorder info
+          isPreorder: order.isPreorder,
+          preorderPaymentAmount: order.paymentInfo?.preorderPaymentAmount,
+          preorderRemainingAmount: order.paymentInfo?.preorderRemainingAmount
         };
 
         setOrderDetails(orderDetails);
