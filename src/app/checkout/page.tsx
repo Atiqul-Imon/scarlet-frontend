@@ -106,6 +106,7 @@ export default function CheckoutPage() {
     }
   }, [cart]);
 
+
   // Helper function to handle SSLCommerz payment flow
   const handleSSLCommerzPayment = async () => {
     try {
@@ -491,6 +492,37 @@ export default function CheckoutPage() {
     },
   });
   const getError = <K extends keyof CheckoutFormData>(field: K): string => errors[field] ?? '';
+
+  // Track Meta Pixel AddPaymentInfo event when payment method is selected
+  React.useEffect(() => {
+    // Only track if payment method is set and cart has items
+    if (values.paymentMethod && cart && cart.items && cart.items.length > 0) {
+      // Debounce to avoid tracking on every render
+      const timeoutId = setTimeout(() => {
+        import('../../lib/meta-pixel').then(({ formatCartItems, trackAddPaymentInfo }) => {
+          try {
+            // Filter out items without products for type safety
+            const validItems = cart.items.filter(item => item.product && item.product._id && item.product.price);
+            if (validItems.length > 0) {
+              const cartData = formatCartItems(validItems as any);
+              trackAddPaymentInfo({
+                ...cartData,
+                content_type: 'product',
+              });
+            }
+          } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Error tracking AddPaymentInfo:', error);
+            }
+          }
+        }).catch(() => {
+          // Silently fail if meta-pixel module can't be loaded
+        });
+      }, 500); // 500ms debounce
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [values.paymentMethod, cart]);
 
   // Update form phone when verified guest phone is set
   React.useEffect(() => {

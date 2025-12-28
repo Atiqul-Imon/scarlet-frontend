@@ -104,13 +104,13 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
         if (product && product.price) {
           const productData = formatProductData(product);
           trackViewContent({
-            ...productData,
-            contents: [{
-              id: product._id!,
-              quantity: 1,
-              item_price: product.price.amount,
-            }],
-          });
+              ...productData,
+              contents: [{
+                id: product._id!,
+                quantity: 1,
+                item_price: product.price.amount,
+              }],
+            });
         }
         
         // Fetch related products asynchronously after main product loads

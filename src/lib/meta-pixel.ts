@@ -1,5 +1,6 @@
 // Meta Pixel event tracking utilities
 // Follows Meta's latest standards (December 2025)
+// Prepared for Conversions API (CAPI) integration with event_id deduplication
 
 /**
  * Check if Meta Pixel is loaded and available
@@ -9,30 +10,72 @@ export const isMetaPixelLoaded = (): boolean => {
 };
 
 /**
- * Track a Meta Pixel event
+ * Generate a unique event ID for deduplication (for future CAPI integration)
+ * Format: {prefix}-{timestamp}-{random}
+ */
+const generateEventId = (prefix: string = 'event'): string => {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 15);
+  return `${prefix}-${timestamp}-${random}`;
+};
+
+/**
+ * Track a Meta Pixel event (with retry if pixel not loaded)
  */
 export const trackMetaEvent = (
   eventName: string,
   eventData?: Record<string, any>
 ): void => {
-  if (!isMetaPixelLoaded()) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(`Meta Pixel not loaded. Event "${eventName}" not tracked.`);
+  // If pixel is loaded, track immediately
+  if (isMetaPixelLoaded()) {
+    try {
+      if (eventData) {
+        window.fbq!('track', eventName, eventData);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[MetaPixel] Tracked "${eventName}":`, eventData);
+        }
+      } else {
+        window.fbq!('track', eventName);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[MetaPixel] Tracked "${eventName}"`);
+        }
+      }
+    } catch (error) {
+      console.error(`[MetaPixel] Error tracking "${eventName}":`, error);
     }
     return;
   }
 
-  try {
-    if (eventData) {
-      window.fbq!('track', eventName, eventData);
-    } else {
-      window.fbq!('track', eventName);
+  // If pixel not loaded, wait up to 3 seconds and retry
+  let attempts = 0;
+  const maxAttempts = 30; // 30 attempts × 100ms = 3 seconds
+  const retryInterval = setInterval(() => {
+    attempts++;
+    
+    if (isMetaPixelLoaded()) {
+      clearInterval(retryInterval);
+      try {
+        if (eventData) {
+          window.fbq!('track', eventName, eventData);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[MetaPixel] Tracked "${eventName}" (after ${attempts * 100}ms):`, eventData);
+          }
+        } else {
+          window.fbq!('track', eventName);
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[MetaPixel] Tracked "${eventName}" (after ${attempts * 100}ms)`);
+          }
+        }
+      } catch (error) {
+        console.error(`[MetaPixel] Error tracking "${eventName}":`, error);
+      }
+    } else if (attempts >= maxAttempts) {
+      clearInterval(retryInterval);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[MetaPixel] Pixel not loaded after 3s. Event "${eventName}" not tracked.`);
+      }
     }
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error tracking Meta Pixel event:', error);
-    }
-  }
+  }, 100);
 };
 
 /**
@@ -45,7 +88,7 @@ export const trackPageView = (): void => {
 /**
  * Track ViewContent event (product detail page)
  */
-export const trackViewContent = (data: {
+export const trackViewContent =  (data: {
   content_name: string;
   content_ids: string[];
   content_type: 'product';
@@ -56,8 +99,13 @@ export const trackViewContent = (data: {
     quantity: number;
     item_price: number;
   }>;
+  event_id?: string; // For CAPI deduplication
 }): void => {
-  trackMetaEvent('ViewContent', data);
+  const eventData = {
+    ...data,
+    event_id: data.event_id || generateEventId(`view-${data.content_ids[0]}`),
+  };
+  trackMetaEvent('ViewContent', eventData);
 };
 
 /**
@@ -74,8 +122,13 @@ export const trackAddToCart = (data: {
     quantity: number;
     item_price: number;
   }>;
+  event_id?: string; // For CAPI deduplication
 }): void => {
-  trackMetaEvent('AddToCart', data);
+  const eventData = {
+    ...data,
+    event_id: data.event_id || generateEventId(`addtocart-${data.content_ids[0]}`),
+  };
+  trackMetaEvent('AddToCart', eventData);
 };
 
 /**
@@ -92,8 +145,13 @@ export const trackRemoveFromCart = (data: {
     quantity: number;
     item_price: number;
   }>;
+  event_id?: string; // For CAPI deduplication
 }): void => {
-  trackMetaEvent('RemoveFromCart', data);
+  const eventData = {
+    ...data,
+    event_id: data.event_id || generateEventId(`remove-${data.content_ids[0]}`),
+  };
+  trackMetaEvent('RemoveFromCart', eventData);
 };
 
 /**
@@ -111,8 +169,13 @@ export const trackInitiateCheckout = (data: {
     quantity: number;
     item_price: number;
   }>;
+  event_id?: string; // For CAPI deduplication
 }): void => {
-  trackMetaEvent('InitiateCheckout', data);
+  const eventData = {
+    ...data,
+    event_id: data.event_id || generateEventId('checkout'),
+  };
+  trackMetaEvent('InitiateCheckout', eventData);
 };
 
 /**
@@ -128,12 +191,18 @@ export const trackAddPaymentInfo = (data: {
     quantity: number;
     item_price: number;
   }>;
+  event_id?: string; // For CAPI deduplication
 }): void => {
-  trackMetaEvent('AddPaymentInfo', data);
+  const eventData = {
+    ...data,
+    event_id: data.event_id || generateEventId('payment'),
+  };
+  trackMetaEvent('AddPaymentInfo', eventData);
 };
 
 /**
  * Track Purchase event (order completion)
+ * Includes event_id for CAPI deduplication (ready for future CAPI integration)
  */
 export const trackPurchase = (data: {
   content_ids: string[];
@@ -147,18 +216,28 @@ export const trackPurchase = (data: {
     item_price: number;
   }>;
   order_id?: string;
+  event_id?: string; // For CAPI deduplication - will be auto-generated if not provided
 }): void => {
+  // Generate event_id based on order_id if available, otherwise generate unique ID
+  const eventId = data.event_id || generateEventId(data.order_id ? `purchase-${data.order_id}` : 'purchase');
+  
+  const eventData = {
+    ...data,
+    event_id: eventId,
+  };
+  
   // Log Purchase event for debugging (only in development)
   if (process.env.NODE_ENV === 'development') {
     console.log('[MetaPixel] Tracking Purchase event:', {
       order_id: data.order_id,
+      event_id: eventId,
       value: data.value,
       currency: data.currency,
       num_items: data.num_items
     });
   }
   
-  trackMetaEvent('Purchase', data);
+  trackMetaEvent('Purchase', eventData);
 };
 
 /**
@@ -172,8 +251,13 @@ export const trackSearch = (data: {
     id: string;
     quantity: number;
   }>;
+  event_id?: string; // For CAPI deduplication
 }): void => {
-  trackMetaEvent('Search', data);
+  const eventData = {
+    ...data,
+    event_id: data.event_id || generateEventId(`search-${data.search_string.substring(0, 10)}`),
+  };
+  trackMetaEvent('Search', eventData);
 };
 
 /**
@@ -182,8 +266,15 @@ export const trackSearch = (data: {
 export const trackCompleteRegistration = (data?: {
   status?: boolean;
   method?: string;
+  event_id?: string; // For CAPI deduplication
 }): void => {
-  trackMetaEvent('CompleteRegistration', data);
+  const eventData = data ? {
+    ...data,
+    event_id: data.event_id || generateEventId('registration'),
+  } : {
+    event_id: generateEventId('registration'),
+  };
+  trackMetaEvent('CompleteRegistration', eventData);
 };
 
 /**

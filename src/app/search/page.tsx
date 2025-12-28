@@ -125,14 +125,14 @@ function SearchPageContent() {
       // Track Meta Pixel Search event
       if (query.trim() && result.products) {
         trackSearch({
-          search_string: query,
-          content_ids: result.products.slice(0, 10).map(p => p._id!),
-          content_type: 'product',
-          contents: result.products.slice(0, 10).map(p => ({
-            id: p._id!,
-            quantity: 1,
-          })),
-        });
+            search_string: query,
+            content_ids: result.products.slice(0, 10).map(p => p._id!),
+            content_type: 'product',
+            contents: result.products.slice(0, 10).map(p => ({
+              id: p._id!,
+              quantity: 1,
+            })),
+          });
       }
     } catch (error) {
       console.error('Search error:', error);
