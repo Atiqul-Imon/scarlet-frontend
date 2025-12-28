@@ -99,6 +99,8 @@ export default function OrderDetailPage() {
   const [notePrivate, setNotePrivate] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showPaymentStatusModal, setShowPaymentStatusModal] = useState(false);
+  const [showPaymentConfirmModal, setShowPaymentConfirmModal] = useState(false);
+  const [paymentConfirmText, setPaymentConfirmText] = useState('');
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
 
   // Fetch order details from API
@@ -861,7 +863,10 @@ export default function OrderDetailPage() {
                     {getPaymentStatusBadge(order.paymentStatus)}
                     {(order.paymentStatus === 'partial' || order.paymentStatus === 'pending') && (
                       <button
-                        onClick={() => setShowPaymentStatusModal(true)}
+                        onClick={() => {
+                          setPaymentConfirmText('');
+                          setShowPaymentConfirmModal(true);
+                        }}
                         className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                         title="Mark payment as completed after COD collection"
                       >
@@ -1119,6 +1124,71 @@ export default function OrderDetailPage() {
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Status Update Confirmation Modal */}
+      {showPaymentConfirmModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Confirm Payment Update</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {order.paymentStatus === 'partial' && order.remainingBalance !== undefined && (
+                  <>You are about to mark this payment as completed. The remaining balance of <strong>৳{order.remainingBalance.toLocaleString()}</strong> has been collected.</>
+                )}
+                {order.paymentStatus === 'pending' && (
+                  <>You are about to mark this payment as completed. The full payment has been collected.</>
+                )}
+              </p>
+              <p className="text-sm text-gray-700 mb-3 font-medium">
+                Type <span className="font-mono bg-gray-100 px-2 py-1 rounded">sure</span> to confirm:
+              </p>
+              <input
+                type="text"
+                value={paymentConfirmText}
+                onChange={(e) => setPaymentConfirmText(e.target.value)}
+                placeholder="Type 'sure' to confirm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && paymentConfirmText.toLowerCase() === 'sure') {
+                    setShowPaymentConfirmModal(false);
+                    setPaymentConfirmText('');
+                    setShowPaymentStatusModal(true);
+                  }
+                }}
+              />
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowPaymentConfirmModal(false);
+                    setPaymentConfirmText('');
+                  }}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (paymentConfirmText.toLowerCase() === 'sure') {
+                      setShowPaymentConfirmModal(false);
+                      setPaymentConfirmText('');
+                      setShowPaymentStatusModal(true);
+                    }
+                  }}
+                  disabled={paymentConfirmText.toLowerCase() !== 'sure'}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    paymentConfirmText.toLowerCase() === 'sure'
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  Confirm
                 </button>
               </div>
             </div>
