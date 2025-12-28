@@ -321,7 +321,22 @@ export default function ProductDetailPage() {
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Stock</span>
-                  <span className="font-medium text-gray-900">{product.stock}</span>
+                  <span className="font-medium text-gray-900">
+                    {(() => {
+                      // Calculate effective stock (considering variant stock)
+                      let effectiveStock = product.stock || 0;
+                      if (product.variantStock && typeof product.variantStock === 'object') {
+                        const totalVariantStock = Object.values(product.variantStock).reduce(
+                          (sum: number, stock: number) => sum + (stock || 0), 
+                          0
+                        );
+                        if (totalVariantStock > 0) {
+                          effectiveStock = totalVariantStock;
+                        }
+                      }
+                      return effectiveStock;
+                    })()}
+                  </span>
                 </div>
                 
                 <div className="flex items-center justify-between">

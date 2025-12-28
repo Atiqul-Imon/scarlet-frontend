@@ -627,7 +627,7 @@ export default function ProductsPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-gray-900">
-                      Stock: {product.stock || 0}
+                      Stock: {getEffectiveStock(product)}
                     </p>
                     <p className="text-xs text-gray-500">
                       Categories: {product.categoryIds.length}
