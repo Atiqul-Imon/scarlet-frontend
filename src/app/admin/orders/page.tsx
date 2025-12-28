@@ -55,7 +55,7 @@ const ORDER_STATUSES = [
 const PAYMENT_STATUSES = [
   { value: '', label: 'All Payments', color: 'gray' },
   { value: 'pending', label: 'Pending', color: 'yellow' },
-  { value: 'partial', label: 'Partial (Preorder)', color: 'purple' },
+  { value: 'partial', label: 'Partial', color: 'orange' },
   { value: 'processing', label: 'Processing', color: 'blue' },
   { value: 'completed', label: 'Completed', color: 'green' },
   { value: 'failed', label: 'Failed', color: 'red' },
@@ -358,19 +358,31 @@ export default function OrdersPage() {
     );
   };
 
-  const getPaymentStatusBadge = (status: string) => {
+  const getPaymentStatusBadge = (status: string, order?: AdminOrder) => {
     const statusConfig = PAYMENT_STATUSES.find(s => s.value === status) || PAYMENT_STATUSES[0];
+    
+    // Determine label: show "Partial (Preorder)" only if it's actually a preorder
+    let label = statusConfig.label;
+    if (status === 'partial' && order?.isPreorder) {
+      label = 'Partial (Preorder)';
+    }
+    
     const colorClasses = {
       gray: 'bg-gray-100 text-gray-800',
       yellow: 'bg-yellow-100 text-yellow-800',
       blue: 'bg-blue-100 text-blue-800',
       green: 'bg-green-100 text-green-800',
       red: 'bg-red-100 text-red-800',
+      orange: 'bg-orange-100 text-orange-900', // Improved contrast for partial payments
+      purple: 'bg-purple-100 text-purple-900', // Improved contrast for preorders
     };
     
+    // Use purple for preorder partial payments, orange for regular partial payments
+    const badgeColor = (status === 'partial' && order?.isPreorder) ? 'purple' : statusConfig.color;
+    
     return (
-      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colorClasses[statusConfig.color as keyof typeof colorClasses]}`}>
-        {statusConfig.label}
+      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colorClasses[badgeColor as keyof typeof colorClasses]}`}>
+        {label}
       </span>
     );
   };
@@ -780,7 +792,7 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="space-y-1">
-                        {getPaymentStatusBadge(order.paymentStatus)}
+                        {getPaymentStatusBadge(order.paymentStatus, order)}
                         {getPaymentMethodBadge(order.paymentMethod)}
                       </div>
                     </td>
@@ -868,7 +880,7 @@ export default function OrdersPage() {
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-500">Payment</span>
                     <div className="flex items-center space-x-2">
-                      {getPaymentStatusBadge(order.paymentStatus)}
+                      {getPaymentStatusBadge(order.paymentStatus, order)}
                       {getPaymentMethodBadge(order.paymentMethod)}
                     </div>
                   </div>
