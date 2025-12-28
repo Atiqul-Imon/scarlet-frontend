@@ -107,6 +107,10 @@ export interface AdminOrder {
   isPreorder?: boolean;
   preorderPaymentAmount?: number;
   preorderRemainingAmount?: number;
+  // For partial payments (outside Dhaka orders)
+  advancePayment?: number;
+  remainingBalance?: number;
+  isPartialPayment?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -216,10 +216,28 @@ export default function Invoice({ order }: InvoiceProps) {
           <div><strong>Payment Method:</strong> {order.paymentMethod.toUpperCase()}</div>
           <div><strong>Payment Status:</strong> <span className={`font-semibold ${
             order.paymentStatus === 'completed' ? 'text-green-600' :
+            order.paymentStatus === 'partial' ? 'text-orange-600' :
             order.paymentStatus === 'pending' ? 'text-yellow-600' :
             'text-red-600'
           }`}>{order.paymentStatus.toUpperCase()}</span></div>
-          <div><strong>Amount Paid:</strong> ৳{order.total.toLocaleString()}</div>
+          
+          {/* Show payment breakdown for partial payments */}
+          {(order.paymentStatus === 'partial' && order.advancePayment !== undefined && order.remainingBalance !== undefined) ? (
+            <>
+              <div><strong>Amount Paid (Advance):</strong> ৳{order.advancePayment.toLocaleString()}</div>
+              <div><strong>Amount Due:</strong> <span className="font-semibold text-orange-600">৳{order.remainingBalance.toLocaleString()}</span></div>
+              <div className="text-orange-700 font-medium mt-2">⚠️ Remaining balance will be collected upon delivery (COD)</div>
+            </>
+          ) : order.isPreorder && order.preorderPaymentAmount !== undefined && order.preorderRemainingAmount !== undefined ? (
+            <>
+              <div><strong>Advance Payment (50%):</strong> ৳{order.preorderPaymentAmount.toLocaleString()}</div>
+              <div><strong>Remaining Balance (50%):</strong> ৳{order.preorderRemainingAmount.toLocaleString()}</div>
+              <div className="text-purple-700 font-medium mt-2">ℹ️ Remaining balance will be collected when product arrives</div>
+            </>
+          ) : (
+            <div><strong>Amount Paid:</strong> ৳{order.total.toLocaleString()}</div>
+          )}
+          
           {order.paymentStatus === 'pending' && order.paymentMethod === 'cod' && (
             <div className="text-yellow-700 font-medium mt-2">⚠️ Payment will be collected upon delivery</div>
           )}

@@ -75,6 +75,9 @@ interface BackendOrder {
     status: string;
     preorderPaymentAmount?: number;
     preorderRemainingAmount?: number;
+    advancePayment?: number;
+    remainingBalance?: number;
+    isPartialPayment?: boolean;
   };
   notes?: string;
   trackingNumber?: string;
@@ -164,6 +167,15 @@ export default function OrderDetailPage() {
         }),
         ...(orderData.paymentInfo?.preorderRemainingAmount !== undefined && { 
           preorderRemainingAmount: orderData.paymentInfo.preorderRemainingAmount 
+        }),
+        ...(orderData.paymentInfo?.advancePayment !== undefined && { 
+          advancePayment: orderData.paymentInfo.advancePayment 
+        }),
+        ...(orderData.paymentInfo?.remainingBalance !== undefined && { 
+          remainingBalance: orderData.paymentInfo.remainingBalance 
+        }),
+        ...(orderData.paymentInfo?.isPartialPayment !== undefined && { 
+          isPartialPayment: orderData.paymentInfo.isPartialPayment 
         }),
         createdAt: orderData.createdAt,
         updatedAt: orderData.updatedAt,
@@ -571,6 +583,23 @@ export default function OrderDetailPage() {
                           : order.total.toLocaleString()}
                       </span>
                     </div>
+                    {/* Show payment breakdown for partial payments */}
+                    {order.paymentStatus === 'partial' && order.advancePayment !== undefined && order.remainingBalance !== undefined && (
+                      <>
+                        <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+                          <span className="text-gray-600">Amount Paid (Advance):</span>
+                          <span className="font-medium text-gray-900">
+                            ৳{order.advancePayment.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Amount Due:</span>
+                          <span className="font-semibold text-orange-600">
+                            ৳{order.remainingBalance.toLocaleString()}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -783,6 +812,45 @@ export default function OrderDetailPage() {
                     ৳{order.total.toLocaleString()}
                   </span>
                 </div>
+                {/* Show payment breakdown for partial payments */}
+                {order.paymentStatus === 'partial' && order.advancePayment !== undefined && order.remainingBalance !== undefined && (
+                  <>
+                    <div className="flex justify-between pt-2 border-t border-gray-200">
+                      <span className="text-sm text-gray-600">Amount Paid (Advance)</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        ৳{order.advancePayment.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Amount Due</span>
+                      <span className="text-sm font-bold text-orange-600">
+                        ৳{order.remainingBalance.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
+                      ⚠️ Remaining balance will be collected upon delivery (COD)
+                    </div>
+                  </>
+                )}
+                {order.isPreorder && order.preorderPaymentAmount !== undefined && order.preorderRemainingAmount !== undefined && (
+                  <>
+                    <div className="flex justify-between pt-2 border-t border-gray-200">
+                      <span className="text-sm text-gray-600">Advance Payment (50%)</span>
+                      <span className="text-sm font-medium text-purple-700">
+                        ৳{order.preorderPaymentAmount.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Remaining Balance (50%)</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        ৳{order.preorderRemainingAmount.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-xs text-purple-700">
+                      ℹ️ Remaining balance will be collected when product arrives
+                    </div>
+                  </>
+                )}
                 {order.trackingNumber && (
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Tracking Number</span>

@@ -46,6 +46,12 @@ interface OrderDetails {
   customerName: string;
   customerEmail?: string | undefined;
   customerPhone?: string | undefined;
+  advancePayment?: number;
+  remainingBalance?: number;
+  isPartialPayment?: boolean;
+  isPreorder?: boolean;
+  preorderPaymentAmount?: number;
+  preorderRemainingAmount?: number;
 }
 
 export default function OrderDetailsPage(): React.ReactElement {
@@ -445,6 +451,7 @@ export default function OrderDetailsPage(): React.ReactElement {
                   <span className="text-gray-600">Payment Status:</span>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                     orderDetails.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' :
+                    orderDetails.paymentStatus === 'partial' ? 'bg-orange-100 text-orange-800' :
                     orderDetails.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                     orderDetails.paymentStatus === 'failed' ? 'bg-red-100 text-red-800' :
                     orderDetails.paymentStatus === 'processing' ? 'bg-blue-100 text-blue-800' :
@@ -453,6 +460,45 @@ export default function OrderDetailsPage(): React.ReactElement {
                     {orderDetails.paymentStatus || 'pending'}
                   </span>
                 </div>
+                {/* Show payment breakdown for partial payments */}
+                {orderDetails.paymentStatus === 'partial' && orderDetails.advancePayment !== undefined && orderDetails.remainingBalance !== undefined && (
+                  <>
+                    <div className="flex justify-between pt-2 border-t border-gray-200">
+                      <span className="text-gray-600">Amount Paid (Advance):</span>
+                      <span className="font-medium text-gray-900">
+                        {formatters.formatPrice(orderDetails.advancePayment, orderDetails.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Amount Due:</span>
+                      <span className="font-semibold text-orange-600">
+                        {formatters.formatPrice(orderDetails.remainingBalance, orderDetails.currency)}
+                      </span>
+                    </div>
+                    <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
+                      ⚠️ Remaining balance will be collected upon delivery (COD)
+                    </div>
+                  </>
+                )}
+                {orderDetails.isPreorder && orderDetails.preorderPaymentAmount !== undefined && orderDetails.preorderRemainingAmount !== undefined && (
+                  <>
+                    <div className="flex justify-between pt-2 border-t border-gray-200">
+                      <span className="text-gray-600">Advance Payment (50%):</span>
+                      <span className="font-medium text-purple-700">
+                        {formatters.formatPrice(orderDetails.preorderPaymentAmount, orderDetails.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Remaining Balance (50%):</span>
+                      <span className="font-medium text-gray-900">
+                        {formatters.formatPrice(orderDetails.preorderRemainingAmount, orderDetails.currency)}
+                      </span>
+                    </div>
+                    <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-xs text-purple-700">
+                      ℹ️ Remaining balance will be collected when product arrives
+                    </div>
+                  </>
+                )}
                 {orderDetails.trackingNumber && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tracking:</span>
@@ -507,6 +553,39 @@ export default function OrderDetailsPage(): React.ReactElement {
                     <span>{formatters.formatPrice(orderDetails.total, orderDetails.currency)}</span>
                   </div>
                 </div>
+                {/* Show payment breakdown for partial payments */}
+                {orderDetails.paymentStatus === 'partial' && orderDetails.advancePayment !== undefined && orderDetails.remainingBalance !== undefined && (
+                  <>
+                    <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+                      <span className="text-gray-600">Amount Paid (Advance):</span>
+                      <span className="font-medium text-gray-900">
+                        {formatters.formatPrice(orderDetails.advancePayment, orderDetails.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Amount Due:</span>
+                      <span className="font-semibold text-orange-600">
+                        {formatters.formatPrice(orderDetails.remainingBalance, orderDetails.currency)}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {orderDetails.isPreorder && orderDetails.preorderPaymentAmount !== undefined && orderDetails.preorderRemainingAmount !== undefined && (
+                  <>
+                    <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+                      <span className="text-gray-600">Advance Payment (50%):</span>
+                      <span className="font-medium text-purple-700">
+                        {formatters.formatPrice(orderDetails.preorderPaymentAmount, orderDetails.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Remaining Balance (50%):</span>
+                      <span className="font-medium text-gray-900">
+                        {formatters.formatPrice(orderDetails.preorderRemainingAmount, orderDetails.currency)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
