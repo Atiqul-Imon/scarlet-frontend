@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "es2020"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2020"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -11,9 +15,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
-    
     // Strict Type Checking Options
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -22,7 +25,6 @@
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
-    
     // Additional Checks
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -32,31 +34,44 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    
     // Module Resolution
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
-    
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/types": ["./src/lib/types"],
-      "@/utils": ["./src/lib/utils"],
-      "@/hooks": ["./src/lib/hooks"],
-      "@/api": ["./src/lib/api"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/types": [
+        "./src/lib/types"
+      ],
+      "@/utils": [
+        "./src/lib/utils"
+      ],
+      "@/hooks": [
+        "./src/lib/hooks"
+      ],
+      "@/api": [
+        "./src/lib/api"
+      ]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

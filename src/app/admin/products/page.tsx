@@ -225,11 +225,31 @@ export default function ProductsPage() {
     }
   }, [selectedProducts, addToast, fetchProducts]);
 
+  // Helper function to calculate effective stock (variant stock if exists, otherwise main stock)
+  const getEffectiveStock = (product: AdminProduct): number => {
+    let effectiveStock = product.stock || 0;
+    
+    // If product has variantStock, calculate total variant stock
+    if (product.variantStock && typeof product.variantStock === 'object') {
+      const totalVariantStock = Object.values(product.variantStock).reduce(
+        (sum: number, stock: number) => sum + (stock || 0), 
+        0
+      );
+      
+      // Use variant stock if it has values (> 0), otherwise keep using main stock
+      if (totalVariantStock > 0) {
+        effectiveStock = totalVariantStock;
+      }
+    }
+    
+    return effectiveStock;
+  };
+
   const getStockStatusBadge = (product: AdminProduct) => {
-    const stock = product.stock || 0;
+    const effectiveStock = getEffectiveStock(product);
     const lowStockThreshold = 10; // Default threshold
     
-    if (stock === 0) {
+    if (effectiveStock === 0) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
           <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
@@ -238,7 +258,7 @@ export default function ProductsPage() {
       );
     }
     
-    if (stock <= lowStockThreshold) {
+    if (effectiveStock <= lowStockThreshold) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
           <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
@@ -318,7 +338,10 @@ export default function ProductsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Low Stock</p>
                 <p className="text-2xl font-bold text-amber-600">
-                  {products.filter(p => (p.stock || 0) <= 10 && (p.stock || 0) > 0).length}
+                  {products.filter(p => {
+                    const stock = getEffectiveStock(p);
+                    return stock <= 10 && stock > 0;
+                  }).length}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">On this page</p>
               </div>
@@ -333,7 +356,7 @@ export default function ProductsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Out of Stock</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {products.filter(p => (p.stock || 0) === 0).length}
+                  {products.filter(p => getEffectiveStock(p) === 0).length}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">On this page</p>
               </div>
@@ -745,7 +768,7 @@ export default function ProductsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {product.stock || 0}
+                          {getEffectiveStock(product)}
                         </span>
                         {getStockStatusBadge(product)}
                       </div>

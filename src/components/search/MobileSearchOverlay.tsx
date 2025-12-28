@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { searchApi } from '../../lib/api';
 import { useCart, useToast } from '../../lib/context';
+import { getEffectiveStock } from '../../lib/product-utils';
 
 interface MobileSearchOverlayProps {
   isOpen: boolean;
@@ -309,7 +310,9 @@ export default function MobileSearchOverlay({ isOpen, onClose }: MobileSearchOve
                     <div className="space-y-3">
                       {suggestions.products.slice(0, 4).map((product) => {
                         const isAddingToCart = addingToCart.has(product._id);
-                        const isOutOfStock = product.stock === 0 || product.stock === undefined;
+                        // Calculate effective stock (considering variant stock)
+                        const effectiveStock = getEffectiveStock(product);
+                        const isOutOfStock = effectiveStock === 0;
                         
                         return (
                           <div

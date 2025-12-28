@@ -10,6 +10,7 @@ import {
   EyeIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { getEffectiveStock } from '../../lib/product-utils';
 
 interface SearchResultsProps {
   products: Product[];
@@ -80,7 +81,9 @@ export default function SearchResults({
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {products.map((product) => {
-          const isOutOfStock = product.stock === 0 || product.stock === undefined;
+          // Calculate effective stock (considering variant stock)
+          const effectiveStock = getEffectiveStock(product);
+          const isOutOfStock = effectiveStock === 0;
           const isInWishlist = wishlist.has(product._id!);
           
           return (

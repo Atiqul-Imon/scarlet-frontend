@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '../ui/button';
+import { getEffectiveStock } from '../../lib/product-utils';
 
 interface CartItemData {
   productId: string;
@@ -16,6 +16,7 @@ interface CartItemData {
   quantity: number;
   brand?: string;
   stock?: number;
+  variantStock?: Record<string, number>;
   selectedSize?: string;
   selectedColor?: string;
 }
@@ -68,8 +69,20 @@ const CartItem = React.memo(function CartItem({
     }
   };
 
-  const isOutOfStock = item.stock !== undefined && item.stock <= 0;
-  const isLowStock = item.stock !== undefined && item.stock > 0 && item.stock <= 5;
+  // Calculate effective stock (considering variant stock)
+  const effectiveStock = React.useMemo(() => {
+    const stockData: { stock?: number; variantStock?: Record<string, number> } = {};
+    if (item.stock !== undefined) {
+      stockData.stock = item.stock;
+    }
+    if (item.variantStock) {
+      stockData.variantStock = item.variantStock;
+    }
+    return getEffectiveStock(stockData);
+  }, [item.stock, item.variantStock]);
+  
+  const isOutOfStock = effectiveStock <= 0;
+  const isLowStock = effectiveStock > 0 && effectiveStock <= 5;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 transition-all duration-200 hover:shadow-md">

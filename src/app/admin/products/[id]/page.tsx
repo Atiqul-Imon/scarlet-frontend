@@ -104,9 +104,23 @@ export default function ProductDetailPage() {
   };
 
   const getStockStatusBadge = (product: AdminProduct) => {
-    const { stock } = product;
+    // Calculate effective stock: use variant stock if it exists and has values, otherwise use main stock
+    let effectiveStock = product.stock || 0;
     
-    if (stock === 0) {
+    // If product has variantStock, calculate total variant stock
+    if (product.variantStock && typeof product.variantStock === 'object') {
+      const totalVariantStock = Object.values(product.variantStock).reduce(
+        (sum: number, stock: number) => sum + (stock || 0), 
+        0
+      );
+      
+      // Use variant stock if it has values (> 0), otherwise keep using main stock
+      if (totalVariantStock > 0) {
+        effectiveStock = totalVariantStock;
+      }
+    }
+    
+    if (effectiveStock === 0) {
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
           <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
@@ -115,7 +129,7 @@ export default function ProductDetailPage() {
       );
     }
     
-    if (stock <= 10) {
+    if (effectiveStock <= 10) {
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
           <ExclamationTriangleIcon className="w-4 h-4 mr-1" />
@@ -402,7 +416,22 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Stock</span>
-                  <span className="text-gray-900">{product.stock} units</span>
+                  <span className="text-gray-900">
+                    {(() => {
+                      // Calculate effective stock (considering variant stock)
+                      let effectiveStock = product.stock || 0;
+                      if (product.variantStock && typeof product.variantStock === 'object') {
+                        const totalVariantStock = Object.values(product.variantStock).reduce(
+                          (sum: number, stock: number) => sum + (stock || 0), 
+                          0
+                        );
+                        if (totalVariantStock > 0) {
+                          effectiveStock = totalVariantStock;
+                        }
+                      }
+                      return effectiveStock;
+                    })()} units
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Price</span>

@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { fetchJson } from '../../lib/api';
 import { useCart, useToast } from '../../lib/context';
+import { getEffectiveStock } from '../../lib/product-utils';
 
 interface SearchSuggestion {
   products: Array<{
@@ -295,7 +296,9 @@ export default function InstantSearch({
               </div>
               {suggestions.products.slice(0, 4).map((product) => {
                 const isAddingToCart = addingToCart.has(product._id);
-                const isOutOfStock = product.stock === 0 || product.stock === undefined;
+                // Calculate effective stock (considering variant stock)
+                const effectiveStock = getEffectiveStock(product);
+                const isOutOfStock = effectiveStock === 0;
                 
                 return (
                   <div

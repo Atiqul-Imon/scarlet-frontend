@@ -12,7 +12,7 @@ import { productApi } from '../../lib/api';
 import OTPRequestModal from '../../components/auth/OTPRequestModal';
 import OTPVerification from '../../components/auth/OTPVerification';
 import { logger } from '../../lib/logger';
-import { getVariantImage } from '../../lib/product-utils';
+import { getVariantImage, getEffectiveStock } from '../../lib/product-utils';
 
 interface CartItemData {
   productId: string;
@@ -26,6 +26,7 @@ interface CartItemData {
   quantity: number;
   brand?: string;
   stock?: number;
+  variantStock?: Record<string, number>;
   selectedSize?: string;
   selectedColor?: string;
 }
@@ -118,6 +119,9 @@ export default function CartPage() {
             if (item.product?.stock !== undefined) {
               enrichedItem.stock = item.product.stock;
             }
+            if (item.product?.variantStock) {
+              enrichedItem.variantStock = item.product.variantStock;
+            }
             return enrichedItem;
           });
           setEnrichedItems(enrichedFromCart);
@@ -173,6 +177,7 @@ export default function CartPage() {
               quantity: item.quantity,
               brand: product.brand,
               stock: product.stock,
+              variantStock: product.variantStock,
               selectedSize: item.selectedSize,
               selectedColor: item.selectedColor
             };
@@ -203,6 +208,7 @@ export default function CartPage() {
                       quantity: item.quantity,
                       brand: individualProduct.brand,
                       stock: individualProduct.stock,
+                      variantStock: individualProduct.variantStock,
                       selectedSize: item.selectedSize,
                       selectedColor: item.selectedColor
                     };

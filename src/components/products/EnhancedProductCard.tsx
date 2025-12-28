@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Product } from '../../lib/types';
 import { getOptimizedImageKitUrl, isImageKitUrl } from '@/lib/imagekit-config';
+import { getEffectiveStock } from '../../lib/product-utils';
 
 interface EnhancedProductCardProps {
   product: Product;
@@ -38,8 +39,10 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
     : 0;
 
   const isComingSoon = product.isComingSoon || product.homepageSection === 'coming-soon';
-  const isOutOfStock = !isComingSoon && product.stock !== undefined && product.stock <= 0;
-  const isLowStock = !isComingSoon && product.stock !== undefined && product.stock <= 5 && product.stock > 0;
+  // Calculate effective stock (considering variant stock)
+  const effectiveStock = React.useMemo(() => getEffectiveStock(product), [product]);
+  const isOutOfStock = !isComingSoon && effectiveStock <= 0;
+  const isLowStock = !isComingSoon && effectiveStock > 0 && effectiveStock <= 5;
 
   // Determine if product has multiple images for hover effect
   const hasMultipleImages = product.images && product.images.length > 1;

@@ -175,5 +175,28 @@ export function getVariantImage(product: Product, size?: string, color?: string)
   return images.length > 0 ? images[0] : '';
 }
 
-
+/**
+ * Calculate effective stock for a product
+ * Returns total variant stock if it exists and has values, otherwise returns main stock
+ * @param product - The product object
+ * @returns Effective stock number
+ */
+export function getEffectiveStock(product: Product | { stock?: number; variantStock?: Record<string, number> }): number {
+  let effectiveStock = product.stock || 0;
+  
+  // If product has variantStock, calculate total variant stock
+  if (product.variantStock && typeof product.variantStock === 'object') {
+    const totalVariantStock = Object.values(product.variantStock).reduce(
+      (sum: number, stock: number) => sum + (stock || 0), 
+      0
+    );
+    
+    // Use variant stock if it has values (> 0), otherwise keep using main stock
+    if (totalVariantStock > 0) {
+      effectiveStock = totalVariantStock;
+    }
+  }
+  
+  return effectiveStock;
+}
 
