@@ -868,10 +868,13 @@ export default function OrderDetailPage() {
                             setPaymentConfirmText('');
                             setShowPaymentConfirmModal(true);
                           }}
-                          className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 active:bg-green-800 transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                           title="Mark payment as completed after COD collection"
                         >
-                          Mark Paid
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Mark as Paid</span>
                         </button>
                         
                         {/* Payment Confirmation Popover */}
