@@ -45,6 +45,9 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
   const recommendedSectionRef = React.useRef<HTMLDivElement>(null);
   const hasLoadedRecommended = React.useRef(false);
 
+  // Note: Scroll to top is handled by the template component
+  // This ensures consistent behavior across all navigations
+
   // Fetch product data with optimized loading
   React.useEffect(() => {
     // If we have initial product, skip fetch
@@ -338,14 +341,16 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
     if (variantSelections.length > 0) {
       // If there are variant selections, use images from the first selected variant
       const firstSelection = variantSelections[0];
-      imagesToDisplay = getVariantImages(product, firstSelection.size, firstSelection.color);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Variant selection images:', {
-          size: firstSelection.size,
-          color: firstSelection.color,
-          variantImagesCount: imagesToDisplay.length,
-          hasVariantImages: imagesToDisplay.length > 0
-        });
+      if (firstSelection) {
+        imagesToDisplay = getVariantImages(product, firstSelection.size, firstSelection.color);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Variant selection images:', {
+            size: firstSelection.size,
+            color: firstSelection.color,
+            variantImagesCount: imagesToDisplay.length,
+            hasVariantImages: imagesToDisplay.length > 0
+          });
+        }
       }
     } else if (previewSize || previewColor) {
       // If variant is being previewed (selected but not yet added), show those images
@@ -1015,7 +1020,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
                   product={{
                     title: product.title,
                     slug: product.slug,
-                    description: product.description,
+                    ...(product.description && { description: product.description }),
                     images: product.images,
                     price: product.price,
                   }}
@@ -1240,7 +1245,7 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
                   product={{
                     title: product.title,
                     slug: product.slug,
-                    description: product.description,
+                    ...(product.description && { description: product.description }),
                     images: product.images,
                     price: product.price,
                   }}

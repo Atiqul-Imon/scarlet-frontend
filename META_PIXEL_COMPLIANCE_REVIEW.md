@@ -192,3 +192,5 @@ Your Meta Pixel implementation is:
 
 The implementation follows Meta's best practices and uses the recommended advanced event format, which will provide better data for ad optimization than the basic format.
 
+
+

@@ -60,7 +60,12 @@ const EnhancedProductCard = React.memo(function EnhancedProductCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href={`/products/${product.slug}`} onClick={handleNavigation} prefetch={true}>
+      <Link 
+        href={`/products/${product.slug}`} 
+        onClick={handleNavigation} 
+        prefetch={true}
+        scroll={true}
+      >
         {/* Product Image */}
         <div className="aspect-square relative overflow-hidden bg-rose-50">
           {product.images && product.images.length > 0 ? (
