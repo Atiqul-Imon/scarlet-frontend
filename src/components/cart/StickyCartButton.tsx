@@ -624,7 +624,7 @@ export default function StickyCartButton({ className = '' }: StickyCartButtonPro
                           )}
                         </button>
                         
-                        <span className="text-sm font-medium min-w-[2rem] text-center">
+                        <span className="text-sm font-semibold text-gray-900 min-w-[2rem] text-center bg-gray-100 px-2 py-1 rounded border border-gray-200">
                           {item.quantity}
                         </span>
                         
