@@ -233,8 +233,11 @@ export default function TopBar() {
                         <span className="text-sm text-red-700 font-medium">View All</span>
                       </div>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {cart?.items?.slice(0, 3).map((item, index) => (
-                          <div key={item.productId || index} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                        {cart?.items?.slice(0, 3).map((item, index) => {
+                          // Generate unique key that includes productId, size, and color to avoid duplicate key warnings
+                          const uniqueKey = `${item.productId || 'unknown'}_${item.selectedSize || 'no-size'}_${item.selectedColor || 'no-color'}_${index}`;
+                          return (
+                          <div key={uniqueKey} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
                             <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
                               {item.product?.images?.[0] ? (
                                 <img 
@@ -266,7 +269,8 @@ export default function TopBar() {
                               )}
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                         {cart?.items && cart.items.length > 3 && (
                           <div className="text-center py-2">
                             <span className="text-sm text-gray-500">

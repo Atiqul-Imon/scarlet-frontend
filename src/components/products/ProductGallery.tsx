@@ -7,10 +7,12 @@ import { getOptimizedImageKitUrl, isImageKitUrl } from '@/lib/imagekit-config';
 interface ProductGalleryProps {
   images: string[];
   productTitle: string;
+  variantImages?: string[]; // Images that belong to the currently selected variant (for highlighting)
+  initialImageIndex?: number; // Initial image to show (e.g., first image of selected variant)
 }
 
-export default function ProductGallery({ images, productTitle }: ProductGalleryProps) {
-  const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
+export default function ProductGallery({ images, productTitle, variantImages = [], initialImageIndex = 0 }: ProductGalleryProps) {
+  const [selectedImageIndex, setSelectedImageIndex] = React.useState(initialImageIndex);
   const [isZoomed, setIsZoomed] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
@@ -69,9 +71,20 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
   React.useEffect(() => {
     // Reset image errors when images change
     setImageErrors(new Set());
-    // Reset to first image when images array changes (e.g., variant selection changes)
-    setSelectedImageIndex(0);
-  }, [images]);
+    // Set to initial image index (e.g., first image of selected variant) when images or initialImageIndex changes
+    const validIndex = initialImageIndex >= 0 && initialImageIndex < images.length ? initialImageIndex : 0;
+    setSelectedImageIndex(validIndex);
+  }, [images, initialImageIndex]);
+  
+  // Memoize variant images as Set for O(1) lookup performance
+  const variantImagesSet = React.useMemo(() => {
+    return new Set(variantImages);
+  }, [variantImages]);
+
+  // Helper to check if an image belongs to the selected variant (O(1) lookup)
+  const isVariantImage = React.useCallback((imageUrl: string): boolean => {
+    return variantImagesSet.has(imageUrl);
+  }, [variantImagesSet]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageRef.current || !isZoomed) return;
@@ -292,15 +305,20 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {images.map((image, index) => {
               if (!image) return null;
+              const isVariant = isVariantImage(image);
+              const isSelected = index === selectedImageIndex;
               return (
                 <button
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
                   className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 hover:scale-105 ${
-                    index === selectedImageIndex 
+                    isSelected 
                       ? 'border-red-500 shadow-md' 
+                      : isVariant
+                      ? 'border-rose-400 border-dashed hover:border-rose-500'
                       : 'border-gray-200 hover:border-red-300'
                   }`}
+                  title={isVariant ? 'Variant image' : ''}
                 >
                     <Image
                       src={imageErrors.has(index) ? getPlaceholderImage(index) : getThumbnailImage(image)}
@@ -311,8 +329,14 @@ export default function ProductGallery({ images, productTitle }: ProductGalleryP
                       quality={75}
                       unoptimized={isImageKitUrl(image)}
                     />
-                  {index === selectedImageIndex && (
+                  {isSelected && (
                     <div className="absolute inset-0 bg-red-500/20" />
+                  )}
+                  {isVariant && !isSelected && (
+                    <div className="absolute top-1 right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white shadow-sm" />
+                  )}
+                  {isVariant && isSelected && (
+                    <div className="absolute top-1 right-1 w-3 h-3 bg-rose-600 rounded-full border-2 border-white shadow-sm" />
                   )}
                 </button>
               );

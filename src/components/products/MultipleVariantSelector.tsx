@@ -30,6 +30,9 @@ export default function MultipleVariantSelector({
   const [selections, setSelections] = React.useState<VariantSelection[]>(initialSelections);
   const [selectedSizeForCombination, setSelectedSizeForCombination] = React.useState<string>('');
   const [selectedColorForCombination, setSelectedColorForCombination] = React.useState<string>('');
+  
+  // Track last clicked variant for single-variant products (only size OR only color) for preview
+  const lastClickedVariantRef = React.useRef<{ size: string; color: string }>({ size: '', color: '' });
 
   // Generate unique ID for a combination
   const getVariantId = (size: string, color: string): string => {
@@ -65,6 +68,31 @@ export default function MultipleVariantSelector({
   React.useEffect(() => {
     stockCheckCache.current.clear();
   }, [variantStock]);
+
+  // Normalize arrays to handle different input formats (must be defined before addVariant)
+  const normalizedSizes = React.useMemo((): string[] => {
+    if (!sizes) return [];
+    if (Array.isArray(sizes)) {
+      return sizes.filter((s: any) => s && String(s).trim());
+    }
+    const sizesStr = String(sizes);
+    if (sizesStr.includes(',')) {
+      return sizesStr.split(',').map((s: string) => s.trim()).filter((s: string) => s);
+    }
+    return sizesStr.trim() ? [sizesStr.trim()] : [];
+  }, [sizes]);
+
+  const normalizedColors = React.useMemo((): string[] => {
+    if (!colors) return [];
+    if (Array.isArray(colors)) {
+      return colors.filter((c: any) => c && String(c).trim());
+    }
+    const colorsStr = String(colors);
+    if (colorsStr.includes(',')) {
+      return colorsStr.split(',').map((c: string) => c.trim()).filter((c: string) => c);
+    }
+    return colorsStr.trim() ? [colorsStr.trim()] : [];
+  }, [colors]);
 
   // Track if component has mounted to avoid unnecessary initial sync
   const isMountedRef = React.useRef(false);
@@ -109,6 +137,18 @@ export default function MultipleVariantSelector({
       return; // Don't add out-of-stock variants
     }
 
+    // For single-variant products (only size OR only color), ALWAYS trigger preview when clicking
+    // This ensures preview updates when user clicks different variant buttons, even if already in cart
+    // Note: For combination products, preview is handled by useEffect watching selectedSizeForCombination/selectedColorForCombination
+    // Quick Add buttons explicitly trigger preview before calling addVariant
+    if (onVariantPreview && ((size && !color && normalizedColors.length === 0) || 
+                             (color && !size && normalizedSizes.length === 0))) {
+      // Always update preview when clicking a variant button (even if same one)
+      // This allows preview to update when clicking different colors that are already in cart
+      onVariantPreview(size, color);
+      lastClickedVariantRef.current = { size, color };
+    }
+
     setSelections(prevSelections => {
       const existing = prevSelections.find(s => 
         (s.size || '') === (size || '') && 
@@ -135,17 +175,60 @@ export default function MultipleVariantSelector({
         return [...prevSelections, newSelection];
       }
     });
-  }, [isVariantInStock, maxStock, variantStock]);
+  }, [isVariantInStock, maxStock, variantStock, onVariantPreview, normalizedSizes.length, normalizedColors.length]);
 
+  // Update preview when size or color selection changes
+  // Use a ref to track previous values and only update if they actually changed
+  const prevPreviewRef = React.useRef<{ size: string; color: string }>({ size: '', color: '' });
+  
+  React.useEffect(() => {
+    // Always call preview when selection changes (even if both are set)
+    // This ensures preview updates immediately when user changes size or color
+    if (onVariantPreview) {
+      const hasChanged = 
+        prevPreviewRef.current.size !== selectedSizeForCombination ||
+        prevPreviewRef.current.color !== selectedColorForCombination;
+      
+      if (hasChanged) {
+        // Update preview immediately, even if both are set
+        // The auto-add will clear it after adding to cart
+        onVariantPreview(selectedSizeForCombination, selectedColorForCombination);
+        prevPreviewRef.current = {
+          size: selectedSizeForCombination,
+          color: selectedColorForCombination
+        };
+      }
+    }
+  }, [selectedSizeForCombination, selectedColorForCombination, onVariantPreview]);
+
+  // Track if we've already auto-added this combination to prevent re-adding
+  const addedCombinationRef = React.useRef<string>('');
+  
   // Auto-add combination when both size and color are selected
   React.useEffect(() => {
     if (selectedSizeForCombination && selectedColorForCombination) {
-      addVariant(selectedSizeForCombination, selectedColorForCombination);
-      // Clear selections after adding so user can select new combination
-      setSelectedSizeForCombination('');
-      setSelectedColorForCombination('');
+      const combinationKey = `${selectedSizeForCombination}_${selectedColorForCombination}`;
+      
+      // Only auto-add if this is a NEW combination (not already added)
+      if (addedCombinationRef.current !== combinationKey) {
+        addVariant(selectedSizeForCombination, selectedColorForCombination);
+        // Mark this combination as added
+        addedCombinationRef.current = combinationKey;
+        // Clear preview when variant is added
+        if (onVariantPreview) {
+          onVariantPreview('', '');
+        }
+        // Clear selections after adding so user can select new combination
+        setSelectedSizeForCombination('');
+        setSelectedColorForCombination('');
+        addedCombinationRef.current = '';
+      }
+      // If combination already added, don't do anything - just let preview show
+    } else {
+      // Reset added combination ref when selections are cleared
+      addedCombinationRef.current = '';
     }
-  }, [selectedSizeForCombination, selectedColorForCombination, addVariant]);
+  }, [selectedSizeForCombination, selectedColorForCombination, addVariant, onVariantPreview]);
 
   // Update quantity for a specific variant
   const updateQuantity = (id: string, newQuantity: number) => {
@@ -188,31 +271,6 @@ export default function MultipleVariantSelector({
   const getTotalQuantity = (): number => {
     return selections.reduce((sum, s) => sum + s.quantity, 0);
   };
-
-  // Normalize arrays to handle different input formats
-  const normalizedSizes = React.useMemo((): string[] => {
-    if (!sizes) return [];
-    if (Array.isArray(sizes)) {
-      return sizes.filter((s: any) => s && String(s).trim());
-    }
-    const sizesStr = String(sizes);
-    if (sizesStr.includes(',')) {
-      return sizesStr.split(',').map((s: string) => s.trim()).filter((s: string) => s);
-    }
-    return sizesStr.trim() ? [sizesStr.trim()] : [];
-  }, [sizes]);
-
-  const normalizedColors = React.useMemo((): string[] => {
-    if (!colors) return [];
-    if (Array.isArray(colors)) {
-      return colors.filter((c: any) => c && String(c).trim());
-    }
-    const colorsStr = String(colors);
-    if (colorsStr.includes(',')) {
-      return colorsStr.split(',').map((c: string) => c.trim()).filter((c: string) => c);
-    }
-    return colorsStr.trim() ? [colorsStr.trim()] : [];
-  }, [colors]);
 
   const hasVariants = normalizedSizes.length > 0 || normalizedColors.length > 0;
 
@@ -327,10 +385,7 @@ export default function MultipleVariantSelector({
                           // Toggle selection - allow only one size at a time for combination
                           const newSize = isSelected ? '' : size;
                           setSelectedSizeForCombination(newSize);
-                          // Notify parent for image preview
-                          if (onVariantPreview) {
-                            onVariantPreview(newSize, selectedColorForCombination);
-                          }
+                          // Preview will be updated via useEffect that watches state changes
                         }
                       }}
                       disabled={!hasStock}
@@ -380,10 +435,7 @@ export default function MultipleVariantSelector({
                           // Toggle selection - allow only one color at a time for combination
                           const newColor = isSelected ? '' : color;
                           setSelectedColorForCombination(newColor);
-                          // Notify parent for image preview
-                          if (onVariantPreview) {
-                            onVariantPreview(selectedSizeForCombination, newColor);
-                          }
+                          // Preview will be updated via useEffect that watches state changes
                         }
                       }}
                       disabled={!hasStock}
@@ -440,16 +492,33 @@ export default function MultipleVariantSelector({
                   <span className="px-2.5 py-1 bg-gradient-to-br from-rose-100 to-pink-100 text-rose-700 rounded-lg font-bold">{selectedColorForCombination}</span>
                 </label>
                 <div className="flex flex-wrap gap-2.5 sm:gap-3">
-                  {normalizedSizes.map((size: string, index: number) => (
-                    <button
-                      key={`quick-size-${size}-${index}`}
-                      type="button"
-                      onClick={() => addVariant(size, selectedColorForCombination)}
-                      className="group px-4 py-2 sm:px-5 sm:py-2.5 border-2 border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50 hover:to-pink-50 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
-                    >
-                      {size} <span className="text-xs text-rose-500 ml-1">+</span>
-                    </button>
-                  ))}
+                  {normalizedSizes.map((size: string, index: number) => {
+                    const hasStock = isVariantInStock(size, selectedColorForCombination);
+                    return (
+                      <button
+                        key={`quick-size-${size}-${index}`}
+                        type="button"
+                        onClick={() => {
+                          if (hasStock) {
+                            // Trigger preview before adding variant
+                            if (onVariantPreview) {
+                              onVariantPreview(size, selectedColorForCombination);
+                            }
+                            addVariant(size, selectedColorForCombination);
+                          }
+                        }}
+                        disabled={!hasStock}
+                        className={`group px-4 py-2 sm:px-5 sm:py-2.5 border-2 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                          !hasStock
+                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
+                            : 'border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50 hover:to-pink-50'
+                        }`}
+                        title={!hasStock ? 'Out of stock' : ''}
+                      >
+                        {size} <span className="text-xs text-rose-500 ml-1">+</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -462,16 +531,33 @@ export default function MultipleVariantSelector({
                   <span className="px-2.5 py-1 bg-gradient-to-br from-rose-100 to-pink-100 text-rose-700 rounded-lg font-bold">{selectedSizeForCombination}</span>
                 </label>
                 <div className="flex flex-wrap gap-2.5 sm:gap-3">
-                  {normalizedColors.map((color: string, index: number) => (
-                    <button
-                      key={`quick-color-${color}-${index}`}
-                      type="button"
-                      onClick={() => addVariant(selectedSizeForCombination, color)}
-                      className="group px-4 py-2 sm:px-5 sm:py-2.5 border-2 border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50 hover:to-pink-50 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
-                    >
-                      {color} <span className="text-xs text-rose-500 ml-1">+</span>
-                    </button>
-                  ))}
+                  {normalizedColors.map((color: string, index: number) => {
+                    const hasStock = isVariantInStock(selectedSizeForCombination, color);
+                    return (
+                      <button
+                        key={`quick-color-${color}-${index}`}
+                        type="button"
+                        onClick={() => {
+                          if (hasStock) {
+                            // Trigger preview before adding variant
+                            if (onVariantPreview) {
+                              onVariantPreview(selectedSizeForCombination, color);
+                            }
+                            addVariant(selectedSizeForCombination, color);
+                          }
+                        }}
+                        disabled={!hasStock}
+                        className={`group px-4 py-2 sm:px-5 sm:py-2.5 border-2 font-semibold text-sm sm:text-base rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                          !hasStock
+                            ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
+                            : 'border-rose-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-gradient-to-br hover:from-rose-50 hover:to-pink-50'
+                        }`}
+                        title={!hasStock ? 'Out of stock' : ''}
+                      >
+                        {color} <span className="text-xs text-rose-500 ml-1">+</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

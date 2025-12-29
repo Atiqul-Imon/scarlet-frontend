@@ -106,8 +106,9 @@ export function getVariantImages(product: Product, size?: string, color?: string
   let sizeImages: string[] = [];
   let colorImages: string[] = [];
   
-  // If BOTH size and color are provided, try to get exact variant-specific images
-  if (product.variantImages && typeof product.variantImages === 'object' && size && color) {
+  // Try exact variant match first (works for both size+color and single variants)
+  // For color-only: "no-size_2", for size-only: "Large_no-color", for both: "Large_Red"
+  if (product.variantImages && typeof product.variantImages === 'object' && (size || color)) {
     const variantKey = getVariantKey(size, color);
     const variantImages = product.variantImages[variantKey];
     

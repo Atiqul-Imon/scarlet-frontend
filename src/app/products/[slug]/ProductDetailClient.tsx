@@ -99,6 +99,8 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
         setProduct(product);
         setSelectedSize(''); // Reset size selection when product changes
         setSelectedColor(''); // Reset color selection when product changes
+        setPreviewSize(''); // Reset preview when product changes
+        setPreviewColor(''); // Reset preview when product changes
         // displayedImages is now computed via useMemo, no initialization needed
         setLoading(false);
         hasLoadedRecommended.current = false; // Reset for new product
@@ -324,109 +326,84 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
       : [];
   }, [product?.images]);
 
-  // Memoize displayed images computation (replaces useEffect for better performance)
-  const displayedImages = React.useMemo(() => {
+  // Memoize ALL images (main + all variants) - always show in gallery
+  const allImages = React.useMemo(() => {
     if (!product) {
       return [];
     }
 
-    let imagesToDisplay: string[] = [];
+    // Always combine main images + all variant images (remove duplicates)
+    const imageSet = new Set<string>();
+    
+    // Add main images first (they take priority in order)
+    mainImages.forEach(img => {
+      if (img && typeof img === 'string' && img.trim() !== '') {
+        imageSet.add(img);
+      }
+    });
+    
+    // Add variant images (duplicates automatically ignored by Set)
+    allVariantImages.forEach(img => {
+      if (img && typeof img === 'string' && img.trim() !== '') {
+        imageSet.add(img);
+      }
+    });
+    
+    const combined = Array.from(imageSet);
+    
+    // Final fallback: ensure we always have images if any exist
+    if (combined.length === 0) {
+      if (mainImages.length > 0) {
+        return mainImages;
+      } else if (allVariantImages.length > 0) {
+        return allVariantImages;
+      }
+    }
+    
+    return combined;
+  }, [product, mainImages, allVariantImages]); // product dependency ensures recalculation if product object changes
+
+  // Memoize currently selected/previewed variant images (for highlighting in gallery)
+  const currentVariantImages = React.useMemo(() => {
+    if (!product) {
+      return [];
+    }
 
     // Priority order:
-    // 1. Variant selections (when variants are added to cart)
-    // 2. Preview (when selecting but not yet added)
+    // 1. Preview (when clicking/hovering a variant - highest priority for user feedback)
+    // 2. Variant selections (when variants are added to cart)
     // 3. Individual selections (legacy single selection)
-    // 4. Default (combine main images + all variant images when no variant selected)
     
-    if (variantSelections.length > 0) {
-      // If there are variant selections, use images from the first selected variant
+    // Always prioritize preview if it's set - this ensures preview updates when clicking different variants
+    if (previewSize || previewColor) {
+      // If variant is being previewed (clicked but may or may not be in cart), show those images
+      return getVariantImages(product, previewSize, previewColor);
+    } else if (variantSelections.length > 0) {
+      // If there are variant selections but no preview, use images from the first selected variant
       const firstSelection = variantSelections[0];
       if (firstSelection) {
-        imagesToDisplay = getVariantImages(product, firstSelection.size, firstSelection.color);
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Variant selection images:', {
-            size: firstSelection.size,
-            color: firstSelection.color,
-            variantImagesCount: imagesToDisplay.length,
-            hasVariantImages: imagesToDisplay.length > 0
-          });
-        }
-      }
-    } else if (previewSize || previewColor) {
-      // If variant is being previewed (selected but not yet added), show those images
-      // Can show images even if only size OR color is selected (will show matching variants)
-      imagesToDisplay = getVariantImages(product, previewSize, previewColor);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Variant preview images:', {
-          previewSize,
-          previewColor,
-          variantImagesCount: imagesToDisplay.length,
-          hasVariantImages: imagesToDisplay.length > 0,
-          partialSelection: (previewSize && !previewColor) || (!previewSize && previewColor)
-        });
-      }
-      
-      // If preview returns empty and we have fallback images, use them
-      if (imagesToDisplay.length === 0) {
-        // Combine main images with variant images (backward compatible)
-        if (mainImages.length > 0 || allVariantImages.length > 0) {
-          const imageSet = new Set<string>();
-          mainImages.forEach(img => imageSet.add(img));
-          allVariantImages.forEach(img => imageSet.add(img));
-          imagesToDisplay = Array.from(imageSet);
-        }
+        return getVariantImages(product, firstSelection.size, firstSelection.color);
       }
     } else if (selectedSize || selectedColor) {
       // If individual size/color is selected (but not yet in variantSelections), show those images
-      imagesToDisplay = getVariantImages(product, selectedSize, selectedColor);
-    } else {
-      // No variant selected: combine main images + all variant images (remove duplicates)
-      // Backward compatible: if no variant images exist, only main images will be shown
-      if (mainImages.length > 0 || allVariantImages.length > 0) {
-        // Use Set for O(1) deduplication (efficient for large image arrays)
-        const imageSet = new Set<string>();
-        // Add main images first (they take priority in order)
-        mainImages.forEach(img => {
-          if (img && typeof img === 'string' && img.trim() !== '') {
-            imageSet.add(img);
-          }
-        });
-        // Add variant images (duplicates automatically ignored by Set)
-        allVariantImages.forEach(img => {
-          if (img && typeof img === 'string' && img.trim() !== '') {
-            imageSet.add(img);
-          }
-        });
-        imagesToDisplay = Array.from(imageSet);
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Combined main + variant images:', {
-            mainImageCount: mainImages.length,
-            variantImageCount: allVariantImages.length,
-            totalUniqueImages: imagesToDisplay.length,
-            variantKeys: Object.keys(product.variantImages || {})
-          });
-        }
-      }
+      return getVariantImages(product, selectedSize, selectedColor);
     }
+    
+    // No variant selected/previewed
+    return [];
+  }, [product, variantSelections, previewSize, previewColor, selectedSize, selectedColor]);
 
-    // Final fallback: ensure we always have images if any exist (backward compatibility)
-    if (imagesToDisplay.length === 0) {
-      if (mainImages.length > 0) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Falling back to main images');
-        }
-        imagesToDisplay = mainImages;
-      } else if (allVariantImages.length > 0) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Falling back to all variant images');
-        }
-        imagesToDisplay = allVariantImages;
-      }
+  // Memoize initial image index (shows selected variant's first image, or first of all images)
+  const initialImageIndex = React.useMemo(() => {
+    if (currentVariantImages.length > 0 && allImages.length > 0) {
+      const index = allImages.findIndex(img => img === currentVariantImages[0]);
+      return index >= 0 ? index : 0;
     }
-
-    return imagesToDisplay;
-  }, [product, variantSelections, previewSize, previewColor, selectedSize, selectedColor, mainImages, allVariantImages]);
+    return 0;
+  }, [currentVariantImages, allImages]);
+  
+  // Note: We now always show all images in the gallery, and use initialImageIndex to show
+  // the selected variant's first image in the main preview
 
   // Intersection Observer: Load recommended products only when section is near viewport
   React.useEffect(() => {
@@ -592,10 +569,12 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
         message: `Added ${totalItems} item${totalItems > 1 ? 's' : ''} to cart successfully!`
       });
       
-      // Reset selections
+      // Reset selections and preview
       setVariantSelections([]);
       setSelectedSize('');
       setSelectedColor('');
+      setPreviewSize('');
+      setPreviewColor('');
       setQuantity(1);
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -937,7 +916,12 @@ export default function ProductDetailClient({ initialProduct = null }: ProductDe
           {/* Product Images */}
           <div className="relative">
             <div className="sticky top-8">
-              <ProductGallery images={displayedImages.length > 0 ? displayedImages : (product?.images || [])} productTitle={product.title} />
+              <ProductGallery 
+                images={allImages.length > 0 ? allImages : (product?.images || [])} 
+                productTitle={product.title}
+                variantImages={currentVariantImages}
+                initialImageIndex={initialImageIndex}
+              />
             </div>
           </div>
 

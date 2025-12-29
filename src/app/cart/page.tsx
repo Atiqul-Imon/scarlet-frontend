@@ -199,11 +199,14 @@ export default function CartPage() {
                     existingItem.quantity += item.quantity;
                     logger.log('Merged duplicate item from individual fetch:', itemKey);
                   } else {
+                    // Get variant-specific image, fallback to main product image
+                    const variantImage = getVariantImage(individualProduct, item.selectedSize, item.selectedColor);
+                    
                     const enrichedItem: CartItemData = {
                       productId: item.productId,
                       title: individualProduct.title || 'Unknown Product',
                       slug: individualProduct.slug || item.productId,
-                      image: individualProduct.images?.[0] || '/placeholder-product.jpg',
+                      image: variantImage || individualProduct.images?.[0] || '/placeholder-product.jpg',
                       price: individualProduct.price || { currency: 'BDT', amount: 0 },
                       quantity: item.quantity,
                       brand: individualProduct.brand,
