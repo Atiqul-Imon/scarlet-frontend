@@ -8,6 +8,8 @@ import { useCart } from '../../../lib/context';
 import logger from '../../../lib/logger';
 import { formatCartItems, trackPurchase } from '../../../lib/meta-pixel';
 
+const BACKEND_URL = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:4000';
+
 interface PaymentSuccessData {
   tran_id?: string;
   amount?: string;
@@ -123,19 +125,30 @@ function PaymentSuccessContent() {
         const trackPurchaseEvent = async () => {
           try {
             // Fetch order details to get items for Purchase event
-            const response = await fetch(`/api/orders/by-number/${tranId}`);
+            const response = await fetch(`${BACKEND_URL}/api/orders/by-number/${tranId}`);
             if (response.ok) {
               const order = await response.json();
               
               if (order && order.items && order.items.length > 0) {
-                // Format order items for Meta Pixel
-                const validItems = order.items.filter((item: any) => item.product && item.product._id);
+                // Order items have productId, price, quantity directly (not nested product object)
+                const validItems = order.items.filter((item: any) => item.productId && item.price && item.quantity);
+                
                 if (validItems.length > 0) {
-                  const cartData = formatCartItems(validItems.map((item: any) => ({
-                    product: item.product,
-                    quantity: item.quantity,
-                    price: item.price || item.product.price
-                  })));
+                  // Format order items for Meta Pixel
+                  // Map order items to format expected by formatCartItems
+                  const formattedItems = validItems.map((item: any) => ({
+                    product: {
+                      _id: item.productId,
+                      title: item.title || 'Product',
+                      price: {
+                        amount: item.price,
+                        currency: order.currency || 'BDT'
+                      }
+                    },
+                    quantity: item.quantity
+                  }));
+                  
+                  const cartData = formatCartItems(formattedItems);
                   
                   trackPurchase({
                     ...cartData,
@@ -145,11 +158,39 @@ function PaymentSuccessContent() {
                   
                   logger.info('Purchase event tracked for order:', order.orderNumber || tranId);
                   setPurchaseTracked(true);
+                  
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('[Payment Success] Purchase event tracked:', {
+                      orderNumber: order.orderNumber,
+                      orderId: order._id,
+                      items: validItems.length,
+                      value: cartData.value,
+                      currency: cartData.currency
+                    });
+                  }
+                } else {
+                  logger.warn('No valid items found in order for Purchase tracking:', tranId);
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn('[Payment Success] Order items missing required fields:', order.items);
+                  }
                 }
+              } else {
+                logger.warn('Order has no items for Purchase tracking:', tranId);
+                if (process.env.NODE_ENV === 'development') {
+                  console.warn('[Payment Success] Order has no items:', order);
+                }
+              }
+            } else {
+              logger.warn('Failed to fetch order for Purchase tracking:', tranId, response.status);
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[Payment Success] Failed to fetch order:', response.status, response.statusText);
               }
             }
           } catch (error) {
             logger.error('Error tracking Purchase event:', error);
+            if (process.env.NODE_ENV === 'development') {
+              console.error('[Payment Success] Error tracking Purchase:', error);
+            }
             // Continue anyway - payment was successful
           }
         };
