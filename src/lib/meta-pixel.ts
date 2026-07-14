@@ -13,6 +13,21 @@ export const isMetaPixelLoaded = (): boolean => {
  * Generate a unique event ID for deduplication (for future CAPI integration)
  * Format: {prefix}-{timestamp}-{random}
  */
+const CURRENCY_MAP: Record<string, string> = {
+  TAKA: 'BDT',
+  '৳': 'BDT',
+  USD: 'USD',
+  EUR: 'EUR',
+  GBP: 'GBP',
+  BDT: 'BDT',
+};
+
+const normalizeCurrency = (raw?: string | null): string => {
+  if (!raw) return 'BDT';
+  const upper = raw.trim().toUpperCase();
+  return CURRENCY_MAP[upper] ?? (upper.length === 3 ? upper : 'BDT');
+};
+
 const generateEventId = (prefix: string = 'event'): string => {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 15);
@@ -317,7 +332,7 @@ export const formatProductData = (product: {
     content_ids: [product._id],
     content_type: 'product',
     value: product.price.amount,
-    currency: product.price.currency || 'BDT',
+    currency: normalizeCurrency(product.price.currency),
   };
 };
 
@@ -365,7 +380,8 @@ export const formatCartItems = (items: Array<{
       item_price: price,
     });
 
-    totalValue += price * quantity;
+    const safePrice = typeof price === 'number' && !isNaN(price) ? price : 0;
+    totalValue += safePrice * quantity;
     totalItems += quantity;
   });
 
@@ -373,7 +389,7 @@ export const formatCartItems = (items: Array<{
     content_ids: contentIds,
     contents,
     value: totalValue,
-    currency: items[0]?.product.price.currency || 'BDT',
+    currency: normalizeCurrency(items[0]?.product.price.currency),
     num_items: totalItems,
   };
 };
